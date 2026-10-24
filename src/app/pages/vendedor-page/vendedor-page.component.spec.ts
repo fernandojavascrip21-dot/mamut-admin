@@ -2,21 +2,21 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { AdminShellComponent } from './admin-shell.component';
-import type { AuthContext } from '../core/auth/auth.models';
+import { VendedorPageComponent } from './vendedor-page.component';
+import type { AuthContext } from '../../auth/interfaces/auth.models';
 
-const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana López' };
+const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 
-describe('AdminShellComponent', () => {
-  let fixture: ComponentFixture<AdminShellComponent>;
+describe('VendedorPageComponent', () => {
+  let fixture: ComponentFixture<VendedorPageComponent>;
 
   beforeEach(() => {
-    localStorage.setItem('mamut.user', JSON.stringify(ADMIN));
+    localStorage.setItem('mamut.user', JSON.stringify(VENDEDOR));
     TestBed.configureTestingModule({
-      imports: [AdminShellComponent],
+      imports: [VendedorPageComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
-    fixture = TestBed.createComponent(AdminShellComponent);
+    fixture = TestBed.createComponent(VendedorPageComponent);
     fixture.detectChanges();
   });
 
@@ -28,16 +28,17 @@ describe('AdminShellComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('muestra el menú del administrador: Stock, Productos, Carrito, Corte, Vendedores', () => {
+  it('muestra el menú del vendedor: Mi stock, Vender, Carrito, Mi corte (sin costos ni ganancia)', () => {
     const labels = Array.from(fixture.nativeElement.querySelectorAll('nav a')).map((a) =>
       (a as HTMLElement).textContent?.trim(),
     );
-    expect(labels).toEqual(['Stock', 'Productos', 'Carrito', 'Corte', 'Vendedores']);
+    expect(labels).toEqual(['Mi stock', 'Vender', 'Carrito', 'Mi corte']);
+    expect(fixture.nativeElement.textContent).not.toMatch(/costo|ganancia/i);
   });
 
   it('muestra las iniciales del usuario y enlaza a /cuenta', () => {
     const account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
-    expect(account.textContent?.trim()).toBe('AL');
+    expect(account.textContent?.trim()).toBe('LU');
     expect(account.getAttribute('href')).toBe('/cuenta');
   });
 });

@@ -27,7 +27,7 @@ npm test                # ng test — unit tests via @angular/build:unit-test (v
 Running a single test or filtering by name (the test runner is Vitest-based, not Karma/Jasmine):
 
 ```bash
-ng test --include src/app/core/auth/auth.service.spec.ts
+ng test --include src/app/auth/services/auth.service.spec.ts
 ng test --filter "AuthService"
 ```
 
@@ -58,19 +58,22 @@ After every `npm run db:pull`, two manual fixups are needed in `src/db/schema.ts
 
 ### Frontend
 
-Standalone-component Angular app with SSR (`provideClientHydration`, `src/server.ts`, `outputMode: "server"` in `angular.json`). As of now it's an empty scaffold — `app.routes.ts` has no routes yet, there is no auth/http code. `specs/M0-base/spec.md` is the design for the first real slice (login, role-based navigation shell, session persistence) and is the reference for how `core/auth/`, `layouts/*-shell/`, and route guards should be structured once built.
+Standalone-component Angular app with SSR (`provideClientHydration`, `src/server.ts`, `outputMode: "server"` in `angular.json`). `specs/M0-base/spec.md` is the design for the first real slice (login, role-based navigation, session persistence) and is the reference for the business rules behind `auth/` and `pages/`.
 
 ### Frontend conventions
+
+**Architecture — feature-based folders, not by file type:**
+
+- `src/app/pages/`: components tied to a route, one subfolder per page (`pages/login-page/login-page.component.ts`). A page that itself hosts a `<router-outlet>` (e.g. `admin-page`, `vendedor-page`) still lives here — it's a page, not a separate "layout" concept.
+- `src/app/<funcionalidad>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/` (add `components/` inside it if that area ever needs its own non-page components). Example: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`).
+- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`) — not tied to one feature or one page.
+- Inside a page or component that grows subcomponents purely for visual composition (e.g. a skeleton), put those under its own `ui/` subfolder.
+- No global `src/app/components/` or `src/app/services/` catch-alls at the root — everything lives inside a page or a feature folder.
+- Create a new feature's whole folder (and its `services/`/`guards/`/`interfaces/` subfolders) before adding files into it, not file-by-file.
 
 **Comments:** every non-trivial function (auth flows, guards, interceptors, anything with a non-obvious rule) gets a short comment explaining what it does and why — not a restatement of the code, something a reader can't get from the signature alone.
 
 **Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (generate components with `--style=none`, or delete the generated stylesheet and drop `styleUrl`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own.
-
-**Architecture — LIFT (Angular Style Guide):** Locate quickly, Identify at a glance, Flat as long as you can, Try to be DRY.
-
-- Group files by feature folder (`core/auth/`, `layouts/`, `features/`), not by file type.
-- Inside a feature folder, stay flat: a component with no siblings lives directly as `name.component.ts`/`.html`/`.css` in its feature folder, not in its own subfolder. Give a component its own subfolder only once it actually grows into several related files. Use `ng generate component name --flat` to scaffold directly into the parent folder instead of creating a new one.
-- A folder with several unrelated files for one area (e.g. `core/auth/`: models, service, interceptor, guard) is fine and expected — that's grouping by feature, not violating "flat".
 
 **Components:**
 

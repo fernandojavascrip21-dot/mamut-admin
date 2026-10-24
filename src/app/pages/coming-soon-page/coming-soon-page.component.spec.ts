@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
-import { ComingSoonComponent } from './coming-soon.component';
+import { ComingSoonPageComponent } from './coming-soon-page.component';
 
-function createWithTitle(title: string | undefined): ComponentFixture<ComingSoonComponent> {
+function createWithTitle(title: string | undefined): ComponentFixture<ComingSoonPageComponent> {
   TestBed.configureTestingModule({
-    imports: [ComingSoonComponent],
+    imports: [ComingSoonPageComponent],
     providers: [
       {
         provide: ActivatedRoute,
@@ -16,12 +16,12 @@ function createWithTitle(title: string | undefined): ComponentFixture<ComingSoon
       },
     ],
   });
-  const fixture = TestBed.createComponent(ComingSoonComponent);
+  const fixture = TestBed.createComponent(ComingSoonPageComponent);
   fixture.detectChanges();
   return fixture;
 }
 
-describe('ComingSoonComponent', () => {
+describe('ComingSoonPageComponent', () => {
   it('muestra el título que trae la ruta', () => {
     const fixture = createWithTitle('Stock');
     expect(fixture.nativeElement.textContent).toContain('Próximamente: Stock');

@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService } from '../core/auth/auth.service';
-import { initialsOf } from '../core/initials';
+import { AuthService } from '../../auth/services/auth.service';
+import { initialsOf } from '../../shared/initials';
 
 interface MenuItem {
   path: string;
@@ -16,14 +16,14 @@ const MENU: MenuItem[] = [
   { path: 'vendedores', label: 'Vendedores' },
 ];
 
-// Shell del administrador: cabecera + contenido de la ruta activa + menú inferior
+// Página del administrador: cabecera + contenido de la ruta activa + menú inferior
 // Stock · Productos · Carrito · Corte · Vendedores (RF-01, mockup pantalla 02 y siguientes).
 @Component({
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
-  selector: 'app-admin-shell',
-  templateUrl: './admin-shell.component.html',
+  selector: 'app-admin-page',
+  templateUrl: './admin-page.component.html',
 })
-export class AdminShellComponent {
+export class AdminPageComponent {
   private readonly auth = inject(AuthService);
 
   readonly menu = MENU;

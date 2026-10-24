@@ -1,18 +1,18 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../core/auth/auth.service';
-import { initialsOf } from '../core/initials';
-import { ROLE_HOME } from '../core/auth/role.guard';
+import { AuthService } from '../../auth/services/auth.service';
+import { initialsOf } from '../../shared/initials';
+import { ROLE_HOME } from '../../auth/guards/role.guard';
 
 // Pantalla 14/14b Mi cuenta (RF-01), compartida por administrador y vendedor. "Usuario" y
 // "Último acceso" del mockup se omiten en M0: AuthContext no trae ni correo ni fecha de
 // acceso (ver specs/M0-base/spec.md §8, pregunta 3).
 @Component({
   imports: [],
-  selector: 'app-account',
-  templateUrl: './account.component.html',
+  selector: 'app-account-page',
+  templateUrl: './account-page.component.html',
 })
-export class AccountComponent {
+export class AccountPageComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 

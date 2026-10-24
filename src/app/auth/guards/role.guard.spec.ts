@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Route, Router, UrlTree, provideRouter } from '@angular/router';
 import { ROLE_HOME, roleGuard } from './role.guard';
-import type { AuthContext } from './auth.models';
+import type { AuthContext } from '../interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };
 const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };

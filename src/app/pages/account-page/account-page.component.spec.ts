@@ -3,9 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
-import { AccountComponent } from './account.component';
-import { API_BASE_URL } from '../core/api-base-url';
-import type { AuthContext } from '../core/auth/auth.models';
+import { AccountPageComponent } from './account-page.component';
+import { API_BASE_URL } from '../../shared/api-base-url';
+import type { AuthContext } from '../../auth/interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana López' };
 const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
@@ -14,17 +14,17 @@ const LOGOUT_URL = `${API_BASE_URL}/api/auth/logout`;
 function createFor(user: AuthContext) {
   localStorage.setItem('mamut.user', JSON.stringify(user));
   TestBed.configureTestingModule({
-    imports: [AccountComponent],
+    imports: [AccountPageComponent],
     providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
   });
-  const fixture: ComponentFixture<AccountComponent> = TestBed.createComponent(AccountComponent);
+  const fixture: ComponentFixture<AccountPageComponent> = TestBed.createComponent(AccountPageComponent);
   const router = TestBed.inject(Router);
   vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
   fixture.detectChanges();
   return { fixture, router, httpMock: TestBed.inject(HttpTestingController) };
 }
 
-describe('AccountComponent', () => {
+describe('AccountPageComponent', () => {
   afterEach(() => {
     localStorage.clear();
   });

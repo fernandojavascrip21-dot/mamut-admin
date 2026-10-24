@@ -9,10 +9,10 @@ const DEFAULT_TITLE = 'Próximamente';
 // posterior (M1-M7). La ruta la usa pasando `data: { title: '...' }`.
 @Component({
   imports: [],
-  selector: 'app-coming-soon',
-  templateUrl: './coming-soon.component.html',
+  selector: 'app-coming-soon-page',
+  templateUrl: './coming-soon-page.component.html',
 })
-export class ComingSoonComponent {
+export class ComingSoonPageComponent {
   private readonly route = inject(ActivatedRoute);
 
   readonly title = toSignal(

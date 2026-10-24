@@ -3,9 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
-import { LoginComponent } from './login.component';
-import { API_BASE_URL } from '../core/api-base-url';
-import type { AuthContext, SessionResult } from '../core/auth/auth.models';
+import { LoginPageComponent } from './login-page.component';
+import { API_BASE_URL } from '../../shared/api-base-url';
+import type { AuthContext, SessionResult } from '../../auth/interfaces/auth.models';
 
 const ADMIN_USER: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };
 const ADMIN_SESSION: SessionResult = {
@@ -16,18 +16,18 @@ const ADMIN_SESSION: SessionResult = {
 };
 const LOGIN_URL = `${API_BASE_URL}/api/auth/login`;
 
-describe('LoginComponent', () => {
-  let fixture: ComponentFixture<LoginComponent>;
+describe('LoginPageComponent', () => {
+  let fixture: ComponentFixture<LoginPageComponent>;
   let httpMock: HttpTestingController;
   let router: Router;
 
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      imports: [LoginComponent],
+      imports: [LoginPageComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
-    fixture = TestBed.createComponent(LoginComponent);
+    fixture = TestBed.createComponent(LoginPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);

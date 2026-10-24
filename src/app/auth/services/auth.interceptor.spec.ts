@@ -5,8 +5,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, Router } from '@angular/router';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
-import { API_BASE_URL } from '../api-base-url';
-import type { AuthContext, SessionResult } from './auth.models';
+import { API_BASE_URL } from '../../shared/api-base-url';
+import type { AuthContext, SessionResult } from '../interfaces/auth.models';
 
 const USER: AuthContext = { userId: 'u1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 const SESSION: SessionResult = {

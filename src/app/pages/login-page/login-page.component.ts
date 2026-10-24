@@ -1,18 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ROLE_HOME } from '../core/auth/role.guard';
-import { AuthService } from '../core/auth/auth.service';
+import { ROLE_HOME } from '../../auth/guards/role.guard';
+import { AuthService } from '../../auth/services/auth.service';
 
 type LoginState = 'form' | 'loading' | 'error-credentials' | 'offline';
 
 // Pantalla 01 Inicio de sesión (RF-01, RF-02, RNF-04). Estados: ver specs/M0-base/spec.md §3.1.
 @Component({
   imports: [],
-  selector: 'app-login',
-  templateUrl: './login.component.html',
+  selector: 'app-login-page',
+  templateUrl: './login-page.component.html',
 })
-export class LoginComponent {
+export class LoginPageComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 

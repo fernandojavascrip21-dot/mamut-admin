@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Route, Router } from '@angular/router';
-import { AuthService } from './auth.service';
-import type { AuthContext } from './auth.models';
+import { AuthService } from '../services/auth.service';
+import type { AuthContext } from '../interfaces/auth.models';
 
 // A dónde manda el guard cuando el rol de quien entra no es el que la ruta permite.
 // Un rol sin entrada aquí (p. ej. 'client', ajeno a este frontend) cae al login.
