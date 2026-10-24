@@ -161,11 +161,13 @@ El estado "sin conexión" (criterio 5 de HU-01) no es una respuesta del backend:
 - `core/auth/auth.service.ts` — `login()`, `logout()`, `refresh()`; signals `currentUser` e `isAuthenticated`; persiste `accessToken`, `refreshToken` y `user` en `localStorage` bajo las claves `mamut.accessToken`, `mamut.refreshToken` y `mamut.user`.
 - `core/auth/auth.interceptor.ts` — agrega `Authorization: Bearer <accessToken>` a toda petición a la API; ante un 401 intenta `refresh()` una vez antes de forzar `logout()` y redirigir a `/login`.
 - `core/auth/role.guard.ts` — `canMatch` que exige sesión válida y el rol permitido por la ruta; sin sesión redirige a `/login`, con el rol equivocado redirige a la home de su propio rol.
-- `features/login/login.page.ts` (+ `.html`, `.css`) — pantalla 01, con los 3 estados de la sección 3.1.
-- `features/account/account.page.ts` (+ `.html`, `.css`) — pantalla 14/14b Mi cuenta, con el diálogo de confirmación de cierre de sesión descrito en el mockup `Cuenta.dc.html`.
-- `layouts/admin-shell/admin-shell.component.ts` — layout con el menú inferior del administrador.
-- `layouts/vendedor-shell/vendedor-shell.component.ts` — layout con el menú inferior del vendedor.
-- `features/placeholder/coming-soon.page.ts` — pantalla genérica "Próximamente: {título}", reusada por cada ruta placeholder del menú.
+- `features/login.page.ts` (+ `.html`, `.css`) — pantalla 01, con los 3 estados de la sección 3.1.
+- `features/account.page.ts` (+ `.html`, `.css`) — pantalla 14/14b Mi cuenta, con el diálogo de confirmación de cierre de sesión descrito en el mockup `Cuenta.dc.html`.
+- `layouts/admin-shell.component.ts` (+ `.html`, `.css`) — layout con el menú inferior del administrador.
+- `layouts/vendedor-shell.component.ts` (+ `.html`, `.css`) — layout con el menú inferior del vendedor.
+- `features/coming-soon.page.ts` (+ `.html`, `.css`) — pantalla genérica "Próximamente: {título}", reusada por cada ruta placeholder del menú.
+
+Estructura plana por carpeta de feature (LIFT): subcarpeta por componente solo si ese componente crece a varios archivos relacionados; ver `CLAUDE.md`.
 - `app.routes.ts` — árbol de rutas: `/login`, `/cuenta`, y las rutas de cada shell protegidas por `role.guard.ts`.
 
 **Backend (`mamut-admin/backend/src/`):**

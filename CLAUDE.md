@@ -62,6 +62,12 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 
 ### Frontend conventions
 
+**Architecture — LIFT (Angular Style Guide):** Locate quickly, Identify at a glance, Flat as long as you can, Try to be DRY.
+
+- Group files by feature folder (`core/auth/`, `layouts/`, `features/`), not by file type.
+- Inside a feature folder, stay flat: a component with no siblings lives directly as `name.component.ts`/`.html`/`.css` in its feature folder, not in its own subfolder. Give a component its own subfolder only once it actually grows into several related files. Use `ng generate component name --flat` to scaffold directly into the parent folder instead of creating a new one.
+- A folder with several unrelated files for one area (e.g. `core/auth/`: models, service, interceptor, guard) is fine and expected — that's grouping by feature, not violating "flat".
+
 **Components:**
 
 - Always create components with `ng generate component`, never by hand-writing the files.
