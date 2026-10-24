@@ -55,7 +55,7 @@ export const profiles = pgTable("profiles", {
 			name: "profiles_id_fkey"
 		}).onDelete("cascade"),
 	check("profiles_client_id_matches_role", sql`(role = 'client'::text) = (client_id IS NOT NULL)`),
-	check("profiles_role_check", sql`role = ANY (ARRAY['admin'::text, 'client'::text])`),
+	check("profiles_role_check", sql`role = ANY (ARRAY['admin'::text, 'client'::text, 'vendedor'::text])`),
 ]);
 
 export const products = pgTable("products", {

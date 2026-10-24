@@ -18,7 +18,7 @@ export interface TestUser {
 
 export async function createTestUser(
   label: string,
-  profile: { role: 'admin' | 'client'; clientId?: number; active?: boolean } | null,
+  profile: { role: 'admin' | 'client' | 'vendedor'; clientId?: number; active?: boolean } | null,
 ): Promise<TestUser> {
   const email = `${TEST_PREFIX}${label}-${Date.now()}@example.com`
   const { data, error } = await supabaseAdmin().auth.admin.createUser({
