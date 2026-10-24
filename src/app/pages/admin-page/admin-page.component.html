@@ -1,31 +1,37 @@
 <div class="flex min-h-screen flex-col bg-page">
-  <header class="flex items-center justify-between border-b border-line bg-white px-5 py-3">
-    <div class="flex items-center gap-2.5">
-      <span class="rounded-md bg-ink px-2 py-1.5 font-mono text-xs font-bold text-white">MMT</span>
-      <span class="text-sm font-semibold text-muted">Mammut Supplements</span>
+  <header class="border-b border-line bg-white px-5 py-3">
+    <div class="mx-auto flex w-full max-w-5xl items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="rounded-md bg-ink px-2 py-1.5 font-mono text-xs font-bold text-white">MMT</span>
+        <span class="text-sm font-semibold text-muted">Mammut Supplements</span>
+      </div>
+      <a
+        routerLink="/cuenta"
+        aria-label="Mi cuenta"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-xs font-bold text-white"
+      >
+        {{ initials() }}
+      </a>
     </div>
-    <a
-      routerLink="/cuenta"
-      aria-label="Mi cuenta"
-      class="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-xs font-bold text-white"
-    >
-      {{ initials() }}
-    </a>
   </header>
 
   <main class="flex flex-1 flex-col overflow-y-auto">
-    <router-outlet></router-outlet>
+    <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col">
+      <router-outlet></router-outlet>
+    </div>
   </main>
 
-  <nav class="grid grid-cols-5 border-t border-line bg-white text-muted" aria-label="Menú del administrador">
-    @for (item of menu; track item.path) {
-      <a
-        [routerLink]="item.path"
-        routerLinkActive="text-accent"
-        class="flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold"
-      >
-        {{ item.label }}
-      </a>
-    }
+  <nav class="border-t border-line bg-white text-muted" aria-label="Menú del administrador">
+    <div class="mx-auto grid w-full max-w-5xl grid-cols-5">
+      @for (item of menu; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="text-accent"
+          class="flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </div>
   </nav>
 </div>

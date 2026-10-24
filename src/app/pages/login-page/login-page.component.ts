@@ -24,15 +24,19 @@ export class LoginPageComponent {
 
   // Valida los campos en el cliente antes de llamar al backend (criterio 4 de HU-01): si alguno
   // está vacío, marca el error puntual de ese campo y nunca llega a intentar el login.
+  // El usuario (correo) se recorta antes de enviarlo: un espacio de más (p. ej. autocompletado
+  // del navegador) hace que Supabase lo trate como un correo distinto y responda igual que una
+  // contraseña incorrecta. La contraseña se manda tal cual se escribió, sin recortar.
   onSubmit(usuario: string, contrasena: string): void {
-    const usuarioVacio = usuario.trim() === '';
+    const usuarioLimpio = usuario.trim();
+    const usuarioVacio = usuarioLimpio === '';
     const contrasenaVacia = contrasena.trim() === '';
     this.usuarioError.set(usuarioVacio ? 'Escribe tu usuario' : null);
     this.contrasenaError.set(contrasenaVacia ? 'Escribe tu contraseña' : null);
     if (usuarioVacio || contrasenaVacia) return;
 
-    this.lastAttempt = { usuario, contrasena };
-    this.attempt(usuario, contrasena);
+    this.lastAttempt = { usuario: usuarioLimpio, contrasena };
+    this.attempt(usuarioLimpio, contrasena);
   }
 
   // Botón "Reintentar" del estado sin conexión (criterio 5): reintenta con los mismos datos

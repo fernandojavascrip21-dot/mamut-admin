@@ -66,6 +66,14 @@ describe('LoginPageComponent', () => {
     httpMock.expectNone(LOGIN_URL);
   });
 
+  it('recorta espacios de más en el usuario antes de enviarlo (no la contraseña)', () => {
+    fillAndSubmit('  admin@mammut.local  ', ' secreta ');
+
+    const req = httpMock.expectOne(LOGIN_URL);
+    expect(req.request.body).toEqual({ email: 'admin@mammut.local', password: ' secreta ' });
+    req.flush(ADMIN_SESSION);
+  });
+
   it('con credenciales correctas de administrador redirige a /admin', () => {
     fillAndSubmit('admin@mammut.local', 'secreta');
     expect(fixture.nativeElement.textContent).toContain('Entrando…');
