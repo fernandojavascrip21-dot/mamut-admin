@@ -1,0 +1,147 @@
+<div class="mx-auto flex min-h-screen w-full max-w-[390px] flex-col bg-page px-6 pt-16 pb-8">
+  <div class="flex items-center gap-2.5">
+    <span class="rounded-md bg-ink px-2 py-1.5 font-mono text-xs font-bold text-white">MMT</span>
+    <span class="text-sm font-semibold text-muted">Mammut Supplements</span>
+  </div>
+
+  <h1 class="mt-10 font-display text-[44px] leading-none font-extrabold tracking-[-0.03em]">
+    Tu stock,<br />al día.
+  </h1>
+  <p class="mt-3.5 text-base leading-relaxed text-muted">
+    Bodega, vendedores y ventas en un solo lugar.
+  </p>
+
+  <div class="mt-7 flex h-2.5 gap-[3px] overflow-hidden rounded-full" aria-hidden="true">
+    <span class="flex-[5] bg-ink"></span>
+    <span class="flex-[3] bg-accent"></span>
+    <span class="flex-[2] bg-accent-2"></span>
+    <span class="flex-1 bg-faint"></span>
+  </div>
+
+  @if (state() === 'error-credentials') {
+    <div
+      class="mt-6 flex items-start gap-2.5 rounded-2xl border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+      role="alert"
+    >
+      <svg
+        aria-hidden="true"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="shrink-0 stroke-danger"
+      >
+        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+        <path d="M12 9v4"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
+      <div>
+        <p class="m-0 text-[15px] font-bold">Usuario o contraseña incorrectos</p>
+        <p class="mt-0.5 mb-0 text-sm leading-snug">Revísalos e inténtalo de nuevo.</p>
+      </div>
+    </div>
+  }
+
+  @if (state() === 'offline') {
+    <div
+      class="mt-6 flex items-start gap-2.5 rounded-2xl border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+      role="alert"
+    >
+      <svg
+        aria-hidden="true"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="shrink-0 stroke-danger"
+      >
+        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+        <path d="M12 9v4"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
+      <div>
+        <p class="m-0 text-[15px] font-bold">No hay conexión a internet</p>
+        <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+        <button
+          type="button"
+          class="retry mt-2.5 h-9 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+          (click)="retry()"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  }
+
+  <form
+    class="mt-6 flex flex-col gap-4 rounded-2xl border border-line bg-white p-5"
+    (submit)="$event.preventDefault(); onSubmit(usuario.value, contrasena.value)"
+    novalidate
+  >
+    <div class="flex flex-col gap-1.5">
+      <label for="usuario" class="text-sm font-semibold">Usuario</label>
+      <input
+        id="usuario"
+        name="usuario"
+        type="text"
+        autocomplete="username"
+        #usuario
+        [disabled]="state() === 'loading'"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (usuarioError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (usuarioError()) {
+        <p class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+          {{ usuarioError() }}
+        </p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="contrasena" class="text-sm font-semibold">Contraseña</label>
+      <input
+        id="contrasena"
+        name="contrasena"
+        type="password"
+        autocomplete="current-password"
+        #contrasena
+        [disabled]="state() === 'loading'"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (contrasenaError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (contrasenaError()) {
+        <p class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+          {{ contrasenaError() }}
+        </p>
+      }
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="state() === 'loading'"
+      class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:bg-disabled disabled:text-muted"
+    >
+      {{ state() === 'loading' ? 'Entrando…' : 'Entrar' }}
+    </button>
+    @if (state() === 'loading') {
+      <p class="-mt-1 text-center text-[13px] text-muted" role="status">
+        Revisando tu usuario y contraseña.
+      </p>
+    }
+  </form>
+
+  <p class="mt-6 text-center text-sm leading-relaxed text-muted">
+    Entras como administrador o vendedor según tu usuario. Si olvidaste tu contraseña, pídela al
+    administrador.
+  </p>
+</div>

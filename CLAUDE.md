@@ -62,6 +62,8 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 
 ### Frontend conventions
 
+**Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (generate components with `--style=none`, or delete the generated stylesheet and drop `styleUrl`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own.
+
 **Architecture — LIFT (Angular Style Guide):** Locate quickly, Identify at a glance, Flat as long as you can, Try to be DRY.
 
 - Group files by feature folder (`core/auth/`, `layouts/`, `features/`), not by file type.
