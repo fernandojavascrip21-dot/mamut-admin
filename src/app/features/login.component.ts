@@ -22,6 +22,8 @@ export class LoginComponent {
 
   private lastAttempt: { usuario: string; contrasena: string } | null = null;
 
+  // Valida los campos en el cliente antes de llamar al backend (criterio 4 de HU-01): si alguno
+  // está vacío, marca el error puntual de ese campo y nunca llega a intentar el login.
   onSubmit(usuario: string, contrasena: string): void {
     const usuarioVacio = usuario.trim() === '';
     const contrasenaVacia = contrasena.trim() === '';
@@ -33,10 +35,15 @@ export class LoginComponent {
     this.attempt(usuario, contrasena);
   }
 
+  // Botón "Reintentar" del estado sin conexión (criterio 5): reintenta con los mismos datos
+  // que ya se habían escrito, sin pedirlos de nuevo.
   retry(): void {
     if (this.lastAttempt) this.attempt(this.lastAttempt.usuario, this.lastAttempt.contrasena);
   }
 
+  // Intento real de login contra el backend. Al resolver bien, manda a cada rol a su propia
+  // home (ROLE_HOME, el mismo mapa que usa el guard); al fallar, distingue sin red de
+  // credenciales incorrectas para mostrar el estado correcto (ver isOffline).
   private attempt(usuario: string, contrasena: string): void {
     this.state.set('loading');
     this.auth.login(usuario, contrasena).subscribe({

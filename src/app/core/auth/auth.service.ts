@@ -29,6 +29,8 @@ export class AuthService {
     return this.isBrowser ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
   }
 
+  // Llama a POST /api/auth/login y, si responde bien, guarda la sesión (localStorage + signal)
+  // antes de que quien llamó reciba el resultado.
   login(email: string, password: string): Observable<SessionResult> {
     return this.http
       .post<SessionResult>(`${API_BASE_URL}/api/auth/login`, { email, password })
@@ -44,6 +46,8 @@ export class AuthService {
       .pipe(tap((result) => this.storeSession(result)));
   }
 
+  // Invalida el token en el backend (Supabase) y, si la petición responde bien, limpia la
+  // sesión local. Si falla, quien llama puede decidir si de todos modos usa clearSession().
   logout(): Observable<void> {
     return this.http
       .post<void>(`${API_BASE_URL}/api/auth/logout`, {})
@@ -60,6 +64,8 @@ export class AuthService {
     this.currentUserSignal.set(null);
   }
 
+  // Punto único donde una sesión nueva (de login o de refresh) se persiste y se refleja en los
+  // signals públicos, para que ambos caminos queden siempre sincronizados entre sí.
   private storeSession(result: SessionResult): void {
     if (this.isBrowser) {
       localStorage.setItem(ACCESS_TOKEN_KEY, result.accessToken);
@@ -69,6 +75,8 @@ export class AuthService {
     this.currentUserSignal.set(result.user);
   }
 
+  // Lee la sesión que haya quedado de una visita anterior, para que currentUser arranque con
+  // el valor correcto desde el primer render (persistencia entre recargas).
   private readStoredUser(): AuthContext | null {
     if (!this.isBrowser) return null;
     const raw = localStorage.getItem(USER_KEY);
