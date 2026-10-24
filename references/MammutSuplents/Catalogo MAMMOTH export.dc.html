@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="ext-resource-dependency" content="assets/logo-mammoth.png" data-resource-id="logo" />
+<template id="__bundler_thumbnail" data-bg-color="#15100D">
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+<rect width="1200" height="800" fill="#15100D"/>
+<circle cx="600" cy="400" r="230" fill="#211915" stroke="#C8722C" stroke-width="14"/>
+<circle cx="600" cy="400" r="196" fill="none" stroke="#8F3B18" stroke-width="6"/>
+<text x="600" y="452" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="190" fill="#EDE0C8">M</text>
+</svg>
+</template>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#15100D;font-family:'Barlow',system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#C8722C;text-decoration:none}
+a:hover{color:#EDE0C8}
+input,button,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid #C8722C;outline-offset:2px}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+@keyframes cardIn{from{opacity:1}to{opacity:1}}
+@keyframes popIn{from{opacity:1}to{opacity:1}}
+}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#15100D;color:#EDE0C8">
+
+  <header id="mmth-hdr" style="position:sticky;top:0;z-index:40;background:#15100D;border-bottom:1px solid rgba(237,224,200,.12);overflow:hidden" style-before="content:'';position:absolute;top:-120px;right:-60px;width:520px;height:520px;background:url(assets/logo-mammoth.png) center/contain no-repeat;opacity:.04;pointer-events:none" style-after="content:'';position:absolute;inset:0;background:url(data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E);opacity:.035;pointer-events:none;mix-blend-mode:overlay">
+    <div style="position:relative;z-index:2;max-width:1520px;margin:0 auto;padding:14px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px">
+      <a href="#" style="display:flex;flex:0 0 auto;line-height:0">
+        <img src="assets/logo-mammoth.png" alt="Mammoth Suplements" style="height:52px;width:52px;border-radius:50%;object-fit:cover;display:block">
+      </a>
+      <div style="flex:1 1 280px;position:relative;min-width:0">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#A8917A;font-size:15px;line-height:1">⌕</span>
+        <input type="search" value="{{ query }}" onInput="{{ onSearch }}" placeholder="Buscar proteína, marca, sabor..." aria-label="Buscar productos" style="width:100%;background:#211915;border:1px solid rgba(237,224,200,.12);border-radius:2px;color:#EDE0C8;font-size:14.5px;padding:11px 14px 11px 34px" style-focus="border-color:#C8722C;outline:none">
+      </div>
+      <a href="{{ waTienda }}" target="_blank" rel="noopener" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;border:1px solid rgba(237,224,200,.14);border-radius:2px;padding:9px 14px;color:#EDE0C8;font-size:13px;font-weight:600;letter-spacing:.02em" style-hover="border-color:#C8722C;color:#EDE0C8;background:rgba(200,114,44,.08)">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="#7A9A3F" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23a8.23 8.23 0 0 1 0 16.47Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.16.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03s.87 2.35.99 2.51c.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.22-.16-.47-.28Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </header>
+
+  <main style="max-width:1520px;margin:0 auto;padding:30px 28px 80px;display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start">
+
+    <aside style="flex:1 1 190px;max-width:250px;min-width:180px;position:sticky;top:104px">
+      <p style="margin:0 0 12px;font-family:'Barlow',sans-serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#A8917A">Categorías</p>
+      <nav style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ categorias }}" as="cat" hint-placeholder-count="6">
+          <button type="button" onClick="{{ cat.select }}" aria-current="{{ cat.current }}" style="flex:1 1 160px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;cursor:pointer;background:{{ cat.bg }};border:1px solid rgba(237,224,200,.10);border-left:3px solid {{ cat.bar }};border-radius:2px;padding:10px 12px;color:{{ cat.color }};font-size:14px;font-weight:{{ cat.weight }};letter-spacing:.01em" style-hover="border-color:rgba(200,114,44,.5);color:#EDE0C8">
+            <span>{{ cat.nombre }}</span>
+            <sc-if value="{{ mostrarConteos }}" hint-placeholder-val="{{ true }}">
+              <span style="font-size:12px;color:#A8917A;font-variant-numeric:tabular-nums">{{ cat.conteo }}</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </nav>
+    </aside>
+
+    <section style="flex:6 1 460px;min-width:0">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:0 0 22px;padding-bottom:14px;border-bottom:1px solid rgba(237,224,200,.12)">
+        <h1 style="margin:0;font-family:'Alfa Slab One',serif;font-weight:400;font-size:clamp(26px,3vw,38px);line-height:1.05;color:#EDE0C8;letter-spacing:-.005em">{{ tituloVista }}</h1>
+        <span style="font-size:13.5px;color:#A8917A">{{ subtituloVista }}</span>
+      </div>
+
+      <sc-if value="{{ hayResultados }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:22px">
+          <sc-for list="{{ productos }}" as="p" hint-placeholder-count="8">
+            <article onClick="{{ p.open }}" tabindex="0" onKeyDown="{{ p.onKey }}" role="button" aria-label="{{ p.aria }}" style="cursor:pointer;background:#211915;border:1px solid rgba(237,224,200,.12);border-radius:2px;overflow:hidden;display:flex;flex-direction:column;animation:cardIn .22s ease both" style-hover="border-color:#C8722C">
+              <div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#2A211C;display:flex;align-items:center;justify-content:center">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(237,224,200,.045) 0 6px,transparent 6px 12px);transition:transform .4s ease" style-hover="transform:scale(1.04)"></div>
+                <span style="position:relative;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#6E5B4A;text-align:center;padding:0 16px;line-height:1.6">foto de producto<br>{{ p.slug }}</span>
+                <span style="position:absolute;top:10px;left:10px;white-space:nowrap;background:{{ p.badgeBg }};color:{{ p.badgeFg }};border:1px solid {{ p.badgeBd }};border-radius:2px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:4px 8px">{{ p.badge }}</span>
+              </div>
+              <div style="padding:15px 16px 16px;display:flex;flex-direction:column;gap:9px;flex:1">
+                <h2 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:21px;line-height:1.1;letter-spacing:.005em;color:#EDE0C8;text-wrap:pretty">{{ p.nombre }}</h2>
+                <p style="margin:0;font-size:12.5px;color:#A8917A;line-height:1.4">{{ p.meta }}</p>
+                <p style="margin:4px 0 0;font-family:'Alfa Slab One',serif;font-weight:400;font-size:23px;line-height:1;color:#EDE0C8">{{ p.precio }}</p>
+                <a href="{{ p.wa }}" target="_blank" rel="noopener" onClick="{{ p.stop }}" style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;background:{{ p.ctaBg }};border:1px solid {{ p.ctaBd }};border-radius:2px;color:{{ p.ctaFg }};font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:11px 12px" style-hover="background:#8F3B18;border-color:#8F3B18;color:#EDE0C8">{{ p.cta }}</a>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px dashed rgba(237,224,200,.18);border-radius:2px;padding:64px 28px;text-align:center;animation:fadeIn .2s ease both">
+          <p style="margin:0 0 6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;color:#EDE0C8">{{ vacioTitulo }}</p>
+          <p style="margin:0 0 22px;font-size:14px;color:#A8917A">{{ vacioTexto }}</p>
+          <button type="button" onClick="{{ verTodos }}" style="cursor:pointer;background:#C8722C;border:1px solid #C8722C;border-radius:2px;color:#15100D;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 20px" style-hover="background:#8F3B18;border-color:#8F3B18;color:#EDE0C8">Ver todos los productos</button>
+        </div>
+      </sc-if>
+    </section>
+  </main>
+
+  <sc-if value="{{ abierto }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ cerrar }}" style="position:fixed;inset:0;z-index:80;background:rgba(10,7,5,.78);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .16s ease both">
+      <div role="dialog" aria-modal="true" tabindex="-1" aria-label="{{ sel.nombre }}" ref="{{ dialogRef }}" onClick="{{ stopBg }}" style="position:relative;width:min(940px,100%);max-height:88vh;overflow-y:auto;background:#211915;border:1px solid rgba(237,224,200,.16);border-radius:2px;animation:popIn .18s ease both">
+        <button type="button" onClick="{{ cerrar }}" aria-label="Cerrar" style="position:absolute;top:12px;right:12px;z-index:3;cursor:pointer;width:34px;height:34px;background:rgba(21,16,13,.8);border:1px solid rgba(237,224,200,.16);border-radius:2px;color:#EDE0C8;font-size:16px;line-height:1" style-hover="border-color:#C8722C">✕</button>
+        <div style="display:flex;flex-wrap:wrap">
+          <div style="flex:1 1 320px;min-width:280px;aspect-ratio:1/1;background:#2A211C;position:relative;display:flex;align-items:center;justify-content:center">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(237,224,200,.045) 0 6px,transparent 6px 12px)"></div>
+            <span style="position:relative;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6E5B4A;text-align:center;padding:0 20px;line-height:1.6">foto de producto<br>{{ sel.slug }}</span>
+          </div>
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column">
+            <div style="padding:34px 32px 22px;display:flex;flex-direction:column;gap:14px">
+              <span style="align-self:flex-start;white-space:nowrap;background:{{ sel.badgeBg }};color:{{ sel.badgeFg }};border:1px solid {{ sel.badgeBd }};border-radius:2px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:4px 8px">{{ sel.badge }}</span>
+              <h2 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:32px;line-height:1.05;color:#EDE0C8;text-wrap:pretty">{{ sel.nombre }}</h2>
+              <p style="margin:0;font-size:13.5px;color:#A8917A;line-height:1.5">{{ sel.meta }}</p>
+              <p style="margin:2px 0 0;font-family:'Alfa Slab One',serif;font-weight:400;font-size:34px;line-height:1;color:#EDE0C8">{{ sel.precio }}</p>
+              <p style="margin:0;font-size:13px;color:{{ sel.existenciaColor }}">{{ sel.existenciaTexto }}</p>
+              <p style="margin:8px 0 0;font-size:14.5px;line-height:1.6;color:#EDE0C8;text-wrap:pretty">{{ sel.descripcion }}</p>
+              <div style="margin-top:8px">
+                <p style="margin:0 0 8px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#A8917A">Beneficios</p>
+                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px">
+                  <sc-for list="{{ sel.beneficios }}" as="b" hint-placeholder-count="3">
+                    <li style="display:flex;gap:10px;font-size:14px;line-height:1.5;color:#EDE0C8"><span style="color:#C8722C">—</span><span>{{ b.texto }}</span></li>
+                  </sc-for>
+                </ul>
+              </div>
+              <div style="margin-top:8px;padding-top:16px;border-top:1px solid rgba(237,224,200,.12)">
+                <p style="margin:0 0 6px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#A8917A">Modo de uso</p>
+                <p style="margin:0;font-size:14px;line-height:1.6;color:#EDE0C8">{{ sel.modoUso }}</p>
+              </div>
+            </div>
+            <div style="position:sticky;bottom:0;padding:16px 32px 24px;background:#211915;border-top:1px solid rgba(237,224,200,.12)">
+              <a href="{{ sel.wa }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:9px;background:{{ sel.ctaBg }};border:1px solid {{ sel.ctaBd }};border-radius:2px;color:{{ sel.ctaFg }};font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:14px" style-hover="background:#8F3B18;border-color:#8F3B18;color:#EDE0C8">{{ sel.cta }}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000},&quot;ocultarAgotados&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Catálogo&quot;},&quot;orden&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Relevancia&quot;,&quot;Precio: menor a mayor&quot;,&quot;Precio: mayor a menor&quot;],&quot;default&quot;:&quot;Relevancia&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Catálogo&quot;},&quot;mostrarConteos&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Catálogo&quot;}}">
+const WHATSAPP = '5213327810652'; // única constante de configuración del negocio
+
+const PRODUCTOS = [
+  {id:1,nombre:'Gold Standard 100% Whey',marca:'Optimum Nutrition',presentacion:'2 lb',sabor:'Chocolate',precio:1290,existencia:8,categoria:'Proteínas',activo:true,
+   descripcion:'Proteína de suero aislada y concentrada, la referencia del mercado. Perfil completo de aminoácidos con muy poca grasa y azúcar por servicio.',
+   beneficios:['24 g de proteína por servicio','Recuperación muscular después del entrenamiento','Se disuelve fácil en agua o leche'],
+   modoUso:'Un scoop en 200 ml de agua o leche, justo después de entrenar. En días de descanso, entre comidas.'},
+  {id:2,nombre:'Nitro-Tech Whey Gold',marca:'MuscleTech',presentacion:'5.5 lb',sabor:'Vainilla',precio:2150,existencia:3,categoria:'Proteínas',activo:true,
+   descripcion:'Mezcla de aislado y péptidos de suero con creatina añadida. Bote grande para quien entrena todos los días.',
+   beneficios:['24 g de proteína y 5.5 g de BCAA','Incluye creatina monohidratada','Rinde 71 servicios'],
+   modoUso:'Un scoop con 250 ml de agua. Dos servicios al día en etapa de volumen.'},
+  {id:3,nombre:'Mass Gainer Serious',marca:'Optimum Nutrition',presentacion:'12 lb',sabor:'Chocolate',precio:2890,existencia:1,categoria:'Proteínas',activo:true,
+   descripcion:'Ganador de peso con 1250 calorías por servicio. Para quien no logra subir de peso con la comida del día.',
+   beneficios:['1250 calorías y 50 g de proteína por servicio','Carbohidratos complejos de avena','Vitaminas y minerales añadidos'],
+   modoUso:'Dos scoops en 500 ml de leche entre comidas o después de entrenar.'},
+  {id:4,nombre:'C4 Original',marca:'Cellucor',presentacion:'30 servicios',sabor:'Ponche de frutas',precio:780,existencia:12,categoria:'Pre-entrenos',activo:true,
+   descripcion:'Pre-entreno clásico con cafeína, beta-alanina y creatina nitrato. Energía sin exagerar la dosis de estimulante.',
+   beneficios:['150 mg de cafeína por servicio','Beta-alanina para resistencia','Efecto entre 20 y 30 minutos'],
+   modoUso:'Un scoop en 180 ml de agua, 20 a 30 minutos antes de entrenar. No tomar por la noche.'},
+  {id:5,nombre:'Creatina Monohidratada',marca:'Birdman',presentacion:'300 g',sabor:'Sin sabor',precio:520,existencia:0,categoria:'Creatinas',activo:true,
+   descripcion:'Creatina monohidratada micronizada, sin sabor. El suplemento con más respaldo científico para fuerza.',
+   beneficios:['5 g por servicio, 60 servicios','Micronizada, se disuelve mejor','Sin sabor: se mezcla con cualquier bebida'],
+   modoUso:'5 g al día, a cualquier hora. No requiere fase de carga.'},
+  {id:6,nombre:'Animal Pak',marca:'Universal Nutrition',presentacion:'44 packs',sabor:'—',precio:990,existencia:5,categoria:'Vitaminas',activo:true,
+   descripcion:'Multivitamínico en sobres para atletas de fuerza. Cubre el desgaste de entrenamientos pesados.',
+   beneficios:['Vitaminas y minerales en dosis alta','Aminoácidos y enzimas digestivas','Un sobre cubre el día completo'],
+   modoUso:'Un pack al día con la comida más abundante.'},
+  {id:7,nombre:'Omega 3 Fish Oil',marca:'Now Foods',presentacion:'100 cápsulas',sabor:'—',precio:410,existencia:15,categoria:'Vitaminas',activo:true,
+   descripcion:'Aceite de pescado destilado molecularmente, con EPA y DHA en proporción estándar.',
+   beneficios:['180 mg de EPA y 120 mg de DHA por cápsula','Apoya articulaciones y salud cardiovascular','Sin sabor a pescado al repetir'],
+   modoUso:'Una o dos cápsulas al día con alimentos.'},
+  {id:8,nombre:'BCAA 2:1:1',marca:'Xtreme',presentacion:'60 servicios',sabor:'Sandía',precio:640,existencia:2,categoria:'Aminoácidos',activo:true,
+   descripcion:'Aminoácidos de cadena ramificada en proporción 2:1:1 para tomar durante el entrenamiento.',
+   beneficios:['5 g de BCAA por servicio','Reduce la fatiga durante la sesión','Se toma frío, sabe a agua de sandía'],
+   modoUso:'Un scoop en 500 ml de agua, durante el entrenamiento.'}
+];
+
+const CATS = ['Todos los productos','Proteínas','Pre-entrenos','Creatinas','Vitaminas','Aminoácidos'];
+
+const slugify = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+const mxn = (n) => '$' + n.toLocaleString('es-MX');
+const waLink = (msg) => 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg);
+
+function estado(p){
+  if(p.existencia === 0) return {badge:'Agotado',bg:'rgba(176,64,47,.16)',fg:'#E39C90',bd:'rgba(176,64,47,.55)',
+    cta:'Preguntar disponibilidad',ctaBg:'transparent',ctaBd:'rgba(237,224,200,.22)',ctaFg:'#EDE0C8',
+    msg:'Hola, ¿cuándo vuelve a entrar ' + p.nombre + '?', existenciaTexto:'Sin existencia por ahora', existenciaColor:'#B0402F'};
+  if(p.existencia <= 3) return {badge:'Últimas piezas',bg:'rgba(200,114,44,.16)',fg:'#E0A468',bd:'rgba(200,114,44,.55)',
+    cta:'Pedir por WhatsApp',ctaBg:'#C8722C',ctaBd:'#C8722C',ctaFg:'#15100D',
+    msg:null, existenciaTexto:p.existencia + (p.existencia===1?' pieza disponible':' piezas disponibles'), existenciaColor:'#C8722C'};
+  return {badge:'Disponible',bg:'rgba(122,154,63,.14)',fg:'#A6C070',bd:'rgba(122,154,63,.5)',
+    cta:'Pedir por WhatsApp',ctaBg:'#C8722C',ctaBd:'#C8722C',ctaFg:'#15100D',
+    msg:null, existenciaTexto:p.existencia + ' piezas disponibles', existenciaColor:'#7A9A3F'};
+}
+
+class Component extends DCLogic {
+  state = { query:'', cat:'Todos los productos', selId:null };
+
+  componentDidMount(){
+    const logo = (window.__resources && window.__resources.logo) || null;
+    if(logo){
+      document.querySelectorAll('img[src*="logo-mammoth"]').forEach(i => { i.src = logo; });
+      const s = document.createElement('style');
+      s.textContent = '#mmth-hdr::before{background-image:url(' + logo + ') !important}';
+      document.head.appendChild(s);
+    }
+    this._onKey = (e) => { if(e.key === 'Escape' && this.state.selId !== null) this.cerrar(); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount(){ document.removeEventListener('keydown', this._onKey); }
+
+  abrir(p, el){ this._prevFocus = el || document.activeElement; this.setState({selId:p.id}); }
+  cerrar(){
+    const prev = this._prevFocus;
+    this.setState({selId:null}, () => { if(prev && prev.focus) prev.focus(); });
+  }
+
+  decorar(p){
+    const e = estado(p);
+    const msg = e.msg || ('Hola, me interesa el producto: ' + p.nombre + ' – ' + p.presentacion + ' – ' + p.sabor + '. ¿Sigue disponible?');
+    return {
+      ...p, slug: slugify(p.nombre), precio: mxn(p.precio),
+      meta: [p.marca, p.presentacion, p.sabor].filter(v => v && v !== '—').join(' · '),
+      badge:e.badge, badgeBg:e.bg, badgeFg:e.fg, badgeBd:e.bd,
+      cta:e.cta, ctaBg:e.ctaBg, ctaBd:e.ctaBd, ctaFg:e.ctaFg,
+      existenciaTexto:e.existenciaTexto, existenciaColor:e.existenciaColor,
+      wa: waLink(msg),
+      beneficios: p.beneficios.map((t,i) => ({texto:t, key:i}))
+    };
+  }
+
+  renderVals(){
+    const ocultarAgotados = this.props.ocultarAgotados ?? false;
+    const orden = this.props.orden ?? 'Relevancia';
+    const mostrarConteos = this.props.mostrarConteos ?? true;
+    const q = this.state.query.trim().toLowerCase();
+
+    let base = PRODUCTOS.filter(p => p.activo);
+    if(ocultarAgotados) base = base.filter(p => p.existencia > 0);
+
+    const enCat = (p) => this.state.cat === 'Todos los productos' || p.categoria === this.state.cat;
+    const coincide = (p) => !q || [p.nombre,p.marca,p.sabor,p.categoria,p.presentacion].join(' ').toLowerCase().includes(q);
+
+    let lista = base.filter(p => enCat(p) && coincide(p));
+    if(orden === 'Precio: menor a mayor') lista = [...lista].sort((a,b) => a.precio - b.precio);
+    if(orden === 'Precio: mayor a menor') lista = [...lista].sort((a,b) => b.precio - a.precio);
+
+    const categorias = CATS.map(nombre => {
+      const activa = nombre === this.state.cat;
+      const conteo = nombre === 'Todos los productos' ? base.length : base.filter(p => p.categoria === nombre).length;
+      return {
+        nombre, conteo, current: activa ? 'true' : 'false',
+        bg: activa ? 'rgba(200,114,44,.10)' : 'transparent',
+        bar: activa ? '#C8722C' : 'transparent',
+        color: activa ? '#EDE0C8' : '#A8917A',
+        weight: activa ? '600' : '400',
+        select: () => this.setState({cat:nombre})
+      };
+    });
+
+    const productos = lista.map(p => {
+      const d = this.decorar(p);
+      return { ...d,
+        aria: 'Ver detalle de ' + p.nombre,
+        open: (ev) => this.abrir(p, ev.currentTarget),
+        onKey: (ev) => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); this.abrir(p, ev.currentTarget); } },
+        stop: (ev) => ev.stopPropagation()
+      };
+    });
+
+    const selRaw = PRODUCTOS.find(p => p.id === this.state.selId);
+    const catVacia = q === '' && lista.length === 0;
+
+    return {
+      query: this.state.query,
+      onSearch: (e) => this.setState({query:e.target.value}),
+      waTienda: waLink('Hola, tengo una pregunta sobre los productos de Mammoth Suplements.'),
+      categorias, productos, mostrarConteos,
+      tituloVista: this.state.cat,
+      subtituloVista: lista.length === 1 ? '1 producto' : lista.length + ' productos',
+      hayResultados: lista.length > 0,
+      vacio: lista.length === 0,
+      vacioTitulo: catVacia ? 'Todavía no hay productos en esta categoría' : 'No encontramos productos con ese nombre',
+      vacioTexto: catVacia ? 'Estamos surtiendo. Escríbenos por WhatsApp y te avisamos cuando lleguen.' : 'Revisa la escritura o busca por marca, sabor o presentación.',
+      verTodos: () => this.setState({query:'', cat:'Todos los productos'}),
+      abierto: !!selRaw,
+      sel: selRaw ? this.decorar(selRaw) : {beneficios:[]},
+      cerrar: () => this.cerrar(),
+      stopBg: (e) => e.stopPropagation(),
+      dialogRef: (el) => { if(el) setTimeout(() => el.focus && el.focus(), 0); }
+    };
+  }
+}
+</script>
+</body>
+</html>
