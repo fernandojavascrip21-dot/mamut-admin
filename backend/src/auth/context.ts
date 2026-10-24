@@ -6,7 +6,7 @@ import { supabaseAuth } from '../lib/supabase'
 
 export interface AuthContext {
   userId: string // profiles.id (= auth.users.id)
-  role: 'admin' | 'client'
+  role: 'admin' | 'client' | 'vendedor'
   clientId: number | null // null si role = 'admin'
   fullName: string
 }

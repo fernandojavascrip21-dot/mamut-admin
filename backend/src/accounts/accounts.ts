@@ -46,7 +46,7 @@ export function normalizeEmail(email: string): string {
 // dos sistemas: si falla el insert se borra la cuenta recién creada (sin cuentas huérfanas).
 export async function createAccount(
   input: { email: string; password: string; fullName: string },
-  profile: { role: 'admin' | 'client'; clientId: number | null; active: boolean },
+  profile: { role: 'admin' | 'client' | 'vendedor'; clientId: number | null; active: boolean },
 ): Promise<AccountView> {
   const email = normalizeEmail(input.email)
   validatePassword(input.password)
