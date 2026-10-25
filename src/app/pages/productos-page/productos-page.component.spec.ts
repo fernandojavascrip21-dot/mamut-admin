@@ -31,6 +31,19 @@ describe('ProductosPageComponent', () => {
     httpMock.verify();
   });
 
+  function cargar(productos: ProductoResumen[]) {
+    fixture.detectChanges();
+    httpMock.expectOne(PRODUCTS_URL).flush(productos);
+    fixture.detectChanges();
+  }
+
+  function buscar(texto: string) {
+    const input = fixture.nativeElement.querySelector('#buscador') as HTMLInputElement;
+    input.value = texto;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
   it('mientras carga muestra "Cargando productos…" y tarjetas esqueleto', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Cargando productos…');
@@ -54,6 +67,34 @@ describe('ProductosPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Aún no tienes productos');
     const enlaces = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
     expect(enlaces.some((a) => a.textContent?.includes('Dar de alta mi primer producto'))).toBe(true);
+    expect(fixture.nativeElement.querySelector('#buscador')).toBeNull();
+  });
+
+  it('filtrar con "CBUM" y con "cbúm" deja solo el que coincide, sin importar mayúsculas ni acentos', () => {
+    cargar(PRODUCTOS);
+
+    buscar('CBUM');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
+    expect(fixture.nativeElement.textContent).not.toContain('Creatina');
+
+    buscar('cbúm');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
+  });
+
+  it('sin coincidencias muestra el aviso y "Limpiar búsqueda" restaura la lista completa', () => {
+    cargar(PRODUCTOS);
+
+    buscar('no existe');
+    expect(fixture.nativeElement.textContent).toContain('No hay productos con ese nombre');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(0);
+
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#buscador').value).toBe('');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
   });
 
   it('si la petición falla muestra "Reintentar", y al tocarlo vuelve a pedir la lista', () => {

@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductosService } from '../../productos/services/productos.service';
 import type { ProductoResumen } from '../../productos/interfaces/producto.models';
+import { normalizarTexto } from '../../shared/normalizar-texto';
 import { ProductoCardComponent } from './ui/producto-card/producto-card.component';
 import { ProductoCardSkeletonComponent } from './ui/producto-card-skeleton/producto-card-skeleton.component';
 
@@ -20,6 +21,15 @@ export class ProductosPageComponent implements OnInit {
 
   readonly state = signal<ProductosState>('loading');
   readonly items = signal<ProductoResumen[]>([]);
+  readonly busqueda = signal('');
+
+  // Filtra en el cliente por subcadena del nombre, sin distinguir mayúsculas ni acentos
+  // (criterio 2): la lista completa ya está en memoria, así que responde sin otra llamada.
+  readonly visibles = computed(() => {
+    const query = normalizarTexto(this.busqueda());
+    if (query === '') return this.items();
+    return this.items().filter((item) => normalizarTexto(item.name).includes(query));
+  });
 
   ngOnInit(): void {
     this.cargar();
@@ -29,6 +39,12 @@ export class ProductosPageComponent implements OnInit {
   retry(): void {
     this.state.set('loading');
     this.cargar();
+  }
+
+  // Botón «Limpiar búsqueda» del estado sin resultados: vacía el buscador y vuelve a mostrar
+  // todas las tarjetas (criterio 3).
+  limpiarBusqueda(): void {
+    this.busqueda.set('');
   }
 
   private cargar(): void {
