@@ -5,6 +5,7 @@ import { LoginPageComponent } from './pages/login-page/login-page.component';
 import { AdminPageComponent } from './pages/admin-page/admin-page.component';
 import { VendedorPageComponent } from './pages/vendedor-page/vendedor-page.component';
 import { roleGuard } from './auth/guards/role.guard';
+import { guestGuard } from './auth/guards/guest.guard';
 
 // Árbol de rutas de M0. /admin y /vendedor están protegidas por roleGuard con su rol en
 // `data.roles`; sus hijos (hoy todos ComingSoonPageComponent) heredan esa protección sin
@@ -12,7 +13,9 @@ import { roleGuard } from './auth/guards/role.guard';
 // /cuenta usa el mismo guard sin `roles`: exige sesión, pero de cualquiera de los dos roles.
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
-  { path: 'login', component: LoginPageComponent },
+  // guestGuard cierra el criterio 5 de HU-03: con sesión activa, reabrir /login no muestra
+  // el formulario, redirige directo a la home del rol.
+  { path: 'login', component: LoginPageComponent, canMatch: [guestGuard] },
   { path: 'cuenta', component: AccountPageComponent, canMatch: [roleGuard] },
   {
     path: 'admin',
