@@ -11,5 +11,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'admin/**', renderMode: RenderMode.Client },
   { path: 'vendedor', renderMode: RenderMode.Client },
   { path: 'vendedor/**', renderMode: RenderMode.Client },
+  // login depende de guestGuard (HU-03, criterio 5), que también lee localStorage: mismo
+  // motivo que las rutas de arriba.
+  { path: 'login', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Prerender },
 ];
