@@ -2,38 +2,42 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductosService } from '../../productos/services/productos.service';
 import type { ProductoResumen } from '../../productos/interfaces/producto.models';
+import { ProductoCardComponent } from './ui/producto-card/producto-card.component';
+import { ProductoCardSkeletonComponent } from './ui/producto-card-skeleton/producto-card-skeleton.component';
 
-// Pantalla «Productos» mínima para HU-04: solo nombre, categoría y piezas, más el botón +
-// que lleva al alta (03b). El diseño completo de la pantalla 03 (cards, Vender, Dejar a
-// vendedor) queda para otra historia — ver specs/M1-hu04-dar-de-alta-producto/spec.md §1.
+type ProductosState = 'loading' | 'error' | 'ready';
+
+// Pantalla «Productos» (03): una tarjeta por producto activo, con los estados cargando, error
+// y catálogo vacío. La lista completa se pide una sola vez al entrar (o con «Reintentar»): ver
+// specs/M1-hu05-ver-y-buscar-productos/spec.md §2 y §5.
 @Component({
-  imports: [RouterLink],
+  imports: [RouterLink, ProductoCardComponent, ProductoCardSkeletonComponent],
   selector: 'app-productos-page',
   templateUrl: './productos-page.component.html',
 })
 export class ProductosPageComponent implements OnInit {
   private readonly productos = inject(ProductosService);
 
+  readonly state = signal<ProductosState>('loading');
   readonly items = signal<ProductoResumen[]>([]);
-  readonly loading = signal(true);
-
-  private readonly categoriasPorId = signal<Map<number, string>>(new Map());
 
   ngOnInit(): void {
-    this.productos.listCategorias().subscribe((categorias) => {
-      this.categoriasPorId.set(new Map(categorias.map((c) => [c.id, c.name])));
-    });
+    this.cargar();
+  }
+
+  // Botón «Reintentar» del estado de error: vuelve a pedir la lista sin recargar la página.
+  retry(): void {
+    this.state.set('loading');
+    this.cargar();
+  }
+
+  private cargar(): void {
     this.productos.listProductos().subscribe({
       next: (items) => {
         this.items.set(items);
-        this.loading.set(false);
+        this.state.set('ready');
       },
-      error: () => this.loading.set(false),
+      error: () => this.state.set('error'),
     });
-  }
-
-  categoriaDe(categoryId: number | null): string {
-    if (categoryId === null) return 'Sin categoría';
-    return this.categoriasPorId().get(categoryId) ?? 'Sin categoría';
   }
 }
