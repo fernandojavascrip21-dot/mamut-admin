@@ -1,6 +1,6 @@
 # Spec técnico — HU-03 · Cada quien entra solo a las pantallas de su rol
 
-> **Estado:** Draft
+> **Estado:** Aprovado
 > **Depende de:** M0-base (`specs/M0-base/spec.md`)
 > **Fecha:** 2026-10-24
 > **Objetivo:** que alguien con sesión activa que reabre la app o vuelve a `/login` entre directo a la pantalla de inicio de su rol, sin escribir otra vez la contraseña, cerrando el único criterio de aceptación de HU-03 que la revisión de código encontró pendiente.
