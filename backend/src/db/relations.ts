@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { clients, profiles, usersInAuth, categories, products, consignmentItems, debtors, directSales, cuts, sales, cutItems, directSaleItems, creditPayments, shrinkage, stockMovements } from "./schema";
+import { clients, profiles, usersInAuth, consignmentItems, products, debtors, directSales, cuts, sales, cutItems, directSaleItems, creditPayments, shrinkage, categories, vendorStock, stockMovements } from "./schema";
 
 export const profilesRelations = relations(profiles, ({one, many}) => ({
 	client: one(clients, {
@@ -47,7 +47,13 @@ export const profilesRelations = relations(profiles, ({one, many}) => ({
 	shrinkages_voidedBy: many(shrinkage, {
 		relationName: "shrinkage_voidedBy_profiles_id"
 	}),
-	stockMovements: many(stockMovements),
+	vendorStocks: many(vendorStock),
+	stockMovements_createdBy: many(stockMovements, {
+		relationName: "stockMovements_createdBy_profiles_id"
+	}),
+	stockMovements_holderProfileId: many(stockMovements, {
+		relationName: "stockMovements_holderProfileId_profiles_id"
+	}),
 }));
 
 export const clientsRelations = relations(clients, ({many}) => ({
@@ -64,23 +70,6 @@ export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({
 	profiles: many(profiles),
 }));
 
-export const productsRelations = relations(products, ({one, many}) => ({
-	category: one(categories, {
-		fields: [products.categoryId],
-		references: [categories.id]
-	}),
-	consignmentItems: many(consignmentItems),
-	sales: many(sales),
-	cutItems: many(cutItems),
-	directSaleItems: many(directSaleItems),
-	shrinkages: many(shrinkage),
-	stockMovements: many(stockMovements),
-}));
-
-export const categoriesRelations = relations(categories, ({many}) => ({
-	products: many(products),
-}));
-
 export const consignmentItemsRelations = relations(consignmentItems, ({one, many}) => ({
 	client: one(clients, {
 		fields: [consignmentItems.clientId],
@@ -92,6 +81,28 @@ export const consignmentItemsRelations = relations(consignmentItems, ({one, many
 	}),
 	sales: many(sales),
 	shrinkages: many(shrinkage),
+}));
+
+export const productsRelations = relations(products, ({one, many}) => ({
+	consignmentItems: many(consignmentItems),
+	sales: many(sales),
+	cutItems: many(cutItems),
+	directSaleItems: many(directSaleItems),
+	shrinkages: many(shrinkage),
+	category: one(categories, {
+		fields: [products.categoryId],
+		references: [categories.id]
+	}),
+	product: one(products, {
+		fields: [products.parentProductId],
+		references: [products.id],
+		relationName: "products_parentProductId_products_id"
+	}),
+	products: many(products, {
+		relationName: "products_parentProductId_products_id"
+	}),
+	vendorStocks: many(vendorStock),
+	stockMovements: many(stockMovements),
 }));
 
 export const debtorsRelations = relations(debtors, ({one, many}) => ({
@@ -257,14 +268,35 @@ export const shrinkageRelations = relations(shrinkage, ({one}) => ({
 	}),
 }));
 
+export const categoriesRelations = relations(categories, ({many}) => ({
+	products: many(products),
+}));
+
+export const vendorStockRelations = relations(vendorStock, ({one}) => ({
+	product: one(products, {
+		fields: [vendorStock.productId],
+		references: [products.id]
+	}),
+	profile: one(profiles, {
+		fields: [vendorStock.profileId],
+		references: [profiles.id]
+	}),
+}));
+
 export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
 	client: one(clients, {
 		fields: [stockMovements.clientId],
 		references: [clients.id]
 	}),
-	profile: one(profiles, {
+	profile_createdBy: one(profiles, {
 		fields: [stockMovements.createdBy],
-		references: [profiles.id]
+		references: [profiles.id],
+		relationName: "stockMovements_createdBy_profiles_id"
+	}),
+	profile_holderProfileId: one(profiles, {
+		fields: [stockMovements.holderProfileId],
+		references: [profiles.id],
+		relationName: "stockMovements_holderProfileId_profiles_id"
 	}),
 	product: one(products, {
 		fields: [stockMovements.productId],

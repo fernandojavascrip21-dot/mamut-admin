@@ -1,6 +1,6 @@
 # Spec técnico — T-03 · Definir las tablas de productos y movimientos de stock
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M0-base (`specs/M0-base/spec.md`) — reusa `profiles.role = 'vendedor'`
 > **Fecha:** 2026-10-24
 > **Objetivo:** dejar el modelo de datos de productos y movimientos de stock listo en Supabase (tablas, columnas y una migración versionada en el repo) para que `HU-04`–`HU-07` de M1 puedan construirse encima sin tocar el esquema otra vez.

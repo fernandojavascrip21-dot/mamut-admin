@@ -1,13 +1,11 @@
-import { pgSchema, pgTable, unique, bigint, text, integer, timestamp, boolean, foreignKey, check, uuid, index, numeric } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, unique, bigint, text, integer, timestamp, boolean, foreignKey, check, uuid, index, numeric } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
-// Ajuste manual tras `drizzle-kit pull` (schemaFilter solo trae `public`):
-// referencia mínima a auth.users para las FK de profiles. Reaplicar si se vuelve a hacer pull.
 const authSchema = pgSchema("auth")
-export const usersInAuth = authSchema.table("users", { id: uuid().primaryKey() })
+export const usersInAuth = authSchema.table("users", {
+	id: uuid().primaryKey(),
+})
 const users = usersInAuth
-
-
 
 export const categories = pgTable("categories", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
@@ -56,39 +54,6 @@ export const profiles = pgTable("profiles", {
 		}).onDelete("cascade"),
 	check("profiles_client_id_matches_role", sql`(role = 'client'::text) = (client_id IS NOT NULL)`),
 	check("profiles_role_check", sql`role = ANY (ARRAY['admin'::text, 'client'::text, 'vendedor'::text])`),
-]);
-
-export const products = pgTable("products", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "products_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	categoryId: bigint("category_id", { mode: "number" }),
-	name: text().notNull(),
-	brand: text().default('').notNull(),
-	size: text().default('').notNull(),
-	flavor: text().default('').notNull(),
-	description: text().default('').notNull(),
-	benefits: text().array().default([""]).notNull(),
-	usage: text().default('').notNull(),
-	image: text().default('').notNull(),
-	price: numeric({ precision: 10, scale:  2 }).notNull(),
-	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }).default('0').notNull(),
-	stock: integer().default(0).notNull(),
-	active: boolean().default(true).notNull(),
-	archivedAt: timestamp("archived_at", { withTimezone: true, mode: 'string' }),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-}, (table) => [
-	index("products_active_idx").using("btree", table.active.asc().nullsLast().op("bool_ops")).where(sql`(archived_at IS NULL)`),
-	index("products_category_id_idx").using("btree", table.categoryId.asc().nullsLast().op("int8_ops")),
-	foreignKey({
-			columns: [table.categoryId],
-			foreignColumns: [categories.id],
-			name: "products_category_id_fkey"
-		}).onDelete("restrict"),
-	check("products_price_check", sql`price >= (0)::numeric`),
-	check("products_stock_check", sql`stock >= 0`),
-	check("products_unit_cost_check", sql`unit_cost >= (0)::numeric`),
 ]);
 
 export const consignmentItems = pgTable("consignment_items", {
@@ -463,6 +428,75 @@ export const shrinkage = pgTable("shrinkage", {
 	check("shrinkage_reason_check", sql`reason = ANY (ARRAY['lost'::text, 'damaged'::text, 'expired'::text, 'other'::text])`),
 ]);
 
+export const products = pgTable("products", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "products_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	categoryId: bigint("category_id", { mode: "number" }),
+	name: text().notNull(),
+	brand: text().default('').notNull(),
+	size: text().default('').notNull(),
+	flavor: text().default('').notNull(),
+	description: text().default('').notNull(),
+	benefits: text().array().default([""]).notNull(),
+	usage: text().default('').notNull(),
+	image: text().default('').notNull(),
+	price: numeric({ precision: 10, scale:  2 }).notNull(),
+	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }).default('0').notNull(),
+	stock: integer().default(0).notNull(),
+	active: boolean().default(true).notNull(),
+	archivedAt: timestamp("archived_at", { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	fractionable: boolean().default(false).notNull(),
+	portionSize: text("portion_size"),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	parentProductId: bigint("parent_product_id", { mode: "number" }),
+}, (table) => [
+	index("products_active_idx").using("btree", table.active.asc().nullsLast().op("bool_ops")).where(sql`(archived_at IS NULL)`),
+	index("products_category_id_idx").using("btree", table.categoryId.asc().nullsLast().op("int8_ops")),
+	foreignKey({
+			columns: [table.categoryId],
+			foreignColumns: [categories.id],
+			name: "products_category_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.parentProductId],
+			foreignColumns: [table.id],
+			name: "products_parent_product_id_fkey"
+		}).onDelete("restrict"),
+	unique("products_parent_product_id_key").on(table.parentProductId),
+	check("products_parent_not_self", sql`(parent_product_id IS NULL) OR (parent_product_id <> id)`),
+	check("products_price_check", sql`price >= (0)::numeric`),
+	check("products_stock_check", sql`stock >= 0`),
+	check("products_unit_cost_check", sql`unit_cost >= (0)::numeric`),
+]);
+
+export const vendorStock = pgTable("vendor_stock", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "vendor_stock_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	profileId: uuid("profile_id").notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	productId: bigint("product_id", { mode: "number" }).notNull(),
+	qty: integer().default(0).notNull(),
+	unitPrice: numeric("unit_price", { precision: 10, scale:  2 }),
+	unitCostWithShipping: numeric("unit_cost_with_shipping", { precision: 10, scale:  4 }),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.productId],
+			foreignColumns: [products.id],
+			name: "vendor_stock_product_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.profileId],
+			foreignColumns: [profiles.id],
+			name: "vendor_stock_profile_id_fkey"
+		}).onDelete("restrict"),
+	unique("vendor_stock_profile_product_key").on(table.profileId, table.productId),
+	check("vendor_stock_qty_check", sql`qty >= 0`),
+]);
+
 export const stockMovements = pgTable("stock_movements", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "stock_movements_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -476,6 +510,7 @@ export const stockMovements = pgTable("stock_movements", {
 	reason: text(),
 	createdBy: uuid("created_by").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	holderProfileId: uuid("holder_profile_id"),
 }, (table) => [
 	index("stock_movements_product_created_idx").using("btree", table.productId.asc().nullsLast().op("int8_ops"), table.createdAt.desc().nullsFirst().op("int8_ops")),
 	foreignKey({
@@ -489,10 +524,15 @@ export const stockMovements = pgTable("stock_movements", {
 			name: "stock_movements_created_by_fkey"
 		}).onDelete("restrict"),
 	foreignKey({
+			columns: [table.holderProfileId],
+			foreignColumns: [profiles.id],
+			name: "stock_movements_holder_profile_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
 			columns: [table.productId],
 			foreignColumns: [products.id],
 			name: "stock_movements_product_id_fkey"
 		}).onDelete("restrict"),
 	check("stock_movements_qty_check", sql`qty <> 0`),
-	check("stock_movements_type_check", sql`type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text])`),
+	check("stock_movements_type_check", sql`type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text, 'fraction_out'::text, 'fraction_in'::text])`),
 ]);
