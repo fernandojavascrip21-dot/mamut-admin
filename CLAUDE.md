@@ -11,7 +11,7 @@ A new **Angular 22** admin app (`mamut-admin`) for a supplement-inventory busine
 - `profiles.role` currently only allows `'admin' | 'client'`. Work that introduces a `'vendedor'` role must extend this check constraint and the `AuthContext['role']` type, not replace it.
 - Where the migrations for *this* repo's schema changes should live is itself an open question (see the spec above) — the backend's `drizzle.config.ts` comment points at a `supabase/migrations/` folder that currently only exists in the sibling Vue repo.
 
-Project docs (requirements, mockups, user stories) are **not** local files in this repo — they live in Jira/Confluence (project `MammutSupplements`, space `KAN`). The `/spec` skill fetches them directly when asked to spec a milestone.
+Project docs (requirements, mockups, user stories) are **not** local files in this repo — they live in Jira/Confluence on `fernandojavascrip21.atlassian.net` (Jira project `MammutSuplements`, key `SCRUM`; Confluence space `SCRUM`). The `/spec` skill fetches them directly when asked to spec a milestone.
 
 ## Commands
 
@@ -110,4 +110,9 @@ Key patterns to follow when adding backend code:
 
 ### Specs workflow
 
-This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` controls whether `/spec-impl` creates its git branch automatically (`AutoCreateBranch: true`, the default). `specs/M0-base/spec.md` is the only spec so far; its "Riesgos y preguntas abiertas" section tracks the architectural decisions still pending for this project (role model, migrations location, whether `vendedor` and `client` are the same concept).
+This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` controls whether `/spec-impl` creates its git branch automatically (`AutoCreateBranch: true`, the default). `specs/M0-base/spec.md` is the only milestone-wide spec; later specs (e.g. `specs/M0-hu03-rutas-por-rol/spec.md`) are scoped to a single Jira user story (`HU-NN`) instead.
+
+**Jira sync — apply whenever a spec maps to a Jira user story:**
+
+- **While implementing:** post progress as comments on that Jira issue (via the Atlassian MCP tools) describing which step of the spec's implementation plan is underway, and the current status (✅ done / ❌ pending / ⏳ deferred) of each of the story's own acceptance criteria — not just a single comment at the end. Follow the pattern already used on `SCRUM-17`'s comments.
+- **On 100% completion:** once every item in the spec's "Acceptance criteria" / "Criterios de aceptación" checklist is checked and its own tests pass, transition the Jira story to done (`Finalizada`) — don't leave it sitting in `En curso` once the code and tests are actually in.
