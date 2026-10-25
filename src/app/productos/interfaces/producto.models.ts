@@ -15,20 +15,20 @@ export interface NuevoProductoInput {
   image: string | null;
 }
 
-// Fila mínima que devuelve GET /api/products (la lista de productos-page).
+// Fila de GET /api/products (pantalla 03). Sin unitCost a propósito.
 export interface ProductoResumen {
   id: number;
   name: string;
   categoryId: number | null;
+  price: string; // numeric de Postgres: llega como texto; se convierte con Number() solo para mostrarlo
   stock: number;
-  active: boolean;
+  fractionable: boolean;
+  image: string;
 }
 
 // Fila completa que devuelve POST /api/products, para el resumen de "Producto registrado".
 export interface Producto extends ProductoResumen {
-  price: string; // numeric de Postgres: llega como texto; se convierte con Number() solo para mostrarlo
   unitCost: string;
-  fractionable: boolean;
   portionSize: string | null;
-  image: string;
+  active: boolean;
 }
