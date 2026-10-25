@@ -1,0 +1,254 @@
+<div class="flex w-full flex-col px-5 py-6">
+@if (state() !== 'registrado') {
+  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Nuevo producto</h1>
+
+  @if (state() === 'aviso-precio') {
+    <div
+      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+      role="alert"
+    >
+      <div class="flex-1">
+        <p class="m-0 text-[15px] font-bold">El precio es menor que el costo</p>
+        <p class="mt-0.5 mb-0 text-sm leading-snug">
+          ¿Lo guardo así de todas formas, o prefieres corregirlo?
+        </p>
+        <div class="mt-2.5 flex gap-2">
+          <button
+            type="button"
+            class="h-9 rounded-lg bg-danger px-3.5 text-sm font-bold text-white"
+            (click)="confirmarPrecioMenorAlCosto()"
+          >
+            Guardar de todas formas
+          </button>
+          <button
+            type="button"
+            class="h-9 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+            (click)="corregir()"
+          >
+            Corregir
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (state() === 'duplicado') {
+    <div
+      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+      role="alert"
+    >
+      <p class="m-0 text-[15px] font-bold">Ya existe un producto con ese nombre</p>
+    </div>
+  }
+
+  @if (state() === 'offline') {
+    <div
+      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+      role="alert"
+    >
+      <div>
+        <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
+        <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+        <button
+          type="button"
+          class="retry mt-2.5 h-9 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+          (click)="retry()"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  }
+
+  <form
+    class="mt-5 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
+    (submit)="
+      $event.preventDefault();
+      onSubmit(nombre.value, categoria.value, precio.value, costo.value, piezas.value, porcion.value, foto.files?.[0] ?? null)
+    "
+    novalidate
+  >
+    <div class="flex flex-col gap-1.5">
+      <label for="foto" class="text-sm font-semibold">Foto (opcional)</label>
+      <input
+        id="foto"
+        name="foto"
+        type="file"
+        accept="image/*"
+        #foto
+        [disabled]="formDisabled()"
+        class="text-sm disabled:text-faint"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="nombre" class="text-sm font-semibold">Nombre</label>
+      <input
+        id="nombre"
+        name="nombre"
+        type="text"
+        #nombre
+        [disabled]="formDisabled()"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (nameError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (nameError()) {
+        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ nameError() }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="categoria" class="text-sm font-semibold">Categoría</label>
+      <select
+        id="categoria"
+        name="categoria"
+        #categoria
+        [disabled]="formDisabled()"
+        class="h-[50px] rounded-[10px] border border-line-strong px-3.5 text-base disabled:bg-disabled-input disabled:text-faint"
+      >
+        <option value="">Sin categoría</option>
+        @for (cat of categorias(); track cat.id) {
+          <option [value]="cat.id">{{ cat.name }}</option>
+        }
+      </select>
+      @if (categoryError()) {
+        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ categoryError() }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="costo" class="text-sm font-semibold">Costo de fábrica</label>
+      <input
+        id="costo"
+        name="costo"
+        type="number"
+        min="0"
+        step="0.01"
+        #costo
+        [disabled]="formDisabled()"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (unitCostError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (unitCostError()) {
+        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitCostError() }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="precio" class="text-sm font-semibold">Precio de venta</label>
+      <input
+        id="precio"
+        name="precio"
+        type="number"
+        min="0"
+        step="0.01"
+        #precio
+        [disabled]="formDisabled()"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (priceError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (priceError()) {
+        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ priceError() }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="piezas" class="text-sm font-semibold">Piezas que entran</label>
+      <input
+        id="piezas"
+        name="piezas"
+        type="number"
+        min="1"
+        step="1"
+        #piezas
+        [disabled]="formDisabled()"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (initialQtyError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (initialQtyError()) {
+        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
+      }
+    </div>
+
+    <label class="flex items-center gap-2 text-sm font-semibold">
+      <input
+        type="checkbox"
+        [disabled]="formDisabled()"
+        (change)="toggleFractionable($any($event.target).checked)"
+      />
+      Se fracciona en bolsitas
+    </label>
+
+    <!-- Siempre en el DOM (para que #porcion exista al mandar el formulario); se oculta con
+         una clase cuando no se fracciona, en vez de un @if que saca el ref de su alcance. -->
+    <div class="flex flex-col gap-1.5" [class.hidden]="!fractionable()">
+      <label for="porcion" class="text-sm font-semibold">Porción</label>
+      <input
+        id="porcion"
+        name="porcion"
+        type="text"
+        placeholder="p. ej. 30 g"
+        #porcion
+        [disabled]="formDisabled()"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (portionSizeError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (portionSizeError()) {
+        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ portionSizeError() }}</p>
+      }
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="formDisabled()"
+      class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:bg-disabled disabled:text-muted"
+    >
+      {{ state() === 'loading' ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </form>
+} @else if (productoCreado(); as producto) {
+  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Producto registrado</h1>
+
+  <div class="mt-5 flex flex-col gap-3 rounded-lg border border-line bg-white p-5">
+    <p class="m-0 text-lg font-bold">{{ producto.name }}</p>
+    <dl class="grid grid-cols-2 gap-y-2 text-sm">
+      <dt class="text-muted">Costo de fábrica</dt>
+      <dd class="m-0 text-right font-semibold">{{ producto.unitCost }}</dd>
+      <dt class="text-muted">Precio de venta</dt>
+      <dd class="m-0 text-right font-semibold">{{ producto.price }}</dd>
+      <dt class="text-muted">Piezas en bodega</dt>
+      <dd class="m-0 text-right font-semibold">{{ producto.stock }}</dd>
+      @if (producto.fractionable) {
+        <dt class="text-muted">Porción</dt>
+        <dd class="m-0 text-right font-semibold">{{ producto.portionSize }}</dd>
+      }
+    </dl>
+  </div>
+
+  <div class="mt-5 flex gap-3">
+    <button
+      type="button"
+      class="h-[48px] flex-1 rounded-[10px] bg-accent text-[15px] font-bold text-white"
+      (click)="nuevoProducto()"
+    >
+      Dar de alta otro producto
+    </button>
+    <a
+      routerLink="/admin/productos"
+      class="flex h-[48px] flex-1 items-center justify-center rounded-[10px] border border-line-strong text-[15px] font-bold"
+    >
+      Volver a Productos
+    </a>
+  </div>
+}
+</div>

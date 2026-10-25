@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, unique, bigint, text, integer, timestamp, boolean, foreignKey, check, uuid, index, numeric } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, unique, bigint, text, integer, timestamp, boolean, foreignKey, check, uuid, index, numeric, uniqueIndex } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 const authSchema = pgSchema("auth")
@@ -455,6 +455,7 @@ export const products = pgTable("products", {
 }, (table) => [
 	index("products_active_idx").using("btree", table.active.asc().nullsLast().op("bool_ops")).where(sql`(archived_at IS NULL)`),
 	index("products_category_id_idx").using("btree", table.categoryId.asc().nullsLast().op("int8_ops")),
+	uniqueIndex("products_name_lower_key").using("btree", sql`lower(TRIM(BOTH FROM name))`),
 	foreignKey({
 			columns: [table.categoryId],
 			foreignColumns: [categories.id],
