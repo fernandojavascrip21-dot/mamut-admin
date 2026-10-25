@@ -4,6 +4,7 @@ import { ComingSoonPageComponent } from './pages/coming-soon-page/coming-soon-pa
 import { LoginPageComponent } from './pages/login-page/login-page.component';
 import { AdminPageComponent } from './pages/admin-page/admin-page.component';
 import { VendedorPageComponent } from './pages/vendedor-page/vendedor-page.component';
+import { NuevoProductoPageComponent } from './pages/nuevo-producto-page/nuevo-producto-page.component';
 import { roleGuard } from './auth/guards/role.guard';
 import { guestGuard } from './auth/guards/guest.guard';
 
@@ -26,6 +27,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'stock' },
       { path: 'stock', component: ComingSoonPageComponent, data: { title: 'Stock' } },
       { path: 'productos', component: ComingSoonPageComponent, data: { title: 'Productos' } },
+      { path: 'productos/nuevo', component: NuevoProductoPageComponent, data: { title: 'Nuevo producto' } },
       { path: 'carrito', component: ComingSoonPageComponent, data: { title: 'Carrito' } },
       { path: 'corte', component: ComingSoonPageComponent, data: { title: 'Corte' } },
       { path: 'vendedores', component: ComingSoonPageComponent, data: { title: 'Vendedores' } },
