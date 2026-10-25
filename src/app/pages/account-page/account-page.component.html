@@ -1,5 +1,5 @@
 <div class="relative flex min-h-screen w-full flex-col bg-page sm:items-center sm:justify-center sm:py-12">
-<div class="flex w-full flex-1 flex-col sm:max-w-[420px] sm:flex-none sm:overflow-hidden sm:rounded-3xl sm:border sm:border-line sm:bg-white sm:shadow-sm">
+<div class="flex w-full flex-1 flex-col sm:max-w-[420px] sm:flex-none sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line sm:bg-white sm:shadow-sm">
   <header class="flex items-center gap-3 border-b border-line bg-white p-3">
     <button
       type="button"
@@ -36,7 +36,7 @@
         <div class="text-xl font-bold">{{ user()?.fullName }}</div>
         <span
           class="mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-bold"
-          [class]="isAdmin() ? 'bg-disabled text-ink' : 'bg-[#DCEFF3] text-[#0B4F61]'"
+          [class]="isAdmin() ? 'bg-disabled text-ink' : 'bg-accent-2-bg text-accent-2-text'"
         >
           {{ isAdmin() ? 'Administrador' : 'Vendedor' }}
         </span>
@@ -50,7 +50,7 @@
     <button
       type="button"
       (click)="askLogout()"
-      class="flex h-[54px] items-center justify-center gap-2 rounded-xl border border-danger text-[17px] font-bold text-danger"
+      class="flex h-[54px] items-center justify-center gap-2 rounded-lg border border-danger text-[17px] font-bold text-danger"
     >
       <svg
         aria-hidden="true"
@@ -79,7 +79,7 @@
         aria-modal="true"
         aria-labelledby="confirm-logout-title"
         aria-describedby="confirm-logout-desc"
-        class="flex w-full max-w-sm flex-col gap-3 rounded-2xl bg-white p-5"
+        class="flex w-full max-w-sm flex-col gap-3 rounded-lg bg-white p-5"
       >
         <h2 id="confirm-logout-title" class="text-lg font-bold">¿Cerrar sesión?</h2>
         <p id="confirm-logout-desc" class="text-[15px] leading-relaxed text-muted">
@@ -90,14 +90,14 @@
           <button
             type="button"
             (click)="cancelLogout()"
-            class="h-[50px] flex-1 rounded-xl border border-line-strong font-semibold"
+            class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold"
           >
             Cancelar
           </button>
           <button
             type="button"
             (click)="confirmLogout()"
-            class="h-[50px] flex-1 rounded-xl bg-danger font-bold text-white"
+            class="h-[50px] flex-1 rounded-lg bg-danger font-bold text-white"
           >
             Cerrar sesión
           </button>

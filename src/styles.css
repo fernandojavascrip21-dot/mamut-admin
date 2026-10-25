@@ -4,21 +4,23 @@
    usan en todos los componentes como utilidades normales de Tailwind (bg-page, text-ink, etc.),
    en vez de repetir los valores hex o escribir CSS propio por componente. */
 @theme {
-  --color-page: #eef1f4;
-  --color-ink: #0f172a;
-  --color-muted: #475569;
-  --color-accent: #047857;
-  --color-accent-hover: #065f46;
-  --color-accent-2: #0e7490;
-  --color-faint: #94a3b8;
-  --color-line: #d5dbe2;
-  --color-line-strong: #b8c2ce;
-  --color-danger: #b91c1c;
-  --color-danger-bg: #fdecec;
-  --color-danger-border: #f1b0b0;
-  --color-danger-text: #7f1d1d;
-  --color-disabled: #dde2e8;
-  --color-disabled-input: #f1f4f7;
+  --color-page: #f5efe4;
+  --color-ink: #231a14;
+  --color-muted: #6b6056;
+  --color-accent: #ac5e1c;
+  --color-accent-hover: #8f3b18;
+  --color-accent-2: #8a6d3b;
+  --color-accent-2-bg: #f3e9d8;
+  --color-accent-2-text: #5a4522;
+  --color-faint: #a79c8e;
+  --color-line: #e4dac8;
+  --color-line-strong: #cbbfa8;
+  --color-danger: #b0402f;
+  --color-danger-bg: #fbece6;
+  --color-danger-border: #e8b9a8;
+  --color-danger-text: #7a2e1a;
+  --color-disabled: #e3dacb;
+  --color-disabled-input: #f7f1e7;
 
   --font-sans: 'Public Sans', system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque', sans-serif;
