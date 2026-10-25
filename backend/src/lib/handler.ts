@@ -28,6 +28,21 @@ export function requireString(body: Record<string, unknown>, field: string): str
   return value
 }
 
+// Campo numérico obligatorio. `min` es exclusivo (el valor debe ser > min, default 0);
+// `integer: true` además rechaza decimales. Cualquier caso inválido responde 422, nunca 500.
+export function requireNumber(
+  body: Record<string, unknown>,
+  field: string,
+  opts: { min?: number; integer?: boolean } = {},
+): number {
+  const { min = 0, integer = false } = opts
+  const value = body[field]
+  if (typeof value !== 'number' || Number.isNaN(value)) throw validation(`Falta el campo ${field}`)
+  if (integer && !Number.isInteger(value)) throw validation(`El campo ${field} debe ser un número entero`)
+  if (value <= min) throw validation(`El campo ${field} debe ser mayor a ${min}`)
+  return value
+}
+
 // Parámetro de ruta numérico (`/api/clients/:id`). Si no es un entero positivo, no existe: 404.
 export function parseId(value: string): number {
   if (!/^[1-9]\d*$/.test(value)) throw notFound()
