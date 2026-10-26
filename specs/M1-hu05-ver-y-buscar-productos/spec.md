@@ -1,6 +1,6 @@
 # Spec técnico — HU-05 · Ver y buscar mis productos
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M1-t03-tablas-productos-stock (`specs/M1-t03-tablas-productos-stock/spec.md`) — reusa `products` (`fractionable`, `parentProductId`); M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) — reemplaza la lista mínima de `/admin/productos` y extiende `GET /api/products`
 > **Fecha:** 2026-10-25
 > **Objetivo:** que el administrador vea en «Productos» una tarjeta por producto (foto, nombre, piezas en bodega, precio y etiquetas) y la filtre por nombre mientras escribe, sin distinguir mayúsculas ni acentos.
@@ -192,16 +192,16 @@ Estructura y textos del canvas (`Productos.dc.html`, `EstadosProductos.dc.html`)
 
 ## 8. Criterios de aceptación
 
-- [ ] Con productos registrados, «Productos» muestra una tarjeta por producto activo, en una columna, con foto (o su inicial), nombre, piezas en bodega, precio de venta en pesos, y las etiquetas «Agotado» (0 piezas) y «Fraccionado» (si se fracciona) sobre la foto cuando aplican; con ambas, aparecen las dos (criterio 1 de `SCRUM-22`).
-- [ ] Un producto con `active = false` no aparece en la lista.
-- [ ] Escribir parte del nombre (p. ej. «cbum», «CBUM», «cbúm») deja solo los productos que coinciden, sin importar mayúsculas ni acentos, mientras se escribe (criterio 2).
-- [ ] Una búsqueda sin coincidencias muestra «No hay productos con ese nombre» y un botón «Limpiar búsqueda» que vacía el buscador y vuelve a mostrar todas las tarjetas (criterio 3).
-- [ ] Sin productos activos, «Productos» muestra «Aún no tienes productos» y un botón que lleva a `/admin/productos/nuevo`, sin buscador (criterio 4).
-- [ ] Mientras carga, se ve «Cargando productos…» con tarjetas esqueleto; si `GET /api/products` falla, se ve «No pudimos cargar los productos» con «Reintentar», y «Reintentar» vuelve a pedir la lista y la muestra si ya responde (criterio 5).
-- [ ] Un vendedor que llama `GET /api/products` directo recibe `403` sin ningún dato de producto, y la respuesta del administrador tampoco incluye `unitCost` (criterio 6).
-- [ ] Un producto con una URL de foto que no carga muestra su inicial en vez de una imagen rota.
-- [ ] Ningún archivo nuevo o cambiado de `productos-page` tiene colores hex ni `.css` propio: todo usa los tokens de `src/styles.css` (§6).
-- [ ] `npm test` (raíz) y `npm test` (`backend/`, con `SUPABASE_SERVICE_ROLE_KEY` configurada) pasan.
+- [x] Con productos registrados, «Productos» muestra una tarjeta por producto activo, en una columna, con foto (o su inicial), nombre, piezas en bodega, precio de venta en pesos, y las etiquetas «Agotado» (0 piezas) y «Fraccionado» (si se fracciona) sobre la foto cuando aplican; con ambas, aparecen las dos (criterio 1 de `SCRUM-22`).
+- [x] Un producto con `active = false` no aparece en la lista.
+- [x] Escribir parte del nombre (p. ej. «cbum», «CBUM», «cbúm») deja solo los productos que coinciden, sin importar mayúsculas ni acentos, mientras se escribe (criterio 2).
+- [x] Una búsqueda sin coincidencias muestra «No hay productos con ese nombre» y un botón «Limpiar búsqueda» que vacía el buscador y vuelve a mostrar todas las tarjetas (criterio 3).
+- [x] Sin productos activos, «Productos» muestra «Aún no tienes productos» y un botón que lleva a `/admin/productos/nuevo`, sin buscador (criterio 4).
+- [x] Mientras carga, se ve «Cargando productos…» con tarjetas esqueleto; si `GET /api/products` falla, se ve «No pudimos cargar los productos» con «Reintentar», y «Reintentar» vuelve a pedir la lista y la muestra si ya responde (criterio 5).
+- [x] Un vendedor que llama `GET /api/products` directo recibe `403` sin ningún dato de producto, y la respuesta del administrador tampoco incluye `unitCost` (criterio 6).
+- [x] Un producto con una URL de foto que no carga muestra su inicial en vez de una imagen rota.
+- [x] Ningún archivo nuevo o cambiado de `productos-page` tiene colores hex ni `.css` propio: todo usa los tokens de `src/styles.css` (§6).
+- [x] `npm test` (raíz) y `npm test` (`backend/`, con `SUPABASE_SERVICE_ROLE_KEY` configurada) pasan.
 
 ## 9. Plan de pruebas
 

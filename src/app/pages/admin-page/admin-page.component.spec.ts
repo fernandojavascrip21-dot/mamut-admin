@@ -28,16 +28,21 @@ describe('AdminPageComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('muestra el menú del administrador: Stock, Productos, Carrito, Corte, Vendedores', () => {
+  it('muestra el menú del administrador: Stock, Productos, Corte, Vendedores', () => {
     const labels = Array.from(fixture.nativeElement.querySelectorAll('nav a')).map((a) =>
       (a as HTMLElement).textContent?.trim(),
     );
-    expect(labels).toEqual(['Stock', 'Productos', 'Carrito', 'Corte', 'Vendedores']);
+    expect(labels).toEqual(['Stock', 'Productos', 'Corte', 'Vendedores']);
   });
 
   it('muestra las iniciales del usuario y enlaza a /cuenta', () => {
     const account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
     expect(account.textContent?.trim()).toBe('AL');
     expect(account.getAttribute('href')).toBe('/cuenta');
+  });
+
+  it('muestra el carrito como ícono aparte en la cabecera', () => {
+    const cart = fixture.nativeElement.querySelector('a[aria-label="Carrito"]') as HTMLAnchorElement;
+    expect(cart.getAttribute('href')).toBe('/carrito');
   });
 });

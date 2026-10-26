@@ -28,11 +28,11 @@ describe('VendedorPageComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('muestra el menú del vendedor: Mi stock, Vender, Carrito, Mi corte (sin costos ni ganancia)', () => {
+  it('muestra el menú del vendedor: Mi stock, Vender, Mi corte (sin costos ni ganancia)', () => {
     const labels = Array.from(fixture.nativeElement.querySelectorAll('nav a')).map((a) =>
       (a as HTMLElement).textContent?.trim(),
     );
-    expect(labels).toEqual(['Mi stock', 'Vender', 'Carrito', 'Mi corte']);
+    expect(labels).toEqual(['Mi stock', 'Vender', 'Mi corte']);
     expect(fixture.nativeElement.textContent).not.toMatch(/costo|ganancia/i);
   });
 
@@ -40,5 +40,10 @@ describe('VendedorPageComponent', () => {
     const account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
     expect(account.textContent?.trim()).toBe('LU');
     expect(account.getAttribute('href')).toBe('/cuenta');
+  });
+
+  it('muestra el carrito como ícono aparte en la cabecera', () => {
+    const cart = fixture.nativeElement.querySelector('a[aria-label="Carrito"]') as HTMLAnchorElement;
+    expect(cart.getAttribute('href')).toBe('/carrito');
   });
 });
