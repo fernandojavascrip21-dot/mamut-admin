@@ -17,7 +17,8 @@ function createFor(user: AuthContext) {
     imports: [AccountPageComponent],
     providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
   });
-  const fixture: ComponentFixture<AccountPageComponent> = TestBed.createComponent(AccountPageComponent);
+  const fixture: ComponentFixture<AccountPageComponent> =
+    TestBed.createComponent(AccountPageComponent);
   const router = TestBed.inject(Router);
   vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
   fixture.detectChanges();
@@ -51,15 +52,46 @@ describe('AccountPageComponent', () => {
 
   it('"Cerrar sesión" pide confirmación, y "Cancelar" la descarta sin tocar la sesión', () => {
     const { fixture, httpMock } = createFor(ADMIN);
-    const logoutButton = fixture.nativeElement.querySelector('button:not([aria-label])') as HTMLButtonElement;
+    const logoutButton = fixture.nativeElement.querySelector(
+      'button:not([aria-label])',
+    ) as HTMLButtonElement;
     logoutButton.click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alertdialog"]')).toBeTruthy();
 
-    const cancelButton = fixture.nativeElement.querySelector('[role="alertdialog"] button') as HTMLButtonElement;
+    const cancelButton = fixture.nativeElement.querySelector(
+      '[role="alertdialog"] button',
+    ) as HTMLButtonElement;
     cancelButton.click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alertdialog"]')).toBeFalsy();
+    httpMock.verify();
+  });
+
+  it('el diálogo recibe el foco, retiene Tab y devuelve el foco al cerrarse con Escape', () => {
+    const { fixture, httpMock } = createFor(ADMIN);
+    const logoutButton = fixture.nativeElement.querySelector(
+      'button:not([aria-label])',
+    ) as HTMLButtonElement;
+    logoutButton.focus();
+    logoutButton.click();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('[role="alertdialog"]') as HTMLElement;
+    const [cancel, confirm] = Array.from(dialog.querySelectorAll('button')) as HTMLButtonElement[];
+    expect(document.activeElement).toBe(cancel);
+
+    cancel.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
+    );
+    expect(document.activeElement).toBe(confirm);
+    confirm.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement).toBe(cancel);
+
+    cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alertdialog"]')).toBeFalsy();
+    expect(document.activeElement).toBe(logoutButton);
     httpMock.verify();
   });
 

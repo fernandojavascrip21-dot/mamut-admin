@@ -58,7 +58,9 @@ describe('NuevoProductoPageComponent', () => {
   }
 
   function buttonWithText(text: string): HTMLButtonElement {
-    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button'),
+    ) as HTMLButtonElement[];
     const found = buttons.find((b) => b.textContent?.trim() === text);
     if (!found) throw new Error(`No se encontró el botón "${text}"`);
     return found;
@@ -98,7 +100,10 @@ describe('NuevoProductoPageComponent', () => {
 
   function attachFile(): File {
     const file = new File(['x'], 'foto.png', { type: 'image/png' });
-    Object.defineProperty(el<HTMLInputElement>('#foto'), 'files', { value: [file], configurable: true });
+    Object.defineProperty(el<HTMLInputElement>('#foto'), 'files', {
+      value: [file],
+      configurable: true,
+    });
     return file;
   }
 
@@ -117,6 +122,8 @@ describe('NuevoProductoPageComponent', () => {
 
     const errors = fixture.nativeElement.querySelectorAll('.field-error');
     expect(errors.length).toBe(4);
+    expect(el<HTMLInputElement>('#nombre').getAttribute('aria-describedby')).toBe('nombre-error');
+    expect(document.activeElement).toBe(el<HTMLInputElement>('#nombre'));
     httpMock.expectNone(PRODUCTS_URL);
   });
 
@@ -170,26 +177,36 @@ describe('NuevoProductoPageComponent', () => {
     fillForm();
     submit();
 
-    httpMock.expectOne(PRODUCTS_URL).flush(
-      { error: { code: 'conflict', message: 'Ya existe un producto con ese nombre' } },
-      { status: 409, statusText: 'Conflict' },
-    );
+    httpMock
+      .expectOne(PRODUCTS_URL)
+      .flush(
+        { error: { code: 'conflict', message: 'Ya existe un producto con ese nombre' } },
+        { status: 409, statusText: 'Conflict' },
+      );
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Ya existe un producto con ese nombre');
+    expect(el<HTMLInputElement>('#nombre').getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(el<HTMLInputElement>('#nombre'));
   });
 
   it('categoryId inválido (422) avisa y regresa al formulario, no a un error roto', () => {
     fillForm();
     submit();
 
-    httpMock.expectOne(PRODUCTS_URL).flush(
-      { error: { code: 'validation', message: 'La categoría no existe' } },
-      { status: 422, statusText: 'Unprocessable Entity' },
-    );
+    httpMock
+      .expectOne(PRODUCTS_URL)
+      .flush(
+        { error: { code: 'validation', message: 'La categoría no existe' } },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('La categoría ya no existe');
+    expect(el<HTMLSelectElement>('#categoria').getAttribute('aria-describedby')).toBe(
+      'categoria-error',
+    );
+    expect(document.activeElement).toBe(el<HTMLSelectElement>('#categoria'));
   });
 
   it('offline: Reintentar no vuelve a subir la foto ni a pedir la confirmación de precio', () => {

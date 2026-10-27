@@ -4,9 +4,16 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { ProductosPageComponent } from './productos-page.component';
 import { API_BASE_URL } from '../../shared/api-base-url';
+import type { ProductoResumen } from '../../productos/interfaces/producto.models';
+
+const PRODUCTS_URL = `${API_BASE_URL}/api/products`;
+
+const PRODUCTOS: ProductoResumen[] = [
+  { id: 1, name: 'CBUM Thavage', categoryId: null, price: '450.00', stock: 10, fractionable: false, image: '' },
+  { id: 2, name: 'Creatina', categoryId: null, price: '300.00', stock: 0, fractionable: true, image: '' },
+];
 
 describe('ProductosPageComponent', () => {
-  let component: ProductosPageComponent;
   let fixture: ComponentFixture<ProductosPageComponent>;
   let httpMock: HttpTestingController;
 
@@ -17,18 +24,93 @@ describe('ProductosPageComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProductosPageComponent);
-    component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-    httpMock.expectOne(`${API_BASE_URL}/api/categories`).flush([]);
-    httpMock.expectOne(`${API_BASE_URL}/api/products`).flush([]);
   });
 
   afterEach(() => {
     httpMock.verify();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  function cargar(productos: ProductoResumen[]) {
+    fixture.detectChanges();
+    httpMock.expectOne(PRODUCTS_URL).flush(productos);
+    fixture.detectChanges();
+  }
+
+  function buscar(texto: string) {
+    const input = fixture.nativeElement.querySelector('#buscador') as HTMLInputElement;
+    input.value = texto;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  it('mientras carga muestra "Cargando productos…" y tarjetas esqueleto', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Cargando productos…');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card-skeleton')).toHaveLength(3);
+    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
+  });
+
+  it('pinta una tarjeta por producto', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
+  });
+
+  it('con 0 productos muestra el estado vacío con el botón de alta', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(PRODUCTS_URL).flush([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Aún no tienes productos');
+    const enlaces = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
+    expect(enlaces.some((a) => a.textContent?.includes('Dar de alta mi primer producto'))).toBe(true);
+    expect(fixture.nativeElement.querySelector('#buscador')).toBeNull();
+  });
+
+  it('filtrar con "CBUM" y con "cbúm" deja solo el que coincide, sin importar mayúsculas ni acentos', () => {
+    cargar(PRODUCTOS);
+
+    buscar('CBUM');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
+    expect(fixture.nativeElement.textContent).not.toContain('Creatina');
+
+    buscar('cbúm');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
+  });
+
+  it('sin coincidencias muestra el aviso y "Limpiar búsqueda" restaura la lista completa', () => {
+    cargar(PRODUCTOS);
+
+    buscar('no existe');
+    expect(fixture.nativeElement.textContent).toContain('No hay productos con ese nombre');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(0);
+
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#buscador').value).toBe('');
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
+  });
+
+  it('si la petición falla muestra "Reintentar", y al tocarlo vuelve a pedir la lista', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(PRODUCTS_URL).error(new ProgressEvent('error'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('No pudimos cargar los productos');
+
+    (fixture.nativeElement.querySelector('.retry') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Cargando productos…');
+    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
   });
 });

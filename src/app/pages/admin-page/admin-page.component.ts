@@ -1,31 +1,25 @@
-import { Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService } from '../../auth/services/auth.service';
-import { initialsOf } from '../../shared/initials';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { TopNavComponent } from '../../shared/components/top-nav/top-nav.component';
+import type { CartLink, NavMenuItem } from '../../shared/components/top-nav/top-nav.models';
 
-interface MenuItem {
-  path: string;
-  label: string;
-}
-
-const MENU: MenuItem[] = [
-  { path: 'stock', label: 'Stock' },
-  { path: 'productos', label: 'Productos' },
-  { path: 'carrito', label: 'Carrito' },
-  { path: 'corte', label: 'Corte' },
-  { path: 'vendedores', label: 'Vendedores' },
+const MENU: NavMenuItem[] = [
+  { path: 'stock', label: 'Stock', icon: 'package' },
+  { path: 'productos', label: 'Productos', icon: 'tag' },
+  { path: 'corte', label: 'Corte', icon: 'receipt' },
+  { path: 'vendedores', label: 'Vendedores', icon: 'users' },
 ];
 
-// Página del administrador: cabecera + contenido de la ruta activa + menú inferior
+const CART: CartLink = { path: 'carrito', label: 'Carrito' };
+
+// Página del administrador: navbar superior + contenido de la ruta activa
 // Stock · Productos · Carrito · Corte · Vendedores (RF-01, mockup pantalla 02 y siguientes).
 @Component({
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterOutlet, TopNavComponent],
   selector: 'app-admin-page',
   templateUrl: './admin-page.component.html',
 })
 export class AdminPageComponent {
-  private readonly auth = inject(AuthService);
-
   readonly menu = MENU;
-  readonly initials = computed(() => initialsOf(this.auth.currentUser()?.fullName ?? ''));
+  readonly cart = CART;
 }

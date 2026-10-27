@@ -1,4 +1,4 @@
-import { asc } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { db } from '../db/client'
 import { isForeignKeyViolation, isUniqueViolation } from '../db/errors'
 import { products, stockMovements } from '../db/schema'
@@ -18,16 +18,21 @@ export interface CreateProductInput {
 
 const DUPLICATE_NAME = 'Ya existe un producto con ese nombre'
 
+// Lista para la pantalla 03: solo productos activos, y nunca unitCost (RNF-04), aunque
+// hoy el endpoint ya es solo para administrador.
 export function listProducts() {
   return db
     .select({
       id: products.id,
       name: products.name,
       categoryId: products.categoryId,
+      price: products.price,
       stock: products.stock,
-      active: products.active,
+      fractionable: products.fractionable,
+      image: products.image,
     })
     .from(products)
+    .where(eq(products.active, true))
     .orderBy(asc(products.name))
 }
 

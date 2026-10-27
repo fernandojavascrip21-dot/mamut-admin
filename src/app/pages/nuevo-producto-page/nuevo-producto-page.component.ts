@@ -1,11 +1,26 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  ViewChild,
+  afterNextRender,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductoFotosService } from '../../productos/services/producto-fotos.service';
 import { ProductosService } from '../../productos/services/productos.service';
-import type { Categoria, NuevoProductoInput, Producto } from '../../productos/interfaces/producto.models';
+import type {
+  Categoria,
+  NuevoProductoInput,
+  Producto,
+} from '../../productos/interfaces/producto.models';
 
-type NuevoProductoState = 'form' | 'loading' | 'aviso-precio' | 'duplicado' | 'offline' | 'registrado';
+type NuevoProductoState =
+  'form' | 'loading' | 'aviso-precio' | 'duplicado' | 'offline' | 'registrado';
 
 // Pantalla 03b Nuevo producto + «Producto registrado» (HU-04, SCRUM-21). Estados y reglas:
 // ver specs/M1-hu04-dar-de-alta-producto/spec.md §2-§3. `lastAttempt`/`pendingFile`/
@@ -19,6 +34,7 @@ type NuevoProductoState = 'form' | 'loading' | 'aviso-precio' | 'duplicado' | 'o
 export class NuevoProductoPageComponent implements OnInit {
   private readonly productos = inject(ProductosService);
   private readonly fotos = inject(ProductoFotosService);
+  private readonly injector = inject(Injector);
 
   readonly state = signal<NuevoProductoState>('form');
   readonly categorias = signal<Categoria[]>([]);
@@ -32,13 +48,21 @@ export class NuevoProductoPageComponent implements OnInit {
   readonly portionSizeError = signal<string | null>(null);
   readonly categoryError = signal<string | null>(null);
 
+  @ViewChild('nombre') private nombreInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('categoria') private categoriaInput!: ElementRef<HTMLSelectElement>;
+  @ViewChild('costo') private costoInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('precio') private precioInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('piezas') private piezasInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('porcion') private porcionInput!: ElementRef<HTMLInputElement>;
+
   // Deshabilita el formulario mientras se guarda, mientras espera confirmación del aviso de
   // precio, o mientras muestra el aviso sin conexión — en los tres casos, un Reintentar o una
   // confirmación reusan exactamente los valores ya validados, no lo que el formulario diga en
   // ese instante. En "duplicado" el formulario sigue editable: ahí es al nombre al que hay que
   // cambiarle algo.
   readonly formDisabled = computed(
-    () => this.state() === 'loading' || this.state() === 'aviso-precio' || this.state() === 'offline',
+    () =>
+      this.state() === 'loading' || this.state() === 'aviso-precio' || this.state() === 'offline',
   );
 
   private lastAttempt: Omit<NuevoProductoInput, 'image'> | null = null;
@@ -74,8 +98,12 @@ export class NuevoProductoPageComponent implements OnInit {
     const fractionable = this.fractionable();
 
     this.nameError.set(trimmedName === '' ? 'Escribe el nombre del producto' : null);
-    this.priceError.set(priceRaw.trim() === '' || !(price > 0) ? 'El precio debe ser mayor a 0' : null);
-    this.unitCostError.set(unitCostRaw.trim() === '' || !(unitCost > 0) ? 'El costo debe ser mayor a 0' : null);
+    this.priceError.set(
+      priceRaw.trim() === '' || !(price > 0) ? 'El precio debe ser mayor a 0' : null,
+    );
+    this.unitCostError.set(
+      unitCostRaw.trim() === '' || !(unitCost > 0) ? 'El costo debe ser mayor a 0' : null,
+    );
     this.initialQtyError.set(
       initialQtyRaw.trim() === '' || !Number.isInteger(initialQty) || initialQty <= 0
         ? 'Las piezas deben ser un número entero mayor a 0'
@@ -91,6 +119,16 @@ export class NuevoProductoPageComponent implements OnInit {
       this.initialQtyError() ||
       this.portionSizeError()
     ) {
+      const firstInvalid = this.nameError()
+        ? this.nombreInput
+        : this.unitCostError()
+          ? this.costoInput
+          : this.priceError()
+            ? this.precioInput
+            : this.initialQtyError()
+              ? this.piezasInput
+              : this.porcionInput;
+      firstInvalid.nativeElement.focus();
       return;
     }
 
@@ -173,16 +211,26 @@ export class NuevoProductoPageComponent implements OnInit {
 
   private handleSaveError(error: unknown): void {
     if (error instanceof HttpErrorResponse && error.status === 409) {
+      this.nameError.set('Ya existe un producto con ese nombre');
       this.state.set('duplicado');
+      this.focusAfterRender(this.nombreInput);
       return;
     }
     // La categoría se borró entre que se cargó el <select> y que se guardó: no es un error de
     // conexión, es un dato que ya no existe. Se avisa y se regresa al formulario editable.
     if (error instanceof HttpErrorResponse && error.status === 422) {
-      this.categoryError.set('La categoría ya no existe. Actualiza la página e inténtalo otra vez.');
+      this.categoryError.set(
+        'La categoría ya no existe. Actualiza la página e inténtalo otra vez.',
+      );
       this.state.set('form');
+      this.focusAfterRender(this.categoriaInput);
       return;
     }
     this.state.set('offline');
+  }
+
+  // El formulario está deshabilitado durante la petición; espera al siguiente render para enfocarlo.
+  private focusAfterRender(field: ElementRef<HTMLInputElement | HTMLSelectElement>): void {
+    afterNextRender(() => field.nativeElement.focus(), { injector: this.injector });
   }
 }

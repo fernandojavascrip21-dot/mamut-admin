@@ -63,10 +63,17 @@ describe.skipIf(!hasServiceKey)('productos (con cuentas reales)', () => {
     await sql.end()
   }, 60_000)
 
-  it('sin token da 401 y con token de vendedor da 403', async () => {
+  it('sin token da 401 y con token de vendedor da 403, sin productos ni unitCost', async () => {
     expect((await listProductsRoute(req(), undefined)).status).toBe(401)
     expect((await createProductRoute(req(undefined, validBody()), undefined)).status).toBe(401)
-    expect((await listProductsRoute(req(vendedor.token), undefined)).status).toBe(403)
+
+    const vendedorRes = await listProductsRoute(req(vendedor.token), undefined)
+    expect(vendedorRes.status).toBe(403)
+    const vendedorBody = await vendedorRes.json()
+    expect(vendedorBody).toHaveProperty('error.code')
+    expect(vendedorBody).toHaveProperty('error.message')
+    expect(vendedorBody).not.toHaveProperty('unitCost')
+
     expect((await createProductRoute(req(vendedor.token, validBody()), undefined)).status).toBe(403)
   })
 
@@ -80,8 +87,23 @@ describe.skipIf(!hasServiceKey)('productos (con cuentas reales)', () => {
     expect(movements).toHaveLength(1)
     expect(movements[0]).toMatchObject({ type: 'initial', qty: 7, holderProfileId: null })
 
-    const list = await (await listProductsRoute(req(admin.token), undefined)).json()
-    expect(list.some((p: { id: number }) => p.id === created.id)).toBe(true)
+    const list = (await (await listProductsRoute(req(admin.token), undefined)).json()) as Array<
+      Record<string, unknown>
+    >
+    const row = list.find((p) => p['id'] === created.id)
+    expect(row).toMatchObject({ price: '100.00', stock: 7, fractionable: false, image: '' })
+    expect(row).not.toHaveProperty('unitCost')
+    expect(row).not.toHaveProperty('portionSize')
+    expect(row).not.toHaveProperty('active')
+  })
+
+  it('un producto marcado active = false no aparece en la lista', async () => {
+    const res = await createProductRoute(req(admin.token, validBody()), undefined)
+    const created = (await res.json()) as { id: number }
+    await db.update(products).set({ active: false }).where(eq(products.id, created.id))
+
+    const list = (await (await listProductsRoute(req(admin.token), undefined)).json()) as Array<{ id: number }>
+    expect(list.some((p) => p.id === created.id)).toBe(false)
   })
 
   it('acepta categoryId nulo', async () => {
