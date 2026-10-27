@@ -12,32 +12,23 @@
         <p class="mt-0.5 mb-0 text-sm leading-snug">
           ¿Lo guardo así de todas formas, o prefieres corregirlo?
         </p>
-        <div class="mt-2.5 flex gap-2">
+        <div class="mt-2.5 flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
-            class="h-9 rounded-lg bg-danger px-3.5 text-sm font-bold text-white"
+            class="min-h-11 rounded-lg bg-danger px-3.5 text-sm font-bold text-white"
             (click)="confirmarPrecioMenorAlCosto()"
           >
             Guardar de todas formas
           </button>
           <button
             type="button"
-            class="h-9 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+            class="min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
             (click)="corregir()"
           >
             Corregir
           </button>
         </div>
       </div>
-    </div>
-  }
-
-  @if (state() === 'duplicado') {
-    <div
-      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
-      role="alert"
-    >
-      <p class="m-0 text-[15px] font-bold">Ya existe un producto con ese nombre</p>
     </div>
   }
 
@@ -51,7 +42,7 @@
         <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
         <button
           type="button"
-          class="retry mt-2.5 h-9 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+          class="retry mt-2.5 min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
           (click)="retry()"
         >
           Reintentar
@@ -88,6 +79,8 @@
         name="nombre"
         type="text"
         #nombre
+        [attr.aria-invalid]="nameError() ? 'true' : null"
+        [attr.aria-describedby]="nameError() ? 'nombre-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -95,7 +88,7 @@
         "
       />
       @if (nameError()) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ nameError() }}</p>
+        <p id="nombre-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ nameError() }}</p>
       }
     </div>
 
@@ -105,6 +98,8 @@
         id="categoria"
         name="categoria"
         #categoria
+        [attr.aria-invalid]="categoryError() ? 'true' : null"
+        [attr.aria-describedby]="categoryError() ? 'categoria-error' : null"
         [disabled]="formDisabled()"
         class="h-[50px] rounded-[10px] border border-line-strong px-3.5 text-base disabled:bg-disabled-input disabled:text-faint"
       >
@@ -114,7 +109,7 @@
         }
       </select>
       @if (categoryError()) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ categoryError() }}</p>
+        <p id="categoria-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ categoryError() }}</p>
       }
     </div>
 
@@ -127,6 +122,8 @@
         min="0"
         step="0.01"
         #costo
+        [attr.aria-invalid]="unitCostError() ? 'true' : null"
+        [attr.aria-describedby]="unitCostError() ? 'costo-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -134,7 +131,7 @@
         "
       />
       @if (unitCostError()) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitCostError() }}</p>
+        <p id="costo-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitCostError() }}</p>
       }
     </div>
 
@@ -147,6 +144,8 @@
         min="0"
         step="0.01"
         #precio
+        [attr.aria-invalid]="priceError() ? 'true' : null"
+        [attr.aria-describedby]="priceError() ? 'precio-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -154,7 +153,7 @@
         "
       />
       @if (priceError()) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ priceError() }}</p>
+        <p id="precio-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ priceError() }}</p>
       }
     </div>
 
@@ -167,6 +166,8 @@
         min="1"
         step="1"
         #piezas
+        [attr.aria-invalid]="initialQtyError() ? 'true' : null"
+        [attr.aria-describedby]="initialQtyError() ? 'piezas-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -174,7 +175,7 @@
         "
       />
       @if (initialQtyError()) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
+        <p id="piezas-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
       }
     </div>
 
@@ -197,6 +198,8 @@
         type="text"
         placeholder="p. ej. 30 g"
         #porcion
+        [attr.aria-invalid]="portionSizeError() ? 'true' : null"
+        [attr.aria-describedby]="portionSizeError() ? 'porcion-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -204,7 +207,7 @@
         "
       />
       @if (portionSizeError()) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ portionSizeError() }}</p>
+        <p id="porcion-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ portionSizeError() }}</p>
       }
     </div>
 

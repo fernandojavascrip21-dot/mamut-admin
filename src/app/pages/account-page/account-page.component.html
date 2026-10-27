@@ -79,6 +79,7 @@
         aria-modal="true"
         aria-labelledby="confirm-logout-title"
         aria-describedby="confirm-logout-desc"
+        (keydown)="onDialogKeydown($event)"
         class="flex w-full max-w-sm flex-col gap-3 rounded-lg bg-white p-5"
       >
         <h2 id="confirm-logout-title" class="text-lg font-bold">¿Cerrar sesión?</h2>
@@ -88,6 +89,7 @@
         </p>
         <div class="mt-1 flex gap-2.5">
           <button
+            #cancelLogoutButton
             type="button"
             (click)="cancelLogout()"
             class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold"
@@ -95,6 +97,7 @@
             Cancelar
           </button>
           <button
+            #confirmLogoutButton
             type="button"
             (click)="confirmLogout()"
             class="h-[50px] flex-1 rounded-lg bg-danger font-bold text-white"

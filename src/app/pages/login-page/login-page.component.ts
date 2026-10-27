@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ROLE_HOME } from '../../auth/guards/role.guard';
 import { AuthService } from '../../auth/services/auth.service';
@@ -20,6 +20,9 @@ export class LoginPageComponent {
   readonly usuarioError = signal<string | null>(null);
   readonly contrasenaError = signal<string | null>(null);
 
+  @ViewChild('usuario') private usuarioInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('contrasena') private contrasenaInput!: ElementRef<HTMLInputElement>;
+
   private lastAttempt: { usuario: string; contrasena: string } | null = null;
 
   // Valida los campos en el cliente antes de llamar al backend (criterio 4 de HU-01): si alguno
@@ -33,7 +36,10 @@ export class LoginPageComponent {
     const contrasenaVacia = contrasena.trim() === '';
     this.usuarioError.set(usuarioVacio ? 'Escribe tu usuario' : null);
     this.contrasenaError.set(contrasenaVacia ? 'Escribe tu contraseña' : null);
-    if (usuarioVacio || contrasenaVacia) return;
+    if (usuarioVacio || contrasenaVacia) {
+      (usuarioVacio ? this.usuarioInput : this.contrasenaInput).nativeElement.focus();
+      return;
+    }
 
     this.lastAttempt = { usuario: usuarioLimpio, contrasena };
     this.attempt(usuarioLimpio, contrasena);

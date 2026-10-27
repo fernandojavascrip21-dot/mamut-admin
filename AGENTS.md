@@ -99,6 +99,13 @@ tests/           Vitest against the real DB
 - **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`; the Angular dev origin (`http://localhost:4200`) must be listed.
 - `src/db/schema.ts` is generated — never hand-edit beyond the `db:pull` fixups, never add Drizzle-generated migrations. Schema changes go in `supabase/migrations/`.
 
+## Diseño de interfaces
+
+- Antes de crear una pantalla nueva, definir estilo, paleta y reglas de UX (en Claude Code, con la skill ui-ux-pro-max).
+- Después, trabajar el acabado visual (en Claude Code, con la skill frontend-design).
+- No aplicar este flujo a cambios menores ni a lógica sin interfaz.
+- Mantener los colores, tipografías y componentes ya definidos en el sistema de diseño del proyecto.
+
 ## Workflow
 
 - Specs are written with `/spec` and implemented with `/spec-impl`; `specs/.spec-config.yml` (`AutoCreateBranch`) controls whether a `spec-<slug>` branch is created automatically.

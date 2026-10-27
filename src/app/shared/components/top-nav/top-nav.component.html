@@ -53,7 +53,7 @@
           routerLinkActive
           #rla="routerLinkActive"
           [attr.aria-current]="rla.isActive ? 'page' : null"
-          class="flex flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-semibold transition-colors"
+          class="flex min-h-12 flex-col items-center justify-center gap-1 px-1 py-2 text-xs leading-tight font-semibold transition-colors"
           [class]="rla.isActive ? 'text-accent-2-text' : 'text-muted hover:bg-page'"
         >
           <span

@@ -71,7 +71,7 @@
         <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
         <button
           type="button"
-          class="retry mt-2.5 h-9 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+          class="retry mt-2.5 min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
           (click)="retry()"
         >
           Reintentar
@@ -93,6 +93,8 @@
         type="text"
         autocomplete="username"
         #usuario
+        [attr.aria-invalid]="usuarioError() ? 'true' : null"
+        [attr.aria-describedby]="usuarioError() ? 'usuario-error' : null"
         [disabled]="state() === 'loading'"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -100,7 +102,7 @@
         "
       />
       @if (usuarioError()) {
-        <p class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+        <p id="usuario-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
           {{ usuarioError() }}
         </p>
       }
@@ -114,6 +116,8 @@
         type="password"
         autocomplete="current-password"
         #contrasena
+        [attr.aria-invalid]="contrasenaError() ? 'true' : null"
+        [attr.aria-describedby]="contrasenaError() ? 'contrasena-error' : null"
         [disabled]="state() === 'loading'"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -121,7 +125,7 @@
         "
       />
       @if (contrasenaError()) {
-        <p class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+        <p id="contrasena-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
           {{ contrasenaError() }}
         </p>
       }

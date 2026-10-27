@@ -118,3 +118,10 @@ This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` con
 
 - **While implementing:** post progress as comments on that Jira issue (via the Atlassian MCP tools) describing which step of the spec's implementation plan is underway, and the current status (✅ done / ❌ pending / ⏳ deferred) of each of the story's own acceptance criteria — not just a single comment at the end. Follow the pattern already used on `SCRUM-17`'s comments.
 - **On 100% completion:** once every item in the spec's "Acceptance criteria" / "Criterios de aceptación" checklist is checked and its own tests pass, transition the Jira story to done (`Finalizada`) — don't leave it sitting in `En curso` once the code and tests are actually in.
+
+## Diseño de interfaces
+
+- Antes de crear una pantalla nueva, usar ui-ux-pro-max para definir estilo, paleta y reglas de UX.
+- Después, aplicar frontend-design para el acabado visual.
+- No aplicar este flujo a cambios menores ni a lógica sin interfaz.
+- Mantener los colores, tipografías y componentes ya definidos en el sistema de diseño del proyecto.
