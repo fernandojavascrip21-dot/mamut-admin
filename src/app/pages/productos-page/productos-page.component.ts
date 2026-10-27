@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ProductosService } from '../../productos/services/productos.service';
 import type { ProductoResumen } from '../../productos/interfaces/producto.models';
@@ -16,11 +17,20 @@ type ProductosState = 'loading' | 'error' | 'ready';
   selector: 'app-productos-page',
   templateUrl: './productos-page.component.html',
 })
-export class ProductosPageComponent implements OnInit {
+export class ProductosPageComponent {
   private readonly productos = inject(ProductosService);
 
-  readonly state = signal<ProductosState>('loading');
-  readonly items = signal<ProductoResumen[]>([]);
+  // La lista se pide al entrar; «Reintentar» es productsResource.reload(). El estado de la
+  // pantalla se deriva del status del recurso (reloading cuenta como cargando).
+  readonly productsResource = rxResource({ stream: () => this.productos.listProductos() });
+  readonly state = computed<ProductosState>(() => {
+    const status = this.productsResource.status();
+    if (status === 'error') return 'error';
+    return this.productsResource.hasValue() && status !== 'reloading' ? 'ready' : 'loading';
+  });
+  readonly items = computed<ProductoResumen[]>(() =>
+    this.productsResource.hasValue() ? this.productsResource.value() : [],
+  );
   readonly busqueda = signal('');
 
   // Filtra en el cliente por subcadena del nombre, sin distinguir mayúsculas ni acentos
@@ -31,29 +41,14 @@ export class ProductosPageComponent implements OnInit {
     return this.items().filter((item) => normalizarTexto(item.name).includes(query));
   });
 
-  ngOnInit(): void {
-    this.cargar();
-  }
-
   // Botón «Reintentar» del estado de error: vuelve a pedir la lista sin recargar la página.
   retry(): void {
-    this.state.set('loading');
-    this.cargar();
+    this.productsResource.reload();
   }
 
   // Botón «Limpiar búsqueda» del estado sin resultados: vacía el buscador y vuelve a mostrar
   // todas las tarjetas (criterio 3).
   limpiarBusqueda(): void {
     this.busqueda.set('');
-  }
-
-  private cargar(): void {
-    this.productos.listProductos().subscribe({
-      next: (items) => {
-        this.items.set(items);
-        this.state.set('ready');
-      },
-      error: () => this.state.set('error'),
-    });
   }
 }
