@@ -1,6 +1,6 @@
 # Spec técnico — HU-06 · Editar los datos de un producto
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) — reusa `nuevo-producto-page`, `POST /api/products/photo` y el índice único de nombre; M1-hu05-ver-y-buscar-productos (`specs/M1-hu05-ver-y-buscar-productos/spec.md`) — la tarjeta `producto-card` pasa a ser el punto de entrada a la edición
 > **Fecha:** 2026-10-26
 > **Objetivo:** que el administrador toque un producto en «Productos», corrija su nombre, categoría, costo, precio, foto o porción en el mismo formulario del alta (sin poder tocar las piezas), y al guardar vea el cambio en la lista.

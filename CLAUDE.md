@@ -114,10 +114,38 @@ Key patterns to follow when adding backend code:
 
 This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` controls whether `/spec-impl` creates its git branch automatically (`AutoCreateBranch: true`, the default). `specs/M0-base/spec.md` is the only milestone-wide spec; later specs (e.g. `specs/M0-hu03-rutas-por-rol/spec.md`) are scoped to a single Jira user story (`HU-NN`) instead.
 
+**Spec index:** `specs/README.md` lists every spec with its type, Jira key, status, dependencies and one-line objective, plus the cross-spec relationships that "Depends on" doesn't capture (e.g. a later spec changing an earlier one's rule). Whenever a spec is created, changes status, or turns out to affect another spec, update that index in the same change.
+
 **Jira sync — apply whenever a spec maps to a Jira user story:**
 
 - **While implementing:** post progress as comments on that Jira issue (via the Atlassian MCP tools) describing which step of the spec's implementation plan is underway, and the current status (✅ done / ❌ pending / ⏳ deferred) of each of the story's own acceptance criteria — not just a single comment at the end. Follow the pattern already used on `SCRUM-17`'s comments.
 - **On 100% completion:** once every item in the spec's "Acceptance criteria" / "Criterios de aceptación" checklist is checked and its own tests pass, transition the Jira story to done (`Finalizada`) — don't leave it sitting in `En curso` once the code and tests are actually in.
+
+## Buenas prácticas de código
+
+### Principios
+- Aplicar SOLID: una responsabilidad por clase o componente, dependencias por inyección, interfaces pequeñas.
+- La lógica de negocio va en servicios, no en componentes ni en plantillas.
+- Los componentes solo presentan datos y emiten eventos.
+
+### Angular
+- Componentes standalone; no crear NgModules nuevos.
+- Inyectar dependencias con `inject()`.
+- Usar `input()`, `output()` y `computed()` en lugar de decoradores y propiedades calculadas en la plantilla.
+- Usar `ChangeDetectionStrategy.OnPush` en todos los componentes.
+- Plantillas con `@if`, `@for` (con `track`) y `@switch`.
+- No anidar `subscribe`. Usar `async`, `toSignal()` o `rxResource`, y `takeUntilDestroyed()` para limpiar.
+- Lazy loading en todas las rutas de funcionalidades.
+
+### Calidad
+- TypeScript estricto. Prohibido `any`; usar `unknown` y validar.
+- Nombres descriptivos en inglés para código, y en español solo en textos visibles para el usuario.
+- No dejar código comentado ni `console.log` en los cambios finales.
+- Antes de terminar una tarea, ejecutar `ng build` y los tests afectados.
+
+### Dinero e inventario
+- Cantidades monetarias como enteros en centavos o con tipos decimales, nunca con `number` flotante para cálculos de caja.
+- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente.
 
 ## Diseño de interfaces
 

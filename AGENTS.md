@@ -99,6 +99,32 @@ tests/           Vitest against the real DB
 - **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`; the Angular dev origin (`http://localhost:4200`) must be listed.
 - `src/db/schema.ts` is generated — never hand-edit beyond the `db:pull` fixups, never add Drizzle-generated migrations. Schema changes go in `supabase/migrations/`.
 
+## Buenas prácticas de código
+
+### Principios
+- Aplicar SOLID: una responsabilidad por clase o componente, dependencias por inyección, interfaces pequeñas.
+- La lógica de negocio va en servicios, no en componentes ni en plantillas.
+- Los componentes solo presentan datos y emiten eventos.
+
+### Angular
+- Componentes standalone; no crear NgModules nuevos.
+- Inyectar dependencias con `inject()`.
+- Usar `input()`, `output()` y `computed()` en lugar de decoradores y propiedades calculadas en la plantilla.
+- Usar `ChangeDetectionStrategy.OnPush` en todos los componentes.
+- Plantillas con `@if`, `@for` (con `track`) y `@switch`.
+- No anidar `subscribe`. Usar `async`, `toSignal()` o `rxResource`, y `takeUntilDestroyed()` para limpiar.
+- Lazy loading en todas las rutas de funcionalidades.
+
+### Calidad
+- TypeScript estricto. Prohibido `any`; usar `unknown` y validar.
+- Nombres descriptivos en inglés para código, y en español solo en textos visibles para el usuario.
+- No dejar código comentado ni `console.log` en los cambios finales.
+- Antes de terminar una tarea, ejecutar `ng build` y los tests afectados.
+
+### Dinero e inventario
+- Cantidades monetarias como enteros en centavos o con tipos decimales, nunca con `number` flotante para cálculos de caja.
+- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente.
+
 ## Diseño de interfaces
 
 - Antes de crear una pantalla nueva, definir estilo, paleta y reglas de UX (en Claude Code, con la skill ui-ux-pro-max).
@@ -109,6 +135,7 @@ tests/           Vitest against the real DB
 ## Workflow
 
 - Specs are written with `/spec` and implemented with `/spec-impl`; `specs/.spec-config.yml` (`AutoCreateBranch`) controls whether a `spec-<slug>` branch is created automatically.
+- `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, and cross-spec relationships). Update it in the same change whenever a spec is created, changes status, or affects another spec.
 - When a spec maps to a Jira user story (`HU-NN`):
   - **During implementation**, comment progress on the Jira issue: current step of the spec's plan and the status (✅ done / ❌ pending / ⏳ deferred) of each acceptance criterion — follow the pattern on `SCRUM-17`.
   - **At 100%** (all acceptance criteria checked, tests passing), transition the story to `Finalizada`.
