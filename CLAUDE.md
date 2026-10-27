@@ -9,9 +9,11 @@ A new **Angular 22** admin app (`mamut-admin`) for a supplement-inventory busine
 - `backend/README.md` still describes the *old* Vue frontend in places (e.g. "conecta el frontend Vue con Supabase", `ALLOWED_ORIGINS` defaulting to a Vite dev port) — treat it as accurate for the backend's own code, but outdated about who consumes it.
 - The data model in `backend/src/db/schema.ts` (`clients`, `consignment_items`, `debtors`, `direct_sales`, `cuts`, `shrinkage`, …) reflects the old project's domain (wholesale clients in consignment). The current project's business vocabulary (administrador/vendedor, bodega, dejar/retirar) does **not** map 1:1 onto it yet — see `specs/M0-base/spec.md` §8 for the open question on whether `vendedor` reuses the `client` concept or is genuinely separate.
 - `profiles.role` currently only allows `'admin' | 'client'`. Work that introduces a `'vendedor'` role must extend this check constraint and the `AuthContext['role']` type, not replace it.
-- Where the migrations for *this* repo's schema changes should live is itself an open question (see the spec above) — the backend's `drizzle.config.ts` comment points at a `supabase/migrations/` folder that currently only exists in the sibling Vue repo.
+- Schema changes for *this* repo live as timestamped SQL files in `supabase/migrations/` at the repo root (the folder the backend's `drizzle.config.ts` comment points at).
 
-Project docs (requirements, mockups, user stories) are **not** local files in this repo — they live in Jira/Confluence on `fernandojavascrip21.atlassian.net` (Jira project `MammutSuplements`, key `SCRUM`; Confluence space `SCRUM`). The `/spec` skill fetches them directly when asked to spec a milestone.
+Project docs (requirements, mockups, user stories) are **not** local files in this repo — they live in Jira/Confluence on `fernandojavascrip21.atlassian.net` (Jira project `MammutSuplements`, key `SCRUM`; Confluence space `SCRUM`). The `/spec` skill fetches them directly when asked to spec a milestone. Local design references (HTML/Vue catalog exports, page references, the inventory Excel) live in `references/`.
+
+`AGENTS.md` mirrors this file for non-Claude agents — keep both in sync when changing project rules.
 
 ## Commands
 
@@ -65,15 +67,15 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 **Architecture — feature-based folders, not by file type:**
 
 - `src/app/pages/`: components tied to a route, one subfolder per page (`pages/login-page/login-page.component.ts`). A page that itself hosts a `<router-outlet>` (e.g. `admin-page`, `vendedor-page`) still lives here — it's a page, not a separate "layout" concept.
-- `src/app/<funcionalidad>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/` (add `components/` inside it if that area ever needs its own non-page components). Example: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`).
-- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`) — not tied to one feature or one page.
+- `src/app/<funcionalidad>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/` (add `components/` inside it if that area ever needs its own non-page components). Examples: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`), `productos/` (`services/`, `interfaces/`).
+- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`, `shared/normalizar-texto.ts`, and shared UI under `shared/components/`, like `shared/components/top-nav/`) — not tied to one feature or one page.
 - Inside a page or component that grows subcomponents purely for visual composition (e.g. a skeleton), put those under its own `ui/` subfolder.
 - No global `src/app/components/` or `src/app/services/` catch-alls at the root — everything lives inside a page or a feature folder.
 - Create a new feature's whole folder (and its `services/`/`guards/`/`interfaces/` subfolders) before adding files into it, not file-by-file.
 
 **Comments:** every non-trivial function (auth flows, guards, interceptors, anything with a non-obvious rule) gets a short comment explaining what it does and why — not a restatement of the code, something a reader can't get from the signature alone.
 
-**Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (generate components with `--style=none`, or delete the generated stylesheet and drop `styleUrl`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own.
+**Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (generate components with `--style=none`, or delete the generated stylesheet and drop `styleUrl`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own. New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — never copy mockup colors or Vue code verbatim.
 
 **Components:**
 
@@ -106,7 +108,7 @@ Key patterns to follow when adding backend code:
 - **Rows with history are deactivated, never deleted** — `DELETE` endpoints rely on Postgres FK `restrict` to surface a 409 rather than hand-checking every referencing table.
 - **Error responses are always `{ error: { code, message } }`** via `AppError`/`toResponse` in `src/lib/errors.ts`, with a fixed HTTP status per `code` (401/403/404/409/422/500). Login/refresh return the same generic message for "wrong password", "no such account", and "deactivated account" — don't leak which case it was.
 - **CORS origins come from `ALLOWED_ORIGINS`** in `backend/.env` (comma-separated) — this still lists the old Vue dev port and needs the Angular dev origin added when the frontend starts calling it.
-- `src/db/schema.ts` is a generated reflection of the database, not a source of truth — never hand-edit it beyond the two fixups above, and never add Drizzle-generated migrations.
+- `src/db/schema.ts` is a generated reflection of the database, not a source of truth — never hand-edit it beyond the two fixups above, and never add Drizzle-generated migrations. Schema changes go in `supabase/migrations/`.
 
 ### Specs workflow
 

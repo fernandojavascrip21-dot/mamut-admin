@@ -1,0 +1,108 @@
+# AGENTS.md
+
+Guidance for AI coding agents (Codex, Cursor, Copilot, Claude Code, etc.) working in this repository. `CLAUDE.md` holds the same rules in more detail; keep both in sync. If they disagree, `CLAUDE.md` wins and this file should be updated.
+
+## Project overview
+
+- **Frontend (repo root):** Angular 22 admin app (`mamut-admin`) for Mammut Supplements, a supplement-inventory business. Standalone components, SSR (`src/server.ts`, `outputMode: "server"`), Tailwind v4 via `@tailwindcss/postcss`.
+- **Backend (`backend/`):** Next.js API-only project (own `package.json`, `node_modules`, `.env`), reused from the sibling Vue project `mammutSuplements/mammut-Suplements` and extended here. Supabase (Postgres + Auth) accessed through Drizzle.
+- **Migrations:** `supabase/migrations/` (timestamped SQL files).
+- **Specs:** `specs/<milestone>-<story>/spec.md` (e.g. `specs/M1-hu05-ver-y-buscar-productos/`). `specs/M0-base/spec.md` is the only milestone-wide spec.
+- **Requirements, mockups, user stories:** Jira/Confluence on `fernandojavascrip21.atlassian.net` (Jira project key `SCRUM`), not local files.
+- **Design references:** `references/` (local HTML/Vue references and the inventory Excel).
+
+Known legacy mismatches inherited from the old project:
+
+- `backend/README.md` still talks about a Vue frontend and a Vite dev port; it's accurate about backend code, outdated about who consumes it.
+- The schema's domain (`clients`, `consignment_items`, `debtors`, …) doesn't map 1:1 onto this project's vocabulary (administrador/vendedor, bodega, dejar/retirar).
+- `profiles.role` only allows `'admin' | 'client'`. Adding `'vendedor'` means **extending** the check constraint and `AuthContext['role']`, not replacing them.
+
+## Commands
+
+### Frontend (repo root)
+
+```bash
+npm start                # ng serve — http://localhost:4200
+npm run build            # production build
+npm run watch            # dev build in watch mode
+npm test                 # unit tests (Vitest runner, jsdom) — not Karma/Jasmine
+ng test --include src/app/auth/services/auth.service.spec.ts   # single file
+ng test --filter "AuthService"                                  # by name
+```
+
+No lint script is configured (no ESLint at root or in `backend/`).
+
+### Backend (`cd backend`)
+
+```bash
+npm run dev              # http://localhost:3000/api/health
+npm run build / start
+npm run type-check       # tsc --noEmit
+npm test                 # vitest run against the REAL Supabase DB
+npx vitest run tests/admins.test.ts   # single file
+npm run db:check         # sanity query
+npm run db:pull          # regenerate src/db/schema.ts
+```
+
+- Backend tests hit the live database. Account tests need `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`; without it they are **silently skipped**, so a green run doesn't prove auth logic passed. Test data is prefixed `test-auth-` / `test-tx-` and cleaned up automatically.
+- After `npm run db:pull`, fix `src/db/schema.ts` by hand before committing:
+  1. `.default(')` → `.default('')`.
+  2. Re-add at the top: `const authSchema = pgSchema("auth")`, `export const usersInAuth = authSchema.table("users", { id: uuid().primaryKey() })`, `const users = usersInAuth`.
+  3. Delete the generated `src/db/0000_*.sql` and `src/db/meta/` — they aren't used.
+
+## Frontend conventions
+
+**Folder structure (by feature, not by file type):**
+
+- `src/app/pages/<name>-page/` — one folder per routed page. Pages hosting a `<router-outlet>` (`admin-page`, `vendedor-page`) still live here.
+- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/` (and `components/` if needed). Examples: `auth/`, `productos/`.
+- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalizar-texto.ts`, `components/top-nav/`).
+- Visual-only subcomponents of a page/component go in its own `ui/` subfolder.
+- No root-level `src/app/components/` or `src/app/services/` catch-alls.
+- Create a new feature's whole folder skeleton before adding files to it.
+
+**Components:**
+
+- Always generate with `ng generate component` (with `--style=none`), never hand-write the files.
+- Selector prefix `app-`; kebab-case names describing function and context (`inventory-list`, `grid-client`); don't include the word "component" in the name.
+
+**Styling:**
+
+- Tailwind utility classes in templates only — no per-component `.css` files, no `styleUrl`.
+- Brand colors and fonts are Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`); use them as utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`). Never hard-code hex values or font stacks.
+- One-off sizes can use arbitrary values (`h-[50px]`).
+- Non-styling test-hook classes (e.g. `field-error`) are fine.
+- New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — don't copy mockup colors or Vue code verbatim.
+
+**Comments:** every non-trivial function (auth flows, guards, interceptors, non-obvious rules) gets a short comment explaining what it does and *why*, not a restatement of the code.
+
+## Backend conventions
+
+Next.js App Router, API routes only:
+
+```
+proxy.ts         CORS for /api/** (Next 16's renamed "middleware")
+app/api/         thin routes: validate input, call a use case in src/
+src/db/          Drizzle client, introspected schema.ts, withTransaction + lockRows
+src/auth/        getAuthContext, guards (requireAuth/requireRole/requireOwnClient), session
+src/accounts/    account use cases built on accounts.ts (createAccount/toView)
+src/lib/         errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers)
+tests/           Vitest against the real DB
+```
+
+- **No business logic in routes** — routes validate and delegate to `src/`.
+- **Auth is re-checked on every request**: `getAuthContext` loads `profiles` fresh so deactivation takes effect immediately. Never trust JWT claims for role/active status.
+- **Account creation = Supabase Auth user, then `profiles` row**, with manual compensation (delete the Auth user if the profile insert fails). Follow `createAccount` for any new account flow.
+- **Transactions** go through `withTransaction` / `lockRows` (`select … for update`), not raw queries.
+- **Rows with history are deactivated, never deleted.** `DELETE` endpoints rely on FK `restrict` to surface a 409.
+- **Errors** are always `{ error: { code, message } }` via `AppError` / `toResponse`, with a fixed HTTP status per code (401/403/404/409/422/500). Login/refresh return one generic message for wrong password, unknown account and deactivated account.
+- **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`; the Angular dev origin (`http://localhost:4200`) must be listed.
+- `src/db/schema.ts` is generated — never hand-edit beyond the `db:pull` fixups, never add Drizzle-generated migrations. Schema changes go in `supabase/migrations/`.
+
+## Workflow
+
+- Specs are written with `/spec` and implemented with `/spec-impl`; `specs/.spec-config.yml` (`AutoCreateBranch`) controls whether a `spec-<slug>` branch is created automatically.
+- When a spec maps to a Jira user story (`HU-NN`):
+  - **During implementation**, comment progress on the Jira issue: current step of the spec's plan and the status (✅ done / ❌ pending / ⏳ deferred) of each acceptance criterion — follow the pattern on `SCRUM-17`.
+  - **At 100%** (all acceptance criteria checked, tests passing), transition the story to `Finalizada`.
+- Don't commit or push unless asked; branch off `main` rather than committing to it.
