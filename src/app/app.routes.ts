@@ -1,53 +1,41 @@
 import { Routes } from '@angular/router';
-import { AccountPageComponent } from './pages/account-page/account-page.component';
-import { ComingSoonPageComponent } from './pages/coming-soon-page/coming-soon-page.component';
-import { LoginPageComponent } from './pages/login-page/login-page.component';
-import { AdminPageComponent } from './pages/admin-page/admin-page.component';
-import { VendedorPageComponent } from './pages/vendedor-page/vendedor-page.component';
-import { NuevoProductoPageComponent } from './pages/nuevo-producto-page/nuevo-producto-page.component';
-import { ProductosPageComponent } from './pages/productos-page/productos-page.component';
 import { roleGuard } from './auth/guards/role.guard';
 import { guestGuard } from './auth/guards/guest.guard';
-import { cambiosSinGuardarGuard } from './productos/guards/cambios-sin-guardar.guard';
 
-// Árbol de rutas de M0. /admin y /vendedor están protegidas por roleGuard con su rol en
-// `data.roles`; sus hijos (hoy todos ComingSoonPageComponent) heredan esa protección sin
-// repetir el guard, porque canMatch ya decidió si esta rama del árbol se llega a matchear o no.
+// Árbol de rutas, todo con carga diferida. /admin y /vendedor están protegidas por roleGuard
+// con su rol en `data.roles`; sus hijos (admin.routes.ts, vendedor.routes.ts) heredan esa
+// protección sin repetir el guard, y como canMatch decide antes de cargar, el código de una
+// rama nunca se descarga para el otro rol.
 // /cuenta usa el mismo guard sin `roles`: exige sesión, pero de cualquiera de los dos roles.
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   // guestGuard cierra el criterio 5 de HU-03: con sesión activa, reabrir /login no muestra
   // el formulario, redirige directo a la home del rol.
-  { path: 'login', component: LoginPageComponent, canMatch: [guestGuard] },
-  { path: 'cuenta', component: AccountPageComponent, canMatch: [roleGuard] },
+  {
+    path: 'login',
+    loadComponent: () => import('./pages/login-page/login-page.component').then((m) => m.LoginPageComponent),
+    canMatch: [guestGuard],
+  },
+  {
+    path: 'cuenta',
+    loadComponent: () =>
+      import('./pages/account-page/account-page.component').then((m) => m.AccountPageComponent),
+    canMatch: [roleGuard],
+  },
   {
     path: 'admin',
-    component: AdminPageComponent,
+    loadComponent: () => import('./pages/admin-page/admin-page.component').then((m) => m.AdminPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['admin'] },
-    children: [
-      { path: '', pathMatch: 'full', redirectTo: 'stock' },
-      { path: 'stock', component: ComingSoonPageComponent, data: { title: 'Stock' } },
-      { path: 'productos', component: ProductosPageComponent, data: { title: 'Productos' } },
-      { path: 'productos/nuevo', component: NuevoProductoPageComponent, data: { title: 'Nuevo producto' } },
-      { path: 'productos/:id/editar', component: NuevoProductoPageComponent, canDeactivate: [cambiosSinGuardarGuard], data: { title: 'Editar producto' } },
-      { path: 'carrito', component: ComingSoonPageComponent, data: { title: 'Carrito' } },
-      { path: 'corte', component: ComingSoonPageComponent, data: { title: 'Corte' } },
-      { path: 'vendedores', component: ComingSoonPageComponent, data: { title: 'Vendedores' } },
-    ],
+    loadChildren: () => import('./pages/admin-page/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
   {
     path: 'vendedor',
-    component: VendedorPageComponent,
+    loadComponent: () =>
+      import('./pages/vendedor-page/vendedor-page.component').then((m) => m.VendedorPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['vendedor'] },
-    children: [
-      { path: '', pathMatch: 'full', redirectTo: 'mi-stock' },
-      { path: 'mi-stock', component: ComingSoonPageComponent, data: { title: 'Mi stock' } },
-      { path: 'vender', component: ComingSoonPageComponent, data: { title: 'Vender' } },
-      { path: 'carrito', component: ComingSoonPageComponent, data: { title: 'Carrito' } },
-      { path: 'mi-corte', component: ComingSoonPageComponent, data: { title: 'Mi corte' } },
-    ],
+    loadChildren: () => import('./pages/vendedor-page/vendedor.routes').then((m) => m.VENDEDOR_ROUTES),
   },
   // Cualquier URL desconocida cae al login (no estaba en el spec, pero sin esto una ruta mal
   // escrita deja al usuario viendo una pantalla en blanco).
