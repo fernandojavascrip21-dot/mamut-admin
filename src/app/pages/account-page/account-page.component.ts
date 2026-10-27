@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   afterRenderEffect,
   computed,
@@ -7,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
 import { initialsOf } from '../../shared/initials';
@@ -23,6 +25,7 @@ import { ROLE_HOME } from '../../auth/guards/role.guard';
 export class AccountPageComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly user = this.auth.currentUser;
   readonly initials = computed(() => initialsOf(this.user()?.fullName ?? ''));
@@ -87,7 +90,7 @@ export class AccountPageComponent {
   // sesión local igual: quedarse adentro con un token que ya no se pudo invalidar es peor que
   // forzar la salida.
   confirmLogout(): void {
-    this.auth.logout().subscribe({
+    this.auth.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.router.navigateByUrl('/login'),
       error: () => {
         this.auth.clearSession();
