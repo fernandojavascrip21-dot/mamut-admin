@@ -1,6 +1,6 @@
 # Spec técnico — T-04 · Aplicar las reglas de Angular moderno en todo el frontend
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M1-hu06-editar-producto (`specs/M1-hu06-editar-producto/spec.md`) — este refactor parte de `main` con HU-06 ya fusionada
 > **Fecha:** 2026-10-26
 > **Objetivo:** que todo el frontend existente cumpla las reglas de «Buenas prácticas de código › Angular» y «TypeScript estricto» de `CLAUDE.md`/`AGENTS.md`, sin cambiar nada de lo que ve o hace el usuario.
@@ -20,7 +20,7 @@ La revisión del 2026-10-26 encontró, en los 11 componentes del frontend (`app.
 | `@if` / `@for` / `@switch` | ✅ ya se cumple (ningún `*ngIf`/`*ngFor`); falta revisar que todo `@for` tenga `track` |
 | Sin `any`, sin `console.log` | ✅ ya se cumple |
 | `input()` / `output()` | ✅ `producto-card` ya usa `input.required` |
-| `OnPush` | ❌ 0 de 11 componentes |
+| `OnPush` | ✅ es el **valor por defecto** de Angular 22 (`ChangeDetectionStrategy.OnPush = 0`; la detección «de siempre» se llama `Eager`, y `Default` está obsoleto). Ningún componente declara `Eager`/`Default`, así que los 11 ya corren con OnPush (hallazgo del paso 1 de `/spec-impl`, 2026-10-27) |
 | Sin decoradores | ❌ `@ViewChild` en `login-page`, `account-page`, `nuevo-producto-page`; `@HostListener` en `nuevo-producto-page` |
 | No anidar `subscribe` + limpieza | ❌ 8 `subscribe` en `login-page`, `account-page`, `nuevo-producto-page` (5, uno anidado: subir foto → guardar) y `productos-page`; ninguno con `takeUntilDestroyed` |
 | Lazy loading | ❌ ninguna ruta usa `loadComponent`/`loadChildren` |
@@ -30,13 +30,13 @@ La revisión del 2026-10-26 encontró, en los 11 componentes del frontend (`app.
 
 **Entra en este spec:**
 
-- `changeDetection: ChangeDetectionStrategy.OnPush` en los 11 componentes.
+- OnPush por defecto: no se declara `changeDetection` en ningún componente; se prohíbe `ChangeDetectionStrategy.Eager`/`Default` (decisión del usuario tras el hallazgo del paso 1, ver §7).
 - `@ViewChild` → `viewChild()` (signal queries) y `@HostListener` → `host: { '(window:beforeunload)': … }` en los metadatos del componente.
 - **Cargas al entrar → `rxResource`**: la lista de productos (`productos-page`), las categorías y el producto a editar (`nuevo-producto-page`). Sus estados cargando/error salen del `status()`/`error()` del recurso, y «Reintentar» llama a `reload()`.
 - **Acciones del usuario → un solo `subscribe`, sin anidar, con `takeUntilDestroyed()`**: login, cerrar sesión, guardar (alta y edición). Subir foto → guardar pasa a una sola cadena con `switchMap`.
 - Lazy loading: `src/app/pages/admin-page/admin.routes.ts` y `src/app/pages/vendedor-page/vendedor.routes.ts` cargados con `loadChildren`; cada página (incluidas `login-page`, `account-page`, `admin-page` y `vendedor-page`) con `loadComponent`. `roleGuard`, `guestGuard`, `cambiosSinGuardarGuard` y los `data` quedan donde están hoy.
 - `"strict": true` en `tsconfig.json`.
-- `angular.json` → `schematics` con `changeDetection: "OnPush"` y `style: "none"` para `@schematics/angular:component`, para que `ng generate component` ya cumpla las reglas.
+- `angular.json` → `schematics` con `type: "component"` y `style: "none"` para `@schematics/angular:component`, para que `ng generate component` cree `nombre.component.ts` + `NombreComponent` (Angular 22 genera `nombre.ts` + `Nombre` por defecto) y sin `.css`. `changeDetection` no se configura: OnPush ya es el default y el CLI lo omite.
 - Revisar que cada `@for` tenga `track` con un id estable (no `$index` donde haya `id`).
 - Aclarar en `CLAUDE.md`/`AGENTS.md` la regla de `subscribe` (cargas → `rxResource`; acciones → un `subscribe` con `takeUntilDestroyed`), y corregir la línea de «Components» que dice que los archivos terminan en `.component.css` (contradice la regla de estilos sin `.css`).
 
@@ -89,7 +89,7 @@ upload$.pipe(
 
 ```json
 "schematics": {
-  "@schematics/angular:component": { "changeDetection": "OnPush", "style": "none" }
+  "@schematics/angular:component": { "type": "component", "style": "none" }
 }
 ```
 
@@ -98,28 +98,28 @@ upload$.pipe(
 Cada paso deja `ng build` y `npm test` en verde.
 
 1. `"strict": true` en `tsconfig.json` y `schematics` en `angular.json` (§3). Verificar `ng build` y `npm test`.
-2. `OnPush` en los 11 componentes. Correr `npm test`; cualquier prueba que dependa de detección por defecto se arregla con `fixture.detectChanges()`/`await fixture.whenStable()`, no quitando `OnPush`. Revisar `track` en todos los `@for`.
+2. Confirmar que ningún componente declara `ChangeDetectionStrategy.Eager`/`Default` (OnPush es el default de Angular 22) y revisar `track` en todos los `@for`.
 3. `viewChild()` en `login-page` y `account-page` (los setters de foco del diálogo pasan a `effect`/`afterRenderEffect` sobre el signal de la query).
 4. `productos-page`: lista con `rxResource`, «Reintentar» → `reload()`; actualizar su spec.
 5. `nuevo-producto-page`: categorías y producto a editar con `rxResource`; `viewChild()` en lugar de los 9 `@ViewChild`; `host` en lugar de `@HostListener('window:beforeunload')`; guardar (alta y edición) como una sola cadena con `switchMap` + `takeUntilDestroyed`; actualizar su spec.
 6. `login-page` y `account-page`: login y cerrar sesión con `takeUntilDestroyed`.
 7. Lazy loading: crear `admin.routes.ts` y `vendedor.routes.ts`, pasar todas las páginas a `loadComponent`; ajustar `app.routes.spec.ts` (resolver `loadComponent`/`loadChildren` en vez de comparar `component`). Confirmar que `app.routes.server.ts` sigue cubriendo `admin/**` y `vendedor/**` sin cambios.
-8. `CLAUDE.md`/`AGENTS.md`: aclarar la regla de `subscribe` y corregir la línea de `.component.css` (§2).
+8. `CLAUDE.md`/`AGENTS.md`: aclarar la regla de `subscribe`, corregir la línea de `.component.css` (§2), y reescribir la regla de OnPush: «OnPush es el default de Angular 22; no declarar `changeDetection` ni usar `ChangeDetectionStrategy.Eager`/`Default`».
 9. Verificación: `ng build` (revisar en la salida que aparecen chunks lazy separados para admin y vendedor), `npm test`, y verificación manual con `ng serve` + backend (§6).
 
 ## 5. Criterios de aceptación
 
-- [ ] Los 11 componentes declaran `changeDetection: ChangeDetectionStrategy.OnPush` (`grep -L OnPush` sobre `*.component.ts` y `app.ts` no devuelve nada).
-- [ ] No queda ningún `@ViewChild`, `@ViewChildren`, `@Input`, `@Output` ni `@HostListener` en `src/app` (sin contar specs).
-- [ ] Ningún `subscribe` está dentro del callback de otro `subscribe`, y todo `subscribe` en un componente lleva `takeUntilDestroyed`.
-- [ ] La lista de productos, las categorías y el producto a editar se cargan con `rxResource`, y «Reintentar» en `productos-page` y en «Editar producto» vuelve a pedir los datos.
-- [ ] `app.routes.ts` no importa ningún componente de página de forma estática; `admin` y `vendedor` usan `loadChildren`, y `ng build` genera chunks lazy separados.
-- [ ] Un vendedor que inicia sesión no descarga el chunk de `admin.routes` (pestaña Red del navegador).
-- [ ] `tsconfig.json` tiene `"strict": true` y `ng build` pasa sin errores.
-- [ ] `ng generate component` crea componentes con `OnPush` y sin `.css`.
-- [ ] Todo `@for` tiene `track` por un id estable cuando el elemento tiene `id`.
-- [ ] `CLAUDE.md` y `AGENTS.md` explican la regla de `subscribe` y ya no mencionan `.component.css`.
-- [ ] `npm test` (raíz) pasa, y el recorrido manual de §6 se comporta igual que antes del refactor.
+- [x] Ningún componente declara `ChangeDetectionStrategy.Eager` ni `Default` (`grep -rn "ChangeDetectionStrategy.\(Eager\|Default\)" src/app` no devuelve nada), así que todos usan OnPush, el default de Angular 22.
+- [x] No queda ningún `@ViewChild`, `@ViewChildren`, `@Input`, `@Output` ni `@HostListener` en `src/app` (sin contar specs).
+- [x] Ningún `subscribe` está dentro del callback de otro `subscribe`, y todo `subscribe` en un componente lleva `takeUntilDestroyed`.
+- [x] La lista de productos, las categorías y el producto a editar se cargan con `rxResource`, y «Reintentar» en `productos-page` y en «Editar producto» vuelve a pedir los datos. «Reintentar» verificado en `productos-page.component.spec.ts` y `nuevo-producto-page.component.spec.ts`; en el navegador se verificó la carga y el 404 (sin apagar el backend).
+- [x] `app.routes.ts` no importa ningún componente de página de forma estática; `admin` y `vendedor` usan `loadChildren`, y `ng build` genera chunks lazy separados.
+- [x] Un vendedor que inicia sesión no descarga el chunk de `admin.routes` (pestaña Red del navegador). Verificado el 2026-10-27: el vendedor solo descargó `vendedor.routes` y su contenedor; ningún archivo cargado contiene textos de admin.
+- [x] `tsconfig.json` tiene `"strict": true` y `ng build` pasa sin errores.
+- [x] `ng generate component` crea `nombre.component.ts` con la clase `NombreComponent`, sin `.css` y sin declarar `changeDetection` (OnPush por defecto).
+- [x] Todo `@for` tiene `track` por un id estable cuando el elemento tiene `id`.
+- [x] `CLAUDE.md` y `AGENTS.md` explican la regla de `subscribe`, la de OnPush como default (sin `Eager`/`Default`), y ya no mencionan `.component.css`.
+- [ ] `npm test` (raíz) pasa, y el recorrido manual de §6 se comporta igual que antes del refactor. Pendiente: `npm test` pasa (106/106) y el recorrido del 2026-10-27 cubrió login de ambos roles, redirecciones con sesión, búsqueda, edición (precio < costo, descartar con el enlace y con el botón atrás, guardar, guardar sin cambios, 404 e id inválido), validación del alta y cerrar sesión con teclado. Faltan los casos que necesitan apagar el backend (error de carga → «Reintentar», guardar sin conexión) y un alta real con foto.
 
 ## 6. Plan de pruebas
 
@@ -145,13 +145,15 @@ Cada paso deja `ng build` y `npm test` en verde.
 - **Sí:** solo frontend. Razón (decisión del usuario): las reglas de Angular no aplican al backend, y lo demás ya se cumple ahí.
 - **Sí:** `strict` en este spec aunque no sea «de Angular». Razón (decisión técnica de esta sesión): hoy da 0 errores; activarlo primero protege el resto del refactor.
 - **Sí:** crear la tarea `SCRUM-25 · T-04` en la épica M1. Razón (decisión del usuario): una tarea Jira por spec, para comentar avance y cerrarla al terminar.
+- **Sí:** no declarar `changeDetection` y prohibir `Eager`/`Default`, en vez de escribir `OnPush` en cada componente. Razón (decisión del usuario, a partir del hallazgo del paso 1 de `/spec-impl`): en Angular 22.2 OnPush ya es el default y el CLI omite la opción; declararlo sería ruido. La regla de `CLAUDE.md` se reescribe en ese sentido (paso 8).
+- **Sí:** `type: "component"` en el schematic. Razón (decisión del usuario, mismo hallazgo): Angular 22 genera archivos sin el sufijo `.component`, y todo el proyecto y `CLAUDE.md` lo usan.
 - **No:** cambiar URLs, textos o estilos. Razón: es un refactor; el usuario no debe notar nada.
 
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
 | --- | --- |
-| `OnPush` deja de pintar algo que dependía de detección por defecto (p. ej. estado mutado fuera de signals) | Todo el estado ya está en signals; el paso 2 corre las pruebas de inmediato y el recorrido manual de §6 revisa cada pantalla |
+| Una actualización futura de Angular cambia el default de detección | El criterio prohíbe `Eager`/`Default` explícitos; si el default cambiara, `CLAUDE.md` dice que la regla es OnPush y se revisa en esa actualización |
 | `rxResource` cambia el orden de los estados cargando/error y rompe pruebas o el «Reintentar» | Pasos 4 y 5 separados por pantalla, cada uno con su spec actualizado antes del siguiente |
 | Lazy loading con `canMatch` + SSR rompe el renderizado solo en cliente de `admin/**` y `vendedor/**` | `app.routes.server.ts` usa rutas por path, no componentes; el paso 7 lo confirma y §6 incluye recargar con sesión |
 | `viewChild()` cambia el momento en que el foco del diálogo y del primer campo inválido se aplica | Mismo comportamiento verificado a mano (foco, `Escape`) en §6; las pruebas de foco existentes se mantienen |

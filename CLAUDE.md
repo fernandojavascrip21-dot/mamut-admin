@@ -75,7 +75,7 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 
 **Comments:** every non-trivial function (auth flows, guards, interceptors, anything with a non-obvious rule) gets a short comment explaining what it does and why — not a restatement of the code, something a reader can't get from the signature alone.
 
-**Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (generate components with `--style=none`, or delete the generated stylesheet and drop `styleUrl`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own. New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — never copy mockup colors or Vue code verbatim.
+**Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (the component schematic in `angular.json` already uses `style: "none"`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own. New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — never copy mockup colors or Vue code verbatim.
 
 **Components:**
 
@@ -83,7 +83,7 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 - Selectors use the `app-` prefix (configured as `prefix` in `angular.json`).
 - Name components in kebab-case describing function and context: `grid-client`, `inventory-list`, `cash-register-summary`.
 - Don't include the word "component" in the component name — the `.component` file suffix already says that.
-- Files end up as `nombre.component.ts`, `nombre.component.html` and `nombre.component.css`.
+- Files end up as `nombre.component.ts`, `nombre.component.html` and `nombre.component.spec.ts` — no `.css` (see Styling). `angular.json` sets the component schematic to `type: "component"` (Angular 22 otherwise drops the `.component` suffix) and `style: "none"`, so plain `ng generate component <path>` already produces this.
 
 ### Backend (`backend/`)
 
@@ -132,9 +132,9 @@ This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` con
 - Componentes standalone; no crear NgModules nuevos.
 - Inyectar dependencias con `inject()`.
 - Usar `input()`, `output()` y `computed()` en lugar de decoradores y propiedades calculadas en la plantilla.
-- Usar `ChangeDetectionStrategy.OnPush` en todos los componentes.
+- OnPush en todos los componentes: en Angular 22 ya es el valor por defecto, así que no se declara `changeDetection`; nunca usar `ChangeDetectionStrategy.Eager` ni `Default`.
 - Plantillas con `@if`, `@for` (con `track`) y `@switch`.
-- No anidar `subscribe`. Usar `async`, `toSignal()` o `rxResource`, y `takeUntilDestroyed()` para limpiar.
+- No anidar `subscribe`. Lo que se carga al entrar a una pantalla va con `rxResource` (su `status()`/`error()` da el estado cargando/error y «Reintentar» es `reload()`) o `toSignal()`. Las acciones del usuario (enviar un formulario, cerrar sesión, guardar) usan un solo `subscribe` con `takeUntilDestroyed()`; si una llamada depende de otra, se encadenan con `switchMap` dentro del mismo `pipe`.
 - Lazy loading en todas las rutas de funcionalidades.
 
 ### Calidad

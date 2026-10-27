@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ROLE_HOME } from '../../auth/guards/role.guard';
 import { AuthService } from '../../auth/services/auth.service';
@@ -15,13 +16,14 @@ type LoginState = 'form' | 'loading' | 'error-credentials' | 'offline';
 export class LoginPageComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly state = signal<LoginState>('form');
   readonly usuarioError = signal<string | null>(null);
   readonly contrasenaError = signal<string | null>(null);
 
-  @ViewChild('usuario') private usuarioInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('contrasena') private contrasenaInput!: ElementRef<HTMLInputElement>;
+  private readonly usuarioInput = viewChild.required<ElementRef<HTMLInputElement>>('usuario');
+  private readonly contrasenaInput = viewChild.required<ElementRef<HTMLInputElement>>('contrasena');
 
   private lastAttempt: { usuario: string; contrasena: string } | null = null;
 
@@ -37,7 +39,7 @@ export class LoginPageComponent {
     this.usuarioError.set(usuarioVacio ? 'Escribe tu usuario' : null);
     this.contrasenaError.set(contrasenaVacia ? 'Escribe tu contraseña' : null);
     if (usuarioVacio || contrasenaVacia) {
-      (usuarioVacio ? this.usuarioInput : this.contrasenaInput).nativeElement.focus();
+      (usuarioVacio ? this.usuarioInput() : this.contrasenaInput()).nativeElement.focus();
       return;
     }
 
@@ -56,7 +58,7 @@ export class LoginPageComponent {
   // credenciales incorrectas para mostrar el estado correcto (ver isOffline).
   private attempt(usuario: string, contrasena: string): void {
     this.state.set('loading');
-    this.auth.login(usuario, contrasena).subscribe({
+    this.auth.login(usuario, contrasena).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.router.navigateByUrl(ROLE_HOME[result.user.role] ?? '/login');
       },

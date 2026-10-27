@@ -31,10 +31,16 @@ describe('ProductosPageComponent', () => {
     httpMock.verify();
   });
 
-  function cargar(productos: ProductoResumen[]) {
+  // rxResource aplica la respuesta en una microtarea: hay que esperar antes de volver a pintar.
+  async function settle() {
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function cargar(productos: ProductoResumen[]) {
     fixture.detectChanges();
     httpMock.expectOne(PRODUCTS_URL).flush(productos);
-    fixture.detectChanges();
+    await settle();
   }
 
   function buscar(texto: string) {
@@ -51,18 +57,14 @@ describe('ProductosPageComponent', () => {
     httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
   });
 
-  it('pinta una tarjeta por producto', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
-    fixture.detectChanges();
+  it('pinta una tarjeta por producto', async () => {
+    await cargar(PRODUCTOS);
 
     expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
   });
 
-  it('con 0 productos muestra el estado vacío con el botón de alta', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(PRODUCTS_URL).flush([]);
-    fixture.detectChanges();
+  it('con 0 productos muestra el estado vacío con el botón de alta', async () => {
+    await cargar([]);
 
     expect(fixture.nativeElement.textContent).toContain('Aún no tienes productos');
     const enlaces = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
@@ -70,8 +72,8 @@ describe('ProductosPageComponent', () => {
     expect(fixture.nativeElement.querySelector('#buscador')).toBeNull();
   });
 
-  it('filtrar con "CBUM" y con "cbúm" deja solo el que coincide, sin importar mayúsculas ni acentos', () => {
-    cargar(PRODUCTOS);
+  it('filtrar con "CBUM" y con "cbúm" deja solo el que coincide, sin importar mayúsculas ni acentos', async () => {
+    await cargar(PRODUCTOS);
 
     buscar('CBUM');
     expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
@@ -83,8 +85,8 @@ describe('ProductosPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
   });
 
-  it('sin coincidencias muestra el aviso y "Limpiar búsqueda" restaura la lista completa', () => {
-    cargar(PRODUCTOS);
+  it('sin coincidencias muestra el aviso y "Limpiar búsqueda" restaura la lista completa', async () => {
+    await cargar(PRODUCTOS);
 
     buscar('no existe');
     expect(fixture.nativeElement.textContent).toContain('No hay productos con ese nombre');
@@ -97,10 +99,10 @@ describe('ProductosPageComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
   });
 
-  it('si la petición falla muestra "Reintentar", y al tocarlo vuelve a pedir la lista', () => {
+  it('si la petición falla muestra "Reintentar", y al tocarlo vuelve a pedir la lista', async () => {
     fixture.detectChanges();
     httpMock.expectOne(PRODUCTS_URL).error(new ProgressEvent('error'));
-    fixture.detectChanges();
+    await settle();
 
     expect(fixture.nativeElement.textContent).toContain('No pudimos cargar los productos');
 
@@ -109,7 +111,7 @@ describe('ProductosPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Cargando productos…');
     httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
-    fixture.detectChanges();
+    await settle();
 
     expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
   });

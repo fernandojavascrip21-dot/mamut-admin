@@ -269,11 +269,18 @@ describe('NuevoProductoPageComponent en edición', () => {
     return fixture.nativeElement.querySelector(selector) as T;
   }
 
-  function load(producto = PRODUCTO) {
+  // rxResource aplica cada respuesta en una microtarea: hay que esperar antes de volver a pintar.
+  // No usa whenStable() porque una prueba deja a propósito la petición de categorías pendiente.
+  async function settle() {
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+  }
+
+  async function load(producto = PRODUCTO) {
     fixture.detectChanges();
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
     httpMock.expectOne(productUrl).flush(producto);
-    fixture.detectChanges();
+    await settle();
   }
 
   function change(selector: string, value: string) {
@@ -288,12 +295,12 @@ describe('NuevoProductoPageComponent en edición', () => {
     fixture.detectChanges();
   }
 
-  it('muestra carga, llena el formulario y deja piezas en solo lectura', () => {
+  it('muestra carga, llena el formulario y deja piezas en solo lectura', async () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Cargando producto…');
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
     httpMock.expectOne(productUrl).flush(PRODUCTO);
-    fixture.detectChanges();
+    await settle();
 
     expect(fixture.nativeElement.textContent).toContain('Editar producto');
     expect(el<HTMLInputElement>('#nombre').value).toBe('Creatina');
@@ -308,39 +315,39 @@ describe('NuevoProductoPageComponent en edición', () => {
     expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(false);
   });
 
-  it('conserva la categoría cuando el producto llega antes que el catálogo', () => {
+  it('conserva la categoría cuando el producto llega antes que el catálogo', async () => {
     fixture.detectChanges();
     httpMock.expectOne(productUrl).flush(PRODUCTO);
-    fixture.detectChanges();
+    await settle();
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
-    fixture.detectChanges();
+    await settle();
     expect(el<HTMLSelectElement>('#categoria').value).toBe('7');
     expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(false);
   });
 
-  it('404 muestra no disponible; un fallo de red permite reintentar GET', () => {
+  it('404 muestra no disponible; un fallo de red permite reintentar GET', async () => {
     fixture.detectChanges();
     httpMock.expectOne(CATEGORIES_URL).flush([]);
     httpMock.expectOne(productUrl).error(new ProgressEvent('error'));
-    fixture.detectChanges();
+    await settle();
     expect(fixture.nativeElement.textContent).toContain('No pudimos cargar el producto');
     el<HTMLButtonElement>('.retry').click();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Cargando producto…');
     httpMock.expectOne(productUrl).flush({}, { status: 404, statusText: 'Not Found' });
-    fixture.detectChanges();
+    await settle();
     expect(fixture.nativeElement.textContent).toContain('Este producto ya no está disponible');
   });
 
-  it('guardar sin cambios vuelve a Productos sin PATCH', () => {
-    load();
+  it('guardar sin cambios vuelve a Productos sin PATCH', async () => {
+    await load();
     submit();
     httpMock.expectNone(productUrl);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/productos');
   });
 
-  it('solo avisa al recargar cuando hay cambios sin guardar', () => {
-    load();
+  it('solo avisa al recargar cuando hay cambios sin guardar', async () => {
+    await load();
     const clean = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
     fixture.componentInstance.onBeforeUnload(clean);
     expect(clean.defaultPrevented).toBe(false);
@@ -350,8 +357,8 @@ describe('NuevoProductoPageComponent en edición', () => {
     expect(dirty.defaultPrevented).toBe(true);
   });
 
-  it('cambiar el precio manda el cuerpo completo sin piezas y navega', () => {
-    load();
+  it('cambiar el precio manda el cuerpo completo sin piezas y navega', async () => {
+    await load();
     change('#precio', '250');
     expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(true);
     submit();
@@ -367,8 +374,8 @@ describe('NuevoProductoPageComponent en edición', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/productos');
   });
 
-  it('409 marca nombre duplicado; campos vacíos no llaman al backend', () => {
-    load();
+  it('409 marca nombre duplicado; campos vacíos no llaman al backend', async () => {
+    await load();
     change('#nombre', 'Otra');
     submit();
     httpMock.expectOne(productUrl).flush({}, { status: 409, statusText: 'Conflict' });
@@ -383,8 +390,8 @@ describe('NuevoProductoPageComponent en edición', () => {
     httpMock.expectNone(productUrl);
   });
 
-  it('quitar foto manda image vacío; offline reintenta PATCH sin subir otra vez', () => {
-    load();
+  it('quitar foto manda image vacío; offline reintenta PATCH sin subir otra vez', async () => {
+    await load();
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
     buttons.find((button) => button.textContent?.trim() === 'Quitar foto')!.click();
     fixture.detectChanges();
@@ -402,7 +409,7 @@ describe('NuevoProductoPageComponent en edición', () => {
   });
 
   it('cambiar foto la sube una vez incluso tras Reintentar, y el diálogo resuelve cancelar o descartar', async () => {
-    load();
+    await load();
     const file = new File(['x'], 'new.png', { type: 'image/png' });
     const photoInput = el<HTMLInputElement>('#foto');
     Object.defineProperty(photoInput, 'files', { value: [file], configurable: true });

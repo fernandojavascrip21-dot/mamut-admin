@@ -63,7 +63,7 @@ npm run db:pull          # regenerate src/db/schema.ts
 
 **Components:**
 
-- Always generate with `ng generate component` (with `--style=none`), never hand-write the files.
+- Always generate with `ng generate component`, never hand-write the files. `angular.json` already sets `type: "component"` (keeps the `.component` suffix that Angular 22 otherwise drops) and `style: "none"`, so files come out as `nombre.component.ts`/`.html`/`.spec.ts`, with no `.css`.
 - Selector prefix `app-`; kebab-case names describing function and context (`inventory-list`, `grid-client`); don't include the word "component" in the name.
 
 **Styling:**
@@ -110,9 +110,9 @@ tests/           Vitest against the real DB
 - Componentes standalone; no crear NgModules nuevos.
 - Inyectar dependencias con `inject()`.
 - Usar `input()`, `output()` y `computed()` en lugar de decoradores y propiedades calculadas en la plantilla.
-- Usar `ChangeDetectionStrategy.OnPush` en todos los componentes.
+- OnPush en todos los componentes: en Angular 22 ya es el valor por defecto, así que no se declara `changeDetection`; nunca usar `ChangeDetectionStrategy.Eager` ni `Default`.
 - Plantillas con `@if`, `@for` (con `track`) y `@switch`.
-- No anidar `subscribe`. Usar `async`, `toSignal()` o `rxResource`, y `takeUntilDestroyed()` para limpiar.
+- No anidar `subscribe`. Lo que se carga al entrar a una pantalla va con `rxResource` (su `status()`/`error()` da el estado cargando/error y «Reintentar» es `reload()`) o `toSignal()`. Las acciones del usuario (enviar un formulario, cerrar sesión, guardar) usan un solo `subscribe` con `takeUntilDestroyed()`; si una llamada depende de otra, se encadenan con `switchMap` dentro del mismo `pipe`.
 - Lazy loading en todas las rutas de funcionalidades.
 
 ### Calidad
