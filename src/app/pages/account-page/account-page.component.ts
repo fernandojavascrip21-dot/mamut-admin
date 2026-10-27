@@ -1,4 +1,12 @@
-import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
 import { initialsOf } from '../../shared/initials';
@@ -27,17 +35,16 @@ export class AccountPageComponent {
 
   readonly confirmingLogout = signal(false);
   private returnFocusTo: HTMLElement | null = null;
-  private confirmButton: HTMLButtonElement | null = null;
+  private readonly cancelLogoutButton = viewChild<ElementRef<HTMLButtonElement>>('cancelLogoutButton');
+  private readonly confirmLogoutButton =
+    viewChild<ElementRef<HTMLButtonElement>>('confirmLogoutButton');
 
   // La consulta aparece al renderizar el diálogo: el foco entra entonces en su primera acción.
-  @ViewChild('cancelLogoutButton')
-  set cancelLogoutButton(button: ElementRef<HTMLButtonElement> | undefined) {
-    if (button && this.confirmingLogout()) button.nativeElement.focus();
-  }
-
-  @ViewChild('confirmLogoutButton')
-  set confirmLogoutButton(button: ElementRef<HTMLButtonElement> | undefined) {
-    this.confirmButton = button?.nativeElement ?? null;
+  constructor() {
+    afterRenderEffect(() => {
+      const button = this.cancelLogoutButton();
+      if (button && this.confirmingLogout()) button.nativeElement.focus();
+    });
   }
 
   // "Volver" regresa a la home del propio rol (el mismo mapa que usa el guard), no a un
@@ -63,12 +70,13 @@ export class AccountPageComponent {
     if (event.key === 'Escape') {
       event.preventDefault();
       this.cancelLogout();
-    } else if (event.key === 'Tab' && this.confirmButton) {
+    } else if (event.key === 'Tab' && this.confirmLogoutButton()) {
+      const confirmButton = this.confirmLogoutButton()!.nativeElement;
       const first = (event.currentTarget as HTMLElement).querySelector<HTMLButtonElement>('button');
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
-        this.confirmButton.focus();
-      } else if (!event.shiftKey && document.activeElement === this.confirmButton) {
+        confirmButton.focus();
+      } else if (!event.shiftKey && document.activeElement === confirmButton) {
         event.preventDefault();
         first?.focus();
       }
