@@ -1,9 +1,9 @@
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import { db } from '../db/client'
 import { isForeignKeyViolation, isUniqueViolation } from '../db/errors'
 import { products, stockMovements } from '../db/schema'
 import { withTransaction } from '../db/transaction'
-import { conflict, validation } from '../lib/errors'
+import { conflict, notFound, validation } from '../lib/errors'
 
 export interface CreateProductInput {
   name: string
@@ -16,7 +16,18 @@ export interface CreateProductInput {
   image: string | null
 }
 
+export interface UpdateProductInput {
+  name: string
+  categoryId: number | null
+  price: number
+  unitCost: number
+  fractionable: boolean
+  portionSize: string | null
+  image: string
+}
+
 const DUPLICATE_NAME = 'Ya existe un producto con ese nombre'
+const PRICE_BELOW_COST = 'El precio no puede ser menor que el costo'
 
 // Lista para la pantalla 03: solo productos activos, y nunca unitCost (RNF-04), aunque
 // hoy el endpoint ya es solo para administrador.
@@ -41,6 +52,7 @@ export function listProducts() {
 // violación del índice único de nombre a 409 y la de la FK de categoryId a 422, en vez de
 // dejar que cualquiera de las dos llegue como 500.
 export async function createProduct(input: CreateProductInput, createdBy: string) {
+  if (input.price < input.unitCost) throw validation(PRICE_BELOW_COST)
   if (input.fractionable && !input.portionSize) {
     throw validation('Falta el campo portionSize para un producto que se fracciona')
   }
@@ -71,6 +83,39 @@ export async function createProduct(input: CreateProductInput, createdBy: string
 
       return product!
     })
+  } catch (err) {
+    if (isUniqueViolation(err)) throw conflict(DUPLICATE_NAME)
+    if (isForeignKeyViolation(err)) throw validation('La categoría no existe')
+    throw err
+  }
+}
+
+// El formulario necesita costo y porción, que la lista omite; los inactivos no se editan.
+export async function getProduct(id: number) {
+  const [product] = await db.select().from(products).where(and(eq(products.id, id), eq(products.active, true)))
+  if (!product) throw notFound()
+  return product
+}
+
+// Solo escribe los campos editables. Las piezas y sus movimientos pertenecen al flujo de bodega.
+export async function updateProduct(id: number, input: UpdateProductInput) {
+  if (input.price < input.unitCost) throw validation(PRICE_BELOW_COST)
+  if (input.fractionable && !input.portionSize) {
+    throw validation('Falta el campo portionSize para un producto que se fracciona')
+  }
+
+  try {
+    const [product] = await db.update(products).set({
+      name: input.name,
+      categoryId: input.categoryId,
+      price: String(input.price),
+      unitCost: String(input.unitCost),
+      fractionable: input.fractionable,
+      portionSize: input.fractionable ? input.portionSize : null,
+      image: input.image,
+    }).where(and(eq(products.id, id), eq(products.active, true))).returning()
+    if (!product) throw notFound()
+    return product
   } catch (err) {
     if (isUniqueViolation(err)) throw conflict(DUPLICATE_NAME)
     if (isForeignKeyViolation(err)) throw validation('La categoría no existe')

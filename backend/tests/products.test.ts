@@ -148,6 +148,21 @@ describe.skipIf(!hasServiceKey)('productos (con cuentas reales)', () => {
     expect(await res.json()).toMatchObject({ fractionable: true, portionSize: '30 g' })
   })
 
+  it('precio menor que costo da 422 sin crear producto; precio igual se acepta', async () => {
+    const name = uniqueName('price')
+    const invalid = await createProductRoute(
+      req(admin.token, validBody({ name, price: 49, unitCost: 50 })), undefined,
+    )
+    expect(invalid.status).toBe(422)
+    expect(await invalid.json()).toMatchObject({ error: { message: 'El precio no puede ser menor que el costo' } })
+    expect(await db.select().from(products).where(eq(products.name, name))).toHaveLength(0)
+
+    const equal = await createProductRoute(
+      req(admin.token, validBody({ name, price: 50, unitCost: 50 })), undefined,
+    )
+    expect(equal.status).toBe(201)
+  })
+
   it('valida el cuerpo: nombre vacío, costo/precio/piezas <= 0, piezas decimales', async () => {
     expect((await createProductRoute(req(admin.token, validBody({ name: '  ' })), undefined)).status).toBe(422)
     expect((await createProductRoute(req(admin.token, validBody({ price: 0 })), undefined)).status).toBe(422)

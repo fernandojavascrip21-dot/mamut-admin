@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductoCardComponent } from './producto-card.component';
+import { provideRouter } from '@angular/router';
 import type { ProductoResumen } from '../../../../productos/interfaces/producto.models';
 
 const PRODUCTO: ProductoResumen = {
@@ -26,6 +27,7 @@ describe('ProductoCardComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ProductoCardComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
@@ -36,6 +38,13 @@ describe('ProductoCardComponent', () => {
     expect(text).toContain('$450.00');
     expect(text).toContain('10');
     expect(text).toContain('en bodega');
+  });
+
+  it('toda la tarjeta enlaza a edición con nombre accesible', async () => {
+    await render(PRODUCTO);
+    const link = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/admin/productos/1/editar');
+    expect(link.getAttribute('aria-label')).toBe('Editar CBUM Thavage');
   });
 
   it('muestra "Agotado" solo cuando stock es 0', async () => {

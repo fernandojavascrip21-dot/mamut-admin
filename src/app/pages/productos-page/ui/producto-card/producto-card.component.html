@@ -1,4 +1,5 @@
-<div class="flex gap-4 rounded-lg border border-line bg-white p-4">
+<a [routerLink]="['/admin/productos', producto().id, 'editar']" [attr.aria-label]="'Editar ' + producto().name"
+  class="flex gap-4 rounded-lg border border-line bg-white p-4 text-ink transition-colors hover:border-line-strong focus-visible:outline focus-visible:outline-accent">
   <div class="relative h-24 w-24 flex-shrink-0">
     @if (mostrarFoto()) {
       <img
@@ -37,4 +38,4 @@
     </p>
     <p class="m-0 font-mono text-sm font-bold">{{ precio() | currency: 'MXN' : 'symbol-narrow' }}</p>
   </div>
-</div>
+</a>

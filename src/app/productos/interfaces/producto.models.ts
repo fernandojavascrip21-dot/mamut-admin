@@ -15,6 +15,17 @@ export interface NuevoProductoInput {
   image: string | null;
 }
 
+// Cuerpo de PATCH /api/products/:id. Las piezas solo cambian con movimientos.
+export interface EditarProductoInput {
+  name: string;
+  categoryId: number | null;
+  price: number;
+  unitCost: number;
+  fractionable: boolean;
+  portionSize: string | null;
+  image: string; // '' = sin foto
+}
+
 // Fila de GET /api/products (pantalla 03). Sin unitCost a propósito.
 export interface ProductoResumen {
   id: number;

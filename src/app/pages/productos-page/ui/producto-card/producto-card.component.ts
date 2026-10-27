@@ -1,13 +1,14 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import type { ProductoResumen } from '../../../../productos/interfaces/producto.models';
 import { initialsOf } from '../../../../shared/initials';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
-// "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. Sin acciones todavía
-// (Vender/Dejar a vendedor llegan en M2/M3) ni eventos propios.
+// "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. Toda la tarjeta abre
+// edición; Vender/Dejar a vendedor llegarán como acciones propias en M2/M3.
 @Component({
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, RouterLink],
   selector: 'app-producto-card',
   templateUrl: './producto-card.component.html',
 })
