@@ -1,6 +1,6 @@
 # Spec técnico — T-04 · Aplicar las reglas de Angular moderno en todo el frontend
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M1-hu06-editar-producto (`specs/M1-hu06-editar-producto/spec.md`) — este refactor parte de `main` con HU-06 ya fusionada
 > **Fecha:** 2026-10-26
 > **Objetivo:** que todo el frontend existente cumpla las reglas de «Buenas prácticas de código › Angular» y «TypeScript estricto» de `CLAUDE.md`/`AGENTS.md`, sin cambiar nada de lo que ve o hace el usuario.
@@ -109,17 +109,17 @@ Cada paso deja `ng build` y `npm test` en verde.
 
 ## 5. Criterios de aceptación
 
-- [ ] Ningún componente declara `ChangeDetectionStrategy.Eager` ni `Default` (`grep -rn "ChangeDetectionStrategy.\(Eager\|Default\)" src/app` no devuelve nada), así que todos usan OnPush, el default de Angular 22.
-- [ ] No queda ningún `@ViewChild`, `@ViewChildren`, `@Input`, `@Output` ni `@HostListener` en `src/app` (sin contar specs).
-- [ ] Ningún `subscribe` está dentro del callback de otro `subscribe`, y todo `subscribe` en un componente lleva `takeUntilDestroyed`.
-- [ ] La lista de productos, las categorías y el producto a editar se cargan con `rxResource`, y «Reintentar» en `productos-page` y en «Editar producto» vuelve a pedir los datos.
-- [ ] `app.routes.ts` no importa ningún componente de página de forma estática; `admin` y `vendedor` usan `loadChildren`, y `ng build` genera chunks lazy separados.
-- [ ] Un vendedor que inicia sesión no descarga el chunk de `admin.routes` (pestaña Red del navegador).
-- [ ] `tsconfig.json` tiene `"strict": true` y `ng build` pasa sin errores.
-- [ ] `ng generate component` crea `nombre.component.ts` con la clase `NombreComponent`, sin `.css` y sin declarar `changeDetection` (OnPush por defecto).
-- [ ] Todo `@for` tiene `track` por un id estable cuando el elemento tiene `id`.
-- [ ] `CLAUDE.md` y `AGENTS.md` explican la regla de `subscribe`, la de OnPush como default (sin `Eager`/`Default`), y ya no mencionan `.component.css`.
-- [ ] `npm test` (raíz) pasa, y el recorrido manual de §6 se comporta igual que antes del refactor.
+- [x] Ningún componente declara `ChangeDetectionStrategy.Eager` ni `Default` (`grep -rn "ChangeDetectionStrategy.\(Eager\|Default\)" src/app` no devuelve nada), así que todos usan OnPush, el default de Angular 22.
+- [x] No queda ningún `@ViewChild`, `@ViewChildren`, `@Input`, `@Output` ni `@HostListener` en `src/app` (sin contar specs).
+- [x] Ningún `subscribe` está dentro del callback de otro `subscribe`, y todo `subscribe` en un componente lleva `takeUntilDestroyed`.
+- [x] La lista de productos, las categorías y el producto a editar se cargan con `rxResource`, y «Reintentar» en `productos-page` y en «Editar producto» vuelve a pedir los datos. «Reintentar» verificado en `productos-page.component.spec.ts` y `nuevo-producto-page.component.spec.ts`; en el navegador se verificó la carga y el 404 (sin apagar el backend).
+- [x] `app.routes.ts` no importa ningún componente de página de forma estática; `admin` y `vendedor` usan `loadChildren`, y `ng build` genera chunks lazy separados.
+- [x] Un vendedor que inicia sesión no descarga el chunk de `admin.routes` (pestaña Red del navegador). Verificado el 2026-10-27: el vendedor solo descargó `vendedor.routes` y su contenedor; ningún archivo cargado contiene textos de admin.
+- [x] `tsconfig.json` tiene `"strict": true` y `ng build` pasa sin errores.
+- [x] `ng generate component` crea `nombre.component.ts` con la clase `NombreComponent`, sin `.css` y sin declarar `changeDetection` (OnPush por defecto).
+- [x] Todo `@for` tiene `track` por un id estable cuando el elemento tiene `id`.
+- [x] `CLAUDE.md` y `AGENTS.md` explican la regla de `subscribe`, la de OnPush como default (sin `Eager`/`Default`), y ya no mencionan `.component.css`.
+- [ ] `npm test` (raíz) pasa, y el recorrido manual de §6 se comporta igual que antes del refactor. Pendiente: `npm test` pasa (106/106) y el recorrido del 2026-10-27 cubrió login de ambos roles, redirecciones con sesión, búsqueda, edición (precio < costo, descartar con el enlace y con el botón atrás, guardar, guardar sin cambios, 404 e id inválido), validación del alta y cerrar sesión con teclado. Faltan los casos que necesitan apagar el backend (error de carga → «Reintentar», guardar sin conexión) y un alta real con foto.
 
 ## 6. Plan de pruebas
 
