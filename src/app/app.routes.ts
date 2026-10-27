@@ -8,6 +8,7 @@ import { NuevoProductoPageComponent } from './pages/nuevo-producto-page/nuevo-pr
 import { ProductosPageComponent } from './pages/productos-page/productos-page.component';
 import { roleGuard } from './auth/guards/role.guard';
 import { guestGuard } from './auth/guards/guest.guard';
+import { cambiosSinGuardarGuard } from './productos/guards/cambios-sin-guardar.guard';
 
 // Árbol de rutas de M0. /admin y /vendedor están protegidas por roleGuard con su rol en
 // `data.roles`; sus hijos (hoy todos ComingSoonPageComponent) heredan esa protección sin
@@ -29,6 +30,7 @@ export const routes: Routes = [
       { path: 'stock', component: ComingSoonPageComponent, data: { title: 'Stock' } },
       { path: 'productos', component: ProductosPageComponent, data: { title: 'Productos' } },
       { path: 'productos/nuevo', component: NuevoProductoPageComponent, data: { title: 'Nuevo producto' } },
+      { path: 'productos/:id/editar', component: NuevoProductoPageComponent, canDeactivate: [cambiosSinGuardarGuard], data: { title: 'Editar producto' } },
       { path: 'carrito', component: ComingSoonPageComponent, data: { title: 'Carrito' } },
       { path: 'corte', component: ComingSoonPageComponent, data: { title: 'Corte' } },
       { path: 'vendedores', component: ComingSoonPageComponent, data: { title: 'Vendedores' } },

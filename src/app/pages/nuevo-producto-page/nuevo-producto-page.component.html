@@ -1,36 +1,26 @@
 <div class="flex w-full flex-col px-5 py-6">
-@if (state() !== 'registrado') {
-  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Nuevo producto</h1>
-
-  @if (state() === 'aviso-precio') {
-    <div
-      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
-      role="alert"
-    >
-      <div class="flex-1">
-        <p class="m-0 text-[15px] font-bold">El precio es menor que el costo</p>
-        <p class="mt-0.5 mb-0 text-sm leading-snug">
-          ¿Lo guardo así de todas formas, o prefieres corregirlo?
-        </p>
-        <div class="mt-2.5 flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            class="min-h-11 rounded-lg bg-danger px-3.5 text-sm font-bold text-white"
-            (click)="confirmarPrecioMenorAlCosto()"
-          >
-            Guardar de todas formas
-          </button>
-          <button
-            type="button"
-            class="min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
-            (click)="corregir()"
-          >
-            Corregir
-          </button>
-        </div>
-      </div>
-    </div>
-  }
+@if (modo() === 'edicion') {
+  <a routerLink="/admin/productos" class="flex min-h-11 items-center text-sm font-bold text-muted">‹ Productos</a>
+}
+@if (state() === 'cargando') {
+  <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
+    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin stroke-accent">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+    </svg>
+    <p class="m-0 text-sm font-semibold">Cargando producto…</p>
+  </div>
+} @else if (state() === 'no-disponible' || state() === 'error-carga') {
+  <div class="mt-6 flex flex-col items-center gap-2 rounded-lg border border-danger-border bg-danger-bg p-5 text-center text-danger-text" role="alert">
+    <p class="m-0 text-[15px] font-bold">{{ state() === 'no-disponible' ? 'Este producto ya no está disponible' : 'No pudimos cargar el producto' }}</p>
+    @if (state() === 'error-carga') {
+      <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" class="retry mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink" (click)="cargarProducto()">Reintentar</button>
+    } @else {
+      <a routerLink="/admin/productos" class="mt-2 inline-flex min-h-11 items-center rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink">Volver a Productos</a>
+    }
+  </div>
+} @else if (state() !== 'registrado') {
+  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">{{ modo() === 'edicion' ? 'Editar producto' : 'Nuevo producto' }}</h1>
 
   @if (state() === 'offline') {
     <div
@@ -53,22 +43,30 @@
 
   <form
     class="mt-5 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
-    (submit)="
-      $event.preventDefault();
-      onSubmit(nombre.value, categoria.value, precio.value, costo.value, piezas.value, porcion.value, foto.files?.[0] ?? null)
-    "
+    (submit)="$event.preventDefault(); onSubmit()"
     novalidate
   >
     <div class="flex flex-col gap-1.5">
       <label for="foto" class="text-sm font-semibold">Foto (opcional)</label>
+      @if (modo() === 'edicion') {
+        <div class="flex items-center gap-3">
+          @if (imagenVisible() && !imagenRota()) {
+            <img [src]="imagenVisible()" [alt]="original()?.name || 'Producto'" (error)="imagenRota.set(true)" class="h-20 w-20 rounded-md object-cover" />
+          } @else {
+            <div aria-hidden="true" class="flex h-20 w-20 items-center justify-center rounded-md bg-line text-lg font-bold text-ink">{{ inicial() }}</div>
+          }
+          <div class="flex flex-wrap gap-2">
+            <button type="button" [disabled]="formDisabled()" (click)="foto.click()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Cambiar foto</button>
+            @if (imagenVisible() || fotoElegida()) {
+              <button type="button" [disabled]="formDisabled()" (click)="quitarFotoActual()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Quitar foto</button>
+            }
+          </div>
+        </div>
+      }
       <input
-        id="foto"
-        name="foto"
-        type="file"
-        accept="image/*"
-        #foto
-        [disabled]="formDisabled()"
-        class="text-sm disabled:text-faint"
+        id="foto" name="foto" type="file" accept="image/*" #foto
+        [disabled]="formDisabled()" (change)="onFotoElegida(foto.files?.[0] ?? null)"
+        [class]="modo() === 'edicion' ? 'sr-only' : 'text-sm disabled:text-faint'"
       />
     </div>
 
@@ -79,6 +77,7 @@
         name="nombre"
         type="text"
         #nombre
+        [value]="original()?.name ?? ''"
         [attr.aria-invalid]="nameError() ? 'true' : null"
         [attr.aria-describedby]="nameError() ? 'nombre-error' : null"
         [disabled]="formDisabled()"
@@ -103,9 +102,9 @@
         [disabled]="formDisabled()"
         class="h-[50px] rounded-[10px] border border-line-strong px-3.5 text-base disabled:bg-disabled-input disabled:text-faint"
       >
-        <option value="">Sin categoría</option>
+        <option value="" [selected]="original()?.categoryId == null">Sin categoría</option>
         @for (cat of categorias(); track cat.id) {
-          <option [value]="cat.id">{{ cat.name }}</option>
+          <option [value]="cat.id" [selected]="original()?.categoryId === cat.id">{{ cat.name }}</option>
         }
       </select>
       @if (categoryError()) {
@@ -122,6 +121,8 @@
         min="0"
         step="0.01"
         #costo
+        [value]="original()?.unitCost ?? ''"
+        (input)="onCostoInput(costo.value)"
         [attr.aria-invalid]="unitCostError() ? 'true' : null"
         [attr.aria-describedby]="unitCostError() ? 'costo-error' : null"
         [disabled]="formDisabled()"
@@ -144,44 +145,47 @@
         min="0"
         step="0.01"
         #precio
-        [attr.aria-invalid]="priceError() ? 'true' : null"
-        [attr.aria-describedby]="priceError() ? 'precio-error' : null"
+        [value]="original()?.price ?? ''"
+        (input)="onPrecioInput(precio.value)"
+        [attr.aria-invalid]="precioErrorVisible() ? 'true' : null"
+        [attr.aria-describedby]="precioErrorVisible() ? 'precio-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (priceError() ? 'border-2 border-danger' : 'border border-line-strong')
+          (precioErrorVisible() ? 'border-2 border-danger' : 'border border-line-strong')
         "
       />
-      @if (priceError()) {
-        <p id="precio-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ priceError() }}</p>
+      @if (precioErrorVisible()) {
+        <p id="precio-error" class="field-error m-0 text-[13px] font-semibold text-danger-text" role="alert">{{ precioErrorVisible() }}</p>
       }
     </div>
 
-    <div class="flex flex-col gap-1.5">
-      <label for="piezas" class="text-sm font-semibold">Piezas que entran</label>
-      <input
-        id="piezas"
-        name="piezas"
-        type="number"
-        min="1"
-        step="1"
-        #piezas
-        [attr.aria-invalid]="initialQtyError() ? 'true' : null"
-        [attr.aria-describedby]="initialQtyError() ? 'piezas-error' : null"
-        [disabled]="formDisabled()"
-        [class]="
-          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (initialQtyError() ? 'border-2 border-danger' : 'border border-line-strong')
-        "
-      />
-      @if (initialQtyError()) {
-        <p id="piezas-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
-      }
-    </div>
+    @if (modo() === 'alta') {
+      <div class="flex flex-col gap-1.5">
+        <label for="piezas" class="text-sm font-semibold">Piezas que entran</label>
+        <input
+          id="piezas" name="piezas" type="number" min="1" step="1" #piezas
+          [attr.aria-invalid]="initialQtyError() ? 'true' : null"
+          [attr.aria-describedby]="initialQtyError() ? 'piezas-error' : null"
+          [disabled]="formDisabled()"
+          [class]="'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+            (initialQtyError() ? 'border-2 border-danger' : 'border border-line-strong')"
+        />
+        @if (initialQtyError()) {
+          <p id="piezas-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
+        }
+      </div>
+    } @else {
+      <div>
+        <p class="m-0"><span class="font-mono text-[22px] font-bold">{{ original()?.stock }}</span><span class="ml-1 text-xs font-medium text-muted">en bodega</span></p>
+        <p class="mt-1 mb-0 text-sm text-muted">Las piezas solo cambian con movimientos, por ejemplo una entrada a bodega.</p>
+      </div>
+    }
 
     <label class="flex items-center gap-2 text-sm font-semibold">
       <input
         type="checkbox"
+        [checked]="fractionable()"
         [disabled]="formDisabled()"
         (change)="toggleFractionable($any($event.target).checked)"
       />
@@ -198,6 +202,7 @@
         type="text"
         placeholder="p. ej. 30 g"
         #porcion
+        [value]="original()?.portionSize ?? ''"
         [attr.aria-invalid]="portionSizeError() ? 'true' : null"
         [attr.aria-describedby]="portionSizeError() ? 'porcion-error' : null"
         [disabled]="formDisabled()"
@@ -213,8 +218,8 @@
 
     <button
       type="submit"
-      [disabled]="formDisabled()"
-      class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:bg-disabled disabled:text-muted"
+      [disabled]="formDisabled() || precioMenorAlCosto()"
+      class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
     >
       {{ state() === 'loading' ? 'Guardando…' : 'Guardar' }}
     </button>
@@ -252,6 +257,19 @@
     >
       Volver a Productos
     </a>
+  </div>
+}
+@if (confirmingDiscard()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-6">
+    <div role="alertdialog" aria-modal="true" aria-labelledby="discard-title" aria-describedby="discard-desc"
+      (keydown)="onDialogKeydown($event)" class="flex w-full max-w-sm flex-col gap-3 rounded-lg bg-white p-5">
+      <h2 id="discard-title" class="text-lg font-bold">¿Descartar los cambios?</h2>
+      <p id="discard-desc" class="text-[15px] leading-relaxed text-muted">Lo que cambiaste no se va a guardar.</p>
+      <div class="mt-1 flex gap-2.5">
+        <button #continueEditingButton type="button" (click)="cerrarDialogo(false)" class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold">Seguir editando</button>
+        <button #confirmDiscardButton type="button" (click)="cerrarDialogo(true)" class="h-[50px] flex-1 rounded-lg bg-danger font-bold text-white">Descartar</button>
+      </div>
+    </div>
   </div>
 }
 </div>
