@@ -1,59 +1,113 @@
-# MamutAdmin
+# Mamut Admin
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.4.
+Panel de administración de inventario de **Mammut Supplements**.
 
-## Development server
+- **Frontend** (raíz): Angular 22 con SSR y Tailwind v4 — http://localhost:4200
+- **Backend** (`backend/`): Next.js, solo API — http://localhost:3000/api/health
+- **Base de datos:** Supabase (Postgres + Auth + Storage). Hay dos opciones: la real (producción) y una de prueba en Docker.
 
-To start a local development server, run:
+## Requisitos
 
-```bash
-ng serve
-```
+- Node.js y npm
+- Docker Desktop, solo si vas a usar la base de prueba
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Primera vez (o en una máquina nueva)
 
 ```bash
-ng generate component component-name
+git clone <url-del-repo> mamut-admin
+cd mamut-admin
+npm install
+npm install --prefix backend
+cp backend/.env.example backend/.env   # el bloque LOCAL ya viene listo
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Con eso ya puedes trabajar con la base de prueba. Para conectarte a producción, completa en `backend/.env` el bloque **PRODUCCIÓN** con las llaves de Supabase (Project Settings → Database y Project Settings → API). Esas llaves nunca se suben a git.
+
+## Día a día
+
+Desde la raíz del proyecto, con Docker Desktop abierto:
 
 ```bash
-ng generate --help
+npm run db:start   # levanta la base de prueba en Docker (si ya está arriba, no hace nada)
+npm run dev        # levanta Angular (:4200) y el backend (:3000)
 ```
 
-## Building
+Entra a http://localhost:4200. Para terminar, `Ctrl+C` detiene la app. `npm run db:stop` apaga la base, pero es opcional: los datos se conservan.
 
-To build the project run:
+## Base de prueba (Docker) vs. producción
+
+`backend/.env` tiene dos bloques de conexión, **PRODUCCIÓN** y **LOCAL**. Deja activo uno y comenta el otro con `#` (en VS Code: selecciona las líneas y usa `Cmd+/`).
+
+- **Usar la base de prueba:** bloque LOCAL activo y PRODUCCIÓN comentado, más `npm run db:start`.
+- **Usar producción:** descomenta PRODUCCIÓN y comenta LOCAL. No hace falta Docker.
+
+Después de cambiar de bloque, **reinicia** `npm run dev`. La variable `ALLOWED_ORIGINS`, al final del archivo, es común a los dos bloques y no se toca.
+
+Para saber a cuál base estás conectado:
 
 ```bash
-ng build
+cd backend && npm run db:check
+# categories: 5  → base de prueba (Docker)
+# otro número    → producción
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+| Quiero… | Bloque activo |
+| --- | --- |
+| Desarrollar, probar, correr `npm test` | LOCAL |
+| Probar una migración nueva | LOCAL |
+| Ver o usar los datos reales | PRODUCCIÓN |
+| Regenerar el esquema con `npm run db:pull` | PRODUCCIÓN |
 
-## Running unit tests
+> ⚠️ Con PRODUCCIÓN activa, `npm test` del backend escribe en la base real.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Base de prueba (Docker)
 
-```bash
-ng test
-```
+Es el Supabase local oficial (Postgres, Auth, Storage, Studio y Mailpit), que el Supabase CLI levanta en Docker. No hay `docker-compose.yml`: la configuración de los contenedores está en `supabase/config.toml`.
 
-## Running end-to-end tests
+| Comando (raíz) | Qué hace |
+| --- | --- |
+| `npm run db:start` | Levanta los contenedores. La primera vez descarga las imágenes, aplica las migraciones y carga el seed |
+| `npm run db:stop` | Detiene los contenedores; los datos se conservan |
+| `npm run db:reset` | Borra la base local y la recrea con migraciones y seed |
+| `npm run db:status` | Muestra URLs y llaves locales |
 
-For end-to-end (e2e) testing, run:
+- Studio (ver y editar datos): http://127.0.0.1:54323
+- Correos de Auth (Mailpit): http://127.0.0.1:54324
+- Postgres: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 
-```bash
-ng e2e
-```
+### Usuarios de prueba
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Todos los datos de la base de prueba son inventados (`supabase/seed.sql`).
 
-## Additional Resources
+| Correo | Contraseña | Rol |
+| --- | --- | --- |
+| `admin@mammut.local` | `Admin-123456!` | admin |
+| `vendedor1@mammut.local` | `Vendedor-123456!` | vendedor |
+| `vendedor2@mammut.local` | `Vendedor-123456!` | vendedor |
+| `inactivo@mammut.local` | `Vendedor-123456!` | vendedor desactivado (el login debe rechazarlo) |
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+También trae 5 categorías y 14 productos de ejemplo: uno archivado y dos fraccionables con su bolsita.
+
+## Migraciones
+
+Los cambios de esquema van como archivos SQL con fecha en `supabase/migrations/`.
+
+1. Crea el `.sql` en `supabase/migrations/`.
+2. Pruébalo en local con `npm run db:reset`.
+3. Cuando funcione, aplícalo a producción.
+
+`20261024000000_baseline_schema.sql` es una copia del esquema heredado de producción. Solo sirve para que la base de prueba se pueda construir desde cero. **No se aplica a producción.**
+
+## Otros comandos
+
+| Comando | Dónde | Qué hace |
+| --- | --- | --- |
+| `npm start` | raíz | Solo el frontend (`ng serve`) |
+| `npm run build` | raíz | Build de producción del frontend |
+| `npm test` | raíz | Pruebas del frontend (Vitest) |
+| `npm run dev` | `backend/` | Solo el backend |
+| `npm test` | `backend/` | Pruebas del backend, contra la base activa en `.env` |
+| `npm run type-check` | `backend/` | Revisión de tipos del backend |
+| `npm run db:check` | `backend/` | Cuenta las categorías de la base activa |
+
+Para generar un componente: `ng generate component <ruta>`. Las convenciones del proyecto están en `CLAUDE.md` y `AGENTS.md`.
