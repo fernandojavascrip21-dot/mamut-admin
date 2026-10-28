@@ -7,7 +7,7 @@ import { ROLE_HOME } from './role.guard';
 import type { AuthContext } from '../interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };
-const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
+const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 
 function storeUser(user: AuthContext) {
   localStorage.setItem('mamut.user', JSON.stringify(user));
@@ -49,7 +49,7 @@ describe('guestGuard', () => {
   });
 
   it('con sesión de vendedor redirige a /vendedor', () => {
-    storeUser(VENDEDOR);
+    storeUser(SELLER);
     configure();
     httpMock = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);

@@ -1,6 +1,6 @@
 # Spec técnico — T-05 · Renombrar el código del frontend a inglés
 
-> **Estado:** Borrador
+> **Estado:** Aprovado
 > **Depende de:** M1-t04-angular-moderno (`specs/M1-t04-angular-moderno/spec.md`) — parte del código ya refactorizado por T-04 (rutas lazy, `rxResource`, `viewChild()`)
 > **Fecha:** 2026-10-26
 > **Objetivo:** que todos los identificadores, archivos y carpetas del frontend queden en inglés, sin cambiar textos visibles, URLs, el valor de rol `'vendedor'` ni el comportamiento.

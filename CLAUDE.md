@@ -66,9 +66,9 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 
 **Architecture — feature-based folders, not by file type:**
 
-- `src/app/pages/`: components tied to a route, one subfolder per page (`pages/login-page/login-page.component.ts`). A page that itself hosts a `<router-outlet>` (e.g. `admin-page`, `vendedor-page`) still lives here — it's a page, not a separate "layout" concept.
-- `src/app/<funcionalidad>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/` (add `components/` inside it if that area ever needs its own non-page components). Examples: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`), `productos/` (`services/`, `interfaces/`).
-- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`, `shared/normalizar-texto.ts`, and shared UI under `shared/components/`, like `shared/components/top-nav/`) — not tied to one feature or one page.
+- `src/app/pages/`: components tied to a route, one subfolder per page (`pages/login-page/login-page.component.ts`). A page that itself hosts a `<router-outlet>` (e.g. `admin-page`, `seller-page`) still lives here — it's a page, not a separate "layout" concept.
+- `src/app/<feature>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/` (add `components/` inside it if that area ever needs its own non-page components). Examples: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`), `products/` (`services/`, `interfaces/`, `guards/`).
+- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`, `shared/normalize-text.ts`, and shared UI under `shared/components/`, like `shared/components/top-nav/`) — not tied to one feature or one page.
 - Inside a page or component that grows subcomponents purely for visual composition (e.g. a skeleton), put those under its own `ui/` subfolder.
 - No global `src/app/components/` or `src/app/services/` catch-alls at the root — everything lives inside a page or a feature folder.
 - Create a new feature's whole folder (and its `services/`/`guards/`/`interfaces/` subfolders) before adding files into it, not file-by-file.
@@ -83,7 +83,7 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 - Selectors use the `app-` prefix (configured as `prefix` in `angular.json`).
 - Name components in kebab-case describing function and context: `grid-client`, `inventory-list`, `cash-register-summary`.
 - Don't include the word "component" in the component name — the `.component` file suffix already says that.
-- Files end up as `nombre.component.ts`, `nombre.component.html` and `nombre.component.spec.ts` — no `.css` (see Styling). `angular.json` sets the component schematic to `type: "component"` (Angular 22 otherwise drops the `.component` suffix) and `style: "none"`, so plain `ng generate component <path>` already produces this.
+- Files end up as `name.component.ts`, `name.component.html` and `name.component.spec.ts` — no `.css` (see Styling). `angular.json` sets the component schematic to `type: "component"` (Angular 22 otherwise drops the `.component` suffix) and `style: "none"`, so plain `ng generate component <path>` already produces this.
 
 ### Backend (`backend/`)
 
@@ -140,6 +140,36 @@ This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` con
 ### Calidad
 - TypeScript estricto. Prohibido `any`; usar `unknown` y validar.
 - Nombres descriptivos en inglés para código, y en español solo en textos visibles para el usuario.
+  - «Código» son identificadores, archivos, carpetas, selectores, refs de plantilla e `id`/`name` de HTML. Los comentarios y las descripciones de las pruebas (`describe`/`it`) siguen en español, igual que las URLs (`/admin/productos`, `/vendedor/mi-stock`) y los datos del contrato con la base y el backend (el rol `'vendedor'`).
+  - Glosario (alineado con `stock_movements.type` y las columnas de `products`):
+
+    | Negocio (español, visible) | Código (inglés) | Referencia en backend |
+    | --- | --- | --- |
+    | producto / productos | `product` / `products` | `products` |
+    | categoría | `category` | `categories` |
+    | vendedor | `seller` | rol `'vendedor'` (el valor no cambia) |
+    | administrador | `admin` | rol `'admin'` |
+    | bodega | `warehouse` | `holderProfileId = null` |
+    | piezas | `units` (en `stock`, `qty`) | `products.stock`, `stock_movements.qty` |
+    | costo de fábrica | `unitCost` | `products.unit_cost` |
+    | precio de venta | `price` | `products.price` |
+    | alta (de producto) | `create` | — |
+    | edición | `edit` / `update` | — |
+    | entrada a bodega | `purchase` | tipo `purchase` |
+    | dejar a vendedor | `delivery` | tipo `delivery` |
+    | retirar (del vendedor) | `return` | tipo `return` |
+    | venta directa | `directSale` | tipo `direct_sale` |
+    | merma | `shrinkage` | tipo `shrinkage` |
+    | fraccionar / se fracciona | `fraction` / `fractionable` | tipos `fraction_out`/`fraction_in`, `products.fractionable` |
+    | porción | `portionSize` | `products.portion_size` |
+    | bolsita | `portionProduct` (producto con `parentProductId`) | `products.parent_product_id` |
+    | corte | `cashCut` | `cuts` |
+    | carrito | `cart` | — |
+    | búsqueda | `search` / `searchQuery` | — |
+    | foto | `photo` (el archivo) / `image` (la URL guardada) | `products.image`, bucket `product-photos` |
+    | cambios sin guardar | `unsavedChanges` | — |
+
+  - Los specs escritos antes de T-05 citan nombres viejos en español; su traducción está en la tabla «viejo → nuevo» de `specs/M1-t05-codigo-en-ingles/spec.md` §4.
 - No dejar código comentado ni `console.log` en los cambios finales.
 - Antes de terminar una tarea, ejecutar `ng build` y los tests afectados.
 

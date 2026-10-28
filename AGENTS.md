@@ -54,16 +54,16 @@ npm run db:pull          # regenerate src/db/schema.ts
 
 **Folder structure (by feature, not by file type):**
 
-- `src/app/pages/<name>-page/` — one folder per routed page. Pages hosting a `<router-outlet>` (`admin-page`, `vendedor-page`) still live here.
-- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/` (and `components/` if needed). Examples: `auth/`, `productos/`.
-- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalizar-texto.ts`, `components/top-nav/`).
+- `src/app/pages/<name>-page/` — one folder per routed page. Pages hosting a `<router-outlet>` (`admin-page`, `seller-page`) still live here.
+- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/` (and `components/` if needed). Examples: `auth/`, `products/`.
+- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalize-text.ts`, `components/top-nav/`).
 - Visual-only subcomponents of a page/component go in its own `ui/` subfolder.
 - No root-level `src/app/components/` or `src/app/services/` catch-alls.
 - Create a new feature's whole folder skeleton before adding files to it.
 
 **Components:**
 
-- Always generate with `ng generate component`, never hand-write the files. `angular.json` already sets `type: "component"` (keeps the `.component` suffix that Angular 22 otherwise drops) and `style: "none"`, so files come out as `nombre.component.ts`/`.html`/`.spec.ts`, with no `.css`.
+- Always generate with `ng generate component`, never hand-write the files. `angular.json` already sets `type: "component"` (keeps the `.component` suffix that Angular 22 otherwise drops) and `style: "none"`, so files come out as `name.component.ts`/`.html`/`.spec.ts`, with no `.css`.
 - Selector prefix `app-`; kebab-case names describing function and context (`inventory-list`, `grid-client`); don't include the word "component" in the name.
 
 **Styling:**
@@ -118,6 +118,36 @@ tests/           Vitest against the real DB
 ### Calidad
 - TypeScript estricto. Prohibido `any`; usar `unknown` y validar.
 - Nombres descriptivos en inglés para código, y en español solo en textos visibles para el usuario.
+  - «Código» son identificadores, archivos, carpetas, selectores, refs de plantilla e `id`/`name` de HTML. Los comentarios y las descripciones de las pruebas (`describe`/`it`) siguen en español, igual que las URLs (`/admin/productos`, `/vendedor/mi-stock`) y los datos del contrato con la base y el backend (el rol `'vendedor'`).
+  - Glosario (alineado con `stock_movements.type` y las columnas de `products`):
+
+    | Negocio (español, visible) | Código (inglés) | Referencia en backend |
+    | --- | --- | --- |
+    | producto / productos | `product` / `products` | `products` |
+    | categoría | `category` | `categories` |
+    | vendedor | `seller` | rol `'vendedor'` (el valor no cambia) |
+    | administrador | `admin` | rol `'admin'` |
+    | bodega | `warehouse` | `holderProfileId = null` |
+    | piezas | `units` (en `stock`, `qty`) | `products.stock`, `stock_movements.qty` |
+    | costo de fábrica | `unitCost` | `products.unit_cost` |
+    | precio de venta | `price` | `products.price` |
+    | alta (de producto) | `create` | — |
+    | edición | `edit` / `update` | — |
+    | entrada a bodega | `purchase` | tipo `purchase` |
+    | dejar a vendedor | `delivery` | tipo `delivery` |
+    | retirar (del vendedor) | `return` | tipo `return` |
+    | venta directa | `directSale` | tipo `direct_sale` |
+    | merma | `shrinkage` | tipo `shrinkage` |
+    | fraccionar / se fracciona | `fraction` / `fractionable` | tipos `fraction_out`/`fraction_in`, `products.fractionable` |
+    | porción | `portionSize` | `products.portion_size` |
+    | bolsita | `portionProduct` (producto con `parentProductId`) | `products.parent_product_id` |
+    | corte | `cashCut` | `cuts` |
+    | carrito | `cart` | — |
+    | búsqueda | `search` / `searchQuery` | — |
+    | foto | `photo` (el archivo) / `image` (la URL guardada) | `products.image`, bucket `product-photos` |
+    | cambios sin guardar | `unsavedChanges` | — |
+
+  - Los specs escritos antes de T-05 citan nombres viejos en español; su traducción está en la tabla «viejo → nuevo» de `specs/M1-t05-codigo-en-ingles/spec.md` §4.
 - No dejar código comentado ni `console.log` en los cambios finales.
 - Antes de terminar una tarea, ejecutar `ng build` y los tests afectados.
 

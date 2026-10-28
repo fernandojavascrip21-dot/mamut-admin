@@ -6,7 +6,7 @@ import { ROLE_HOME, roleGuard } from './role.guard';
 import type { AuthContext } from '../interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };
-const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
+const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 const CLIENT: AuthContext = { userId: 'c1', role: 'client', clientId: 7, fullName: 'Distribuidor' };
 
 function storeUser(user: AuthContext) {
@@ -57,7 +57,7 @@ describe('roleGuard', () => {
   });
 
   it('con el rol equivocado redirige a la home del propio rol', () => {
-    storeUser(VENDEDOR);
+    storeUser(SELLER);
     configure();
     httpMock = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
@@ -67,7 +67,7 @@ describe('roleGuard', () => {
   });
 
   it('sin restricción de roles en la ruta, deja pasar a cualquier usuario con sesión', () => {
-    storeUser(VENDEDOR);
+    storeUser(SELLER);
     configure();
     httpMock = TestBed.inject(HttpTestingController);
 

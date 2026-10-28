@@ -11,7 +11,7 @@ import type { AuthContext } from '../../../auth/interfaces/auth.models';
 class DummyRouteComponent {}
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana López' };
-const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
+const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 
 const ADMIN_MENU: NavMenuItem[] = [
   { path: 'stock', label: 'Stock', icon: 'package' },
@@ -70,7 +70,7 @@ describe('TopNavComponent', () => {
     let account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
     expect(account.classList.contains('bg-ink')).toBe(true);
 
-    await render(VENDEDOR, ADMIN_MENU, 'Menú del vendedor');
+    await render(SELLER, ADMIN_MENU, 'Menú del vendedor');
     account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
     expect(account.classList.contains('bg-accent-2')).toBe(true);
   });
@@ -89,13 +89,13 @@ describe('TopNavComponent', () => {
     fixture.detectChanges();
 
     const links = Array.from(fixture.nativeElement.querySelectorAll('nav a')) as HTMLAnchorElement[];
-    const activo = links.find((a) => a.textContent?.trim() === 'Productos')!;
-    const inactivo = links.find((a) => a.textContent?.trim() === 'Stock')!;
+    const activeLink = links.find((a) => a.textContent?.trim() === 'Productos')!;
+    const inactiveLink = links.find((a) => a.textContent?.trim() === 'Stock')!;
 
-    expect(activo.getAttribute('aria-current')).toBe('page');
-    expect(activo.querySelector('span')?.classList.contains('bg-accent-2-bg')).toBe(true);
-    expect(inactivo.getAttribute('aria-current')).toBeNull();
-    expect(inactivo.querySelector('span')?.classList.contains('bg-accent-2-bg')).toBe(false);
+    expect(activeLink.getAttribute('aria-current')).toBe('page');
+    expect(activeLink.querySelector('span')?.classList.contains('bg-accent-2-bg')).toBe(true);
+    expect(inactiveLink.getAttribute('aria-current')).toBeNull();
+    expect(inactiveLink.querySelector('span')?.classList.contains('bg-accent-2-bg')).toBe(false);
   });
 
   it('el ícono de carrito vive en la cabecera, aparte del menú, y marca activo al navegar', async () => {

@@ -4,7 +4,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { initialsOf } from '../../initials';
 import type { CartLink, NavMenuItem } from './top-nav.models';
 
-// Navbar superior compartido entre admin-page y vendedor-page (reemplaza la cabecera + el
+// Navbar superior compartido entre admin-page y seller-page (reemplaza la cabecera + el
 // menú inferior que antes se duplicaban en cada shell). Lee el usuario actual directamente de
 // AuthService para no depender de que cada página le pase iniciales/color del avatar.
 @Component({
