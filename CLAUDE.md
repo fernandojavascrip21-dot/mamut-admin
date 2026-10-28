@@ -43,19 +43,36 @@ cd backend
 npm run dev             # next dev — http://localhost:3000/api/health
 npm run build / start   # production build / server
 npm run type-check      # tsc --noEmit
-npm test                # vitest run, against the REAL database (DATABASE_URL) — see below
+npm test                # vitest run, against the real database in DATABASE_URL — see below
 npm run db:check        # sanity query: select count(*) from categories
-npm run db:pull         # regenerate src/db/schema.ts via drizzle-kit introspection
+npm run db:pull         # regenerate src/db/schema.ts via drizzle-kit introspection (point .env at PRODUCCIÓN first)
 ```
 
 Running a single backend test file: `npx vitest run tests/admins.test.ts` (from `backend/`).
 
-Backend tests hit the live Supabase database, not a mock or a separate test DB. Tests that touch accounts need `SUPABASE_SERVICE_ROLE_KEY` set in `backend/.env`; without it those tests are silently skipped, so a green `npm test` doesn't by itself prove auth/account logic passed. Everything these tests create is prefixed `test-auth-` / `test-tx-` and cleaned up before and after each suite (`backend/tests/helpers/users.ts`); an interrupted run is cleaned up by the next one.
+Backend tests hit whichever real database `backend/.env` points to — the local Docker one by default, production if that block is active (see "Local environment" below); never a mock. Tests that touch accounts need `SUPABASE_SERVICE_ROLE_KEY` set in `backend/.env`; without it those tests are silently skipped, so a green `npm test` doesn't by itself prove auth/account logic passed. Everything these tests create is prefixed `test-auth-` / `test-tx-` and cleaned up before and after each suite (`backend/tests/helpers/users.ts`); an interrupted run is cleaned up by the next one.
 
 After every `npm run db:pull`, two manual fixups are needed in `src/db/schema.ts` before committing (and delete the Drizzle migration files it generates — `src/db/0000_*.sql`, `src/db/meta/` — they aren't used):
 
 1. Empty string defaults come out as `.default(')`; fix to `.default('')`.
 2. `drizzle-kit pull` only introspects `public`, so it drops the `auth.users` reference needed for `profiles`' FK — re-add at the top of the file: `const authSchema = pgSchema("auth")`, `export const usersInAuth = authSchema.table("users", { id: uuid().primaryKey() })`, `const users = usersInAuth`.
+
+### Local environment (Docker — Supabase local)
+
+The backend needs Postgres **and** Supabase Auth and Storage, so the local environment is the official Supabase stack run by the Supabase CLI (a root devDependency) in Docker, not a bare Postgres. Angular and Next keep running on the host with `npm run dev`.
+
+```bash
+npm run db:start        # (repo root) start Postgres + Auth + Storage + Studio; needs Docker Desktop running
+npm run db:reset        # wipe the local DB and re-apply supabase/migrations + supabase/seed.sql
+npm run db:status       # local URLs and keys
+npm run db:stop         # stop the containers (data is kept until db:reset)
+```
+
+- **Switching between production and Docker:** `backend/.env` holds two connection blocks, `PRODUCCIÓN` and `LOCAL`; keep one active and comment out the other. Next, Vitest, `db:check` and drizzle all read that same file, so the switch applies everywhere (restart `npm run dev` after switching). `backend/.env.example` has the same layout. The LOCAL block uses the Supabase CLI demo keys, identical on every machine.
+- Studio: http://127.0.0.1:54323 · Mailpit (auth emails): http://127.0.0.1:54324 · DB: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- **Seed** (`supabase/seed.sql`, all fake data): `admin@mammut.local` / `Admin-123456!`; `vendedor1@mammut.local`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated, login must fail); 5 categories, demo products (one archived, two fractionable with their portion products) and an `initial` movement backing each stock.
+- **Baseline migration:** `supabase/migrations/20261024000000_baseline_schema.sql` is a schema-only `supabase db dump` of production with the objects later migrations add stripped out, plus the `ensure_rls` event trigger (`supabase db dump` omits event triggers). It exists only so an empty DB can replay every migration — never apply it to production. A local dump after `db:reset` matched production with no differences when this was set up.
+- **New migrations:** write the `.sql` in `supabase/migrations/`, check it with `npm run db:reset` locally, and only then apply it to production.
 
 ## Architecture
 

@@ -39,17 +39,32 @@ No lint script is configured (no ESLint at root or in `backend/`).
 npm run dev              # http://localhost:3000/api/health
 npm run build / start
 npm run type-check       # tsc --noEmit
-npm test                 # vitest run against the REAL Supabase DB
+npm test                 # vitest run against whatever DB backend/.env points to (local Docker by default)
 npx vitest run tests/admins.test.ts   # single file
 npm run db:check         # sanity query
-npm run db:pull          # regenerate src/db/schema.ts
+npm run db:pull          # regenerate src/db/schema.ts (point .env at PRODUCCIÓN first)
 ```
 
-- Backend tests hit the live database. Account tests need `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`; without it they are **silently skipped**, so a green run doesn't prove auth logic passed. Test data is prefixed `test-auth-` / `test-tx-` and cleaned up automatically.
+- Backend tests hit the database `backend/.env` points to — see "Local environment" below. Account tests need `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`; without it they are **silently skipped**, so a green run doesn't prove auth logic passed. Test data is prefixed `test-auth-` / `test-tx-` and cleaned up automatically.
 - After `npm run db:pull`, fix `src/db/schema.ts` by hand before committing:
   1. `.default(')` → `.default('')`.
   2. Re-add at the top: `const authSchema = pgSchema("auth")`, `export const usersInAuth = authSchema.table("users", { id: uuid().primaryKey() })`, `const users = usersInAuth`.
   3. Delete the generated `src/db/0000_*.sql` and `src/db/meta/` — they aren't used.
+
+### Local environment (Docker — Supabase local)
+
+```bash
+npm run db:start         # (repo root) Postgres + Auth + Storage + Studio in Docker; needs Docker Desktop running
+npm run db:reset         # wipe local DB, re-apply supabase/migrations + supabase/seed.sql
+npm run db:status        # URLs and local keys
+npm run db:stop
+```
+
+- `backend/.env` has two connection blocks, **PRODUCCIÓN** and **LOCAL**: keep one active, comment the other. Next, tests, `db:check` and drizzle all read that file; restart `npm run dev` after switching. `backend/.env.example` has the same layout.
+- Studio: http://127.0.0.1:54323 · Mailpit: http://127.0.0.1:54324 · DB: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- Seed users (`supabase/seed.sql`, all fake data): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated).
+- `supabase/migrations/20261024000000_baseline_schema.sql` is a schema-only snapshot of the inherited production schema so an empty DB can replay every migration. Never apply it to production.
+- New migrations: add the `.sql` to `supabase/migrations/`, verify with `npm run db:reset` locally, then apply to production.
 
 ## Frontend conventions
 

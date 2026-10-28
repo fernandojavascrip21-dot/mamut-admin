@@ -12,6 +12,23 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Ambiente local (Docker)
+
+Para probar sin tocar el Supabase real, el proyecto levanta un Supabase local (Postgres + Auth + Storage + Studio) en Docker con el Supabase CLI.
+
+1. Abre Docker Desktop.
+2. `npm run db:start` — la primera vez descarga las imágenes, aplica `supabase/migrations/` y carga `supabase/seed.sql` (datos inventados).
+3. En `backend/.env` deja activo el bloque **LOCAL** y comentado el de **PRODUCCIÓN** (para volver a producción, al revés). Reinicia el backend al cambiar.
+4. `npm run dev` y entra a http://localhost:4200 con `admin@mammut.local` / `Admin-123456!` o `vendedor1@mammut.local` / `Vendedor-123456!`.
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm run db:start` / `db:stop` | Levanta / detiene los contenedores |
+| `npm run db:reset` | Borra la base local y la recrea con migraciones + seed |
+| `npm run db:status` | Muestra URLs y llaves locales |
+
+Studio (ver y editar datos): http://127.0.0.1:54323 · Correos de Auth: http://127.0.0.1:54324
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
