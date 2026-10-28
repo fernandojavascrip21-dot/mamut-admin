@@ -21,6 +21,7 @@ Project docs (requirements, mockups, user stories) are **not** local files in th
 
 ```bash
 npm start              # ng serve — http://localhost:4200
+npm run dev            # frontend + backend at once (concurrently): :4200 and :3000
 npm run build           # ng build (production by default)
 npm run watch           # ng build --watch --configuration development
 npm test                # ng test — unit tests via @angular/build:unit-test (vitest runner, jsdom)

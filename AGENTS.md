@@ -23,6 +23,7 @@ Known legacy mismatches inherited from the old project:
 
 ```bash
 npm start                # ng serve — http://localhost:4200
+npm run dev              # frontend + backend at once (concurrently): :4200 and :3000
 npm run build            # production build
 npm run watch            # dev build in watch mode
 npm test                 # unit tests (Vitest runner, jsdom) — not Karma/Jasmine
