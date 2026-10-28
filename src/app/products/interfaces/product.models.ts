@@ -43,3 +43,21 @@ export interface Product extends ProductSummary {
   portionSize: string | null;
   active: boolean;
 }
+
+// Valor que emite product-form al enviar. `units` solo existe en alta.
+export interface ProductFormValue {
+  name: string;
+  categoryId: number | null;
+  price: number;
+  unitCost: number;
+  units: number | null;
+  fractionable: boolean;
+  portionSize: string | null;
+  photo: File | null; // archivo nuevo elegido, si hay
+  removePhoto: boolean; // edición: quitar la foto actual
+}
+
+// Resultado de ProductSaveService: el componente decide qué pintar, no cómo leer HttpErrorResponse.
+export type SaveResult =
+  | { ok: true; product: Product }
+  | { ok: false; reason: 'duplicate-name' | 'category-missing' | 'not-found' | 'offline' };

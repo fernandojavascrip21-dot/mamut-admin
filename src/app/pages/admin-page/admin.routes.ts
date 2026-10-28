@@ -3,8 +3,6 @@ import { unsavedChangesGuard } from '../../products/guards/unsaved-changes.guard
 
 const comingSoon = () =>
   import('../coming-soon-page/coming-soon-page.component').then((m) => m.ComingSoonPageComponent);
-const productForm = () =>
-  import('../product-form-page/product-form-page.component').then((m) => m.ProductFormPageComponent);
 
 // Hijos de /admin, cargados con loadChildren: este archivo (y cada página) solo se descarga
 // cuando roleGuard ya dejó pasar a un administrador, así que el vendedor nunca lo baja.
@@ -17,10 +15,16 @@ export const ADMIN_ROUTES: Routes = [
       import('../products-page/products-page.component').then((m) => m.ProductsPageComponent),
     data: { title: 'Productos' },
   },
-  { path: 'productos/nuevo', loadComponent: productForm, data: { title: 'Nuevo producto' } },
+  {
+    path: 'productos/nuevo',
+    loadComponent: () =>
+      import('../create-product-page/create-product-page.component').then((m) => m.CreateProductPageComponent),
+    data: { title: 'Nuevo producto' },
+  },
   {
     path: 'productos/:id/editar',
-    loadComponent: productForm,
+    loadComponent: () =>
+      import('../edit-product-page/edit-product-page.component').then((m) => m.EditProductPageComponent),
     canDeactivate: [unsavedChangesGuard],
     data: { title: 'Editar producto' },
   },

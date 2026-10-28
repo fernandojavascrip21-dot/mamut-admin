@@ -81,8 +81,9 @@
   }
 
   <form
+    [formGroup]="form"
     class="mt-6 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
-    (submit)="$event.preventDefault(); onSubmit(email.value, password.value)"
+    (ngSubmit)="onSubmit()"
     novalidate
   >
     <div class="flex flex-col gap-1.5">
@@ -92,10 +93,10 @@
         name="email"
         type="text"
         autocomplete="username"
-        #email
+        #emailInput
+        formControlName="email"
         [attr.aria-invalid]="emailError() ? 'true' : null"
         [attr.aria-describedby]="emailError() ? 'email-error' : null"
-        [disabled]="state() === 'loading'"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
           (emailError() ? 'border-2 border-danger' : 'border border-line-strong')
@@ -115,10 +116,10 @@
         name="password"
         type="password"
         autocomplete="current-password"
-        #password
+        #passwordInput
+        formControlName="password"
         [attr.aria-invalid]="passwordError() ? 'true' : null"
         [attr.aria-describedby]="passwordError() ? 'password-error' : null"
-        [disabled]="state() === 'loading'"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
           (passwordError() ? 'border-2 border-danger' : 'border border-line-strong')

@@ -1,24 +1,16 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  afterRenderEffect,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
 import { initialsOf } from '../../shared/initials';
 import { ROLE_HOME } from '../../auth/guards/role.guard';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 // Pantalla 14/14b Mi cuenta (RF-01), compartida por administrador y vendedor. "Usuario" y
 // "Último acceso" del mockup se omiten en M0: AuthContext no trae ni correo ni fecha de
 // acceso (ver specs/M0-base/spec.md §8, pregunta 3).
 @Component({
-  imports: [],
+  imports: [ConfirmDialogComponent],
   selector: 'app-account-page',
   templateUrl: './account-page.component.html',
 })
@@ -37,18 +29,6 @@ export class AccountPageComponent {
   );
 
   readonly confirmingLogout = signal(false);
-  private returnFocusTo: HTMLElement | null = null;
-  private readonly cancelLogoutButton = viewChild<ElementRef<HTMLButtonElement>>('cancelLogoutButton');
-  private readonly confirmLogoutButton =
-    viewChild<ElementRef<HTMLButtonElement>>('confirmLogoutButton');
-
-  // La consulta aparece al renderizar el diálogo: el foco entra entonces en su primera acción.
-  constructor() {
-    afterRenderEffect(() => {
-      const button = this.cancelLogoutButton();
-      if (button && this.confirmingLogout()) button.nativeElement.focus();
-    });
-  }
 
   // "Volver" regresa a la home del propio rol (el mismo mapa que usa el guard), no a un
   // historial de navegación: coincide con cómo llegó aquí desde cualquier shell.
@@ -58,44 +38,18 @@ export class AccountPageComponent {
   }
 
   askLogout(): void {
-    this.returnFocusTo =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.confirmingLogout.set(true);
   }
 
   cancelLogout(): void {
     this.confirmingLogout.set(false);
-    this.returnFocusTo?.focus();
   }
 
-  // Mantiene Tab dentro de las dos acciones y permite cerrar con Escape.
-  onDialogKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      this.cancelLogout();
-    } else if (event.key === 'Tab' && this.confirmLogoutButton()) {
-      const confirmButton = this.confirmLogoutButton()!.nativeElement;
-      const first = (event.currentTarget as HTMLElement).querySelector<HTMLButtonElement>('button');
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        confirmButton.focus();
-      } else if (!event.shiftKey && document.activeElement === confirmButton) {
-        event.preventDefault();
-        first?.focus();
-      }
-    }
-  }
-
-  // Confirma el cierre de sesión. Si la petición al backend falla (p. ej. sin red), limpia la
-  // sesión local igual: quedarse adentro con un token que ya no se pudo invalidar es peor que
-  // forzar la salida.
+  // Confirma el cierre de sesión. AuthService.logout() ya limpia la sesión local aunque el
+  // backend falle, así que aquí solo queda ir a /login.
   confirmLogout(): void {
-    this.auth.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.router.navigateByUrl('/login'),
-      error: () => {
-        this.auth.clearSession();
-        this.router.navigateByUrl('/login');
-      },
+    this.auth.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.router.navigateByUrl('/login');
     });
   }
 }

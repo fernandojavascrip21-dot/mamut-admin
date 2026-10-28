@@ -71,8 +71,8 @@ npm run db:stop
 **Folder structure (by feature, not by file type):**
 
 - `src/app/pages/<name>-page/` — one folder per routed page. Pages hosting a `<router-outlet>` (`admin-page`, `seller-page`) still live here.
-- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/` (and `components/` if needed). Examples: `auth/`, `products/`.
-- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalize-text.ts`, `components/top-nav/`).
+- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/`, and when needed `components/` (presentational, non-page components that only take `input()` and emit `output()`, e.g. `products/components/product-form`), `validators/` (Reactive Forms validators, e.g. `products/validators/product-form.validators.ts`) and `rules/` (pure business-rule functions testable without Angular, e.g. `products/rules/product.rules.ts`). Examples: `auth/`, `products/`.
+- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalize-text.ts`, `http-errors.ts` — `isOffline`/`httpStatus`/`isNotFound`, the only place that reads `HttpErrorResponse` —, `validators.ts`, `components/top-nav/`, `components/confirm-dialog/` — the single confirmation dialog with focus, trapped `Tab` and `Escape`).
 - Visual-only subcomponents of a page/component go in its own `ui/` subfolder.
 - No root-level `src/app/components/` or `src/app/services/` catch-alls.
 - Create a new feature's whole folder skeleton before adding files to it.

@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ProductsService } from '../../products/services/products.service';
 import type { ProductSummary } from '../../products/interfaces/product.models';
-import { normalizeText } from '../../shared/normalize-text';
+import { filterProductsByName } from '../../products/rules/product.rules';
 import { ProductCardComponent } from './ui/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from './ui/product-card-skeleton/product-card-skeleton.component';
 
@@ -33,13 +33,9 @@ export class ProductsPageComponent {
   );
   readonly searchQuery = signal('');
 
-  // Filtra en el cliente por subcadena del nombre, sin distinguir mayúsculas ni acentos
-  // (criterio 2): la lista completa ya está en memoria, así que responde sin otra llamada.
-  readonly visibleItems = computed(() => {
-    const query = normalizeText(this.searchQuery());
-    if (query === '') return this.items();
-    return this.items().filter((item) => normalizeText(item.name).includes(query));
-  });
+  // Filtra en el cliente (criterio 2): la lista completa ya está en memoria, así que responde
+  // sin otra llamada. La regla de comparación vive en product.rules.ts.
+  readonly visibleItems = computed(() => filterProductsByName(this.items(), this.searchQuery()));
 
   // Botón «Reintentar» del estado de error: vuelve a pedir la lista sin recargar la página.
   retry(): void {
