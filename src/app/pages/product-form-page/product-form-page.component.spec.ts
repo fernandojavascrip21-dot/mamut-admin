@@ -4,15 +4,15 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { NuevoProductoPageComponent } from './nuevo-producto-page.component';
+import { ProductFormPageComponent } from './product-form-page.component';
 import { API_BASE_URL } from '../../shared/api-base-url';
-import { ProductoFotosService } from '../../productos/services/producto-fotos.service';
-import type { Producto } from '../../productos/interfaces/producto.models';
+import { ProductPhotosService } from '../../products/services/product-photos.service';
+import type { Product } from '../../products/interfaces/product.models';
 
 const CATEGORIES_URL = `${API_BASE_URL}/api/categories`;
 const PRODUCTS_URL = `${API_BASE_URL}/api/products`;
 
-const PRODUCTO_CREADO: Producto = {
+const CREATED_PRODUCT: Product = {
   id: 1,
   name: 'Creatina',
   categoryId: null,
@@ -25,25 +25,25 @@ const PRODUCTO_CREADO: Producto = {
   image: '',
 };
 
-describe('NuevoProductoPageComponent', () => {
-  let fixture: ComponentFixture<NuevoProductoPageComponent>;
+describe('ProductFormPageComponent', () => {
+  let fixture: ComponentFixture<ProductFormPageComponent>;
   let httpMock: HttpTestingController;
-  let fotosSubir: ReturnType<typeof vi.fn>;
+  let uploadPhoto: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
-    fotosSubir = vi.fn().mockReturnValue(of('https://cdn.test/foto.png'));
+    uploadPhoto = vi.fn().mockReturnValue(of('https://cdn.test/foto.png'));
 
     await TestBed.configureTestingModule({
-      imports: [NuevoProductoPageComponent],
+      imports: [ProductFormPageComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ProductoFotosService, useValue: { subir: fotosSubir } },
+        { provide: ProductPhotosService, useValue: { upload: uploadPhoto } },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(NuevoProductoPageComponent);
+    fixture = TestBed.createComponent(ProductFormPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     httpMock.expectOne(CATEGORIES_URL).flush([]);
@@ -68,45 +68,45 @@ describe('NuevoProductoPageComponent', () => {
 
   function fillForm(
     overrides: Partial<{
-      nombre: string;
-      precio: string;
-      costo: string;
-      piezas: string;
-      porcion: string;
+      name: string;
+      price: string;
+      unitCost: string;
+      units: string;
+      portionSize: string;
       fractionable: boolean;
     }> = {},
   ) {
     const values = {
-      nombre: 'Creatina',
-      precio: '200',
-      costo: '100',
-      piezas: '10',
-      porcion: '',
+      name: 'Creatina',
+      price: '200',
+      unitCost: '100',
+      units: '10',
+      portionSize: '',
       fractionable: false,
       ...overrides,
     };
-    el<HTMLInputElement>('#nombre').value = values.nombre;
-    el<HTMLInputElement>('#costo').value = values.costo;
-    el<HTMLInputElement>('#costo').dispatchEvent(new Event('input'));
-    el<HTMLInputElement>('#precio').value = values.precio;
-    el<HTMLInputElement>('#precio').dispatchEvent(new Event('input'));
-    el<HTMLInputElement>('#piezas').value = values.piezas;
+    el<HTMLInputElement>('#name').value = values.name;
+    el<HTMLInputElement>('#unit-cost').value = values.unitCost;
+    el<HTMLInputElement>('#unit-cost').dispatchEvent(new Event('input'));
+    el<HTMLInputElement>('#price').value = values.price;
+    el<HTMLInputElement>('#price').dispatchEvent(new Event('input'));
+    el<HTMLInputElement>('#units').value = values.units;
     const checkbox = el<HTMLInputElement>('input[type="checkbox"]');
     if (checkbox.checked !== values.fractionable) {
       checkbox.checked = values.fractionable;
       checkbox.dispatchEvent(new Event('change'));
     }
     fixture.detectChanges();
-    el<HTMLInputElement>('#porcion').value = values.porcion;
+    el<HTMLInputElement>('#portion-size').value = values.portionSize;
   }
 
   function attachFile(): File {
     const file = new File(['x'], 'foto.png', { type: 'image/png' });
-    Object.defineProperty(el<HTMLInputElement>('#foto'), 'files', {
+    Object.defineProperty(el<HTMLInputElement>('#photo'), 'files', {
       value: [file],
       configurable: true,
     });
-    el<HTMLInputElement>('#foto').dispatchEvent(new Event('change'));
+    el<HTMLInputElement>('#photo').dispatchEvent(new Event('change'));
     return file;
   }
 
@@ -120,18 +120,18 @@ describe('NuevoProductoPageComponent', () => {
   });
 
   it('con campos vacíos marca el error de cada uno y no llama al backend', () => {
-    fillForm({ nombre: '', precio: '', costo: '', piezas: '' });
+    fillForm({ name: '', price: '', unitCost: '', units: '' });
     submit();
 
     const errors = fixture.nativeElement.querySelectorAll('.field-error');
     expect(errors.length).toBe(4);
-    expect(el<HTMLInputElement>('#nombre').getAttribute('aria-describedby')).toBe('nombre-error');
-    expect(document.activeElement).toBe(el<HTMLInputElement>('#nombre'));
+    expect(el<HTMLInputElement>('#name').getAttribute('aria-describedby')).toBe('name-error');
+    expect(document.activeElement).toBe(el<HTMLInputElement>('#name'));
     httpMock.expectNone(PRODUCTS_URL);
   });
 
   it('piezas con decimales marca error y no llama al backend', () => {
-    fillForm({ piezas: '2.5' });
+    fillForm({ units: '2.5' });
     submit();
 
     expect(fixture.nativeElement.textContent).toContain('número entero');
@@ -139,10 +139,10 @@ describe('NuevoProductoPageComponent', () => {
   });
 
   it('sin marcar "se fracciona" el campo Porción queda oculto; marcándolo, aparece y es obligatorio', () => {
-    expect(el<HTMLElement>('#porcion').parentElement?.classList.contains('hidden')).toBe(true);
+    expect(el<HTMLElement>('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
 
     fillForm({ fractionable: true });
-    expect(el<HTMLElement>('#porcion').parentElement?.classList.contains('hidden')).toBe(false);
+    expect(el<HTMLElement>('#portion-size').parentElement?.classList.contains('hidden')).toBe(false);
 
     submit();
     expect(fixture.nativeElement.textContent).toContain('Escribe la porción');
@@ -150,20 +150,20 @@ describe('NuevoProductoPageComponent', () => {
   });
 
   it('precio menor que el costo muestra el error en vivo y deshabilita Guardar', () => {
-    fillForm({ precio: '50', costo: '100' });
+    fillForm({ price: '50', unitCost: '100' });
     expect(fixture.nativeElement.textContent).toContain('El precio no puede ser menor que el costo');
     expect(buttonWithText('Guardar').disabled).toBe(true);
-    expect(el<HTMLInputElement>('#precio').getAttribute('aria-describedby')).toBe('precio-error');
+    expect(el<HTMLInputElement>('#price').getAttribute('aria-describedby')).toBe('price-error');
     httpMock.expectNone(PRODUCTS_URL);
   });
 
   it('precio igual al costo permite guardar', () => {
-    fillForm({ precio: '100', costo: '100' });
+    fillForm({ price: '100', unitCost: '100' });
     expect(buttonWithText('Guardar').disabled).toBe(false);
     submit();
     const req = httpMock.expectOne(PRODUCTS_URL);
     expect(req.request.body).toMatchObject({ name: 'Creatina', price: 100, unitCost: 100 });
-    req.flush(PRODUCTO_CREADO, { status: 201, statusText: 'Created' });
+    req.flush(CREATED_PRODUCT, { status: 201, statusText: 'Created' });
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Producto registrado');
@@ -182,8 +182,8 @@ describe('NuevoProductoPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Ya existe un producto con ese nombre');
-    expect(el<HTMLInputElement>('#nombre').getAttribute('aria-invalid')).toBe('true');
-    expect(document.activeElement).toBe(el<HTMLInputElement>('#nombre'));
+    expect(el<HTMLInputElement>('#name').getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(el<HTMLInputElement>('#name'));
   });
 
   it('categoryId inválido (422) avisa y regresa al formulario, no a un error roto', () => {
@@ -199,10 +199,10 @@ describe('NuevoProductoPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('La categoría ya no existe');
-    expect(el<HTMLSelectElement>('#categoria').getAttribute('aria-describedby')).toBe(
-      'categoria-error',
+    expect(el<HTMLSelectElement>('#category').getAttribute('aria-describedby')).toBe(
+      'category-error',
     );
-    expect(document.activeElement).toBe(el<HTMLSelectElement>('#categoria'));
+    expect(document.activeElement).toBe(el<HTMLSelectElement>('#category'));
   });
 
   it('offline: Reintentar no vuelve a subir la foto', () => {
@@ -210,7 +210,7 @@ describe('NuevoProductoPageComponent', () => {
     attachFile();
     submit();
 
-    expect(fotosSubir).toHaveBeenCalledTimes(1);
+    expect(uploadPhoto).toHaveBeenCalledTimes(1);
     httpMock.expectOne(PRODUCTS_URL).error(new ProgressEvent('error'));
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No se pudo guardar');
@@ -218,15 +218,15 @@ describe('NuevoProductoPageComponent', () => {
     el<HTMLButtonElement>('.retry').click();
     fixture.detectChanges();
 
-    expect(fotosSubir).toHaveBeenCalledTimes(1);
+    expect(uploadPhoto).toHaveBeenCalledTimes(1);
 
-    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTO_CREADO, { status: 201, statusText: 'Created' });
+    httpMock.expectOne(PRODUCTS_URL).flush(CREATED_PRODUCT, { status: 201, statusText: 'Created' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Producto registrado');
   });
 
   it('si falla la subida de la foto (sin permiso), avisa sin llamar a crear el producto', () => {
-    fotosSubir.mockReturnValue(throwError(() => new Error('forbidden')));
+    uploadPhoto.mockReturnValue(throwError(() => new Error('forbidden')));
     fillForm();
     attachFile();
     submit();
@@ -236,30 +236,30 @@ describe('NuevoProductoPageComponent', () => {
   });
 });
 
-describe('NuevoProductoPageComponent en edición', () => {
-  let fixture: ComponentFixture<NuevoProductoPageComponent>;
+describe('ProductFormPageComponent en edición', () => {
+  let fixture: ComponentFixture<ProductFormPageComponent>;
   let httpMock: HttpTestingController;
   let router: Router;
-  let fotosSubir: ReturnType<typeof vi.fn>;
+  let uploadPhoto: ReturnType<typeof vi.fn>;
   const productUrl = `${PRODUCTS_URL}/1`;
-  const PRODUCTO: Producto = {
-    ...PRODUCTO_CREADO, categoryId: 7, fractionable: true, portionSize: '30 g',
+  const PRODUCT: Product = {
+    ...CREATED_PRODUCT, categoryId: 7, fractionable: true, portionSize: '30 g',
     image: 'https://cdn.test/old.png',
   };
 
   beforeEach(async () => {
-    fotosSubir = vi.fn().mockReturnValue(of('https://cdn.test/new.png'));
+    uploadPhoto = vi.fn().mockReturnValue(of('https://cdn.test/new.png'));
     await TestBed.configureTestingModule({
-      imports: [NuevoProductoPageComponent],
+      imports: [ProductFormPageComponent],
       providers: [
         provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '1' }) } } },
-        { provide: ProductoFotosService, useValue: { subir: fotosSubir } },
+        { provide: ProductPhotosService, useValue: { upload: uploadPhoto } },
       ],
     }).compileComponents();
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    fixture = TestBed.createComponent(NuevoProductoPageComponent);
+    fixture = TestBed.createComponent(ProductFormPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -276,10 +276,10 @@ describe('NuevoProductoPageComponent en edición', () => {
     fixture.detectChanges();
   }
 
-  async function load(producto = PRODUCTO) {
+  async function load(product = PRODUCT) {
     fixture.detectChanges();
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
-    httpMock.expectOne(productUrl).flush(producto);
+    httpMock.expectOne(productUrl).flush(product);
     await settle();
   }
 
@@ -299,30 +299,30 @@ describe('NuevoProductoPageComponent en edición', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Cargando producto…');
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
-    httpMock.expectOne(productUrl).flush(PRODUCTO);
+    httpMock.expectOne(productUrl).flush(PRODUCT);
     await settle();
 
     expect(fixture.nativeElement.textContent).toContain('Editar producto');
-    expect(el<HTMLInputElement>('#nombre').value).toBe('Creatina');
-    expect(el<HTMLSelectElement>('#categoria').value).toBe('7');
-    expect(el<HTMLInputElement>('#costo').value).toBe('100.00');
-    expect(el<HTMLInputElement>('#precio').value).toBe('200.00');
-    expect(el<HTMLInputElement>('#porcion').value).toBe('30 g');
+    expect(el<HTMLInputElement>('#name').value).toBe('Creatina');
+    expect(el<HTMLSelectElement>('#category').value).toBe('7');
+    expect(el<HTMLInputElement>('#unit-cost').value).toBe('100.00');
+    expect(el<HTMLInputElement>('#price').value).toBe('200.00');
+    expect(el<HTMLInputElement>('#portion-size').value).toBe('30 g');
     expect(el<HTMLInputElement>('input[type="checkbox"]').checked).toBe(true);
-    expect(el<HTMLInputElement>('#piezas')).toBeNull();
+    expect(el<HTMLInputElement>('#units')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('10');
     expect(fixture.nativeElement.textContent).toContain('Las piezas solo cambian con movimientos');
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(false);
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
   });
 
   it('conserva la categoría cuando el producto llega antes que el catálogo', async () => {
     fixture.detectChanges();
-    httpMock.expectOne(productUrl).flush(PRODUCTO);
+    httpMock.expectOne(productUrl).flush(PRODUCT);
     await settle();
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
     await settle();
-    expect(el<HTMLSelectElement>('#categoria').value).toBe('7');
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(false);
+    expect(el<HTMLSelectElement>('#category').value).toBe('7');
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
   });
 
   it('404 muestra no disponible; un fallo de red permite reintentar GET', async () => {
@@ -351,7 +351,7 @@ describe('NuevoProductoPageComponent en edición', () => {
     const clean = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
     fixture.componentInstance.onBeforeUnload(clean);
     expect(clean.defaultPrevented).toBe(false);
-    change('#nombre', 'Creatina nueva');
+    change('#name', 'Creatina nueva');
     const dirty = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
     fixture.componentInstance.onBeforeUnload(dirty);
     expect(dirty.defaultPrevented).toBe(true);
@@ -359,32 +359,32 @@ describe('NuevoProductoPageComponent en edición', () => {
 
   it('cambiar el precio manda el cuerpo completo sin piezas y navega', async () => {
     await load();
-    change('#precio', '250');
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(true);
+    change('#price', '250');
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
     submit();
     const patch = httpMock.expectOne(productUrl);
     expect(patch.request.method).toBe('PATCH');
     expect(patch.request.body).toEqual({
       name: 'Creatina', categoryId: 7, price: 250, unitCost: 100,
-      fractionable: true, portionSize: '30 g', image: PRODUCTO.image,
+      fractionable: true, portionSize: '30 g', image: PRODUCT.image,
     });
-    patch.flush({ ...PRODUCTO, price: '250.00' });
+    patch.flush({ ...PRODUCT, price: '250.00' });
     fixture.detectChanges();
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(false);
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/productos');
   });
 
   it('409 marca nombre duplicado; campos vacíos no llaman al backend', async () => {
     await load();
-    change('#nombre', 'Otra');
+    change('#name', 'Otra');
     submit();
     httpMock.expectOne(productUrl).flush({}, { status: 409, statusText: 'Conflict' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Ya existe un producto con ese nombre');
-    change('#nombre', '');
-    change('#precio', '');
-    change('#costo', '');
-    change('#porcion', '');
+    change('#name', '');
+    change('#price', '');
+    change('#unit-cost', '');
+    change('#portion-size', '');
     submit();
     expect(fixture.nativeElement.querySelectorAll('.field-error').length).toBeGreaterThanOrEqual(4);
     httpMock.expectNone(productUrl);
@@ -395,7 +395,7 @@ describe('NuevoProductoPageComponent en edición', () => {
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
     buttons.find((button) => button.textContent?.trim() === 'Quitar foto')!.click();
     fixture.detectChanges();
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(true);
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
     submit();
     const first = httpMock.expectOne(productUrl);
     expect(first.request.body.image).toBe('');
@@ -404,33 +404,33 @@ describe('NuevoProductoPageComponent en edición', () => {
     el<HTMLButtonElement>('.retry').click();
     const second = httpMock.expectOne(productUrl);
     expect(second.request.body.image).toBe('');
-    expect(fotosSubir).not.toHaveBeenCalled();
-    second.flush({ ...PRODUCTO, image: '' });
+    expect(uploadPhoto).not.toHaveBeenCalled();
+    second.flush({ ...PRODUCT, image: '' });
   });
 
   it('cambiar foto la sube una vez incluso tras Reintentar, y el diálogo resuelve cancelar o descartar', async () => {
     await load();
     const file = new File(['x'], 'new.png', { type: 'image/png' });
-    const photoInput = el<HTMLInputElement>('#foto');
+    const photoInput = el<HTMLInputElement>('#photo');
     Object.defineProperty(photoInput, 'files', { value: [file], configurable: true });
     photoInput.dispatchEvent(new Event('change'));
     fixture.detectChanges();
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(true);
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
 
-    const cancel = fixture.componentInstance.confirmarDescartar();
+    const cancel = fixture.componentInstance.confirmDiscard();
     fixture.detectChanges();
     expect(el<HTMLElement>('[role="alertdialog"]')).toBeTruthy();
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('[role="alertdialog"] button')) as HTMLButtonElement[];
     buttons[0].click();
     expect(await cancel).toBe(false);
-    expect(fixture.componentInstance.tieneCambiosSinGuardar()).toBe(true);
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
 
-    const discard = fixture.componentInstance.confirmarDescartar();
+    const discard = fixture.componentInstance.confirmDiscard();
     fixture.detectChanges();
     (el<HTMLElement>('[role="alertdialog"] button:last-child') as HTMLButtonElement).click();
     expect(await discard).toBe(true);
     submit();
-    expect(fotosSubir).toHaveBeenCalledTimes(1);
+    expect(uploadPhoto).toHaveBeenCalledTimes(1);
     const first = httpMock.expectOne(productUrl);
     expect(first.request.body.image).toBe('https://cdn.test/new.png');
     first.error(new ProgressEvent('error'));
@@ -438,7 +438,7 @@ describe('NuevoProductoPageComponent en edición', () => {
     el<HTMLButtonElement>('.retry').click();
     const second = httpMock.expectOne(productUrl);
     expect(second.request.body.image).toBe('https://cdn.test/new.png');
-    expect(fotosSubir).toHaveBeenCalledTimes(1);
-    second.flush({ ...PRODUCTO, image: 'https://cdn.test/new.png' });
+    expect(uploadPhoto).toHaveBeenCalledTimes(1);
+    second.flush({ ...PRODUCT, image: 'https://cdn.test/new.png' });
   });
 });

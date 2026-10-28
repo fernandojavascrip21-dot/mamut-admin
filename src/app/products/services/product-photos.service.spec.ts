@@ -1,20 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ProductoFotosService } from './producto-fotos.service';
+import { ProductPhotosService } from './product-photos.service';
 import { API_BASE_URL } from '../../shared/api-base-url';
 
 const PHOTO_URL = `${API_BASE_URL}/api/products/photo`;
 
-describe('ProductoFotosService', () => {
-  let service: ProductoFotosService;
+describe('ProductPhotosService', () => {
+  let service: ProductPhotosService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    service = TestBed.inject(ProductoFotosService);
+    service = TestBed.inject(ProductPhotosService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -26,7 +26,7 @@ describe('ProductoFotosService', () => {
     const file = new File(['x'], 'foto.png', { type: 'image/png' });
 
     const promise = new Promise<string>((resolve, reject) => {
-      service.subir(file).subscribe({ next: resolve, error: reject });
+      service.upload(file).subscribe({ next: resolve, error: reject });
     });
 
     const req = httpMock.expectOne(PHOTO_URL);

@@ -1,7 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ProductoResumen } from '../../../../productos/interfaces/producto.models';
+import type { ProductSummary } from '../../../../products/interfaces/product.models';
 import { initialsOf } from '../../../../shared/initials';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
@@ -9,21 +9,21 @@ import { initialsOf } from '../../../../shared/initials';
 // edición; Vender/Dejar a vendedor llegarán como acciones propias en M2/M3.
 @Component({
   imports: [CurrencyPipe, RouterLink],
-  selector: 'app-producto-card',
-  templateUrl: './producto-card.component.html',
+  selector: 'app-product-card',
+  templateUrl: './product-card.component.html',
 })
-export class ProductoCardComponent {
-  readonly producto = input.required<ProductoResumen>();
+export class ProductCardComponent {
+  readonly product = input.required<ProductSummary>();
 
   // Si la URL de la foto no carga, cae a la inicial en vez de dejar una imagen rota (§2).
-  private readonly imagenRota = signal(false);
+  private readonly imageBroken = signal(false);
 
-  readonly mostrarFoto = computed(() => this.producto().image !== '' && !this.imagenRota());
-  readonly inicial = computed(() => initialsOf(this.producto().name));
-  readonly agotado = computed(() => this.producto().stock <= 0);
-  readonly precio = computed(() => Number(this.producto().price));
+  readonly showPhoto = computed(() => this.product().image !== '' && !this.imageBroken());
+  readonly initial = computed(() => initialsOf(this.product().name));
+  readonly outOfStock = computed(() => this.product().stock <= 0);
+  readonly price = computed(() => Number(this.product().price));
 
-  onErrorFoto(): void {
-    this.imagenRota.set(true);
+  onPhotoError(): void {
+    this.imageBroken.set(true);
   }
 }

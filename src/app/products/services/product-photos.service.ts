@@ -7,14 +7,14 @@ import { API_BASE_URL } from '../../shared/api-base-url';
 // llave de servicio — specs/M1-hu04-dar-de-alta-producto/spec.md §8: la subida directa desde
 // Angular se intentó primero, pero el servicio de Storage de Supabase rechazaba el JWT del
 // admin por una razón que no se pudo diagnosticar). El Bearer token lo agrega
-// authInterceptor solo, igual que en productos.service.ts.
+// authInterceptor solo, igual que en products.service.ts.
 @Injectable({
   providedIn: 'root',
 })
-export class ProductoFotosService {
+export class ProductPhotosService {
   private readonly http = inject(HttpClient);
 
-  subir(file: File): Observable<string> {
+  upload(file: File): Observable<string> {
     const form = new FormData();
     form.set('file', file);
     return this.http

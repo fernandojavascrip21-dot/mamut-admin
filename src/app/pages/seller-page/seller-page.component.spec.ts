@@ -2,21 +2,21 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { VendedorPageComponent } from './vendedor-page.component';
+import { SellerPageComponent } from './seller-page.component';
 import type { AuthContext } from '../../auth/interfaces/auth.models';
 
-const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
+const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 
-describe('VendedorPageComponent', () => {
-  let fixture: ComponentFixture<VendedorPageComponent>;
+describe('SellerPageComponent', () => {
+  let fixture: ComponentFixture<SellerPageComponent>;
 
   beforeEach(() => {
-    localStorage.setItem('mamut.user', JSON.stringify(VENDEDOR));
+    localStorage.setItem('mamut.user', JSON.stringify(SELLER));
     TestBed.configureTestingModule({
-      imports: [VendedorPageComponent],
+      imports: [SellerPageComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
-    fixture = TestBed.createComponent(VendedorPageComponent);
+    fixture = TestBed.createComponent(SellerPageComponent);
     fixture.detectChanges();
   });
 

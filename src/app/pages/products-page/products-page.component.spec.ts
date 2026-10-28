@@ -2,28 +2,28 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { ProductosPageComponent } from './productos-page.component';
+import { ProductsPageComponent } from './products-page.component';
 import { API_BASE_URL } from '../../shared/api-base-url';
-import type { ProductoResumen } from '../../productos/interfaces/producto.models';
+import type { ProductSummary } from '../../products/interfaces/product.models';
 
 const PRODUCTS_URL = `${API_BASE_URL}/api/products`;
 
-const PRODUCTOS: ProductoResumen[] = [
+const PRODUCTS: ProductSummary[] = [
   { id: 1, name: 'CBUM Thavage', categoryId: null, price: '450.00', stock: 10, fractionable: false, image: '' },
   { id: 2, name: 'Creatina', categoryId: null, price: '300.00', stock: 0, fractionable: true, image: '' },
 ];
 
-describe('ProductosPageComponent', () => {
-  let fixture: ComponentFixture<ProductosPageComponent>;
+describe('ProductsPageComponent', () => {
+  let fixture: ComponentFixture<ProductsPageComponent>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProductosPageComponent],
+      imports: [ProductsPageComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ProductosPageComponent);
+    fixture = TestBed.createComponent(ProductsPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -37,15 +37,15 @@ describe('ProductosPageComponent', () => {
     fixture.detectChanges();
   }
 
-  async function cargar(productos: ProductoResumen[]) {
+  async function load(products: ProductSummary[]) {
     fixture.detectChanges();
-    httpMock.expectOne(PRODUCTS_URL).flush(productos);
+    httpMock.expectOne(PRODUCTS_URL).flush(products);
     await settle();
   }
 
-  function buscar(texto: string) {
-    const input = fixture.nativeElement.querySelector('#buscador') as HTMLInputElement;
-    input.value = texto;
+  function search(text: string) {
+    const input = fixture.nativeElement.querySelector('#product-search') as HTMLInputElement;
+    input.value = text;
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   }
@@ -53,50 +53,50 @@ describe('ProductosPageComponent', () => {
   it('mientras carga muestra "Cargando productos…" y tarjetas esqueleto', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Cargando productos…');
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card-skeleton')).toHaveLength(3);
-    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
+    expect(fixture.nativeElement.querySelectorAll('app-product-card-skeleton')).toHaveLength(3);
+    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
   });
 
   it('pinta una tarjeta por producto', async () => {
-    await cargar(PRODUCTOS);
+    await load(PRODUCTS);
 
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(2);
   });
 
   it('con 0 productos muestra el estado vacío con el botón de alta', async () => {
-    await cargar([]);
+    await load([]);
 
     expect(fixture.nativeElement.textContent).toContain('Aún no tienes productos');
-    const enlaces = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
-    expect(enlaces.some((a) => a.textContent?.includes('Dar de alta mi primer producto'))).toBe(true);
-    expect(fixture.nativeElement.querySelector('#buscador')).toBeNull();
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
+    expect(links.some((a) => a.textContent?.includes('Dar de alta mi primer producto'))).toBe(true);
+    expect(fixture.nativeElement.querySelector('#product-search')).toBeNull();
   });
 
   it('filtrar con "CBUM" y con "cbúm" deja solo el que coincide, sin importar mayúsculas ni acentos', async () => {
-    await cargar(PRODUCTOS);
+    await load(PRODUCTS);
 
-    buscar('CBUM');
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
+    search('CBUM');
+    expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(1);
     expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
     expect(fixture.nativeElement.textContent).not.toContain('Creatina');
 
-    buscar('cbúm');
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(1);
+    search('cbúm');
+    expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(1);
     expect(fixture.nativeElement.textContent).toContain('CBUM Thavage');
   });
 
   it('sin coincidencias muestra el aviso y "Limpiar búsqueda" restaura la lista completa', async () => {
-    await cargar(PRODUCTOS);
+    await load(PRODUCTS);
 
-    buscar('no existe');
+    search('no existe');
     expect(fixture.nativeElement.textContent).toContain('No hay productos con ese nombre');
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(0);
+    expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(0);
 
     (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('#buscador').value).toBe('');
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelector('#product-search').value).toBe('');
+    expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(2);
   });
 
   it('si la petición falla muestra "Reintentar", y al tocarlo vuelve a pedir la lista', async () => {
@@ -110,9 +110,9 @@ describe('ProductosPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Cargando productos…');
-    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTOS);
+    httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
     await settle();
 
-    expect(fixture.nativeElement.querySelectorAll('app-producto-card')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(2);
   });
 });

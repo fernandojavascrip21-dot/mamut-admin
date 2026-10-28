@@ -82,51 +82,51 @@
 
   <form
     class="mt-6 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
-    (submit)="$event.preventDefault(); onSubmit(usuario.value, contrasena.value)"
+    (submit)="$event.preventDefault(); onSubmit(email.value, password.value)"
     novalidate
   >
     <div class="flex flex-col gap-1.5">
-      <label for="usuario" class="text-sm font-semibold">Usuario</label>
+      <label for="email" class="text-sm font-semibold">Usuario</label>
       <input
-        id="usuario"
-        name="usuario"
+        id="email"
+        name="email"
         type="text"
         autocomplete="username"
-        #usuario
-        [attr.aria-invalid]="usuarioError() ? 'true' : null"
-        [attr.aria-describedby]="usuarioError() ? 'usuario-error' : null"
+        #email
+        [attr.aria-invalid]="emailError() ? 'true' : null"
+        [attr.aria-describedby]="emailError() ? 'email-error' : null"
         [disabled]="state() === 'loading'"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (usuarioError() ? 'border-2 border-danger' : 'border border-line-strong')
+          (emailError() ? 'border-2 border-danger' : 'border border-line-strong')
         "
       />
-      @if (usuarioError()) {
-        <p id="usuario-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
-          {{ usuarioError() }}
+      @if (emailError()) {
+        <p id="email-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+          {{ emailError() }}
         </p>
       }
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label for="contrasena" class="text-sm font-semibold">Contraseña</label>
+      <label for="password" class="text-sm font-semibold">Contraseña</label>
       <input
-        id="contrasena"
-        name="contrasena"
+        id="password"
+        name="password"
         type="password"
         autocomplete="current-password"
-        #contrasena
-        [attr.aria-invalid]="contrasenaError() ? 'true' : null"
-        [attr.aria-describedby]="contrasenaError() ? 'contrasena-error' : null"
+        #password
+        [attr.aria-invalid]="passwordError() ? 'true' : null"
+        [attr.aria-describedby]="passwordError() ? 'password-error' : null"
         [disabled]="state() === 'loading'"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (contrasenaError() ? 'border-2 border-danger' : 'border border-line-strong')
+          (passwordError() ? 'border-2 border-danger' : 'border border-line-strong')
         "
       />
-      @if (contrasenaError()) {
-        <p id="contrasena-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
-          {{ contrasenaError() }}
+      @if (passwordError()) {
+        <p id="password-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+          {{ passwordError() }}
         </p>
       }
     </div>

@@ -1,12 +1,12 @@
-<a [routerLink]="['/admin/productos', producto().id, 'editar']" [attr.aria-label]="'Editar ' + producto().name"
+<a [routerLink]="['/admin/productos', product().id, 'editar']" [attr.aria-label]="'Editar ' + product().name"
   class="flex gap-4 rounded-lg border border-line bg-white p-4 text-ink transition-colors hover:border-line-strong focus-visible:outline focus-visible:outline-accent">
   <div class="relative h-24 w-24 flex-shrink-0">
-    @if (mostrarFoto()) {
+    @if (showPhoto()) {
       <img
-        [src]="producto().image"
-        [alt]="producto().name"
+        [src]="product().image"
+        [alt]="product().name"
         loading="lazy"
-        (error)="onErrorFoto()"
+        (error)="onPhotoError()"
         class="h-24 w-24 rounded-md object-cover"
       />
     } @else {
@@ -14,15 +14,15 @@
         class="flex h-24 w-24 items-center justify-center rounded-md bg-line text-lg font-bold text-ink"
         aria-hidden="true"
       >
-        {{ inicial() }}
+        {{ initial() }}
       </div>
     }
 
     <div class="absolute top-1 left-1 flex flex-col gap-1">
-      @if (agotado()) {
+      @if (outOfStock()) {
         <span class="rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-white">Agotado</span>
       }
-      @if (producto().fractionable) {
+      @if (product().fractionable) {
         <span class="rounded bg-accent-2-bg px-1.5 py-0.5 text-[11px] font-bold text-accent-2-text">
           Fraccionado
         </span>
@@ -31,11 +31,11 @@
   </div>
 
   <div class="flex flex-1 flex-col justify-center gap-1">
-    <p class="m-0 text-sm font-bold leading-tight">{{ producto().name }}</p>
+    <p class="m-0 text-sm font-bold leading-tight">{{ product().name }}</p>
     <p class="m-0">
-      <span class="font-mono text-[22px] font-bold">{{ producto().stock }}</span>
+      <span class="font-mono text-[22px] font-bold">{{ product().stock }}</span>
       <span class="ml-1 text-xs font-medium text-muted">en bodega</span>
     </p>
-    <p class="m-0 font-mono text-sm font-bold">{{ precio() | currency: 'MXN' : 'symbol-narrow' }}</p>
+    <p class="m-0 font-mono text-sm font-bold">{{ price() | currency: 'MXN' : 'symbol-narrow' }}</p>
   </div>
 </a>

@@ -1,26 +1,26 @@
 <div class="flex w-full flex-col px-5 py-6">
-@if (modo() === 'edicion') {
+@if (mode() === 'edit') {
   <a routerLink="/admin/productos" class="flex min-h-11 items-center text-sm font-bold text-muted">‹ Productos</a>
 }
-@if (state() === 'cargando') {
+@if (state() === 'loading-product') {
   <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
     <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin stroke-accent">
       <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
     </svg>
     <p class="m-0 text-sm font-semibold">Cargando producto…</p>
   </div>
-} @else if (state() === 'no-disponible' || state() === 'error-carga') {
+} @else if (state() === 'not-found' || state() === 'load-error') {
   <div class="mt-6 flex flex-col items-center gap-2 rounded-lg border border-danger-border bg-danger-bg p-5 text-center text-danger-text" role="alert">
-    <p class="m-0 text-[15px] font-bold">{{ state() === 'no-disponible' ? 'Este producto ya no está disponible' : 'No pudimos cargar el producto' }}</p>
-    @if (state() === 'error-carga') {
+    <p class="m-0 text-[15px] font-bold">{{ state() === 'not-found' ? 'Este producto ya no está disponible' : 'No pudimos cargar el producto' }}</p>
+    @if (state() === 'load-error') {
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button type="button" class="retry mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink" (click)="cargarProducto()">Reintentar</button>
+      <button type="button" class="retry mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink" (click)="loadProduct()">Reintentar</button>
     } @else {
       <a routerLink="/admin/productos" class="mt-2 inline-flex min-h-11 items-center rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink">Volver a Productos</a>
     }
   </div>
-} @else if (state() !== 'registrado') {
-  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">{{ modo() === 'edicion' ? 'Editar producto' : 'Nuevo producto' }}</h1>
+} @else if (state() !== 'created') {
+  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">{{ mode() === 'edit' ? 'Editar producto' : 'Nuevo producto' }}</h1>
 
   @if (state() === 'offline') {
     <div
@@ -47,39 +47,39 @@
     novalidate
   >
     <div class="flex flex-col gap-1.5">
-      <label for="foto" class="text-sm font-semibold">Foto (opcional)</label>
-      @if (modo() === 'edicion') {
+      <label for="photo" class="text-sm font-semibold">Foto (opcional)</label>
+      @if (mode() === 'edit') {
         <div class="flex items-center gap-3">
-          @if (imagenVisible() && !imagenRota()) {
-            <img [src]="imagenVisible()" [alt]="original()?.name || 'Producto'" (error)="imagenRota.set(true)" class="h-20 w-20 rounded-md object-cover" />
+          @if (visibleImage() && !imageBroken()) {
+            <img [src]="visibleImage()" [alt]="original()?.name || 'Producto'" (error)="imageBroken.set(true)" class="h-20 w-20 rounded-md object-cover" />
           } @else {
-            <div aria-hidden="true" class="flex h-20 w-20 items-center justify-center rounded-md bg-line text-lg font-bold text-ink">{{ inicial() }}</div>
+            <div aria-hidden="true" class="flex h-20 w-20 items-center justify-center rounded-md bg-line text-lg font-bold text-ink">{{ initial() }}</div>
           }
           <div class="flex flex-wrap gap-2">
-            <button type="button" [disabled]="formDisabled()" (click)="foto.click()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Cambiar foto</button>
-            @if (imagenVisible() || fotoElegida()) {
-              <button type="button" [disabled]="formDisabled()" (click)="quitarFotoActual()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Quitar foto</button>
+            <button type="button" [disabled]="formDisabled()" (click)="photo.click()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Cambiar foto</button>
+            @if (visibleImage() || selectedPhoto()) {
+              <button type="button" [disabled]="formDisabled()" (click)="removeCurrentPhoto()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Quitar foto</button>
             }
           </div>
         </div>
       }
       <input
-        id="foto" name="foto" type="file" accept="image/*" #foto
-        [disabled]="formDisabled()" (change)="onFotoElegida(foto.files?.[0] ?? null)"
-        [class]="modo() === 'edicion' ? 'sr-only' : 'text-sm disabled:text-faint'"
+        id="photo" name="photo" type="file" accept="image/*" #photo
+        [disabled]="formDisabled()" (change)="onPhotoSelected(photo.files?.[0] ?? null)"
+        [class]="mode() === 'edit' ? 'sr-only' : 'text-sm disabled:text-faint'"
       />
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label for="nombre" class="text-sm font-semibold">Nombre</label>
+      <label for="name" class="text-sm font-semibold">Nombre</label>
       <input
-        id="nombre"
-        name="nombre"
+        id="name"
+        name="name"
         type="text"
-        #nombre
+        #name
         [value]="original()?.name ?? ''"
         [attr.aria-invalid]="nameError() ? 'true' : null"
-        [attr.aria-describedby]="nameError() ? 'nombre-error' : null"
+        [attr.aria-describedby]="nameError() ? 'name-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -87,44 +87,44 @@
         "
       />
       @if (nameError()) {
-        <p id="nombre-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ nameError() }}</p>
+        <p id="name-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ nameError() }}</p>
       }
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label for="categoria" class="text-sm font-semibold">Categoría</label>
+      <label for="category" class="text-sm font-semibold">Categoría</label>
       <select
-        id="categoria"
-        name="categoria"
-        #categoria
+        id="category"
+        name="category"
+        #category
         [attr.aria-invalid]="categoryError() ? 'true' : null"
-        [attr.aria-describedby]="categoryError() ? 'categoria-error' : null"
+        [attr.aria-describedby]="categoryError() ? 'category-error' : null"
         [disabled]="formDisabled()"
         class="h-[50px] rounded-[10px] border border-line-strong px-3.5 text-base disabled:bg-disabled-input disabled:text-faint"
       >
         <option value="" [selected]="original()?.categoryId == null">Sin categoría</option>
-        @for (cat of categorias(); track cat.id) {
+        @for (cat of categories(); track cat.id) {
           <option [value]="cat.id" [selected]="original()?.categoryId === cat.id">{{ cat.name }}</option>
         }
       </select>
       @if (categoryError()) {
-        <p id="categoria-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ categoryError() }}</p>
+        <p id="category-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ categoryError() }}</p>
       }
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label for="costo" class="text-sm font-semibold">Costo de fábrica</label>
+      <label for="unit-cost" class="text-sm font-semibold">Costo de fábrica</label>
       <input
-        id="costo"
-        name="costo"
+        id="unit-cost"
+        name="unit-cost"
         type="number"
         min="0"
         step="0.01"
-        #costo
+        #unitCost
         [value]="original()?.unitCost ?? ''"
-        (input)="onCostoInput(costo.value)"
+        (input)="onUnitCostInput(unitCost.value)"
         [attr.aria-invalid]="unitCostError() ? 'true' : null"
-        [attr.aria-describedby]="unitCostError() ? 'costo-error' : null"
+        [attr.aria-describedby]="unitCostError() ? 'unit-cost-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -132,47 +132,47 @@
         "
       />
       @if (unitCostError()) {
-        <p id="costo-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitCostError() }}</p>
+        <p id="unit-cost-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitCostError() }}</p>
       }
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label for="precio" class="text-sm font-semibold">Precio de venta</label>
+      <label for="price" class="text-sm font-semibold">Precio de venta</label>
       <input
-        id="precio"
-        name="precio"
+        id="price"
+        name="price"
         type="number"
         min="0"
         step="0.01"
-        #precio
+        #price
         [value]="original()?.price ?? ''"
-        (input)="onPrecioInput(precio.value)"
-        [attr.aria-invalid]="precioErrorVisible() ? 'true' : null"
-        [attr.aria-describedby]="precioErrorVisible() ? 'precio-error' : null"
+        (input)="onPriceInput(price.value)"
+        [attr.aria-invalid]="showPriceError() ? 'true' : null"
+        [attr.aria-describedby]="showPriceError() ? 'price-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (precioErrorVisible() ? 'border-2 border-danger' : 'border border-line-strong')
+          (showPriceError() ? 'border-2 border-danger' : 'border border-line-strong')
         "
       />
-      @if (precioErrorVisible()) {
-        <p id="precio-error" class="field-error m-0 text-[13px] font-semibold text-danger-text" role="alert">{{ precioErrorVisible() }}</p>
+      @if (showPriceError()) {
+        <p id="price-error" class="field-error m-0 text-[13px] font-semibold text-danger-text" role="alert">{{ showPriceError() }}</p>
       }
     </div>
 
-    @if (modo() === 'alta') {
+    @if (mode() === 'create') {
       <div class="flex flex-col gap-1.5">
-        <label for="piezas" class="text-sm font-semibold">Piezas que entran</label>
+        <label for="units" class="text-sm font-semibold">Piezas que entran</label>
         <input
-          id="piezas" name="piezas" type="number" min="1" step="1" #piezas
+          id="units" name="units" type="number" min="1" step="1" #units
           [attr.aria-invalid]="initialQtyError() ? 'true' : null"
-          [attr.aria-describedby]="initialQtyError() ? 'piezas-error' : null"
+          [attr.aria-describedby]="initialQtyError() ? 'units-error' : null"
           [disabled]="formDisabled()"
           [class]="'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
             (initialQtyError() ? 'border-2 border-danger' : 'border border-line-strong')"
         />
         @if (initialQtyError()) {
-          <p id="piezas-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
+          <p id="units-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ initialQtyError() }}</p>
         }
       </div>
     } @else {
@@ -192,19 +192,19 @@
       Se fracciona en bolsitas
     </label>
 
-    <!-- Siempre en el DOM (para que #porcion exista al mandar el formulario); se oculta con
+    <!-- Siempre en el DOM (para que #portionSize exista al mandar el formulario); se oculta con
          una clase cuando no se fracciona, en vez de un @if que saca el ref de su alcance. -->
     <div class="flex flex-col gap-1.5" [class.hidden]="!fractionable()">
-      <label for="porcion" class="text-sm font-semibold">Porción</label>
+      <label for="portion-size" class="text-sm font-semibold">Porción</label>
       <input
-        id="porcion"
-        name="porcion"
+        id="portion-size"
+        name="portion-size"
         type="text"
         placeholder="p. ej. 30 g"
-        #porcion
+        #portionSize
         [value]="original()?.portionSize ?? ''"
         [attr.aria-invalid]="portionSizeError() ? 'true' : null"
-        [attr.aria-describedby]="portionSizeError() ? 'porcion-error' : null"
+        [attr.aria-describedby]="portionSizeError() ? 'portion-size-error' : null"
         [disabled]="formDisabled()"
         [class]="
           'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
@@ -212,33 +212,33 @@
         "
       />
       @if (portionSizeError()) {
-        <p id="porcion-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ portionSizeError() }}</p>
+        <p id="portion-size-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ portionSizeError() }}</p>
       }
     </div>
 
     <button
       type="submit"
-      [disabled]="formDisabled() || precioMenorAlCosto()"
+      [disabled]="formDisabled() || priceBelowCost()"
       class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
     >
       {{ state() === 'loading' ? 'Guardando…' : 'Guardar' }}
     </button>
   </form>
-} @else if (productoCreado(); as producto) {
+} @else if (createdProduct(); as product) {
   <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Producto registrado</h1>
 
   <div class="mt-5 flex flex-col gap-3 rounded-lg border border-line bg-white p-5">
-    <p class="m-0 text-lg font-bold">{{ producto.name }}</p>
+    <p class="m-0 text-lg font-bold">{{ product.name }}</p>
     <dl class="grid grid-cols-2 gap-y-2 text-sm">
       <dt class="text-muted">Costo de fábrica</dt>
-      <dd class="m-0 text-right font-semibold">{{ producto.unitCost }}</dd>
+      <dd class="m-0 text-right font-semibold">{{ product.unitCost }}</dd>
       <dt class="text-muted">Precio de venta</dt>
-      <dd class="m-0 text-right font-semibold">{{ producto.price }}</dd>
+      <dd class="m-0 text-right font-semibold">{{ product.price }}</dd>
       <dt class="text-muted">Piezas en bodega</dt>
-      <dd class="m-0 text-right font-semibold">{{ producto.stock }}</dd>
-      @if (producto.fractionable) {
+      <dd class="m-0 text-right font-semibold">{{ product.stock }}</dd>
+      @if (product.fractionable) {
         <dt class="text-muted">Porción</dt>
-        <dd class="m-0 text-right font-semibold">{{ producto.portionSize }}</dd>
+        <dd class="m-0 text-right font-semibold">{{ product.portionSize }}</dd>
       }
     </dl>
   </div>
@@ -247,7 +247,7 @@
     <button
       type="button"
       class="h-[48px] flex-1 rounded-[10px] bg-accent text-[15px] font-bold text-white"
-      (click)="nuevoProducto()"
+      (click)="startNewProduct()"
     >
       Dar de alta otro producto
     </button>
@@ -266,8 +266,8 @@
       <h2 id="discard-title" class="text-lg font-bold">¿Descartar los cambios?</h2>
       <p id="discard-desc" class="text-[15px] leading-relaxed text-muted">Lo que cambiaste no se va a guardar.</p>
       <div class="mt-1 flex gap-2.5">
-        <button #continueEditingButton type="button" (click)="cerrarDialogo(false)" class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold">Seguir editando</button>
-        <button #confirmDiscardButton type="button" (click)="cerrarDialogo(true)" class="h-[50px] flex-1 rounded-lg bg-danger font-bold text-white">Descartar</button>
+        <button #continueEditingButton type="button" (click)="closeDialog(false)" class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold">Seguir editando</button>
+        <button #confirmDiscardButton type="button" (click)="closeDialog(true)" class="h-[50px] flex-1 rounded-lg bg-danger font-bold text-white">Descartar</button>
       </div>
     </div>
   </div>

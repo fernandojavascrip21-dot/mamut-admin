@@ -19,46 +19,46 @@ export class LoginPageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly state = signal<LoginState>('form');
-  readonly usuarioError = signal<string | null>(null);
-  readonly contrasenaError = signal<string | null>(null);
+  readonly emailError = signal<string | null>(null);
+  readonly passwordError = signal<string | null>(null);
 
-  private readonly usuarioInput = viewChild.required<ElementRef<HTMLInputElement>>('usuario');
-  private readonly contrasenaInput = viewChild.required<ElementRef<HTMLInputElement>>('contrasena');
+  private readonly emailInput = viewChild.required<ElementRef<HTMLInputElement>>('email');
+  private readonly passwordInput = viewChild.required<ElementRef<HTMLInputElement>>('password');
 
-  private lastAttempt: { usuario: string; contrasena: string } | null = null;
+  private lastAttempt: { email: string; password: string } | null = null;
 
   // Valida los campos en el cliente antes de llamar al backend (criterio 4 de HU-01): si alguno
   // está vacío, marca el error puntual de ese campo y nunca llega a intentar el login.
   // El usuario (correo) se recorta antes de enviarlo: un espacio de más (p. ej. autocompletado
   // del navegador) hace que Supabase lo trate como un correo distinto y responda igual que una
   // contraseña incorrecta. La contraseña se manda tal cual se escribió, sin recortar.
-  onSubmit(usuario: string, contrasena: string): void {
-    const usuarioLimpio = usuario.trim();
-    const usuarioVacio = usuarioLimpio === '';
-    const contrasenaVacia = contrasena.trim() === '';
-    this.usuarioError.set(usuarioVacio ? 'Escribe tu usuario' : null);
-    this.contrasenaError.set(contrasenaVacia ? 'Escribe tu contraseña' : null);
-    if (usuarioVacio || contrasenaVacia) {
-      (usuarioVacio ? this.usuarioInput() : this.contrasenaInput()).nativeElement.focus();
+  onSubmit(email: string, password: string): void {
+    const trimmedEmail = email.trim();
+    const isEmailEmpty = trimmedEmail === '';
+    const isPasswordEmpty = password.trim() === '';
+    this.emailError.set(isEmailEmpty ? 'Escribe tu usuario' : null);
+    this.passwordError.set(isPasswordEmpty ? 'Escribe tu contraseña' : null);
+    if (isEmailEmpty || isPasswordEmpty) {
+      (isEmailEmpty ? this.emailInput() : this.passwordInput()).nativeElement.focus();
       return;
     }
 
-    this.lastAttempt = { usuario: usuarioLimpio, contrasena };
-    this.attempt(usuarioLimpio, contrasena);
+    this.lastAttempt = { email: trimmedEmail, password };
+    this.attempt(trimmedEmail, password);
   }
 
   // Botón "Reintentar" del estado sin conexión (criterio 5): reintenta con los mismos datos
   // que ya se habían escrito, sin pedirlos de nuevo.
   retry(): void {
-    if (this.lastAttempt) this.attempt(this.lastAttempt.usuario, this.lastAttempt.contrasena);
+    if (this.lastAttempt) this.attempt(this.lastAttempt.email, this.lastAttempt.password);
   }
 
   // Intento real de login contra el backend. Al resolver bien, manda a cada rol a su propia
   // home (ROLE_HOME, el mismo mapa que usa el guard); al fallar, distingue sin red de
   // credenciales incorrectas para mostrar el estado correcto (ver isOffline).
-  private attempt(usuario: string, contrasena: string): void {
+  private attempt(email: string, password: string): void {
     this.state.set('loading');
-    this.auth.login(usuario, contrasena).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.auth.login(email, password).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.router.navigateByUrl(ROLE_HOME[result.user.role] ?? '/login');
       },

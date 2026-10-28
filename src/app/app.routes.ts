@@ -3,7 +3,7 @@ import { roleGuard } from './auth/guards/role.guard';
 import { guestGuard } from './auth/guards/guest.guard';
 
 // Árbol de rutas, todo con carga diferida. /admin y /vendedor están protegidas por roleGuard
-// con su rol en `data.roles`; sus hijos (admin.routes.ts, vendedor.routes.ts) heredan esa
+// con su rol en `data.roles`; sus hijos (admin.routes.ts, seller.routes.ts) heredan esa
 // protección sin repetir el guard, y como canMatch decide antes de cargar, el código de una
 // rama nunca se descarga para el otro rol.
 // /cuenta usa el mismo guard sin `roles`: exige sesión, pero de cualquiera de los dos roles.
@@ -32,10 +32,10 @@ export const routes: Routes = [
   {
     path: 'vendedor',
     loadComponent: () =>
-      import('./pages/vendedor-page/vendedor-page.component').then((m) => m.VendedorPageComponent),
+      import('./pages/seller-page/seller-page.component').then((m) => m.SellerPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['vendedor'] },
-    loadChildren: () => import('./pages/vendedor-page/vendedor.routes').then((m) => m.VENDEDOR_ROUTES),
+    loadChildren: () => import('./pages/seller-page/seller.routes').then((m) => m.SELLER_ROUTES),
   },
   // Cualquier URL desconocida cae al login (no estaba en el spec, pero sin esto una ruta mal
   // escrita deja al usuario viendo una pantalla en blanco).

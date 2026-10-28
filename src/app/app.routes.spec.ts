@@ -6,7 +6,7 @@ import { routes } from './app.routes';
 import type { AuthContext } from './auth/interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };
-const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
+const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 
 function configure() {
   TestBed.configureTestingModule({
@@ -48,14 +48,14 @@ describe('app.routes', () => {
   });
 
   it('con sesión de vendedor, /vendedor cae en /vendedor/mi-stock', async () => {
-    localStorage.setItem('mamut.user', JSON.stringify(VENDEDOR));
+    localStorage.setItem('mamut.user', JSON.stringify(SELLER));
     const router = configure();
     await router.navigateByUrl('/vendedor');
     expect(router.url).toBe('/vendedor/mi-stock');
   });
 
   it('un vendedor que intenta /admin cae en la home de su propio rol', async () => {
-    localStorage.setItem('mamut.user', JSON.stringify(VENDEDOR));
+    localStorage.setItem('mamut.user', JSON.stringify(SELLER));
     const router = configure();
     await router.navigateByUrl('/admin');
     expect(router.url).toBe('/vendedor/mi-stock');
@@ -69,7 +69,7 @@ describe('app.routes', () => {
   });
 
   it('/cuenta es accesible para cualquier rol con sesión', async () => {
-    localStorage.setItem('mamut.user', JSON.stringify(VENDEDOR));
+    localStorage.setItem('mamut.user', JSON.stringify(SELLER));
     const router = configure();
     const ok = await router.navigateByUrl('/cuenta');
     expect(ok).toBe(true);

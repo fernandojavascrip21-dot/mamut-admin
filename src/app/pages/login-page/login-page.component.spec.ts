@@ -39,13 +39,13 @@ describe('LoginPageComponent', () => {
     localStorage.clear();
   });
 
-  const usuarioInput = () => fixture.nativeElement.querySelector('#usuario') as HTMLInputElement;
-  const contrasenaInput = () =>
-    fixture.nativeElement.querySelector('#contrasena') as HTMLInputElement;
+  const emailInput = () => fixture.nativeElement.querySelector('#email') as HTMLInputElement;
+  const passwordInput = () =>
+    fixture.nativeElement.querySelector('#password') as HTMLInputElement;
 
-  function fillAndSubmit(usuario: string, contrasena: string) {
-    usuarioInput().value = usuario;
-    contrasenaInput().value = contrasena;
+  function fillAndSubmit(email: string, password: string) {
+    emailInput().value = email;
+    passwordInput().value = password;
     fixture.nativeElement
       .querySelector('form')
       .dispatchEvent(new Event('submit', { cancelable: true }));
@@ -63,10 +63,10 @@ describe('LoginPageComponent', () => {
     expect(errors.length).toBe(2);
     expect(errors[0].textContent).toContain('Escribe tu usuario');
     expect(errors[1].textContent).toContain('Escribe tu contraseña');
-    expect(usuarioInput().getAttribute('aria-invalid')).toBe('true');
-    expect(usuarioInput().getAttribute('aria-describedby')).toBe('usuario-error');
-    expect(contrasenaInput().getAttribute('aria-describedby')).toBe('contrasena-error');
-    expect(document.activeElement).toBe(usuarioInput());
+    expect(emailInput().getAttribute('aria-invalid')).toBe('true');
+    expect(emailInput().getAttribute('aria-describedby')).toBe('email-error');
+    expect(passwordInput().getAttribute('aria-describedby')).toBe('password-error');
+    expect(document.activeElement).toBe(emailInput());
     httpMock.expectNone(LOGIN_URL);
   });
 

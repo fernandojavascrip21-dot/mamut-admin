@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../../shared/api-base-url';
 import type { AuthContext } from '../../auth/interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana López' };
-const VENDEDOR: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
+const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 const LOGOUT_URL = `${API_BASE_URL}/api/auth/logout`;
 
 function createFor(user: AuthContext) {
@@ -44,7 +44,7 @@ describe('AccountPageComponent', () => {
   });
 
   it('vendedor: muestra el badge "Vendedor" y la nota de pedirle la contraseña al administrador', () => {
-    const { fixture, httpMock } = createFor(VENDEDOR);
+    const { fixture, httpMock } = createFor(SELLER);
     expect(fixture.nativeElement.textContent).toContain('Vendedor');
     expect(fixture.nativeElement.textContent).toContain('pídela al administrador');
     httpMock.verify();
@@ -116,7 +116,7 @@ describe('AccountPageComponent', () => {
   });
 
   it('"Volver" regresa a la home del propio rol', () => {
-    const { fixture, httpMock, router } = createFor(VENDEDOR);
+    const { fixture, httpMock, router } = createFor(SELLER);
     fixture.componentInstance.goBack();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/vendedor');
     httpMock.verify();

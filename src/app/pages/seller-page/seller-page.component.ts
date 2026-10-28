@@ -15,10 +15,10 @@ const CART: CartLink = { path: 'carrito', label: 'Carrito' };
 // Mi stock · Vender · Carrito · Mi corte. Nunca muestra costos ni ganancia (RF-02, RNF-04).
 @Component({
   imports: [RouterOutlet, TopNavComponent],
-  selector: 'app-vendedor-page',
-  templateUrl: './vendedor-page.component.html',
+  selector: 'app-seller-page',
+  templateUrl: './seller-page.component.html',
 })
-export class VendedorPageComponent {
+export class SellerPageComponent {
   readonly menu = MENU;
   readonly cart = CART;
 }

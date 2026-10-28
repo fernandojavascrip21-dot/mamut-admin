@@ -1,10 +1,10 @@
-export interface Categoria {
+export interface Category {
   id: number;
   name: string;
   slug: string;
 }
 
-export interface NuevoProductoInput {
+export interface CreateProductInput {
   name: string;
   categoryId: number | null;
   price: number;
@@ -16,7 +16,7 @@ export interface NuevoProductoInput {
 }
 
 // Cuerpo de PATCH /api/products/:id. Las piezas solo cambian con movimientos.
-export interface EditarProductoInput {
+export interface UpdateProductInput {
   name: string;
   categoryId: number | null;
   price: number;
@@ -27,7 +27,7 @@ export interface EditarProductoInput {
 }
 
 // Fila de GET /api/products (pantalla 03). Sin unitCost a propósito.
-export interface ProductoResumen {
+export interface ProductSummary {
   id: number;
   name: string;
   categoryId: number | null;
@@ -37,8 +37,8 @@ export interface ProductoResumen {
   image: string;
 }
 
-// Fila completa que devuelve POST /api/products, para el resumen de "Producto registrado".
-export interface Producto extends ProductoResumen {
+// Fila completa que devuelve POST /api/products, para el resumen de "Product registrado".
+export interface Product extends ProductSummary {
   unitCost: string;
   portionSize: string | null;
   active: boolean;

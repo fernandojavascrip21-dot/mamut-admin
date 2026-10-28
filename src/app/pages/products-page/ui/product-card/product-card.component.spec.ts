@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ProductoCardComponent } from './producto-card.component';
+import { ProductCardComponent } from './product-card.component';
 import { provideRouter } from '@angular/router';
-import type { ProductoResumen } from '../../../../productos/interfaces/producto.models';
+import type { ProductSummary } from '../../../../products/interfaces/product.models';
 
-const PRODUCTO: ProductoResumen = {
+const PRODUCT: ProductSummary = {
   id: 1,
   name: 'CBUM Thavage',
   categoryId: null,
@@ -13,12 +13,12 @@ const PRODUCTO: ProductoResumen = {
   image: '',
 };
 
-describe('ProductoCardComponent', () => {
-  let fixture: ComponentFixture<ProductoCardComponent>;
+describe('ProductCardComponent', () => {
+  let fixture: ComponentFixture<ProductCardComponent>;
 
-  async function render(producto: ProductoResumen) {
-    fixture = TestBed.createComponent(ProductoCardComponent);
-    fixture.componentRef.setInput('producto', producto);
+  async function render(product: ProductSummary) {
+    fixture = TestBed.createComponent(ProductCardComponent);
+    fixture.componentRef.setInput('product', product);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -26,13 +26,13 @@ describe('ProductoCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProductoCardComponent],
+      imports: [ProductCardComponent],
       providers: [provideRouter([])],
     }).compileComponents();
   });
 
   it('muestra el nombre, el precio en pesos y las piezas en bodega', async () => {
-    await render(PRODUCTO);
+    await render(PRODUCT);
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('CBUM Thavage');
     expect(text).toContain('$450.00');
@@ -41,43 +41,43 @@ describe('ProductoCardComponent', () => {
   });
 
   it('toda la tarjeta enlaza a edición con nombre accesible', async () => {
-    await render(PRODUCTO);
+    await render(PRODUCT);
     const link = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/admin/productos/1/editar');
     expect(link.getAttribute('aria-label')).toBe('Editar CBUM Thavage');
   });
 
   it('muestra "Agotado" solo cuando stock es 0', async () => {
-    await render({ ...PRODUCTO, stock: 0 });
+    await render({ ...PRODUCT, stock: 0 });
     expect(fixture.nativeElement.textContent).toContain('Agotado');
   });
 
   it('no muestra "Agotado" con stock mayor a 0', async () => {
-    await render({ ...PRODUCTO, stock: 5 });
+    await render({ ...PRODUCT, stock: 5 });
     expect(fixture.nativeElement.textContent).not.toContain('Agotado');
   });
 
   it('muestra "Fraccionado" solo cuando fractionable es true', async () => {
-    await render({ ...PRODUCTO, fractionable: true });
+    await render({ ...PRODUCT, fractionable: true });
     expect(fixture.nativeElement.textContent).toContain('Fraccionado');
   });
 
   it('con stock 0 y fractionable true muestra las dos etiquetas, "Agotado" primero', async () => {
-    await render({ ...PRODUCTO, stock: 0, fractionable: true });
-    const etiquetas = Array.from(
+    await render({ ...PRODUCT, stock: 0, fractionable: true });
+    const labels = Array.from(
       fixture.nativeElement.querySelectorAll('.absolute span'),
     ).map((el) => (el as HTMLElement).textContent?.trim());
-    expect(etiquetas).toEqual(['Agotado', 'Fraccionado']);
+    expect(labels).toEqual(['Agotado', 'Fraccionado']);
   });
 
   it('con image vacía muestra la inicial en vez de una foto', async () => {
-    await render({ ...PRODUCTO, name: 'Creatina', image: '' });
+    await render({ ...PRODUCT, name: 'Creatina', image: '' });
     expect(fixture.nativeElement.querySelector('img')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('CR');
   });
 
   it('si la foto falla al cargar, cae a la inicial', async () => {
-    await render({ ...PRODUCTO, name: 'Creatina', image: 'https://cdn.test/rota.png' });
+    await render({ ...PRODUCT, name: 'Creatina', image: 'https://cdn.test/rota.png' });
     const img = fixture.nativeElement.querySelector('img') as HTMLImageElement;
     expect(img).not.toBeNull();
 

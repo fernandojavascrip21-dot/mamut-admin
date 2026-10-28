@@ -29,9 +29,9 @@
       <p class="m-0 text-sm text-muted">Un momento.</p>
     </div>
     <div class="mt-5 flex flex-col gap-3">
-      <app-producto-card-skeleton />
-      <app-producto-card-skeleton />
-      <app-producto-card-skeleton />
+      <app-product-card-skeleton />
+      <app-product-card-skeleton />
+      <app-product-card-skeleton />
     </div>
   } @else if (state() === 'error') {
     <div
@@ -92,7 +92,7 @@
     </div>
   } @else {
     <div class="relative mt-5">
-      <label for="buscador" class="sr-only">Buscar producto</label>
+      <label for="product-search" class="sr-only">Buscar producto</label>
       <svg
         aria-hidden="true"
         width="18"
@@ -108,16 +108,16 @@
         <path d="m21 21-4.3-4.3"></path>
       </svg>
       <input
-        id="buscador"
+        id="product-search"
         type="search"
         placeholder="Buscar por nombre"
-        [value]="busqueda()"
-        (input)="busqueda.set($any($event.target).value)"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
         class="h-[46px] w-full rounded-lg border border-line-strong bg-white pl-11 text-base"
       />
     </div>
 
-    @if (visibles().length === 0) {
+    @if (visibleItems().length === 0) {
       <div
         class="mt-5 flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong bg-white p-6 text-center"
       >
@@ -140,15 +140,15 @@
         <button
           type="button"
           class="mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink"
-          (click)="limpiarBusqueda()"
+          (click)="clearSearch()"
         >
           Limpiar búsqueda
         </button>
       </div>
     } @else {
       <div class="mt-5 flex flex-col gap-3">
-        @for (item of visibles(); track item.id) {
-          <app-producto-card [producto]="item" />
+        @for (item of visibleItems(); track item.id) {
+          <app-product-card [product]="item" />
         }
       </div>
     }
