@@ -7,6 +7,7 @@ import { Subject } from 'rxjs';
 import { CreateProductPageComponent } from './create-product-page.component';
 import { API_BASE_URL } from '../../shared/api-base-url';
 import { ProductSaveService } from '../../products/services/product-save.service';
+import { ToastService } from '../../shared/toast.service';
 import type { Product, SaveResult } from '../../products/interfaces/product.models';
 
 const CATEGORIES_URL = `${API_BASE_URL}/api/categories`;
@@ -22,6 +23,7 @@ describe('CreateProductPageComponent', () => {
   let httpMock: HttpTestingController;
   let pending: Subject<SaveResult>;
   let saveService: { create: ReturnType<typeof vi.fn>; reset: ReturnType<typeof vi.fn> };
+  let toast: ToastService;
 
   beforeEach(async () => {
     saveService = {
@@ -40,12 +42,16 @@ describe('CreateProductPageComponent', () => {
     fixture = TestBed.createComponent(CreateProductPageComponent);
     document.body.appendChild(fixture.nativeElement);
     httpMock = TestBed.inject(HttpTestingController);
+    toast = TestBed.inject(ToastService);
+    vi.spyOn(toast, 'success');
+    vi.spyOn(toast, 'error');
     fixture.detectChanges();
     httpMock.expectOne(CATEGORIES_URL).flush([{ id: 7, name: 'Proteína', slug: 'proteina' }]);
     await fixture.whenStable();
   });
 
   afterEach(() => {
+    toast.dismiss();
     httpMock.verify();
     fixture.nativeElement.remove();
   });
@@ -90,6 +96,7 @@ describe('CreateProductPageComponent', () => {
     respond({ ok: true, product: CREATED_PRODUCT });
     expect(fixture.nativeElement.textContent).toContain('Producto registrado');
     expect(fixture.nativeElement.textContent).toContain('Creatina');
+    expect(toast.success).toHaveBeenCalledWith('Producto «Creatina» registrado');
   });
 
   it('un segundo envío mientras guarda no vuelve a llamar al servicio', () => {
@@ -113,6 +120,7 @@ describe('CreateProductPageComponent', () => {
     fillAndSubmit();
     respond({ ok: false, reason: 'duplicate-name' });
     await fixture.whenStable();
+    expect(toast.error).toHaveBeenCalledWith('Ya existe un producto con ese nombre.');
     expect(fixture.nativeElement.textContent).toContain('Ya existe un producto con ese nombre');
     expect(fixture.nativeElement.textContent).not.toContain('Producto registrado');
     expect(document.activeElement).toBe(el('#name'));
@@ -132,6 +140,7 @@ describe('CreateProductPageComponent', () => {
     const firstValue = saveService.create.mock.calls[0][0];
     respond({ ok: false, reason: 'offline' });
     expect(fixture.nativeElement.textContent).toContain('No se pudo guardar');
+    expect(toast.error).toHaveBeenCalledWith('No se pudo guardar. Revisa tu conexión.');
     expect(el<HTMLInputElement>('#name').disabled).toBe(true);
 
     el<HTMLButtonElement>('.retry').click();

@@ -2,8 +2,10 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ProductFormComponent } from '../../products/components/product-form/product-form.component';
+import { saveFailureMessage } from '../../products/rules/product.rules';
 import { ProductSaveService } from '../../products/services/product-save.service';
 import { ProductsService } from '../../products/services/products.service';
+import { ToastService } from '../../shared/toast.service';
 import type { Category, Product, ProductFormValue, SaveResult } from '../../products/interfaces/product.models';
 import type { CreateProductState } from './create-product-page.models';
 
@@ -19,6 +21,7 @@ import type { CreateProductState } from './create-product-page.models';
 export class CreateProductPageComponent {
   private readonly productsService = inject(ProductsService);
   private readonly saveService = inject(ProductSaveService);
+  private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly categoriesResource = rxResource({ stream: () => this.productsService.listCategories() });
@@ -61,10 +64,12 @@ export class CreateProductPageComponent {
 
   private showResult(result: SaveResult): void {
     if (result.ok) {
+      this.toastService.success(`Producto «${result.product.name}» registrado`);
       this.createdProduct.set(result.product);
       this.state.set('created');
       return;
     }
+    this.toastService.error(saveFailureMessage(result.reason));
     this.nameTaken.set(result.reason === 'duplicate-name');
     this.categoryMissing.set(result.reason === 'category-missing');
     this.state.set(result.reason === 'offline' ? 'offline' : 'form');

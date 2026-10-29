@@ -59,6 +59,8 @@ export interface ProductFormValue {
 }
 
 // Resultado de ProductSaveService: el componente decide qué pintar, no cómo leer HttpErrorResponse.
+export type SaveFailureReason = 'duplicate-name' | 'category-missing' | 'not-found' | 'offline';
+
 export type SaveResult =
   | { ok: true; product: Product }
-  | { ok: false; reason: 'duplicate-name' | 'category-missing' | 'not-found' | 'offline' };
+  | { ok: false; reason: SaveFailureReason };

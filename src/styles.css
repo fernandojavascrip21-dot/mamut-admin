@@ -19,12 +19,24 @@
   --color-danger-bg: #fbece6;
   --color-danger-border: #e8b9a8;
   --color-danger-text: #7a2e1a;
+  --color-success: #4f7a3a;
+  --color-success-bg: #eef3e6;
+  --color-success-border: #b9cfa5;
+  --color-success-text: #2f4a22;
   --color-disabled: #e3dacb;
   --color-disabled-input: #f7f1e7;
 
   --font-sans: 'Public Sans', system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  /* Entrada de app-toast (shared/components/toast). */
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+  }
 }
 
 @layer base {
