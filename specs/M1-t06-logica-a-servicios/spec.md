@@ -1,6 +1,6 @@
 # Spec técnico — T-06 · Mover la lógica de negocio del frontend a servicios (SOLID)
 
-> **Estado:** aPROVADO
+> **Estado:** APROVADO
 > **Depende de:** M1-t05-codigo-en-ingles (`specs/M1-t05-codigo-en-ingles/spec.md`) — usa los nombres en inglés de su §4; M1-t04-angular-moderno (`specs/M1-t04-angular-moderno/spec.md`) — parte de `OnPush`, `rxResource`, `viewChild()` y rutas lazy
 > **Fecha:** 2026-10-26
 > **Objetivo:** que los componentes del frontend solo presenten datos y emitan eventos, con validaciones, reglas y orquestación de guardado en servicios y funciones del feature, sin cambiar nada de lo que ve o hace el usuario.
