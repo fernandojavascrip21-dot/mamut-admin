@@ -72,6 +72,20 @@ describe('LoginPageComponent', () => {
     httpMock.expectNone(LOGIN_URL);
   });
 
+  it('un envío inválido marca los dos campos como tocados', () => {
+    fillAndSubmit('', 'secreta');
+    expect(fixture.componentInstance.emailControl.touched).toBe(true);
+    expect(fixture.componentInstance.passwordControl.touched).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('.field-error').length).toBe(1);
+    httpMock.expectNone(LOGIN_URL);
+  });
+
+  it('un segundo envío mientras revisa el login no manda otra petición', () => {
+    fillAndSubmit('admin@mammut.local', 'secreta');
+    fixture.componentInstance.retry();
+    httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
+  });
+
   it('recorta espacios de más en el usuario antes de enviarlo (no la contraseña)', () => {
     fillAndSubmit('  admin@mammut.local  ', ' secreta ');
 

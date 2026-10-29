@@ -168,6 +168,15 @@ describe('EditProductPageComponent', () => {
       expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/productos');
     });
 
+    it('un segundo envío mientras guarda no vuelve a llamar al servicio', async () => {
+      await load();
+      change('#price', '250');
+      submit();
+      fixture.componentInstance.save(saveService.update.mock.calls[0][1]);
+      expect(saveService.update).toHaveBeenCalledTimes(1);
+      respond({ ok: true, product: PRODUCT });
+    });
+
     it('nombre duplicado marca el campo y lo enfoca', async () => {
       await load();
       change('#name', 'Otra');

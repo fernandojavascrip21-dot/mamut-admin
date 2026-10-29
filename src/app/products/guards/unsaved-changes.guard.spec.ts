@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
-import { unsavedChangesGuard, type HasUnsavedChanges } from './unsaved-changes.guard';
+import { unsavedChangesGuard } from './unsaved-changes.guard';
+import type { HasUnsavedChanges } from '../interfaces/unsaved-changes.models';
 
 describe('unsavedChangesGuard', () => {
   const run = (component: HasUnsavedChanges) =>

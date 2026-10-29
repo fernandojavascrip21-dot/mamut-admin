@@ -14,6 +14,24 @@ Cuentas reales (persistentes en Supabase, no se borran solas) creadas para proba
 - **Contraseña:** `MamutVendedor2026!`
 - **Rol:** `vendedor` → entra a `/vendedor`
 
+## Cuentas de Claude (solo Docker local)
+
+Creadas el 2026-10-28 por Claude Code en el Supabase **local** (`npm run db:start`, base `127.0.0.1:54322`) con el mismo flujo del backend (`createAccount` en `backend/src/accounts/accounts.ts`: Auth + `profiles`). No existen en producción. `npm run db:reset` las borra, porque no están en `supabase/seed.sql`.
+
+### Administrador
+
+- **Correo (campo "Usuario" del login):** `claude-admin@mammut.local`
+- **Contraseña:** `ClaudeAdmin-UvsY7G6o9!`
+- **Nombre:** Claude Prueba Admin
+- **Rol:** `admin` → entra a `/admin`
+
+### Vendedor
+
+- **Correo (campo "Usuario" del login):** `claude-vendedor@mammut.local`
+- **Contraseña:** `ClaudeVendedor-X0tvYExm9!`
+- **Nombre:** Claude Prueba Vendedor
+- **Rol:** `vendedor` → entra a `/vendedor`
+
 ## Notas
 
 - El campo "Usuario" del formulario de login en realidad envía el correo (`email`), no hay un campo de username separado.

@@ -5,8 +5,7 @@ import { ProductFormComponent } from '../../products/components/product-form/pro
 import { ProductSaveService } from '../../products/services/product-save.service';
 import { ProductsService } from '../../products/services/products.service';
 import type { Category, Product, ProductFormValue, SaveResult } from '../../products/interfaces/product.models';
-
-type CreateProductState = 'form' | 'saving' | 'offline' | 'created';
+import type { CreateProductState } from './create-product-page.models';
 
 // Pantalla 03b en alta (/admin/productos/nuevo, HU-04): carga las categorías, recibe el valor
 // de product-form y lo guarda con ProductSaveService. Termina en «Producto registrado», desde
@@ -33,8 +32,10 @@ export class CreateProductPageComponent {
   readonly createdProduct = signal<Product | null>(null);
   private lastValue: ProductFormValue | null = null;
 
-  // takeUntilDestroyed evita tocar el estado si el usuario ya salió de la pantalla.
+  // Ignora un segundo envío mientras el primero sigue en curso. takeUntilDestroyed evita tocar
+  // el estado si el usuario ya salió de la pantalla.
   save(value: ProductFormValue): void {
+    if (this.state() === 'saving') return;
     this.lastValue = value;
     this.nameTaken.set(false);
     this.categoryMissing.set(false);

@@ -7,11 +7,9 @@ import { ProductSaveService } from '../../products/services/product-save.service
 import { ProductsService } from '../../products/services/products.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isNotFound } from '../../shared/http-errors';
-import type { HasUnsavedChanges } from '../../products/guards/unsaved-changes.guard';
+import type { HasUnsavedChanges } from '../../products/interfaces/unsaved-changes.models';
 import type { Category, Product, ProductFormValue, SaveResult } from '../../products/interfaces/product.models';
-
-type EditProductState = 'loading-product' | 'not-found' | 'load-error' | 'form' | 'saving' | 'offline';
-type SaveState = Extract<EditProductState, 'form' | 'saving' | 'offline' | 'not-found'>;
+import type { EditProductState, SaveState } from './edit-product-page.models';
 
 // Pantalla 03b en edición (/admin/productos/:id/editar, HU-06): carga el producto completo y
 // las categorías, usa product-form en modo edición y guarda con ProductSaveService. Guardar sin
@@ -79,11 +77,12 @@ export class EditProductPageComponent implements HasUnsavedChanges {
     this.formDirty.set(dirty);
   }
 
-  // Guardar sin cambios regresa a Productos sin PATCH (HU-06 §2). takeUntilDestroyed evita
-  // tocar el estado si el usuario ya salió de la pantalla.
+  // Guardar sin cambios regresa a Productos sin PATCH (HU-06 §2). Ignora un segundo envío
+  // mientras el primero sigue en curso; takeUntilDestroyed evita tocar el estado si el usuario
+  // ya salió de la pantalla.
   save(value: ProductFormValue): void {
     const original = this.original();
-    if (!original) return;
+    if (!original || this.saveState() === 'saving') return;
     if (!hasProductChanges(original, value)) {
       void this.router.navigateByUrl('/admin/productos');
       return;
@@ -108,7 +107,7 @@ export class EditProductPageComponent implements HasUnsavedChanges {
     const original = this.original();
     const form = this.productForm();
     if (!original || !form || this.saved() || !this.formDirty()) return false;
-    return hasProductChanges(original, form.currentValue());
+    return hasProductChanges(original, form.prepareSavePayload());
   }
 
   // El guard espera esta promesa; el diálogo conserva lo escrito si se cancela la salida.

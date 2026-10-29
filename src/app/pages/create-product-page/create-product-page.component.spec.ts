@@ -92,6 +92,13 @@ describe('CreateProductPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Creatina');
   });
 
+  it('un segundo envío mientras guarda no vuelve a llamar al servicio', () => {
+    fillAndSubmit();
+    fixture.componentInstance.save(saveService.create.mock.calls[0][0]);
+    expect(saveService.create).toHaveBeenCalledTimes(1);
+    respond({ ok: true, product: CREATED_PRODUCT });
+  });
+
   it('«Dar de alta otro producto» vuelve a un formulario vacío y olvida la foto subida', () => {
     fillAndSubmit();
     respond({ ok: true, product: CREATED_PRODUCT });

@@ -28,6 +28,12 @@ Con eso ya puedes trabajar con la base de prueba. Para conectarte a producción,
 Desde la raíz del proyecto, con Docker Desktop abierto:
 
 ```bash
+npm run dev:all    # levanta la base de prueba en Docker y luego Angular (:4200) y el backend (:3000)
+```
+
+Equivale a correr estos dos, uno tras otro (también se pueden usar por separado):
+
+```bash
 npm run db:start   # levanta la base de prueba en Docker (si ya está arriba, no hace nada)
 npm run dev        # levanta Angular (:4200) y el backend (:3000)
 ```
@@ -102,6 +108,7 @@ Los cambios de esquema van como archivos SQL con fecha en `supabase/migrations/`
 
 | Comando | Dónde | Qué hace |
 | --- | --- | --- |
+| `npm run dev:all` | raíz | Base de prueba en Docker (`db:start`) y luego frontend + backend (`dev`) |
 | `npm start` | raíz | Solo el frontend (`ng serve`) |
 | `npm run build` | raíz | Build de producción del frontend |
 | `npm test` | raíz | Pruebas del frontend (Vitest) |

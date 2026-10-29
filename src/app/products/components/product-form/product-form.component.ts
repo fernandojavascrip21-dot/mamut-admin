@@ -2,8 +2,8 @@ import {
   Component, DestroyRef, ElementRef, OnInit, afterRenderEffect, computed, effect, inject, input,
   output, signal, viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, PristineChangeEvent, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormControl, PristineChangeEvent, ReactiveFormsModule } from '@angular/forms';
 import { filter, map } from 'rxjs';
 import { initialsOf } from '../../../shared/initials';
 import { notBlank } from '../../../shared/validators';
@@ -11,8 +11,7 @@ import {
   portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from '../../validators/product-form.validators';
 import type { Category, Product, ProductFormValue } from '../../interfaces/product.models';
-
-type FieldWithError = 'name' | 'unitCost' | 'price' | 'units' | 'portionSize';
+import type { FieldWithError, ProductFormGroup } from './product-form.models';
 
 // Mensajes de cada campo al enviar (HU-04 §2, HU-06 §2).
 const FIELD_MESSAGES: Record<FieldWithError, string> = {
@@ -23,17 +22,21 @@ const FIELD_MESSAGES: Record<FieldWithError, string> = {
   portionSize: 'Escribe la porción',
 };
 
-// Formulario de producto (pantalla 03b) compartido por el alta y la edición. Solo presenta:
-// las reglas están en los validadores, y guardar, navegar o leer errores HTTP es de la página,
-// que recibe el valor por `submitted` y le devuelve el resultado por los inputs. Los errores de
-// cada campo aparecen al enviar (como antes de Reactive Forms); solo «precio menor que el
-// costo» se muestra en vivo y deshabilita «Guardar».
+// Formulario de producto (pantalla 03b) compartido por el alta y la edición. Es presentacional:
+// los datos llegan por `initialValue` y el guardado sale por `submitted`; cargar del backend,
+// guardar y los estados de espera son de la página. Los errores de cada campo aparecen al
+// enviar; solo «precio menor que el costo» se muestra en vivo y deshabilita «Guardar».
 @Component({
   imports: [ReactiveFormsModule],
   selector: 'app-product-form',
   templateUrl: './product-form.component.html',
 })
 export class ProductFormComponent implements OnInit {
+  // --- Dependencias ---
+  private readonly formBuilder = inject(FormBuilder).nonNullable;
+  private readonly destroyRef = inject(DestroyRef);
+
+  // --- Entradas y salidas ---
   readonly mode = input.required<'create' | 'edit'>();
   readonly categories = input<Category[]>([]);
   readonly initialValue = input<Product | null>(null); // edición: llena el formulario y muestra «N en bodega»
@@ -44,26 +47,10 @@ export class ProductFormComponent implements OnInit {
   readonly submitted = output<ProductFormValue>();
   readonly dirtyChange = output<boolean>();
 
-  // Los numéricos aceptan texto porque al editar se cargan tal cual llegan de Postgres
-  // ("100.00"); lo que escribe el usuario llega como número. Se convierten al emitir.
-  readonly form = new FormGroup(
-    {
-      name: new FormControl('', { nonNullable: true, validators: notBlank() }),
-      categoryId: new FormControl('', { nonNullable: true }),
-      unitCost: new FormControl<number | string | null>(null, positiveNumber()),
-      price: new FormControl<number | string | null>(null, positiveNumber()),
-      units: new FormControl<number | null>(null),
-      fractionable: new FormControl(false, { nonNullable: true }),
-      portionSize: new FormControl('', { nonNullable: true }),
-    },
-    { validators: [portionRequiredWhenFractionable(), priceNotBelowCost()] },
-  );
-
-  readonly fractionable = toSignal(this.form.controls.fractionable.valueChanges, { initialValue: false });
-  private readonly groupErrors = toSignal(this.form.valueChanges.pipe(map(() => this.form.errors)), {
-    initialValue: null,
-  });
-  readonly priceBelowCost = computed(() => this.groupErrors()?.['priceBelowCost'] === true);
+  // --- Formulario y estados ---
+  form!: ProductFormGroup;
+  readonly fractionable = signal(false);
+  readonly priceBelowCost = signal(false);
 
   private readonly fieldErrors = signal<Partial<Record<FieldWithError, string>>>({});
   readonly nameError = computed(() =>
@@ -79,6 +66,7 @@ export class ProductFormComponent implements OnInit {
   readonly unitsError = computed(() => this.fieldErrors().units ?? null);
   readonly portionSizeError = computed(() => this.fieldErrors().portionSize ?? null);
 
+  // La foto no es un control del formulario: es un archivo que se sube aparte.
   readonly selectedPhoto = signal<File | null>(null);
   readonly photoPreview = signal('');
   readonly removePhoto = signal(false);
@@ -96,32 +84,30 @@ export class ProductFormComponent implements OnInit {
   private readonly portionSizeInput = viewChild<ElementRef<HTMLInputElement>>('portionSizeInput');
   private readonly photoInput = viewChild<ElementRef<HTMLInputElement>>('photoInput');
 
+  // --- Getters ---
+  get nameControl() {
+    return this.form.controls.name;
+  }
+
+  get unitCostControl() {
+    return this.form.controls.unitCost;
+  }
+
+  get priceControl() {
+    return this.form.controls.price;
+  }
+
+  get unitsControl() {
+    return this.form.controls.units;
+  }
+
+  get fractionableControl() {
+    return this.form.controls.fractionable;
+  }
+
+  // --- Ciclo de vida ---
   constructor() {
-    const destroyRef = inject(DestroyRef);
-    const { price, unitCost, fractionable } = this.form.controls;
-
-    // Escribir en precio o costo borra su error de campo, como antes; desmarcar «se fracciona»
-    // borra el de porción.
-    price.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => this.clearFieldError('price'));
-    unitCost.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => this.clearFieldError('unitCost'));
-    fractionable.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((checked) => {
-      if (!checked) this.clearFieldError('portionSize');
-    });
-
-    this.form.events
-      .pipe(
-        filter((event) => event instanceof PristineChangeEvent),
-        map((event) => !event.pristine),
-        takeUntilDestroyed(destroyRef),
-      )
-      .subscribe((dirty) => this.dirtyChange.emit(dirty));
-
-    // Edición: llena el formulario con cada producto cargado.
-    effect(() => {
-      const product = this.initialValue();
-      if (product) this.fill(product);
-    });
-
+    // Mientras la página guarda (o está sin conexión) el formulario queda deshabilitado.
     effect(() => {
       if (this.busy()) this.form.disable({ emitEvent: false });
       else this.form.enable({ emitEvent: false });
@@ -135,14 +121,69 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
-  // Las piezas solo se validan (y se muestran) en el alta.
+  // Primero la estructura vacía con sus reglas; después los datos del producto (si los hay).
   ngOnInit(): void {
-    if (this.mode() === 'create') {
-      this.form.controls.units.addValidators(positiveInteger());
-      this.form.controls.units.updateValueAndValidity({ emitEvent: false });
-    }
+    this.form = this.createEmptyForm();
+    this.listenToFieldChanges();
+    this.loadInitialValue();
   }
 
+  // Estructura inicial y validaciones. Las piezas solo se validan (y se muestran) en el alta.
+  private createEmptyForm(): ProductFormGroup {
+    return this.formBuilder.group(
+      {
+        name: this.formBuilder.control('', notBlank()),
+        categoryId: this.formBuilder.control(''),
+        unitCost: new FormControl<number | string | null>(null, positiveNumber()),
+        price: new FormControl<number | string | null>(null, positiveNumber()),
+        units: new FormControl<number | null>(null, this.mode() === 'create' ? positiveInteger() : null),
+        fractionable: this.formBuilder.control(false),
+        portionSize: this.formBuilder.control(''),
+      },
+      { validators: [portionRequiredWhenFractionable(), priceNotBelowCost()] },
+    );
+  }
+
+  // Reacciones a lo que escribe el usuario: escribir en precio o costo borra su error de campo,
+  // desmarcar «se fracciona» borra el de porción, y la página se entera de si hay cambios.
+  private listenToFieldChanges(): void {
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.fractionable.set(this.fractionableControl.value);
+      this.priceBelowCost.set(this.form.hasError('priceBelowCost'));
+    });
+    this.priceControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearFieldError('price'));
+    this.unitCostControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearFieldError('unitCost'));
+    this.fractionableControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((checked) => {
+      if (!checked) this.clearFieldError('portionSize');
+    });
+    this.form.events
+      .pipe(
+        filter((event) => event instanceof PristineChangeEvent),
+        map((event) => !event.pristine),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((dirty) => this.dirtyChange.emit(dirty));
+  }
+
+  // --- Carga de datos ---
+  // Edición: pasa el producto del backend a la estructura del formulario. La página pinta este
+  // componente solo cuando el producto ya cargó, así que basta con hacerlo una vez.
+  private loadInitialValue(): void {
+    const product = this.initialValue();
+    if (!product) return;
+    this.form.patchValue({
+      name: product.name,
+      categoryId: product.categoryId === null ? '' : String(product.categoryId),
+      unitCost: product.unitCost,
+      price: product.price,
+      fractionable: product.fractionable,
+      portionSize: product.portionSize ?? '',
+    });
+  }
+
+  // --- Controles que cambia el usuario ---
   // La selección se conserva hasta guardar; el servicio decide si ya se subió.
   onPhotoSelected(file: File | null): void {
     this.selectedPhoto.set(file);
@@ -168,34 +209,23 @@ export class ProductFormComponent implements OnInit {
     if (photoInput) photoInput.nativeElement.value = '';
   }
 
-  // Pinta los errores de cada campo y lleva el foco al primero inválido; si todo es válido,
-  // emite el valor normalizado.
+  // --- Validación, payload y envío ---
+  // Si el formulario es inválido, marca todo como tocado, pinta el error de cada campo, lleva
+  // el foco al primero y no envía. Si es válido, emite el payload.
   onSubmit(): void {
-    const { name, unitCost, price, units } = this.form.controls;
-    const errors: Partial<Record<FieldWithError, string>> = {};
-    if (name.invalid) errors.name = FIELD_MESSAGES.name;
-    if (unitCost.invalid) errors.unitCost = FIELD_MESSAGES.unitCost;
-    if (price.invalid) errors.price = FIELD_MESSAGES.price;
-    if (this.mode() === 'create' && units.invalid) errors.units = FIELD_MESSAGES.units;
-    if (this.form.hasError('portionRequired')) errors.portionSize = FIELD_MESSAGES.portionSize;
-    this.fieldErrors.set(errors);
-
-    const first = errors.name ? this.nameInput()
-      : errors.unitCost ? this.unitCostInput()
-      : errors.price || this.priceBelowCost() ? this.priceInput()
-      : errors.units ? this.unitsInput()
-      : errors.portionSize ? this.portionSizeInput()
-      : null;
-    if (first) {
-      first.nativeElement.focus();
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.showFieldErrors();
       return;
     }
-    this.submitted.emit(this.currentValue());
+    this.fieldErrors.set({});
+    this.submitted.emit(this.prepareSavePayload());
   }
 
-  // Valor actual normalizado (nombre y porción sin espacios, números con Number()). La página
-  // de edición lo lee para comparar contra lo cargado antes de salir.
-  currentValue(): ProductFormValue {
+  // Payload con los nombres que espera ProductSaveService (nombre y porción sin espacios,
+  // números con Number()). getRawValue incluye los controles aunque estén deshabilitados. La
+  // página de edición también lo usa para comparar contra lo cargado antes de salir.
+  prepareSavePayload(): ProductFormValue {
     const raw = this.form.getRawValue();
     return {
       name: raw.name.trim(),
@@ -210,21 +240,21 @@ export class ProductFormComponent implements OnInit {
     };
   }
 
-  private fill(product: Product): void {
-    this.form.reset({
-      name: product.name,
-      categoryId: product.categoryId === null ? '' : String(product.categoryId),
-      unitCost: product.unitCost,
-      price: product.price,
-      units: null,
-      fractionable: product.fractionable,
-      portionSize: product.portionSize ?? '',
-    });
-    this.fieldErrors.set({});
-    this.selectedPhoto.set(null);
-    this.photoPreview.set('');
-    this.removePhoto.set(false);
-    this.imageBroken.set(false);
+  private showFieldErrors(): void {
+    const errors: Partial<Record<FieldWithError, string>> = {};
+    if (this.nameControl.invalid) errors.name = FIELD_MESSAGES.name;
+    if (this.unitCostControl.invalid) errors.unitCost = FIELD_MESSAGES.unitCost;
+    if (this.priceControl.invalid) errors.price = FIELD_MESSAGES.price;
+    if (this.unitsControl.invalid) errors.units = FIELD_MESSAGES.units;
+    if (this.form.hasError('portionRequired')) errors.portionSize = FIELD_MESSAGES.portionSize;
+    this.fieldErrors.set(errors);
+
+    const first = errors.name ? this.nameInput()
+      : errors.unitCost ? this.unitCostInput()
+      : errors.price || this.priceBelowCost() ? this.priceInput()
+      : errors.units ? this.unitsInput()
+      : this.portionSizeInput();
+    first?.nativeElement.focus();
   }
 
   private clearFieldError(field: FieldWithError): void {

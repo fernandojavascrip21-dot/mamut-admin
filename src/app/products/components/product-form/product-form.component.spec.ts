@@ -84,6 +84,13 @@ describe('ProductFormComponent', () => {
       expect(submitted).toEqual([]);
     });
 
+    it('un envío inválido marca todos los controles como tocados', () => {
+      submit();
+      const { controls } = fixture.componentInstance.form;
+      expect(Object.values(controls).every((control) => control.touched)).toBe(true);
+      expect(submitted).toEqual([]);
+    });
+
     it('piezas con decimales marca error y enfoca piezas', () => {
       fill({ units: '2.5' });
       submit();
@@ -170,10 +177,15 @@ describe('ProductFormComponent', () => {
       expect(el('#units')).toBeNull();
       expect(fixture.nativeElement.textContent).toContain('en bodega');
       expect(fixture.nativeElement.textContent).toContain('Las piezas solo cambian con movimientos');
-      expect(fixture.componentInstance.currentValue()).toEqual({
+      expect(fixture.componentInstance.prepareSavePayload()).toEqual({
         name: 'Creatina', categoryId: 7, price: 200, unitCost: 100, units: null,
         fractionable: true, portionSize: '30 g', photo: null, removePhoto: false,
       });
+    });
+
+    it('cargar el producto no marca el formulario como modificado', () => {
+      expect(fixture.componentInstance.form.pristine).toBe(true);
+      expect(dirty).toEqual([]);
     });
 
     it('escribir marca el formulario como sucio (dirtyChange)', () => {
@@ -184,7 +196,7 @@ describe('ProductFormComponent', () => {
     it('cambiar foto y quitar foto se reflejan en el valor emitido', () => {
       const readAsDataURL = vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(() => undefined);
       const file = attachFile();
-      expect(fixture.componentInstance.currentValue().photo).toBe(file);
+      expect(fixture.componentInstance.prepareSavePayload().photo).toBe(file);
       expect(dirty).toContain(true);
 
       buttonWithText('Quitar foto').click();

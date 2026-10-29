@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "dev": "concurrently -n front,back -c cyan,magenta \"ng serve\" \"npm --prefix backend run dev\"",
+    "dev:all": "npm run db:start && npm run dev",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

@@ -6,8 +6,7 @@ import type { ProductSummary } from '../../products/interfaces/product.models';
 import { filterProductsByName } from '../../products/rules/product.rules';
 import { ProductCardComponent } from './ui/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from './ui/product-card-skeleton/product-card-skeleton.component';
-
-type ProductsState = 'loading' | 'error' | 'ready';
+import type { ProductsState } from './products-page.models';
 
 // Pantalla «Productos» (03): una tarjeta por producto activo, con los estados cargando, error
 // y catálogo vacío. La lista completa se pide una sola vez al entrar (o con «Reintentar»): ver
