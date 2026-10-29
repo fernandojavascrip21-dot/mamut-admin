@@ -1,15 +1,17 @@
-import { eq, inArray, like } from 'drizzle-orm'
+import { eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GET, PATCH } from '../app/api/products/[id]/route'
 import { db, sql } from '../src/db/client'
 import { categories, products, stockMovements } from '../src/db/schema'
+import { createProduct } from '../src/products/products'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 const PREFIX = 'test-prod-id-'
 const name = (label: string) => `${PREFIX}${label}-${Date.now()}-${Math.floor(Math.random() * 1e5)}`
 
+// `ilike`: el caso de «otras mayúsculas» deja nombres como `TEST-PROD-ID-…`, que `like` no borraría.
 async function cleanupProducts() {
-  const rows = await db.select({ id: products.id }).from(products).where(like(products.name, `${PREFIX}%`))
+  const rows = await db.select({ id: products.id }).from(products).where(ilike(products.name, `${PREFIX}%`))
   const ids = rows.map((row) => row.id)
   if (ids.length) {
     await db.delete(stockMovements).where(inArray(stockMovements.productId, ids))
@@ -34,14 +36,11 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
   let vendedor: TestUser
   let categoryId: number
 
-  const insertProduct = async (overrides: Partial<typeof products.$inferInsert> = {}) => {
-    const [product] = await db.insert(products).values({
-      name: name('base'), price: '100', unitCost: '50', stock: 8,
-      fractionable: true, portionSize: '30 g', image: 'https://cdn.test/old.png',
-      ...overrides,
-    }).returning()
-    return product!
-  }
+  // Las piezas solo entran como movimiento `initial` (T-07): nunca se escribe `stock` directo.
+  const insertProduct = () => createProduct({
+    name: name('base'), categoryId: null, price: '100.00', unitCost: '50.0000', initialQty: 8,
+    fractionable: true, portionSize: '30 g', image: 'https://cdn.test/old.png',
+  }, admin.id)
 
   const validBody = (productName: string, overrides: Record<string, unknown> = {}) => ({
     name: productName, categoryId: null, price: 100, unitCost: 50,
@@ -88,7 +87,9 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
       name: body.name, categoryId, price: '140.00', unitCost: '70.0000',
       stock: 8, portionSize: '25 g', image: body.image,
     })
-    expect(await db.select().from(stockMovements).where(eq(stockMovements.productId, product.id))).toHaveLength(0)
+    const movements = await db.select().from(stockMovements).where(eq(stockMovements.productId, product.id))
+    expect(movements).toHaveLength(1)
+    expect(movements[0]).toMatchObject({ type: 'initial', qty: 8 })
   })
 
   it('PATCH rechaza duplicado y acepta su propio nombre con otras mayúsculas', async () => {
@@ -114,6 +115,37 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
     })), ctx(product.id))
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ fractionable: false, portionSize: null, image: '' })
+  })
+
+  // Dinero sin flotantes (spec T-08 §3): nunca se redondea en silencio.
+  it('PATCH de dinero: 422 sin guardar ni redondear, acepta texto o número y compara escalas', async () => {
+    const product = await insertProduct()
+    for (const [overrides, message] of [
+      [{ price: '450.555' }, 'El precio admite hasta 2 decimales'],
+      [{ unitCost: '1.00001' }, 'El costo admite hasta 4 decimales'],
+      [{ price: '100000000' }, 'El precio es demasiado grande'],
+      [{ unitCost: '1000000', price: '2000000' }, 'El costo es demasiado grande'],
+      [{ price: '1e3' }, 'El precio no es un monto válido'],
+      [{ price: '450,50' }, 'El precio no es un monto válido'],
+      [{ price: '83.33', unitCost: '83.3301' }, 'El precio no puede ser menor que el costo'],
+    ] as const) {
+      const res = await PATCH(request(product.id, admin.token, validBody(product.name, overrides)), ctx(product.id))
+      expect(res.status, JSON.stringify(overrides)).toBe(422)
+      expect(await res.json()).toMatchObject({ error: { message } })
+    }
+    const [unchanged] = await db.select().from(products).where(eq(products.id, product.id))
+    expect(unchanged).toMatchObject({ price: '100.00', unitCost: '50.0000' })
+
+    for (const price of ['450.5', 450.5]) {
+      const res = await PATCH(request(product.id, admin.token, validBody(product.name, { price })), ctx(product.id))
+      expect(res.status).toBe(200)
+      expect(await res.json()).toMatchObject({ price: '450.50' })
+    }
+    const equal = await PATCH(request(product.id, admin.token, validBody(product.name, {
+      price: '83.33', unitCost: '83.3300',
+    })), ctx(product.id))
+    expect(equal.status).toBe(200)
+    expect(await equal.json()).toMatchObject({ price: '83.33', unitCost: '83.3300' })
   })
 
   it('PATCH da 404 para inexistente e inactivo y 403 para vendedor', async () => {

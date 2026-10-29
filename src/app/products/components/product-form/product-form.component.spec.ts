@@ -107,6 +107,27 @@ describe('ProductFormComponent', () => {
       expect(fixture.nativeElement.textContent).not.toContain('El precio debe ser mayor a 0');
     });
 
+    it.each([
+      ['#price', '450.555', 'El precio admite hasta 2 decimales'],
+      ['#unit-cost', '1.00001', 'El costo admite hasta 4 decimales'],
+      ['#price', '100000000', 'El precio es demasiado grande'],
+      ['#unit-cost', '1000000', 'El costo es demasiado grande'],
+    ])('dinero: %s con %s muestra «%s» al enviar y no emite', (selector, value, message) => {
+      fill({ price: '2000000', unitCost: '100' });
+      type(selector, value);
+      expect(fixture.nativeElement.textContent).not.toContain(message);
+      submit();
+      expect(fixture.nativeElement.textContent).toContain(message);
+      expect(document.activeElement).toBe(el(selector));
+      expect(submitted).toEqual([]);
+    });
+
+    it('dinero: el valor emitido trae precio y costo como el texto escrito', () => {
+      fill({ price: ' 450.5 ', unitCost: '83.3333' });
+      submit();
+      expect(submitted[0]).toMatchObject({ price: '450.5', unitCost: '83.3333' });
+    });
+
     it('la porción está oculta sin fraccionar; al marcarlo aparece y es obligatoria', () => {
       expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
       fill();
@@ -132,7 +153,7 @@ describe('ProductFormComponent', () => {
       expect(buttonWithText('Guardar').disabled).toBe(false);
       submit();
       expect(submitted).toEqual([{
-        name: 'Creatina', categoryId: null, price: 100, unitCost: 100, units: 10,
+        name: 'Creatina', categoryId: null, price: '100', unitCost: '100', units: 10,
         fractionable: false, portionSize: null, photo: file, removePhoto: false,
       }]);
     });
@@ -178,7 +199,7 @@ describe('ProductFormComponent', () => {
       expect(fixture.nativeElement.textContent).toContain('en bodega');
       expect(fixture.nativeElement.textContent).toContain('Las piezas solo cambian con movimientos');
       expect(fixture.componentInstance.prepareSavePayload()).toEqual({
-        name: 'Creatina', categoryId: 7, price: 200, unitCost: 100, units: null,
+        name: 'Creatina', categoryId: 7, price: '200.00', unitCost: '100.00', units: null,
         fractionable: true, portionSize: '30 g', photo: null, removePhoto: false,
       });
     });

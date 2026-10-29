@@ -104,7 +104,8 @@ app/api/         thin routes: validate input, call a use case in src/
 src/db/          Drizzle client, introspected schema.ts, withTransaction + lockRows
 src/auth/        getAuthContext, guards (requireAuth/requireRole/requireOwnClient), session
 src/accounts/    account use cases built on accounts.ts (createAccount/toView)
-src/lib/         errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers)
+src/lib/         errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers, requireMoney), money.ts
+src/stock/       movements.ts (insertMovements: the only way inventory changes)
 tests/           Vitest against the real DB
 ```
 
@@ -112,6 +113,8 @@ tests/           Vitest against the real DB
 - **Auth is re-checked on every request**: `getAuthContext` loads `profiles` fresh so deactivation takes effect immediately. Never trust JWT claims for role/active status.
 - **Account creation = Supabase Auth user, then `profiles` row**, with manual compensation (delete the Auth user if the profile insert fails). Follow `createAccount` for any new account flow.
 - **Transactions** go through `withTransaction` / `lockRows` (`select … for update`), not raw queries.
+- **Inventory only changes by inserting `stock_movements` via `insertMovements`** (`src/stock/movements.ts`). Never write `products.stock` / `vendor_stock.qty`: Postgres triggers maintain them and reject direct writes from any client. Products are inserted with `stock = 0`. A balance going negative → `409` «No hay piezas suficientes». Movements are never updated; deleting one (tests only) reverts it, so delete newest first.
+- **Movement sign convention** (`stock_movements_qty_sign_check`, spec `M1-t07` §3): one row per holder (`holder_profile_id` null = warehouse), signed `qty` (in `> 0`, out `< 0`); a transfer is two rows in one transaction. `initial`/`purchase`: warehouse `> 0`; `delivery`: warehouse `< 0`, seller `> 0`; `return`: warehouse `> 0`, seller `< 0`; `direct_sale`/`shrinkage`/`fraction_out`: `< 0`; `*_void`/`fraction_in`: `> 0`; `adjustment`: `≠ 0`.
 - **Rows with history are deactivated, never deleted.** `DELETE` endpoints rely on FK `restrict` to surface a 409.
 - **Errors** are always `{ error: { code, message } }` via `AppError` / `toResponse`, with a fixed HTTP status per code (401/403/404/409/422/500). Login/refresh return one generic message for wrong password, unknown account and deactivated account.
 - **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`; the Angular dev origin (`http://localhost:4200`) must be listed.
@@ -185,7 +188,8 @@ Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `prod
 
 ### Dinero e inventario
 - Cantidades monetarias como enteros en centavos o con tipos decimales, nunca con `number` flotante para cálculos de caja.
-- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente.
+- **Convención de dinero (spec `M1-t08`):** precio hasta 2 decimales (máx. `99999999.99`), costo hasta 4 (máx. `999999.9999`); decimales de más o fuera de rango → error de campo y `422`, nunca redondeo silencioso. Los montos viajan como texto (`"450.50"`); el backend también acepta número y normaliza con `requireMoney`. En el frontend son `string` e inputs `type="text" inputmode="decimal"`. Comparar o calcular siempre con `money.ts` (`src/app/shared/` y `backend/src/lib/`, mismo contrato): `toMinorUnits`, `fromMinorUnits`, `compareMoney`, `decimalPlaces`; `Number()` solo para el pipe `currency`. M2/M3: cada venta guarda precio y costo del momento como `numeric`; totales de venta con enteros en el backend; cortes y reportes con `sum()` en SQL; redondeo a centavos una sola vez al final (mitad hacia arriba).
+- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente. En inventario la base lo impone: solo se insertan `stock_movements` con `insertMovements`.
 
 ## Diseño de interfaces
 

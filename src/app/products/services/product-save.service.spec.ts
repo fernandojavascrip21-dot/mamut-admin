@@ -14,7 +14,7 @@ const PRODUCT: Product = {
   unitCost: '100.00', fractionable: false, portionSize: null, image: 'https://cdn.test/old.png',
 };
 const VALUE: ProductFormValue = {
-  name: 'Creatina', categoryId: 7, price: 200, unitCost: 100, units: 10,
+  name: 'Creatina', categoryId: 7, price: '200', unitCost: '100', units: 10,
   fractionable: false, portionSize: null, photo: null, removePhoto: false,
 };
 
@@ -48,7 +48,7 @@ describe('ProductSaveService', () => {
       const req = httpMock.expectOne(PRODUCTS_URL);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({
-        name: 'Creatina', categoryId: 7, price: 200, unitCost: 100, initialQty: 10,
+        name: 'Creatina', categoryId: 7, price: '200', unitCost: '100', initialQty: 10,
         fractionable: false, portionSize: null, image: null,
       });
       req.flush(PRODUCT);
@@ -110,7 +110,7 @@ describe('ProductSaveService', () => {
       const req = httpMock.expectOne(url);
       expect(req.request.method).toBe('PATCH');
       expect(req.request.body).toEqual({
-        name: 'Creatina', categoryId: 7, price: 200, unitCost: 100,
+        name: 'Creatina', categoryId: 7, price: '200', unitCost: '100',
         fractionable: false, portionSize: null, image: PRODUCT.image,
       });
       req.flush(PRODUCT);

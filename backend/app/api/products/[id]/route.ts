@@ -1,7 +1,7 @@
 import { getProduct, updateProduct } from '../../../../src/products/products'
 import { requireRole } from '../../../../src/auth/guards'
 import { validation } from '../../../../src/lib/errors'
-import { handle, parseId, readJson, requireNumber, requireString } from '../../../../src/lib/handler'
+import { handle, parseId, readJson, requireMoney, requireString } from '../../../../src/lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -43,8 +43,8 @@ export const PATCH = handle<Ctx>(async (request, { params }) => {
   const product = await updateProduct(id, {
     name: requireString(body, 'name').trim(),
     categoryId: categoryIdRaw,
-    price: requireNumber(body, 'price'),
-    unitCost: requireNumber(body, 'unitCost'),
+    price: requireMoney(body, 'price', { scale: 2, label: 'El precio' }),
+    unitCost: requireMoney(body, 'unitCost', { scale: 4, label: 'El costo' }),
     fractionable,
     portionSize: portionSizeRaw?.trim() || null,
     image,

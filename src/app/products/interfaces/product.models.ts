@@ -4,11 +4,12 @@ export interface Category {
   slug: string;
 }
 
+// Precio y costo viajan como texto decimal ("450.50"), nunca como number (spec T-08).
 export interface CreateProductInput {
   name: string;
   categoryId: number | null;
-  price: number;
-  unitCost: number;
+  price: string;
+  unitCost: string;
   initialQty: number;
   fractionable: boolean;
   portionSize: string | null;
@@ -19,8 +20,8 @@ export interface CreateProductInput {
 export interface UpdateProductInput {
   name: string;
   categoryId: number | null;
-  price: number;
-  unitCost: number;
+  price: string;
+  unitCost: string;
   fractionable: boolean;
   portionSize: string | null;
   image: string; // '' = sin foto
@@ -31,7 +32,7 @@ export interface ProductSummary {
   id: number;
   name: string;
   categoryId: number | null;
-  price: string; // numeric de Postgres: llega como texto; se convierte con Number() solo para mostrarlo
+  price: string; // numeric de Postgres: llega como texto; Number() solo para el pipe currency al mostrarlo
   stock: number;
   fractionable: boolean;
   image: string;
@@ -48,8 +49,8 @@ export interface Product extends ProductSummary {
 export interface ProductFormValue {
   name: string;
   categoryId: number | null;
-  price: number;
-  unitCost: number;
+  price: string; // texto tal cual se escribió, sin espacios (spec T-08)
+  unitCost: string;
   units: number | null;
   fractionable: boolean;
   portionSize: string | null;

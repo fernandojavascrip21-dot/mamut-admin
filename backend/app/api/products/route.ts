@@ -1,7 +1,7 @@
 import { createProduct, listProducts } from '../../../src/products/products'
 import { requireRole } from '../../../src/auth/guards'
 import { validation } from '../../../src/lib/errors'
-import { handle, optionalText, readJson, requireNumber, requireString } from '../../../src/lib/handler'
+import { handle, optionalText, readJson, requireMoney, requireNumber, requireString } from '../../../src/lib/handler'
 
 export const GET = handle(async (request) => {
   await requireRole(request, 'admin')
@@ -28,8 +28,8 @@ export const POST = handle(async (request) => {
     {
       name: requireString(body, 'name').trim(),
       categoryId,
-      price: requireNumber(body, 'price'),
-      unitCost: requireNumber(body, 'unitCost'),
+      price: requireMoney(body, 'price', { scale: 2, label: 'El precio' }),
+      unitCost: requireMoney(body, 'unitCost', { scale: 4, label: 'El costo' }),
       initialQty: requireNumber(body, 'initialQty', { integer: true }),
       fractionable: fractionableRaw,
       portionSize: optionalText(body, 'portionSize') ?? null,

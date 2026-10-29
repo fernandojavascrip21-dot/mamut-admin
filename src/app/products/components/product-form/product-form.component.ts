@@ -7,8 +7,9 @@ import { FormBuilder, FormControl, PristineChangeEvent, ReactiveFormsModule } fr
 import { filter, map } from 'rxjs';
 import { initialsOf } from '../../../shared/initials';
 import { notBlank } from '../../../shared/validators';
+import { MONEY_MAX } from '../../../shared/money';
 import {
-  portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
+  maxDecimals, maxMoney, portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from '../../validators/product-form.validators';
 import type { Category, Product, ProductFormValue } from '../../interfaces/product.models';
 import type { FieldWithError, ProductFormGroup } from './product-form.models';
@@ -20,6 +21,12 @@ const FIELD_MESSAGES: Record<FieldWithError, string> = {
   price: 'El precio debe ser mayor a 0',
   units: 'Las piezas deben ser un número entero mayor a 0',
   portionSize: 'Escribe la porción',
+};
+
+// Decimales de más o monto fuera de la columna (spec T-08 §3): nunca se redondea en silencio.
+const MONEY_MESSAGES = {
+  unitCost: { maxDecimals: 'El costo admite hasta 4 decimales', maxMoney: 'El costo es demasiado grande' },
+  price: { maxDecimals: 'El precio admite hasta 2 decimales', maxMoney: 'El precio es demasiado grande' },
 };
 
 // Formulario de producto (pantalla 03b) compartido por el alta y la edición. Es presentacional:
@@ -134,8 +141,8 @@ export class ProductFormComponent implements OnInit {
       {
         name: this.formBuilder.control('', notBlank()),
         categoryId: this.formBuilder.control(''),
-        unitCost: new FormControl<number | string | null>(null, positiveNumber()),
-        price: new FormControl<number | string | null>(null, positiveNumber()),
+        unitCost: this.formBuilder.control('', [positiveNumber(), maxDecimals(4), maxMoney(MONEY_MAX[4], 4)]),
+        price: this.formBuilder.control('', [positiveNumber(), maxDecimals(2), maxMoney(MONEY_MAX[2], 2)]),
         units: new FormControl<number | null>(null, this.mode() === 'create' ? positiveInteger() : null),
         fractionable: this.formBuilder.control(false),
         portionSize: this.formBuilder.control(''),
@@ -222,16 +229,16 @@ export class ProductFormComponent implements OnInit {
     this.submitted.emit(this.prepareSavePayload());
   }
 
-  // Payload con los nombres que espera ProductSaveService (nombre y porción sin espacios,
-  // números con Number()). getRawValue incluye los controles aunque estén deshabilitados. La
+  // Payload con los nombres que espera ProductSaveService (nombre, porción y dinero sin espacios;
+  // el dinero sigue como texto, spec T-08). getRawValue incluye los controles aunque estén deshabilitados. La
   // página de edición también lo usa para comparar contra lo cargado antes de salir.
   prepareSavePayload(): ProductFormValue {
     const raw = this.form.getRawValue();
     return {
       name: raw.name.trim(),
       categoryId: raw.categoryId === '' ? null : Number(raw.categoryId),
-      price: Number(raw.price),
-      unitCost: Number(raw.unitCost),
+      price: raw.price.trim(),
+      unitCost: raw.unitCost.trim(),
       units: this.mode() === 'create' && raw.units !== null ? Number(raw.units) : null,
       fractionable: raw.fractionable,
       portionSize: raw.fractionable ? raw.portionSize.trim() : null,
@@ -243,8 +250,8 @@ export class ProductFormComponent implements OnInit {
   private showFieldErrors(): void {
     const errors: Partial<Record<FieldWithError, string>> = {};
     if (this.nameControl.invalid) errors.name = FIELD_MESSAGES.name;
-    if (this.unitCostControl.invalid) errors.unitCost = FIELD_MESSAGES.unitCost;
-    if (this.priceControl.invalid) errors.price = FIELD_MESSAGES.price;
+    if (this.unitCostControl.invalid) errors.unitCost = this.moneyError('unitCost');
+    if (this.priceControl.invalid) errors.price = this.moneyError('price');
     if (this.unitsControl.invalid) errors.units = FIELD_MESSAGES.units;
     if (this.form.hasError('portionRequired')) errors.portionSize = FIELD_MESSAGES.portionSize;
     this.fieldErrors.set(errors);
@@ -255,6 +262,15 @@ export class ProductFormComponent implements OnInit {
       : errors.units ? this.unitsInput()
       : this.portionSizeInput();
     first?.nativeElement.focus();
+  }
+
+  // Mensaje del campo de dinero: primero el más específico (decimales, monto grande), después
+  // «mayor a 0», que también cubre un texto que no es decimal.
+  private moneyError(field: 'unitCost' | 'price'): string {
+    const control = this.form.controls[field];
+    if (control.hasError('maxDecimals')) return MONEY_MESSAGES[field].maxDecimals;
+    if (control.hasError('maxMoney')) return MONEY_MESSAGES[field].maxMoney;
+    return FIELD_MESSAGES[field];
   }
 
   private clearFieldError(field: FieldWithError): void {
