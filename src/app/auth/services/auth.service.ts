@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import { API_BASE_URL } from '../../shared/api-base-url';
 import type { AuthContext, SessionResult } from '../interfaces/auth.models';
 
@@ -46,12 +46,15 @@ export class AuthService {
       .pipe(tap((result) => this.storeSession(result)));
   }
 
-  // Invalida el token en el backend (Supabase) y, si la petición responde bien, limpia la
-  // sesión local. Si falla, quien llama puede decidir si de todos modos usa clearSession().
+  // Invalida el token en el backend (Supabase) y limpia la sesión local. Si la petición falla
+  // (p. ej. sin red), limpia igual y no propaga el error: quedarse adentro con un token que ya
+  // no se pudo invalidar es peor que forzar la salida (regla de M0).
   logout(): Observable<void> {
-    return this.http
-      .post<void>(`${API_BASE_URL}/api/auth/logout`, {})
-      .pipe(tap(() => this.clearSession()));
+    return this.http.post<void>(`${API_BASE_URL}/api/auth/logout`, {}).pipe(
+      catchError(() => of(undefined)),
+      map(() => undefined),
+      tap(() => this.clearSession()),
+    );
   }
 
   // Limpia la sesión local sin llamar al backend (token ya inválido, logout fallido, etc.).

@@ -73,39 +73,14 @@
 </div>
 
   @if (confirmingLogout()) {
-    <div class="fixed inset-0 flex items-center justify-center bg-black/55 p-6">
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-logout-title"
-        aria-describedby="confirm-logout-desc"
-        (keydown)="onDialogKeydown($event)"
-        class="flex w-full max-w-sm flex-col gap-3 rounded-lg bg-white p-5"
-      >
-        <h2 id="confirm-logout-title" class="text-lg font-bold">¿Cerrar sesión?</h2>
-        <p id="confirm-logout-desc" class="text-[15px] leading-relaxed text-muted">
-          Para volver a entrar necesitarás tu usuario y contraseña. Lo que ya registraste queda
-          guardado.
-        </p>
-        <div class="mt-1 flex gap-2.5">
-          <button
-            #cancelLogoutButton
-            type="button"
-            (click)="cancelLogout()"
-            class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold"
-          >
-            Cancelar
-          </button>
-          <button
-            #confirmLogoutButton
-            type="button"
-            (click)="confirmLogout()"
-            class="h-[50px] flex-1 rounded-lg bg-danger font-bold text-white"
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
-    </div>
+    <app-confirm-dialog
+      title="¿Cerrar sesión?"
+      message="Para volver a entrar necesitarás tu usuario y contraseña. Lo que ya registraste queda guardado."
+      confirmLabel="Cerrar sesión"
+      cancelLabel="Cancelar"
+      tone="danger"
+      (confirmed)="confirmLogout()"
+      (cancelled)="cancelLogout()"
+    />
   }
 </div>

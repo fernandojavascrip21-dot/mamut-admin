@@ -1,6 +1,6 @@
 # Spec técnico — T-06 · Mover la lógica de negocio del frontend a servicios (SOLID)
 
-> **Estado:** Borrador
+> **Estado:** APROVADO
 > **Depende de:** M1-t05-codigo-en-ingles (`specs/M1-t05-codigo-en-ingles/spec.md`) — usa los nombres en inglés de su §4; M1-t04-angular-moderno (`specs/M1-t04-angular-moderno/spec.md`) — parte de `OnPush`, `rxResource`, `viewChild()` y rutas lazy
 > **Fecha:** 2026-10-26
 > **Objetivo:** que los componentes del frontend solo presenten datos y emitan eventos, con validaciones, reglas y orquestación de guardado en servicios y funciones del feature, sin cambiar nada de lo que ve o hace el usuario.
@@ -41,6 +41,14 @@ Es el último de los tres specs que aplican «Buenas prácticas de código» (or
 - **`products-page`**: usa `filterProductsByName`.
 - Mover y ampliar pruebas: cada regla, validador y servicio con su propio spec; los specs de página quedan para el cableado.
 - `CLAUDE.md`/`AGENTS.md`: agregar `validators/`, `rules/` y `components/` a la convención de carpetas por funcionalidad, y `confirm-dialog`/`http-errors.ts` a los ejemplos de `shared/`.
+- **Patrón único de formularios reactivos** (ampliación del 2026-10-27, decisión del usuario): regla «Formularios» en `CLAUDE.md`/`AGENTS.md` y aplicada a los dos formularios existentes.
+  - Orden de secciones; `createEmptyForm()` y después la carga en `ngOnInit()`; getters de controles; `patchValue()` para cargar.
+  - Al enviar: `markAllAsTouched()` si es inválido, payload en `prepareSavePayload()`/`prepareLoginPayload()` con `getRawValue()`, sin envíos duplicados y con los estados de espera cerrados en éxito y en error.
+  - Aplica a `product-form` (presentacional) y a `login-page` (patrón completo). Las páginas `create-product-page` y `edit-product-page` ignoran un segundo envío mientras guardan.
+- **Tipos fuera de las clases** (ampliación del 2026-10-28, decisión del usuario): ningún archivo de clase declara `type`/`interface`.
+  - Los de una funcionalidad van en `<feature>/interfaces/*.models.ts`.
+  - Los de una sola página o componente van en `<nombre>.models.ts` junto a él.
+  - Regla documentada en `CLAUDE.md`/`AGENTS.md`.
 
 **No entra en este spec:**
 
@@ -200,6 +208,22 @@ Cada paso deja `ng build` y `npm test` en verde.
 11. `login-page` con Reactive Forms; Reintentar reenvía el valor del formulario.
 12. `CLAUDE.md`/`AGENTS.md` (§2). `specs/README.md`: relación con `M1-hu06` (ver §8).
 13. Verificación: `ng build`, `npm test` y recorrido manual de §7.
+14. Regla «Formularios» en `CLAUDE.md`/`AGENTS.md`.
+15. `product-form` con el patrón:
+    - Orden de secciones, `createEmptyForm()` con `FormBuilder.nonNullable` (piezas validadas solo en alta) y getters de controles.
+    - `ngOnInit()` → `createEmptyForm()` → `listenToFieldChanges()` → `loadInitialValue()` con `patchValue()`.
+    - `onSubmit()` con `markAllAsTouched()`; `currentValue()` → `prepareSavePayload()`.
+16. `login-page` con el patrón:
+    - `createEmptyForm()`, getters, `prepareLoginPayload()`.
+    - `startLoading()`/`finishLoading()` en lugar de un `effect`, y sin doble envío.
+    - Guardas de doble envío en `create-product-page`/`edit-product-page`.
+17. Verificación: `ng build`, `npm test` y recorrido manual de login, alta y edición.
+18. Mover los tipos fuera de las clases:
+    - `ProductFormGroup` y `FieldWithError` → `product-form.models.ts`.
+    - `HasUnsavedChanges` → `products/interfaces/unsaved-changes.models.ts`.
+    - Los estados y tipos del formulario de `login-page`, `create-product-page`, `edit-product-page` y `products-page` → el `<página>.models.ts` de cada una.
+    - Regla en `CLAUDE.md`/`AGENTS.md`.
+19. Verificación: un grep de `type`/`interface` fuera de los `*.spec.ts` solo encuentra archivos `*.models.ts`; `ng build` y `npm test`.
 
 ## 6. Criterios de aceptación
 
@@ -212,6 +236,12 @@ Cada paso deja `ng build` y `npm test` en verde.
 - [ ] Validadores, `hasProductChanges`, `filterProductsByName`, `ProductSaveService`, `isOffline`/`httpStatus` y `confirm-dialog` tienen cada uno su propio spec.
 - [ ] Todos los criterios de aceptación de `M1-hu04`, `M1-hu05` y `M1-hu06` siguen cumpliéndose (recorrido manual de §7).
 - [ ] `CLAUDE.md` y `AGENTS.md` describen `validators/`, `rules/` y `components/` dentro de una funcionalidad, y `confirm-dialog`/`http-errors.ts` en `shared/`.
+- [ ] `product-form` y `login-page` siguen el patrón «Formularios» de `CLAUDE.md`:
+  - Orden de secciones, `createEmptyForm()` en `ngOnInit()`, getters y `patchValue()` para cargar.
+  - `markAllAsTouched()` con un formulario inválido y payload explícito con `getRawValue()`.
+  - Ningún envío duplicado mientras se guarda o se revisa el login.
+- [ ] `CLAUDE.md` y `AGENTS.md` describen la regla «Formularios».
+- [ ] Ningún archivo de clase (componente, página, servicio, guard, interceptor) declara `type` ni `interface`: viven en `<feature>/interfaces/*.models.ts` o en el `<nombre>.models.ts` junto a la página o componente, y la regla está en `CLAUDE.md`/`AGENTS.md`.
 - [ ] `ng build` y `npm test` (raíz) pasan.
 
 ## 7. Plan de pruebas
@@ -245,6 +275,14 @@ Cada paso deja `ng build` y `npm test` en verde.
 - **Sí:** reglas puras en `products/rules/` y validadores en `products/validators/`, nuevas subcarpetas del feature. Razón (decisión técnica de esta sesión): se prueban sin Angular y siguen la convención de carpetas por funcionalidad; se documentan en `CLAUDE.md`.
 - **No:** mover `unsavedChangesGuard` a `shared/`. Razón: hoy solo lo usa productos.
 - **Sí:** tarea Jira `SCRUM-27 · T-06`. Razón (decisión del usuario): una tarea por spec.
+- **Sí:** patrón único de formularios reactivos dentro de T-06. Razón (decisión del usuario, 2026-10-27): es el mismo tema (formularios y responsabilidades) y se aplica antes del commit.
+- **Sí:** los nombres del patrón van en inglés (`createEmptyForm`, `prepareSavePayload`…), aunque la guía original los proponía en español. Razón (decisión del usuario): se mantiene la regla de T-05.
+- **Sí:** el patrón se aplica según el tipo de componente. En uno presentacional (`product-form`), la carga viene de un `input()` y el envío emite un `output()`; la consulta al servicio y los estados de guardado siguen en la página. Razón (decisión del usuario): conserva la decisión central de T-06.
+- **No:** agregar `FormArray`. Razón: ningún formulario actual tiene colecciones; la regla lo documenta para cuando haga falta.
+- **Sí:** tipos e interfaces fuera de los archivos de clase. Razón (decisión del usuario, 2026-10-28): lógica separada.
+  - Lo que usa una sola página o componente va en un `<nombre>.models.ts` junto a él, como `top-nav.models.ts`.
+  - `HasUnsavedChanges` va en `products/interfaces/`, porque es un contrato entre el guard y las páginas.
+- **No:** separar `type` de `interface` en archivos distintos. Razón (decisión del usuario): solo se pidió sacarlos de las clases.
 
 ## 9. Riesgos
 

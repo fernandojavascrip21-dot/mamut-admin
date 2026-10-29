@@ -45,7 +45,9 @@ describe('LoginPageComponent', () => {
 
   function fillAndSubmit(email: string, password: string) {
     emailInput().value = email;
+    emailInput().dispatchEvent(new Event('input'));
     passwordInput().value = password;
+    passwordInput().dispatchEvent(new Event('input'));
     fixture.nativeElement
       .querySelector('form')
       .dispatchEvent(new Event('submit', { cancelable: true }));
@@ -70,6 +72,20 @@ describe('LoginPageComponent', () => {
     httpMock.expectNone(LOGIN_URL);
   });
 
+  it('un envío inválido marca los dos campos como tocados', () => {
+    fillAndSubmit('', 'secreta');
+    expect(fixture.componentInstance.emailControl.touched).toBe(true);
+    expect(fixture.componentInstance.passwordControl.touched).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('.field-error').length).toBe(1);
+    httpMock.expectNone(LOGIN_URL);
+  });
+
+  it('un segundo envío mientras revisa el login no manda otra petición', () => {
+    fillAndSubmit('admin@mammut.local', 'secreta');
+    fixture.componentInstance.retry();
+    httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
+  });
+
   it('recorta espacios de más en el usuario antes de enviarlo (no la contraseña)', () => {
     fillAndSubmit('  admin@mammut.local  ', ' secreta ');
 
@@ -81,6 +97,8 @@ describe('LoginPageComponent', () => {
   it('con credenciales correctas de administrador redirige a /admin', () => {
     fillAndSubmit('admin@mammut.local', 'secreta');
     expect(fixture.nativeElement.textContent).toContain('Entrando…');
+    expect(emailInput().disabled).toBe(true);
+    expect(passwordInput().disabled).toBe(true);
 
     httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
 
@@ -109,10 +127,13 @@ describe('LoginPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('No hay conexión a internet');
 
+    expect(emailInput().disabled).toBe(false);
     const retryButton = fixture.nativeElement.querySelector('.retry') as HTMLButtonElement;
     retryButton.click();
 
-    httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
+    const retry = httpMock.expectOne(LOGIN_URL);
+    expect(retry.request.body).toEqual({ email: 'admin@mammut.local', password: 'secreta' });
+    retry.flush(ADMIN_SESSION);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin');
   });
 });

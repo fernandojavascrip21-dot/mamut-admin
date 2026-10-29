@@ -1,0 +1,33 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-6">
+  <div
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="confirm-dialog-title"
+    [attr.aria-describedby]="message() ? 'confirm-dialog-desc' : null"
+    (keydown)="onKeydown($event)"
+    class="flex w-full max-w-sm flex-col gap-3 rounded-lg bg-white p-5"
+  >
+    <h2 id="confirm-dialog-title" class="text-lg font-bold">{{ title() }}</h2>
+    @if (message()) {
+      <p id="confirm-dialog-desc" class="text-[15px] leading-relaxed text-muted">{{ message() }}</p>
+    }
+    <div class="mt-1 flex gap-2.5">
+      <button
+        #cancelButton
+        type="button"
+        (click)="cancelled.emit()"
+        class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold"
+      >
+        {{ cancelLabel() }}
+      </button>
+      <button
+        #confirmButton
+        type="button"
+        (click)="confirmed.emit()"
+        [class]="'h-[50px] flex-1 rounded-lg font-bold text-white ' + (tone() === 'danger' ? 'bg-danger' : 'bg-accent')"
+      >
+        {{ confirmLabel() }}
+      </button>
+    </div>
+  </div>
+</div>

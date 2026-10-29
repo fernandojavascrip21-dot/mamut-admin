@@ -1,6 +1,6 @@
 # Spec técnico — T-07 · El stock solo cambia con movimientos (trigger en la base)
 
-> **Estado:** Borrador
+> **Estado:** Aprovado
 > **Depende de:** M1-t03-tablas-productos-stock (`specs/M1-t03-tablas-productos-stock/spec.md`) — reusa `stock_movements`, `vendor_stock` y `products.stock`, y cambia cómo se mantiene esa caché; M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) — cambia `createProduct`
 > **Fecha:** 2026-10-26
 > **Objetivo:** que `products.stock` y `vendor_stock.qty` los mantenga un trigger de Postgres a partir de `stock_movements`, y que la base rechace cualquier escritura directa de esos saldos o que los deje negativos.

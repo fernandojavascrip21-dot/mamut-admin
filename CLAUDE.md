@@ -22,6 +22,7 @@ Project docs (requirements, mockups, user stories) are **not** local files in th
 ```bash
 npm start              # ng serve — http://localhost:4200
 npm run dev            # frontend + backend at once (concurrently): :4200 and :3000
+npm run dev:all        # db:start (Docker Supabase; no-op if already up) and then dev
 npm run build           # ng build (production by default)
 npm run watch           # ng build --watch --configuration development
 npm test                # ng test — unit tests via @angular/build:unit-test (vitest runner, jsdom)
@@ -85,9 +86,14 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 **Architecture — feature-based folders, not by file type:**
 
 - `src/app/pages/`: components tied to a route, one subfolder per page (`pages/login-page/login-page.component.ts`). A page that itself hosts a `<router-outlet>` (e.g. `admin-page`, `seller-page`) still lives here — it's a page, not a separate "layout" concept.
-- `src/app/<feature>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/` (add `components/` inside it if that area ever needs its own non-page components). Examples: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`), `products/` (`services/`, `interfaces/`, `guards/`).
-- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`, `shared/normalize-text.ts`, and shared UI under `shared/components/`, like `shared/components/top-nav/`) — not tied to one feature or one page.
+- `src/app/<feature>/`: everything about one functional area, with its own `services/`, `guards/`, `interfaces/`. Examples: `auth/` (`auth/services/auth.service.ts`, `auth/services/auth.interceptor.ts`, `auth/guards/role.guard.ts`, `auth/interfaces/auth.models.ts`), `products/` (`services/`, `interfaces/`, `guards/`, `components/`, `validators/`, `rules/`). When the area needs them, it also gets:
+  - `components/`: presentational components that aren't pages — they only take `input()` and emit `output()`, never inject data services or `Router` (e.g. `products/components/product-form`, used by `create-product-page` and `edit-product-page`).
+  - `validators/`: Reactive Forms validators for that area's forms (e.g. `products/validators/product-form.validators.ts`).
+  - `rules/`: pure business-rule functions, testable without Angular (e.g. `products/rules/product.rules.ts`: `hasProductChanges`, `filterProductsByName`).
+  - Services that orchestrate a screen's save flow and translate HTTP errors into a typed result (e.g. `products/services/product-save.service.ts`, provided per page in `providers` so its state dies with the screen).
+- `src/app/shared/`: code reused across functional areas (e.g. `shared/api-base-url.ts`, `shared/initials.ts`, `shared/normalize-text.ts`, `shared/validators.ts` (`notBlank`), `shared/http-errors.ts` (`isOffline`, `httpStatus`, `isNotFound` — the only place that reads `HttpErrorResponse`; components never compare `status`), and shared UI under `shared/components/`, like `shared/components/top-nav/` and `shared/components/confirm-dialog/` (the single confirmation dialog: focus on open, trapped `Tab`, `Escape` cancels, focus returns)) — not tied to one feature or one page.
 - Inside a page or component that grows subcomponents purely for visual composition (e.g. a skeleton), put those under its own `ui/` subfolder.
+- **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type` or `interface`. Types shared across a feature go in `<feature>/interfaces/*.models.ts` (e.g. `products/interfaces/product.models.ts`, `products/interfaces/unsaved-changes.models.ts`); types used by a single page or component go in a `<name>.models.ts` file next to it (e.g. `shared/components/top-nav/top-nav.models.ts`, `products/components/product-form/product-form.models.ts`, `pages/login-page/login-page.models.ts`). `type` and `interface` may coexist in the same models file. Import them with `import type`. Constants (e.g. a messages map) are values, not types, and may stay in the class file.
 - No global `src/app/components/` or `src/app/services/` catch-alls at the root — everything lives inside a page or a feature folder.
 - Create a new feature's whole folder (and its `services/`/`guards/`/`interfaces/` subfolders) before adding files into it, not file-by-file.
 
@@ -154,6 +160,20 @@ This repo uses the `/spec` and `/spec-impl` skills. `specs/.spec-config.yml` con
 - Plantillas con `@if`, `@for` (con `track`) y `@switch`.
 - No anidar `subscribe`. Lo que se carga al entrar a una pantalla va con `rxResource` (su `status()`/`error()` da el estado cargando/error y «Reintentar» es `reload()`) o `toSignal()`. Las acciones del usuario (enviar un formulario, cerrar sesión, guardar) usan un solo `subscribe` con `takeUntilDestroyed()`; si una llamada depende de otra, se encadenan con `switchMap` dentro del mismo `pipe`.
 - Lazy loading en todas las rutas de funcionalidades.
+
+### Formularios
+
+Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `products/components/product-form` (presentacional) y `pages/login-page` (llama al servicio).
+
+- **Orden del componente**, cada sección con un comentario breve: 1) dependencias con `inject()`; 2) formulario y estados; 3) getters y setters; 4) ciclo de vida e inicialización; 5) carga de datos; 6) métodos que agregan, quitan o modifican controles; 7) validación, preparación del payload y envío.
+- **Construcción:** formularios tipados con `FormBuilder` (`.nonNullable` cuando tenga sentido), `FormGroup` para objetos anidados y `FormArray` para colecciones. La estructura y las validaciones van en un método dedicado, `createEmptyForm()`. En `ngOnInit()` se ven las dos etapas: primero `createEmptyForm()` y después la carga de datos (`loadInitialValue()`/`loadX()`). Los validadores van en `<feature>/validators/` o en `shared/validators.ts`, no escritos dentro del componente.
+- **Getters y setters:** getters para los controles y grupos que se consultan seguido (sobre todo los `FormArray`). Un setter reemplaza una colección que viene del backend: limpia los controles anteriores y crea los nuevos con un método privado, el mismo que usa «agregar», para que tengan las mismas validaciones. Nada de HTTP en getters ni setters.
+- **Carga:** `patchValue()` para los campos simples. Los elementos de un `FormArray` se crean antes de asignarles valor, porque `patchValue()` no los crea. Hay que contemplar colecciones vacías y opcionales según el contrato de la API. El modelo del backend (`interfaces/`), la estructura del formulario (tipo `FormGroup<…>`) y el payload quedan separados cuando sus nombres o formatos difieren.
+- **Interacción:** métodos específicos para agregar y quitar. Se revisa el índice antes de quitar y se llama a `markAsDirty()` cuando el usuario cambia una colección.
+- **Envío:** si el formulario es inválido, `markAllAsTouched()` y se detiene. El payload se arma en `prepareSavePayload()` (o `prepare<X>Payload()`) con los nombres que espera el backend, usando `getRawValue()` si hay controles deshabilitados. No se manda un segundo envío mientras el primero sigue en curso. Los estados de espera se cierran tanto en éxito como en error. Las suscripciones usan `takeUntilDestroyed()`.
+- **Componente presentacional** (solo `input()`/`output()`): la «carga» se hace desde un `input()` en `ngOnInit()` y el «envío» emite un `output()` con el payload. La consulta al servicio, el guardado y sus estados de espera son de la página que lo usa.
+- **Lo que ve el usuario:** los errores de campo se muestran al enviar, no al tocar el campo. Las reglas en vivo, como «precio menor que el costo», son la excepción explícita.
+- No se inventan endpoints, campos ni reglas de negocio. Si falta información del backend, se señala qué hay que adaptar.
 
 ### Calidad
 - TypeScript estricto. Prohibido `any`; usar `unknown` y validar.

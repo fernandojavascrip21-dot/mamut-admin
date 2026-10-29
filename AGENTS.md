@@ -24,6 +24,7 @@ Known legacy mismatches inherited from the old project:
 ```bash
 npm start                # ng serve — http://localhost:4200
 npm run dev              # frontend + backend at once (concurrently): :4200 and :3000
+npm run dev:all          # db:start (Docker Supabase; no-op if already up) and then dev
 npm run build            # production build
 npm run watch            # dev build in watch mode
 npm test                 # unit tests (Vitest runner, jsdom) — not Karma/Jasmine
@@ -71,9 +72,10 @@ npm run db:stop
 **Folder structure (by feature, not by file type):**
 
 - `src/app/pages/<name>-page/` — one folder per routed page. Pages hosting a `<router-outlet>` (`admin-page`, `seller-page`) still live here.
-- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/` (and `components/` if needed). Examples: `auth/`, `products/`.
-- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalize-text.ts`, `components/top-nav/`).
+- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/`, and when needed `components/` (presentational, non-page components that only take `input()` and emit `output()`, e.g. `products/components/product-form`), `validators/` (Reactive Forms validators, e.g. `products/validators/product-form.validators.ts`) and `rules/` (pure business-rule functions testable without Angular, e.g. `products/rules/product.rules.ts`). Examples: `auth/`, `products/`.
+- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalize-text.ts`, `http-errors.ts` — `isOffline`/`httpStatus`/`isNotFound`, the only place that reads `HttpErrorResponse` —, `validators.ts`, `components/top-nav/`, `components/confirm-dialog/` — the single confirmation dialog with focus, trapped `Tab` and `Escape`).
 - Visual-only subcomponents of a page/component go in its own `ui/` subfolder.
+- **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type` or `interface`. Types shared across a feature go in `<feature>/interfaces/*.models.ts` (e.g. `products/interfaces/product.models.ts`, `products/interfaces/unsaved-changes.models.ts`); types used by a single page or component go in a `<name>.models.ts` file next to it (e.g. `shared/components/top-nav/top-nav.models.ts`, `products/components/product-form/product-form.models.ts`, `pages/login-page/login-page.models.ts`). `type` and `interface` may coexist in the same models file. Import them with `import type`. Constants (e.g. a messages map) are values, not types, and may stay in the class file.
 - No root-level `src/app/components/` or `src/app/services/` catch-alls.
 - Create a new feature's whole folder skeleton before adding files to it.
 
@@ -130,6 +132,20 @@ tests/           Vitest against the real DB
 - Plantillas con `@if`, `@for` (con `track`) y `@switch`.
 - No anidar `subscribe`. Lo que se carga al entrar a una pantalla va con `rxResource` (su `status()`/`error()` da el estado cargando/error y «Reintentar» es `reload()`) o `toSignal()`. Las acciones del usuario (enviar un formulario, cerrar sesión, guardar) usan un solo `subscribe` con `takeUntilDestroyed()`; si una llamada depende de otra, se encadenan con `switchMap` dentro del mismo `pipe`.
 - Lazy loading en todas las rutas de funcionalidades.
+
+### Formularios
+
+Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `products/components/product-form` (presentacional) y `pages/login-page` (llama al servicio).
+
+- **Orden del componente**, cada sección con un comentario breve: 1) dependencias con `inject()`; 2) formulario y estados; 3) getters y setters; 4) ciclo de vida e inicialización; 5) carga de datos; 6) métodos que agregan, quitan o modifican controles; 7) validación, preparación del payload y envío.
+- **Construcción:** formularios tipados con `FormBuilder` (`.nonNullable` cuando tenga sentido), `FormGroup` para objetos anidados y `FormArray` para colecciones. La estructura y las validaciones van en un método dedicado, `createEmptyForm()`. En `ngOnInit()` se ven las dos etapas: primero `createEmptyForm()` y después la carga de datos (`loadInitialValue()`/`loadX()`). Los validadores van en `<feature>/validators/` o en `shared/validators.ts`, no escritos dentro del componente.
+- **Getters y setters:** getters para los controles y grupos que se consultan seguido (sobre todo los `FormArray`). Un setter reemplaza una colección que viene del backend: limpia los controles anteriores y crea los nuevos con un método privado, el mismo que usa «agregar», para que tengan las mismas validaciones. Nada de HTTP en getters ni setters.
+- **Carga:** `patchValue()` para los campos simples. Los elementos de un `FormArray` se crean antes de asignarles valor, porque `patchValue()` no los crea. Hay que contemplar colecciones vacías y opcionales según el contrato de la API. El modelo del backend (`interfaces/`), la estructura del formulario (tipo `FormGroup<…>`) y el payload quedan separados cuando sus nombres o formatos difieren.
+- **Interacción:** métodos específicos para agregar y quitar. Se revisa el índice antes de quitar y se llama a `markAsDirty()` cuando el usuario cambia una colección.
+- **Envío:** si el formulario es inválido, `markAllAsTouched()` y se detiene. El payload se arma en `prepareSavePayload()` (o `prepare<X>Payload()`) con los nombres que espera el backend, usando `getRawValue()` si hay controles deshabilitados. No se manda un segundo envío mientras el primero sigue en curso. Los estados de espera se cierran tanto en éxito como en error. Las suscripciones usan `takeUntilDestroyed()`.
+- **Componente presentacional** (solo `input()`/`output()`): la «carga» se hace desde un `input()` en `ngOnInit()` y el «envío» emite un `output()` con el payload. La consulta al servicio, el guardado y sus estados de espera son de la página que lo usa.
+- **Lo que ve el usuario:** los errores de campo se muestran al enviar, no al tocar el campo. Las reglas en vivo, como «precio menor que el costo», son la excepción explícita.
+- No se inventan endpoints, campos ni reglas de negocio. Si falta información del backend, se señala qué hay que adaptar.
 
 ### Calidad
 - TypeScript estricto. Prohibido `any`; usar `unknown` y validar.

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -87,6 +88,21 @@ describe('AuthService', () => {
     service.logout().subscribe();
     httpMock.expectOne(`${API_BASE_URL}/api/auth/logout`).flush(null);
 
+    expect(service.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem('mamut.user')).toBeNull();
+  });
+
+  it('logout() limpia la sesión aunque el backend responda error, sin propagarlo', () => {
+    service.login('ada@mammut.local', 'secreta').subscribe();
+    httpMock.expectOne(`${API_BASE_URL}/api/auth/login`).flush(SESSION);
+
+    const next = vi.fn();
+    const error = vi.fn();
+    service.logout().subscribe({ next, error });
+    httpMock.expectOne(`${API_BASE_URL}/api/auth/logout`).error(new ProgressEvent('error'));
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(error).not.toHaveBeenCalled();
     expect(service.isAuthenticated()).toBe(false);
     expect(localStorage.getItem('mamut.user')).toBeNull();
   });
