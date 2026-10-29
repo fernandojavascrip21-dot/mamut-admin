@@ -1,5 +1,6 @@
 import { notFound, toResponse, validation } from './errors'
-import { compareMoney, decimalPlaces, fromMinorUnits, MONEY_MAX, toMinorUnits, type MoneyScale } from './money'
+import { MONEY_MAX } from './constants'
+import { compareMoney, decimalPlaces, fromMinorUnits, toMinorUnits, type MoneyScale } from './money'
 
 type Handler<C> = (request: Request, context: C) => Promise<Response>
 

@@ -1,7 +1,6 @@
 import { Injectable, signal } from '@angular/core';
+import { TOAST_DURATION_MS } from './constants/toast.constants';
 import type { Toast, ToastTone } from './components/toast/toast.models';
-
-const DURATION_MS: Record<ToastTone, number> = { success: 4000, error: 6000 };
 
 // Notificación flotante de la app («Producto guardado», «No se pudo guardar»). Es global
 // (providedIn root, pintada por <app-toast> en app.html) para que sobreviva a la navegación:
@@ -35,7 +34,7 @@ export class ToastService {
     this.toast.set({ id, tone, message });
     this.timer = setTimeout(() => {
       if (this.toast()?.id === id) this.dismiss();
-    }, DURATION_MS[tone]);
+    }, TOAST_DURATION_MS[tone]);
   }
 
   private clearTimer(): void {

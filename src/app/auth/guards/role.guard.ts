@@ -1,14 +1,8 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Route, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { ROLE_HOME } from '../constants/auth.constants';
 import type { AuthContext } from '../interfaces/auth.models';
-
-// A dónde manda el guard cuando el rol de quien entra no es el que la ruta permite.
-// Un rol sin entrada aquí (p. ej. 'client', ajeno a este frontend) cae al login.
-export const ROLE_HOME: Partial<Record<AuthContext['role'], string>> = {
-  admin: '/admin',
-  vendedor: '/vendedor',
-};
 
 // Exige sesión válida; si la ruta declara `data: { roles: [...] }`, exige además que el rol
 // de quien entra esté en esa lista. Sin sesión -> /login. Rol equivocado -> la home del propio

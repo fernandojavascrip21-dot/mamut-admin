@@ -1,5 +1,4 @@
-const PHONE_SEPARATORS = /[\s\-()]/g;
-const TEN_DIGITS = /^[0-9]{10}$/;
+import { PHONE_SEPARATORS, TEN_DIGITS } from '../constants/seller.constants';
 
 // Deja el teléfono solo con dígitos si lo que escribió la persona son 10 dígitos con espacios,
 // guiones o paréntesis («55 2468 1357», «(55) 2468 1357»); si no, null. Mismo contrato que

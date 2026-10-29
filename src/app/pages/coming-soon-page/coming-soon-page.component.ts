@@ -2,8 +2,7 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-
-const DEFAULT_TITLE = 'Próximamente';
+import { DEFAULT_TITLE } from './coming-soon-page.constants';
 
 // Pantalla genérica para cada ítem del menú cuya funcionalidad real llega en un milestone
 // posterior (M1-M7). La ruta la usa pasando `data: { title: '...' }`.

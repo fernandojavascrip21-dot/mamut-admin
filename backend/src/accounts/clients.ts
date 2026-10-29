@@ -4,6 +4,7 @@ import { isForeignKeyViolation, isUniqueViolation } from '../db/errors'
 import { clients, profiles } from '../db/schema'
 import { withTransaction } from '../db/transaction'
 import { conflict, notFound, validation } from '../lib/errors'
+import { DUPLICATE_CLIENT_NAME } from './constants'
 
 export interface ClientInput {
   name?: string
@@ -12,8 +13,6 @@ export interface ClientInput {
   address?: string | null
   notes?: string | null
 }
-
-const DUPLICATE_NAME = 'Ya existe un cliente con ese nombre'
 
 export function listClients() {
   return db.select().from(clients).orderBy(asc(clients.name))
@@ -30,7 +29,7 @@ export async function createClient(input: ClientInput & { name: string }) {
     const [client] = await db.insert(clients).values(input).returning()
     return client!
   } catch (err) {
-    if (isUniqueViolation(err)) throw conflict(DUPLICATE_NAME)
+    if (isUniqueViolation(err)) throw conflict(DUPLICATE_CLIENT_NAME)
     throw err
   }
 }
@@ -43,7 +42,7 @@ export async function updateClient(id: number, input: ClientInput) {
     if (!client) throw notFound('Cliente no encontrado')
     return client
   } catch (err) {
-    if (isUniqueViolation(err)) throw conflict(DUPLICATE_NAME)
+    if (isUniqueViolation(err)) throw conflict(DUPLICATE_CLIENT_NAME)
     throw err
   }
 }

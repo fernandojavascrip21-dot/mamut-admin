@@ -1,8 +1,6 @@
 import { supabaseAdmin } from '../lib/supabase'
 import { validation } from '../lib/errors'
-
-const BUCKET = 'product-photos'
-const MAX_BYTES = 5 * 1024 * 1024
+import { BUCKET, MAX_BYTES } from './constants'
 
 // Sube la foto al bucket público con la llave de servicio (evade RLS por diseño): la subida
 // directa desde Angular con el JWT del admin se intentó primero (specs/M1-hu04-dar-de-alta-

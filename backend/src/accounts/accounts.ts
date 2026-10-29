@@ -2,9 +2,7 @@ import { db } from '../db/client'
 import { profiles } from '../db/schema'
 import { conflict, validation } from '../lib/errors'
 import { supabaseAdmin } from '../lib/supabase'
-
-const MIN_PASSWORD = 8
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import { EMAIL_PATTERN, MIN_PASSWORD } from './constants'
 
 type Profile = typeof profiles.$inferSelect
 

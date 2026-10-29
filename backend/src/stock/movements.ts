@@ -2,6 +2,7 @@ import { isCheckViolation } from '../db/errors'
 import { stockMovements } from '../db/schema'
 import type { Tx } from '../db/transaction'
 import { conflict } from '../lib/errors'
+import { NOT_ENOUGH_UNITS } from './constants'
 
 // Tipos permitidos por stock_movements_type_check.
 export type StockMovementType =
@@ -17,8 +18,6 @@ export interface NewStockMovement {
   createdBy: string
   reason?: string | null
 }
-
-const NOT_ENOUGH_UNITS = 'No hay piezas suficientes'
 
 // Único punto para mover inventario. El trigger de la base ajusta products.stock /
 // vendor_stock.qty a partir de cada fila; aquí solo se traduce "saldo negativo" a 409.

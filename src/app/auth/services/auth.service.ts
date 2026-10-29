@@ -3,11 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { API_BASE_URL } from '@shared/api-base-url';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '../constants/auth.constants';
 import type { AuthContext, SessionResult } from '../interfaces/auth.models';
-
-const ACCESS_TOKEN_KEY = 'mamut.accessToken';
-const REFRESH_TOKEN_KEY = 'mamut.refreshToken';
-const USER_KEY = 'mamut.user';
 
 @Injectable({
   providedIn: 'root',

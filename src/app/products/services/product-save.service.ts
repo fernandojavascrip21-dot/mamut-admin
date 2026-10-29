@@ -3,11 +3,8 @@ import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxj
 import { httpStatus } from '@shared/http-errors';
 import { ProductPhotosService } from './product-photos.service';
 import { ProductsService } from './products.service';
+import { UPLOAD_FAILED } from '../constants/products.constants';
 import type { Product, ProductFormValue, SaveResult } from '../interfaces/product.models';
-
-// Marca que la falla vino de subir la foto, no del guardado: cualquier error ahí es «sin
-// conexión», aunque el backend responda 422 (p. ej. archivo que no es imagen).
-const UPLOAD_FAILED = Symbol('upload-failed');
 
 // Orquesta el guardado de la pantalla 03b: si hay foto nueva, la sube primero y su URL
 // alimenta el alta o la edición, todo en una sola cadena. Recuerda la URL ya subida para que

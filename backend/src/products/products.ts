@@ -6,6 +6,7 @@ import { withTransaction } from '../db/transaction'
 import { conflict, notFound, validation } from '../lib/errors'
 import { compareMoney } from '../lib/money'
 import { insertMovements } from '../stock/movements'
+import { DUPLICATE_NAME, PRICE_BELOW_COST } from './constants'
 
 export interface CreateProductInput {
   name: string
@@ -27,9 +28,6 @@ export interface UpdateProductInput {
   portionSize: string | null
   image: string
 }
-
-const DUPLICATE_NAME = 'Ya existe un producto con ese nombre'
-const PRICE_BELOW_COST = 'El precio no puede ser menor que el costo'
 
 // Regla de HU-06 en unidades enteras (spec T-08): precio escala 2 contra costo escala 4.
 const priceBelowCost = (input: { price: string; unitCost: string }) =>

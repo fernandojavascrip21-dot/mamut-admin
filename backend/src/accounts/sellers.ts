@@ -1,10 +1,8 @@
 import { validation } from '../lib/errors'
 import { createAccount, type AccountView } from './accounts'
+import { PHONE_SEPARATORS, TEN_DIGITS } from './constants'
 
 export type SellerView = AccountView
-
-const PHONE_SEPARATORS = /[\s\-()]/g
-const TEN_DIGITS = /^[0-9]{10}$/
 
 // Acepta el teléfono como lo escribe una persona («55 2468 1357», «55-2468-1357»,
 // «(55) 2468 1357») y lo deja solo con dígitos, que es lo único que acepta la base (spec T-10).

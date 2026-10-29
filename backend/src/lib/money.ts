@@ -2,12 +2,9 @@
 // enteros de la unidad mínima de su escala (centavos para 2, diezmilésimas para 4).
 // Mismo contrato que src/app/shared/money.ts del frontend; sus pruebas cubren los mismos casos.
 
+import { DECIMAL } from './constants'
+
 export type MoneyScale = 2 | 4
-
-// Máximo de cada columna: numeric(10,2) para precios y numeric(10,4) para costos.
-export const MONEY_MAX: Record<MoneyScale, string> = { 2: '99999999.99', 4: '999999.9999' }
-
-const DECIMAL = /^(\d+)(?:\.(\d+))?$/
 
 // Cuántos decimales trae un texto decimal válido ("450.50" → 2); null si no lo es
 // (notación científica, comas, signo, vacío…).

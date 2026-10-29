@@ -1,3 +1,5 @@
+import { ERROR_STATUS } from './constants'
+
 // Formato común de error de la API: { error: { code, message } }.
 export type ErrorCode =
   | 'unauthorized'
@@ -7,14 +9,6 @@ export type ErrorCode =
   | 'validation'
   | 'internal'
 
-const STATUS: Record<ErrorCode, number> = {
-  unauthorized: 401,
-  forbidden: 403,
-  not_found: 404,
-  conflict: 409,
-  validation: 422,
-  internal: 500,
-}
 
 export class AppError extends Error {
   readonly code: ErrorCode
@@ -24,7 +18,7 @@ export class AppError extends Error {
     super(message)
     this.name = 'AppError'
     this.code = code
-    this.status = STATUS[code]
+    this.status = ERROR_STATUS[code]
   }
 }
 

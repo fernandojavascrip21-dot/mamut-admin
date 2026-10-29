@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { compareMoney, decimalPlaces, fromMinorUnits, MONEY_MAX, toMinorUnits } from '../src/lib/money'
+import { MONEY_MAX } from '../src/lib/constants'
+import { compareMoney, decimalPlaces, fromMinorUnits, toMinorUnits } from '../src/lib/money'
 
 // Mismos casos que src/app/shared/money.spec.ts del frontend (spec T-08 §7).
 describe('money', () => {
