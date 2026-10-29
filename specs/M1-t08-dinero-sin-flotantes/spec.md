@@ -1,6 +1,6 @@
 # Spec técnico — T-08 · Manejo de dinero sin flotantes
 
-> **Estado:** Borrador
+> **Estado:** Aprovado
 > **Depende de:** M1-t06-logica-a-servicios (`specs/M1-t06-logica-a-servicios/spec.md`) — agrega validadores a `products/validators/product-form.validators.ts` y cambia `priceNotBelowCost`; M1-t05-codigo-en-ingles (`specs/M1-t05-codigo-en-ingles/spec.md`) — usa sus nombres
 > **Fecha:** 2026-10-26
 > **Objetivo:** que precio y costo viajen como texto decimal, se validen y comparen en unidades enteras (centavos y diezmilésimas) y nunca se redondeen en silencio, dejando la convención lista para ventas y cortes.
