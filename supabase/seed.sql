@@ -4,9 +4,9 @@
 --
 -- Cuentas (todas con email confirmado):
 --   admin@mammut.local        Admin-123456!     admin
---   vendedor1@mammut.local    Vendedor-123456!  vendedor
---   vendedor2@mammut.local    Vendedor-123456!  vendedor
---   inactivo@mammut.local     Vendedor-123456!  vendedor (desactivado: el login debe rechazarlo)
+--   vendedor1@mammut.local    Vendedor-123456!  vendedor (tel. 5510000001)
+--   vendedor2@mammut.local    Vendedor-123456!  vendedor (tel. 5510000002)
+--   inactivo@mammut.local     Vendedor-123456!  vendedor (tel. 5510000003; desactivado: el login debe rechazarlo)
 
 -- 1. Cuentas de Auth + perfiles ------------------------------------------------
 -- GoTrue falla al leer usuarios con estos tokens en NULL, por eso van como ''.
@@ -35,11 +35,12 @@ select gen_random_uuid(), id, id::text, 'email',
 from auth.users
 where email like '%@mammut.local';
 
-insert into public.profiles (id, role, full_name, active) values
-  ('a0000000-0000-4000-8000-000000000001', 'admin', 'Ana Administradora', true),
-  ('a0000000-0000-4000-8000-000000000002', 'vendedor', 'Víctor Vendedor', true),
-  ('a0000000-0000-4000-8000-000000000003', 'vendedor', 'Valeria Vendedora', true),
-  ('a0000000-0000-4000-8000-000000000004', 'vendedor', 'Iván Inactivo', false);
+-- Los vendedores necesitan teléfono de 10 dígitos (spec T-10); el administrador no.
+insert into public.profiles (id, role, full_name, phone, active) values
+  ('a0000000-0000-4000-8000-000000000001', 'admin', 'Ana Administradora', null, true),
+  ('a0000000-0000-4000-8000-000000000002', 'vendedor', 'Víctor Vendedor', '5510000001', true),
+  ('a0000000-0000-4000-8000-000000000003', 'vendedor', 'Valeria Vendedora', '5510000002', true),
+  ('a0000000-0000-4000-8000-000000000004', 'vendedor', 'Iván Inactivo', '5510000003', false);
 
 -- 2. Catálogo -----------------------------------------------------------------
 
