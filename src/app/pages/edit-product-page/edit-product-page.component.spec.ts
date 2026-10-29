@@ -7,6 +7,7 @@ import { Subject } from 'rxjs';
 import { EditProductPageComponent } from './edit-product-page.component';
 import { API_BASE_URL } from '../../shared/api-base-url';
 import { ProductSaveService } from '../../products/services/product-save.service';
+import { ToastService } from '../../shared/toast.service';
 import type { Product, SaveResult } from '../../products/interfaces/product.models';
 
 const CATEGORIES_URL = `${API_BASE_URL}/api/categories`;
@@ -25,6 +26,7 @@ describe('EditProductPageComponent', () => {
   let router: Router;
   let pending: Subject<SaveResult>;
   let saveService: { update: ReturnType<typeof vi.fn>; reset: ReturnType<typeof vi.fn> };
+  let toast: ToastService;
 
   async function setup(id = '1') {
     saveService = {
@@ -44,12 +46,16 @@ describe('EditProductPageComponent', () => {
       .compileComponents();
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    toast = TestBed.inject(ToastService);
+    vi.spyOn(toast, 'success');
+    vi.spyOn(toast, 'error');
     fixture = TestBed.createComponent(EditProductPageComponent);
     document.body.appendChild(fixture.nativeElement);
     httpMock = TestBed.inject(HttpTestingController);
   }
 
   afterEach(() => {
+    toast.dismiss();
     httpMock.verify();
     fixture.nativeElement.remove();
   });
@@ -132,11 +138,12 @@ describe('EditProductPageComponent', () => {
       expect(fixture.nativeElement.textContent).toContain('Este producto ya no está disponible');
     });
 
-    it('guardar sin cambios vuelve a Productos sin llamar al servicio', async () => {
+    it('guardar sin cambios vuelve a Productos sin llamar al servicio ni avisar', async () => {
       await load();
       submit();
       expect(saveService.update).not.toHaveBeenCalled();
       expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/productos');
+      expect(toast.success).not.toHaveBeenCalled();
     });
 
     it('solo avisa al recargar cuando hay cambios sin guardar', async () => {
@@ -166,6 +173,7 @@ describe('EditProductPageComponent', () => {
       respond({ ok: true, product: { ...PRODUCT, price: '250.00' } });
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
       expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/productos');
+      expect(toast.success).toHaveBeenCalledWith('Cambios guardados en «Creatina»');
     });
 
     it('un segundo envío mientras guarda no vuelve a llamar al servicio', async () => {
@@ -193,6 +201,7 @@ describe('EditProductPageComponent', () => {
       submit();
       respond({ ok: false, reason: 'not-found' });
       expect(fixture.nativeElement.textContent).toContain('Este producto ya no está disponible');
+      expect(toast.error).toHaveBeenCalledWith('Este producto ya no está disponible.');
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     });
 
@@ -202,6 +211,7 @@ describe('EditProductPageComponent', () => {
       submit();
       respond({ ok: false, reason: 'offline' });
       expect(fixture.nativeElement.textContent).toContain('No se pudo guardar');
+      expect(toast.error).toHaveBeenCalledWith('No se pudo guardar. Revisa tu conexión.');
       el<HTMLButtonElement>('.retry').click();
       fixture.detectChanges();
       expect(saveService.update).toHaveBeenCalledTimes(2);

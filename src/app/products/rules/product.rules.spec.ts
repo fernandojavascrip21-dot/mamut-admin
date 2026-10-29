@@ -1,4 +1,4 @@
-import { filterProductsByName, hasProductChanges } from './product.rules';
+import { filterProductsByName, hasProductChanges, saveFailureMessage } from './product.rules';
 import type { Product, ProductFormValue, ProductSummary } from '../interfaces/product.models';
 
 const ORIGINAL: Product = {
@@ -75,5 +75,16 @@ describe('filterProductsByName', () => {
   it('vacío o solo espacios devuelve todos', () => {
     expect(filterProductsByName(ITEMS, '')).toBe(ITEMS);
     expect(filterProductsByName(ITEMS, '   ')).toBe(ITEMS);
+  });
+});
+
+describe('saveFailureMessage', () => {
+  it.each([
+    ['duplicate-name', 'Ya existe un producto con ese nombre.'],
+    ['category-missing', 'La categoría ya no existe. Elige otra.'],
+    ['not-found', 'Este producto ya no está disponible.'],
+    ['offline', 'No se pudo guardar. Revisa tu conexión.'],
+  ] as const)('«%s» da un texto para el aviso', (reason, message) => {
+    expect(saveFailureMessage(reason)).toBe(message);
   });
 });

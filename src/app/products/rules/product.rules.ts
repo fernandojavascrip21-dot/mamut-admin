@@ -1,6 +1,6 @@
 import { compareMoney } from '../../shared/money';
 import { normalizeText } from '../../shared/normalize-text';
-import type { Product, ProductFormValue, ProductSummary } from '../interfaces/product.models';
+import type { Product, ProductFormValue, ProductSummary, SaveFailureReason } from '../interfaces/product.models';
 
 // true si el valor del formulario difiere de lo cargado (HU-06 §2). Nombre y porción se
 // comparan sin espacios en los extremos y el dinero en unidades enteras (spec T-08), para que
@@ -24,4 +24,15 @@ export function filterProductsByName(items: ProductSummary[], query: string): Pr
   const normalizedQuery = normalizeText(query);
   if (normalizedQuery === '') return items;
   return items.filter((item) => normalizeText(item.name).includes(normalizedQuery));
+}
+
+// Texto del aviso flotante cuando el guardado falla; acompaña al aviso del formulario
+// (errores de campo o «Reintentar»), no lo sustituye.
+export function saveFailureMessage(reason: SaveFailureReason): string {
+  switch (reason) {
+    case 'duplicate-name': return 'Ya existe un producto con ese nombre.';
+    case 'category-missing': return 'La categoría ya no existe. Elige otra.';
+    case 'not-found': return 'Este producto ya no está disponible.';
+    case 'offline': return 'No se pudo guardar. Revisa tu conexión.';
+  }
 }

@@ -2,9 +2,10 @@ import { Component, DestroyRef, computed, inject, signal, viewChild } from '@ang
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductFormComponent } from '../../products/components/product-form/product-form.component';
-import { hasProductChanges } from '../../products/rules/product.rules';
+import { hasProductChanges, saveFailureMessage } from '../../products/rules/product.rules';
 import { ProductSaveService } from '../../products/services/product-save.service';
 import { ProductsService } from '../../products/services/products.service';
+import { ToastService } from '../../shared/toast.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isNotFound } from '../../shared/http-errors';
 import type { HasUnsavedChanges } from '../../products/interfaces/unsaved-changes.models';
@@ -25,6 +26,7 @@ import type { EditProductState, SaveState } from './edit-product-page.models';
 export class EditProductPageComponent implements HasUnsavedChanges {
   private readonly productsService = inject(ProductsService);
   private readonly saveService = inject(ProductSaveService);
+  private readonly toastService = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -134,10 +136,12 @@ export class EditProductPageComponent implements HasUnsavedChanges {
 
   private showResult(result: SaveResult): void {
     if (result.ok) {
+      this.toastService.success(`Cambios guardados en «${result.product.name}»`);
       this.saved.set(true); // Evita el diálogo al salir después de guardar.
       void this.router.navigateByUrl('/admin/productos');
       return;
     }
+    this.toastService.error(saveFailureMessage(result.reason));
     this.nameTaken.set(result.reason === 'duplicate-name');
     this.categoryMissing.set(result.reason === 'category-missing');
     this.saveState.set(result.reason === 'offline' || result.reason === 'not-found' ? result.reason : 'form');
