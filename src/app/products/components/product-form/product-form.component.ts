@@ -5,9 +5,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, PristineChangeEvent, ReactiveFormsModule } from '@angular/forms';
 import { filter, map } from 'rxjs';
-import { initialsOf } from '../../../shared/initials';
-import { notBlank } from '../../../shared/validators';
-import { MONEY_MAX } from '../../../shared/money';
+import { initialsOf } from '@shared/initials';
+import { notBlank } from '@shared/validators';
+import { MONEY_MAX } from '@shared/money';
 import {
   maxDecimals, maxMoney, portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from '../../validators/product-form.validators';

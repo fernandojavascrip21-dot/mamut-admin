@@ -5,7 +5,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { TopNavComponent } from './top-nav.component';
 import type { CartLink, NavMenuItem } from './top-nav.models';
-import type { AuthContext } from '../../../auth/interfaces/auth.models';
+import type { AuthContext } from '@auth/interfaces/auth.models';
 
 @Component({ template: '' })
 class DummyRouteComponent {}

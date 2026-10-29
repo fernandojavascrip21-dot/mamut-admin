@@ -2,7 +2,7 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 import type { AuthContext, SessionResult } from '../interfaces/auth.models';
 
 const ACCESS_TOKEN_KEY = 'mamut.accessToken';

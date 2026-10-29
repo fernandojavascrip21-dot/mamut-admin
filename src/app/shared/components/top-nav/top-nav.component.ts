@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../../auth/services/auth.service';
+import { AuthService } from '@auth/services/auth.service';
 import { initialsOf } from '../../initials';
 import type { CartLink, NavMenuItem } from './top-nav.models';
 

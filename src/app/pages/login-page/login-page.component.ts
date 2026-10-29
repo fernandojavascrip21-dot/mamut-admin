@@ -2,10 +2,10 @@ import { Component, DestroyRef, ElementRef, OnInit, inject, signal, viewChild } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ROLE_HOME } from '../../auth/guards/role.guard';
-import { AuthService } from '../../auth/services/auth.service';
-import { isOffline } from '../../shared/http-errors';
-import { notBlank } from '../../shared/validators';
+import { ROLE_HOME } from '@auth/guards/role.guard';
+import { AuthService } from '@auth/services/auth.service';
+import { isOffline } from '@shared/http-errors';
+import { notBlank } from '@shared/validators';
 import type { LoginFormGroup, LoginPayload, LoginState } from './login-page.models';
 
 // Pantalla 01 Inicio de sesión (RF-01, RF-02, RNF-04). Estados: ver specs/M0-base/spec.md §3.1.

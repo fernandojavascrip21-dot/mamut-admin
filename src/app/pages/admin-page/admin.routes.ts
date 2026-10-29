@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { unsavedChangesGuard } from '../../products/guards/unsaved-changes.guard';
+import { unsavedChangesGuard } from '@products/guards/unsaved-changes.guard';
 
 const comingSoon = () =>
   import('../coming-soon-page/coming-soon-page.component').then((m) => m.ComingSoonPageComponent);

@@ -78,6 +78,7 @@ npm run db:stop
 - **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type` or `interface`. Types shared across a feature go in `<feature>/interfaces/*.models.ts` (e.g. `products/interfaces/product.models.ts`, `products/interfaces/unsaved-changes.models.ts`); types used by a single page or component go in a `<name>.models.ts` file next to it (e.g. `shared/components/top-nav/top-nav.models.ts`, `products/components/product-form/product-form.models.ts`, `pages/login-page/login-page.models.ts`). `type` and `interface` may coexist in the same models file. Import them with `import type`. Constants (e.g. a messages map) are values, not types, and may stay in the class file.
 - No root-level `src/app/components/` or `src/app/services/` catch-alls.
 - Create a new feature's whole folder skeleton before adding files to it.
+- Imports between areas use the `tsconfig.json` aliases `@shared/*`, `@auth/*`, `@products/*`, `@pages/*`; imports inside the same area stay relative. A new feature area adds its own `@<area>/*` line to `paths`.
 
 **Components:**
 

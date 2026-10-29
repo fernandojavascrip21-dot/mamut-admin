@@ -4,8 +4,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { LoginPageComponent } from './login-page.component';
-import { API_BASE_URL } from '../../shared/api-base-url';
-import type { AuthContext, SessionResult } from '../../auth/interfaces/auth.models';
+import { API_BASE_URL } from '@shared/api-base-url';
+import type { AuthContext, SessionResult } from '@auth/interfaces/auth.models';
 
 const ADMIN_USER: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };
 const ADMIN_SESSION: SessionResult = {

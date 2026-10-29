@@ -3,8 +3,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { ProductsPageComponent } from './products-page.component';
-import { API_BASE_URL } from '../../shared/api-base-url';
-import type { ProductSummary } from '../../products/interfaces/product.models';
+import { API_BASE_URL } from '@shared/api-base-url';
+import type { ProductSummary } from '@products/interfaces/product.models';
 
 const PRODUCTS_URL = `${API_BASE_URL}/api/products`;
 

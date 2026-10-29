@@ -1,5 +1,5 @@
 import { FormControl, FormGroup } from '@angular/forms';
-import { MONEY_MAX } from '../../shared/money';
+import { MONEY_MAX } from '@shared/money';
 import {
   maxDecimals, maxMoney, portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from './product-form.validators';

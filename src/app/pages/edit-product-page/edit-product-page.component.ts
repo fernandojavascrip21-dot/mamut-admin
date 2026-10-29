@@ -1,15 +1,15 @@
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ProductFormComponent } from '../../products/components/product-form/product-form.component';
-import { hasProductChanges, saveFailureMessage } from '../../products/rules/product.rules';
-import { ProductSaveService } from '../../products/services/product-save.service';
-import { ProductsService } from '../../products/services/products.service';
-import { ToastService } from '../../shared/toast.service';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isNotFound } from '../../shared/http-errors';
-import type { HasUnsavedChanges } from '../../products/interfaces/unsaved-changes.models';
-import type { Category, Product, ProductFormValue, SaveResult } from '../../products/interfaces/product.models';
+import { ProductFormComponent } from '@products/components/product-form/product-form.component';
+import { hasProductChanges, saveFailureMessage } from '@products/rules/product.rules';
+import { ProductSaveService } from '@products/services/product-save.service';
+import { ProductsService } from '@products/services/products.service';
+import { ToastService } from '@shared/toast.service';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { isNotFound } from '@shared/http-errors';
+import type { HasUnsavedChanges } from '@products/interfaces/unsaved-changes.models';
+import type { Category, Product, ProductFormValue, SaveResult } from '@products/interfaces/product.models';
 import type { EditProductState, SaveState } from './edit-product-page.models';
 
 // Pantalla 03b en edición (/admin/productos/:id/editar, HU-06): carga el producto completo y

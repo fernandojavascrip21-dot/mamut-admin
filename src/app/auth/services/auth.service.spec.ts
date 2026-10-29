@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 import type { AuthContext, SessionResult } from '../interfaces/auth.models';
 
 const USER: AuthContext = { userId: 'u1', role: 'admin', clientId: null, fullName: 'Ada' };

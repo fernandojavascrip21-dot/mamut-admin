@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductCardComponent } from './product-card.component';
 import { provideRouter } from '@angular/router';
-import type { ProductSummary } from '../../../../products/interfaces/product.models';
+import type { ProductSummary } from '@products/interfaces/product.models';
 
 const PRODUCT: ProductSummary = {
   id: 1,

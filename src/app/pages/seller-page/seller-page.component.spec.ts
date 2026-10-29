@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { SellerPageComponent } from './seller-page.component';
-import type { AuthContext } from '../../auth/interfaces/auth.models';
+import type { AuthContext } from '@auth/interfaces/auth.models';
 
 const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 

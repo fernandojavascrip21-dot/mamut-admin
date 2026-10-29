@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 import type { Category, UpdateProductInput, CreateProductInput, Product, ProductSummary } from '../interfaces/product.models';
 
 // Cliente HTTP hacia /api/categories y /api/products. El Bearer token lo agrega
