@@ -30,5 +30,15 @@ export const ADMIN_ROUTES: Routes = [
   },
   { path: 'carrito', loadComponent: comingSoon, data: { title: 'Carrito' } },
   { path: 'corte', loadComponent: comingSoon, data: { title: 'Corte' } },
-  { path: 'vendedores', loadComponent: comingSoon, data: { title: 'Vendedores' } },
+  {
+    path: 'vendedores',
+    loadComponent: () => import('../sellers-page/sellers-page.component').then((m) => m.SellersPageComponent),
+    data: { title: 'Vendedores' },
+  },
+  {
+    path: 'vendedores/nuevo',
+    loadComponent: () =>
+      import('../create-seller-page/create-seller-page.component').then((m) => m.CreateSellerPageComponent),
+    data: { title: 'Nuevo vendedor' },
+  },
 ];

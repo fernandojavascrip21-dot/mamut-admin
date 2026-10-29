@@ -18,7 +18,8 @@
       "@shared/*": ["./src/app/shared/*"],
       "@auth/*": ["./src/app/auth/*"],
       "@products/*": ["./src/app/products/*"],
-      "@pages/*": ["./src/app/pages/*"]
+      "@pages/*": ["./src/app/pages/*"],
+      "@sellers/*": ["./src/app/sellers/*"]
     }
   },
   "angularCompilerOptions": {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { httpStatus, isNotFound, isOffline } from './http-errors';
+import { httpErrorMessage, httpStatus, isNotFound, isOffline } from './http-errors';
 
 describe('http-errors', () => {
   it('status 0 cuenta como sin conexión', () => {
@@ -24,5 +24,13 @@ describe('http-errors', () => {
     expect(isNotFound(new HttpErrorResponse({ status: 404 }))).toBe(true);
     expect(isNotFound(new HttpErrorResponse({ status: 0 }))).toBe(false);
     expect(isNotFound(new Error('404'))).toBe(false);
+  });
+
+  it('httpErrorMessage lee el mensaje del formato del backend y si no hay, null', () => {
+    const body = { error: { code: 'validation', message: 'El teléfono debe tener 10 dígitos' } };
+    expect(httpErrorMessage(new HttpErrorResponse({ status: 422, error: body }))).toBe('El teléfono debe tener 10 dígitos');
+    expect(httpErrorMessage(new HttpErrorResponse({ status: 0 }))).toBeNull();
+    expect(httpErrorMessage(new HttpErrorResponse({ status: 500, error: 'texto' }))).toBeNull();
+    expect(httpErrorMessage(new Error('x'))).toBeNull();
   });
 });

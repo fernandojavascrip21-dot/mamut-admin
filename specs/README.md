@@ -22,6 +22,7 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M1-t07-stock-por-movimientos`](M1-t07-stock-por-movimientos/spec.md) | Tarea | `SCRUM-28` · T-07 | Implementado | 2026-10-26 | `M1-t03`, `M1-hu04` | Que un trigger mantenga los saldos de stock a partir de los movimientos y la base rechace escribirlos a mano. |
 | [`M1-t08-dinero-sin-flotantes`](M1-t08-dinero-sin-flotantes/spec.md) | Tarea | `SCRUM-29` · T-08 | Aprobado | 2026-10-26 | `M1-t06`, `M1-t05` | Precio y costo como texto decimal, calculados en unidades enteras y sin redondeo silencioso; convención para M3. |
 | [`M2-t10-base-vendedores`](M2-t10-base-vendedores/spec.md) | Tarea | `SCRUM-31` · T-10 | Implementado | 2026-10-29 | `M1-t03`, `M1-t07`, `M1-t08` | Teléfono obligatorio de 10 dígitos para vendedores y precio/costo por vendedor `> 0`, validados en la base. |
+| [`M2-hu08-alta-vendedor`](M2-hu08-alta-vendedor/spec.md) | Historia | `SCRUM-32` · HU-08 | Aprobado | 2026-10-29 | `M2-t10`, `M0-base`, `M1-t06` | Alta de vendedor (nombre, teléfono, correo y contraseña temporal) en `/admin/vendedores/nuevo`, y que pueda entrar a «Mi stock». |
 
 ## Relaciones que «Depende de» no muestra
 
@@ -37,11 +38,12 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 - **`M1-t07` ↔ `M1-t03`:** T-07 **revierte** la decisión de T-03 de que el código recalcule la caché de stock: ahora la mantiene un trigger de Postgres y la base prohíbe escribir `products.stock`/`vendor_stock.qty`. Va **antes de HU-07** y de «Entrada a bodega». También arregla `tests/products-id.test.ts` (de HU-06), que escribía `stock` a mano y dejaba productos de prueba activos, y cambia `supabase/seed.sql` para que los productos nazcan en 0 y su stock entre por el movimiento `initial`. `createProduct` (HU-04) ahora inserta el movimiento con `insertMovements` y relee el producto.
 - **`M1-t08` ↔ `M1-hu04`, `M1-hu06`:** T-08 cambia cómo se validan y comparan precio y costo del alta y la edición (decimales máximos, texto en la API), sin cambiar sus reglas. Los inputs de precio y costo pasan de `type="number"` a texto con `inputmode="decimal"`, para leer lo que escribe el usuario sin perder decimales. Deja la convención de dinero que deben seguir ventas y cortes (M3).
 - **`M1-t03`, `M1-t07`, `M1-t08` → `M2-t10`:** T-10 agrega `profiles.phone` y valida `vendor_stock.unit_price`/`unit_cost_with_shipping` (tablas de T-03, escalas de T-08) sin tocar `qty`, que sigue siendo del trigger de T-07. Cambia `supabase/seed.sql` y `createTestUser` (los vendedores necesitan teléfono). Decide que el «usuario» de RF-31 es el correo. Va antes de HU-08 a HU-13 (`SCRUM-32` a `SCRUM-37`).
+- **`M2-t10` → `M2-hu08`:** HU-08 usa `profiles.phone` y «usuario = correo» de T-10. En pantalla, el campo «Usuario para entrar» del mockup se llama «Correo para entrar». Agrega `phone` a `createAccount`/`AccountView`, crea el área `sellers/` (alias `@sellers/*`) y cambia `/admin/vendedores` de «Próximamente» a una página mínima que HU-09 llenará con la lista. El criterio 2 de Jira («aparece en Mis vendedores y en Viendo») se verifica en HU-09 y HU-10.
 - **Orden de ejecución sugerido:** `M1-t07` puede ir en cuanto se fusione HU-06 (solo backend y base). `M1-t04` → `M1-t05` → `M1-t06` → `M1-t08` van en ese orden sobre el frontend.
 
 ## Por área
 
 - **Autenticación y roles:** `M0-base`, `M0-hu03`.
 - **Productos y bodega (M1):** `M1-t03`, `M1-hu04`, `M1-hu05`, `M1-hu06`, `M1-t07`.
-- **Vendedores y entregas (M2):** `M2-t10`.
+- **Vendedores y entregas (M2):** `M2-t10`, `M2-hu08`.
 - **Calidad y refactor:** `M1-t04`, `M1-t05`, `M1-t06`, `M1-t08`.
