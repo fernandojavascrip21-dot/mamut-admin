@@ -1,6 +1,6 @@
 # Spec técnico — T-07 · El stock solo cambia con movimientos (trigger en la base)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M1-t03-tablas-productos-stock (`specs/M1-t03-tablas-productos-stock/spec.md`) — reusa `stock_movements`, `vendor_stock` y `products.stock`, y cambia cómo se mantiene esa caché; M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) — cambia `createProduct`
 > **Fecha:** 2026-10-26
 > **Objetivo:** que `products.stock` y `vendor_stock.qty` los mantenga un trigger de Postgres a partir de `stock_movements`, y que la base rechace cualquier escritura directa de esos saldos o que los deje negativos.
@@ -191,3 +191,16 @@ export async function insertMovements(tx: Tx, rows: NewStockMovement[]): Promise
 | El sitio Vue hermano se conecta a Supabase con su formulario que edita `stock` | La guarda lo rechaza; ese proyecto tendría que registrar movimientos (anotado aquí y en `CLAUDE.md`) |
 | `db:pull` no refleja triggers ni funciones | Es esperado: Drizzle solo introspecciona tablas, columnas y checks; la fuente de verdad es la migración |
 | Errores del trigger llegan como `500` en casos no previstos (p. ej. signo inválido desde un caso de uso con un bug) | Son errores de programación, no del usuario; `insertMovements` solo traduce el saldo negativo, que sí es un caso de negocio |
+
+## 10. Producción (2026-10-29)
+
+La migración se fusionó a `main` el 2026-10-28, pero **no se había aplicado en producción**. Se descubrió al aplicar T-10: faltaban los triggers y `stock_movements_qty_sign_check`. Con el código de `main`, los movimientos no cambiaban el stock.
+
+Antes de aplicarla, una consulta de solo lectura confirmó los restos que §1 ya describía: productos **77 y 91** (`TEST-PROD-ID-BASE-…`), con `stock = 8`, sin movimientos, activos y sin ninguna referencia. Por decisión del usuario, se borraron y se aplicó la migración en **una sola transacción**. El producto 46 («CREATINA monohidratada Manual QA», `stock 1` con su movimiento `initial`) se conservó.
+
+Verificación:
+
+- Están los 5 triggers (`products_guard_stock`, `stock_movements_apply`, `stock_movements_reject_update`, `stock_movements_revert`, `vendor_stock_guard_qty`) y `stock_movements_qty_sign_check`.
+- Solo queda el producto 46, con `stock = 1`, igual a la suma de sus movimientos.
+- Prueba de humo en una transacción con `rollback`: un `purchase` de +1 subió el stock a 2; `update products set stock = 99` y un `return` de bodega negativo se rechazaron; al deshacer, el stock volvió a 1.
+
