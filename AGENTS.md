@@ -104,7 +104,7 @@ app/api/         thin routes: validate input, call a use case in src/
 src/db/          Drizzle client, introspected schema.ts, withTransaction + lockRows
 src/auth/        getAuthContext, guards (requireAuth/requireRole/requireOwnClient), session
 src/accounts/    account use cases built on accounts.ts (createAccount/toView)
-src/lib/         errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers)
+src/lib/         errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers, requireMoney), money.ts
 src/stock/       movements.ts (insertMovements: the only way inventory changes)
 tests/           Vitest against the real DB
 ```
@@ -188,6 +188,7 @@ Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `prod
 
 ### Dinero e inventario
 - Cantidades monetarias como enteros en centavos o con tipos decimales, nunca con `number` flotante para cálculos de caja.
+- **Convención de dinero (spec `M1-t08`):** precio hasta 2 decimales (máx. `99999999.99`), costo hasta 4 (máx. `999999.9999`); decimales de más o fuera de rango → error de campo y `422`, nunca redondeo silencioso. Los montos viajan como texto (`"450.50"`); el backend también acepta número y normaliza con `requireMoney`. En el frontend son `string` e inputs `type="text" inputmode="decimal"`. Comparar o calcular siempre con `money.ts` (`src/app/shared/` y `backend/src/lib/`, mismo contrato): `toMinorUnits`, `fromMinorUnits`, `compareMoney`, `decimalPlaces`; `Number()` solo para el pipe `currency`. M2/M3: cada venta guarda precio y costo del momento como `numeric`; totales de venta con enteros en el backend; cortes y reportes con `sum()` en SQL; redondeo a centavos una sola vez al final (mitad hacia arriba).
 - Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente. En inventario la base lo impone: solo se insertan `stock_movements` con `insertMovements`.
 
 ## Diseño de interfaces

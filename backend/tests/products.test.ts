@@ -170,4 +170,41 @@ describe.skipIf(!hasServiceKey)('productos (con cuentas reales)', () => {
     expect((await createProductRoute(req(admin.token, validBody({ initialQty: 0 })), undefined)).status).toBe(422)
     expect((await createProductRoute(req(admin.token, validBody({ initialQty: 2.5 })), undefined)).status).toBe(422)
   })
+
+  // Dinero sin flotantes (spec T-08 §3): nunca se redondea en silencio.
+  it('dinero: decimales de más, montos fuera de rango y formatos inválidos dan 422 sin guardar', async () => {
+    const cases: [Record<string, unknown>, string][] = [
+      [{ price: '450.555' }, 'El precio admite hasta 2 decimales'],
+      [{ unitCost: '1.00001' }, 'El costo admite hasta 4 decimales'],
+      [{ price: '100000000' }, 'El precio es demasiado grande'],
+      [{ unitCost: '1000000', price: '2000000' }, 'El costo es demasiado grande'],
+      [{ price: 0.30000000000000004 }, 'El precio admite hasta 2 decimales'],
+      [{ price: '1e3' }, 'El precio no es un monto válido'],
+      [{ price: '450,50' }, 'El precio no es un monto válido'],
+      [{ unitCost: 'abc' }, 'El costo no es un monto válido'],
+    ]
+    for (const [overrides, message] of cases) {
+      const name = uniqueName('money')
+      const res = await createProductRoute(req(admin.token, validBody({ name, ...overrides })), undefined)
+      expect(res.status, JSON.stringify(overrides)).toBe(422)
+      expect(await res.json()).toMatchObject({ error: { message } })
+      expect(await db.select().from(products).where(eq(products.name, name))).toHaveLength(0)
+    }
+  })
+
+  it('dinero: acepta texto o número y guarda el texto normalizado', async () => {
+    for (const price of ['450.5', 450.5]) {
+      const res = await createProductRoute(req(admin.token, validBody({ price, unitCost: '83.3333' })), undefined)
+      expect(res.status).toBe(201)
+      expect(await res.json()).toMatchObject({ price: '450.50', unitCost: '83.3333' })
+    }
+  })
+
+  it('dinero: precio igual al costo con otra escala se acepta; una diezmilésima menos se rechaza', async () => {
+    const equal = await createProductRoute(req(admin.token, validBody({ price: '83.33', unitCost: '83.3300' })), undefined)
+    expect(equal.status).toBe(201)
+    const below = await createProductRoute(req(admin.token, validBody({ price: '83.33', unitCost: '83.3301' })), undefined)
+    expect(below.status).toBe(422)
+    expect(await below.json()).toMatchObject({ error: { message: 'El precio no puede ser menor que el costo' } })
+  })
 })

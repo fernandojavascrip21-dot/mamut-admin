@@ -161,7 +161,7 @@ describe('EditProductPageComponent', () => {
       change('#price', '250');
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
       submit();
-      expect(saveService.update).toHaveBeenCalledWith(PRODUCT, expect.objectContaining({ price: 250, units: null }));
+      expect(saveService.update).toHaveBeenCalledWith(PRODUCT, expect.objectContaining({ price: '250', units: null }));
       expect(fixture.nativeElement.textContent).toContain('Guardando…');
       respond({ ok: true, product: { ...PRODUCT, price: '250.00' } });
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);

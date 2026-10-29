@@ -1,6 +1,7 @@
 import { FormControl, FormGroup } from '@angular/forms';
+import { MONEY_MAX } from '../../shared/money';
 import {
-  portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
+  maxDecimals, maxMoney, portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from './product-form.validators';
 
 const check = (validator: ReturnType<typeof positiveNumber>, value: unknown) =>
@@ -8,12 +9,49 @@ const check = (validator: ReturnType<typeof positiveNumber>, value: unknown) =>
 
 describe('product-form.validators', () => {
   describe('positiveNumber', () => {
-    it.each([100, 0.5, '100.00'])('acepta %s', (value) => {
+    it.each(['100', '0.5', '100.00', ' 450 ', '0.0001'])('acepta %j', (value) => {
       expect(check(positiveNumber(), value)).toBeNull();
     });
 
-    it.each([null, '', '  ', 0, -5, 'abc'])('rechaza %s', (value) => {
+    // El dinero se lee como texto (spec T-08): un number no es un valor del campo.
+    it.each([null, '', '  ', '0', '0.00', '-5', 'abc', '1e3', '450,50', 100])('rechaza %j', (value) => {
       expect(check(positiveNumber(), value)).toEqual({ positiveNumber: true });
+    });
+  });
+
+  describe('maxDecimals', () => {
+    it('precio: hasta 2 decimales', () => {
+      expect(check(maxDecimals(2), '450.55')).toBeNull();
+      expect(check(maxDecimals(2), '450')).toBeNull();
+      expect(check(maxDecimals(2), '450.555')).toEqual({ maxDecimals: { scale: 2 } });
+    });
+
+    it('costo: hasta 4 decimales', () => {
+      expect(check(maxDecimals(4), '83.3333')).toBeNull();
+      expect(check(maxDecimals(4), '1.00001')).toEqual({ maxDecimals: { scale: 4 } });
+    });
+
+    it('un texto que no es decimal lo reporta positiveNumber, no este validador', () => {
+      expect(check(maxDecimals(2), 'abc')).toBeNull();
+      expect(check(maxDecimals(2), '')).toBeNull();
+    });
+  });
+
+  describe('maxMoney', () => {
+    it('acepta hasta el máximo de la columna', () => {
+      expect(check(maxMoney(MONEY_MAX[2], 2), '99999999.99')).toBeNull();
+      expect(check(maxMoney(MONEY_MAX[4], 4), '999999.9999')).toBeNull();
+    });
+
+    it('rechaza lo que no cabe en la columna, aunque no quepa en un entero exacto', () => {
+      expect(check(maxMoney(MONEY_MAX[2], 2), '100000000')).toEqual({ maxMoney: true });
+      expect(check(maxMoney(MONEY_MAX[4], 4), '1000000')).toEqual({ maxMoney: true });
+      expect(check(maxMoney(MONEY_MAX[2], 2), '99999999999999999999')).toEqual({ maxMoney: true });
+    });
+
+    it('con formato o decimales inválidos no opina (ese error es de otro validador)', () => {
+      expect(check(maxMoney(MONEY_MAX[2], 2), 'abc')).toBeNull();
+      expect(check(maxMoney(MONEY_MAX[2], 2), '100000000.555')).toBeNull();
     });
   });
 
@@ -51,18 +89,21 @@ describe('product-form.validators', () => {
         { validators: priceNotBelowCost() },
       );
 
-    it('precio igual o mayor al costo es válido', () => {
-      expect(group(100, 100).errors).toBeNull();
-      expect(group('200.00', '100.00').errors).toBeNull();
+    it('precio igual o mayor al costo es válido, también con escalas distintas', () => {
+      expect(group('100', '100').errors).toBeNull();
+      expect(group('200.00', '100.0000').errors).toBeNull();
+      expect(group('83.33', '83.3300').errors).toBeNull();
     });
 
-    it('precio menor que el costo es inválido', () => {
-      expect(group(50, 100).errors).toEqual({ priceBelowCost: true });
+    it('precio menor que el costo es inválido, aunque sea por una diezmilésima', () => {
+      expect(group('50', '100').errors).toEqual({ priceBelowCost: true });
+      expect(group('83.33', '83.3301').errors).toEqual({ priceBelowCost: true });
     });
 
-    it('con algún campo vacío o en 0 no opina (ese error es del campo)', () => {
-      expect(group(null, 100).errors).toBeNull();
-      expect(group(0, 100).errors).toBeNull();
+    it('con algún campo vacío, en 0 o inválido no opina (ese error es del campo)', () => {
+      expect(group('', '100').errors).toBeNull();
+      expect(group('0', '100').errors).toBeNull();
+      expect(group('50.555', '100').errors).toBeNull();
     });
   });
 });

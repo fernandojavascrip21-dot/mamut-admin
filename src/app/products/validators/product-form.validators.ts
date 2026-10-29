@@ -1,17 +1,47 @@
 import type { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { compareMoney, decimalPlaces, toMinorUnits, type MoneyScale } from '../../shared/money';
 
-// Los campos numéricos llegan como número (lo que escribe el usuario en un input number) o como
-// texto (el numeric de Postgres, p. ej. "100.00", al cargar un producto): ambos pasan por Number().
-// Vacío (null o '') nunca es válido.
+// Piezas: llegan como número (input number) o texto; ambos pasan por Number(). Vacío (null o '')
+// nunca es válido. El dinero no pasa por aquí: se lee como texto (spec T-08).
 function toNumber(value: unknown): number {
   if (value === null || value === undefined || String(value).trim() === '') return Number.NaN;
   return Number(value);
 }
 
-// Número mayor a 0 (precio y costo, HU-04 §2).
+// Texto del campo de dinero tal cual lo escribió el usuario (o como llegó de Postgres), sin espacios.
+function moneyText(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+// Monto decimal mayor a 0 (precio y costo, HU-04 §2). Se revisa como texto: es válido si tiene
+// formato decimal y algún dígito distinto de 0, sin convertirlo a número flotante (spec T-08).
+// Vacío, notación científica, comas o signo dan error.
 export function positiveNumber(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null =>
-    toNumber(control.value) > 0 ? null : { positiveNumber: true };
+  return (control: AbstractControl): ValidationErrors | null => {
+    const text = moneyText(control.value);
+    return decimalPlaces(text) !== null && /[1-9]/.test(text) ? null : { positiveNumber: true };
+  };
+}
+
+// Decimales de más (spec T-08 §3): precio hasta 2, costo hasta 4. Nunca se redondea en silencio.
+// Un texto que no es decimal lo reporta positiveNumber. Error `maxDecimals`.
+export function maxDecimals(scale: MoneyScale): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const decimals = decimalPlaces(moneyText(control.value));
+    return decimals !== null && decimals > scale ? { maxDecimals: { scale } } : null;
+  };
+}
+
+// Máximo de la columna (spec T-08 §3), p. ej. MONEY_MAX[2] para el precio. Un monto con tantos
+// dígitos que no cabe exacto en un entero también es demasiado grande. Error `maxMoney`.
+export function maxMoney(max: string, scale: MoneyScale): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const text = moneyText(control.value);
+    const decimals = decimalPlaces(text);
+    if (decimals === null || decimals > scale) return null;
+    const tooBig = toMinorUnits(text, scale) === null || compareMoney(text, scale, max, scale) === 1;
+    return tooBig ? { maxMoney: true } : null;
+  };
 }
 
 // Entero mayor a 0 (piezas que entran en el alta, HU-04 §2).
@@ -33,12 +63,14 @@ export function portionRequiredWhenFractionable(): ValidatorFn {
 }
 
 // Validador de grupo (HU-06 §2): el precio nunca puede quedar por debajo del costo; igual sí
-// se permite. Solo opina cuando ambos son números positivos, para no duplicar el error de
-// «mayor a 0» de cada campo. Error `priceBelowCost`.
+// se permite. Compara en unidades enteras, precio con escala 2 y costo con escala 4 (spec T-08).
+// Solo opina cuando ambos son montos válidos y positivos, para no duplicar los errores de cada
+// campo. Error `priceBelowCost`.
 export function priceNotBelowCost(): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
-    const price = toNumber(group.get('price')?.value);
-    const unitCost = toNumber(group.get('unitCost')?.value);
-    return price > 0 && unitCost > 0 && price < unitCost ? { priceBelowCost: true } : null;
+    const price = moneyText(group.get('price')?.value);
+    const unitCost = moneyText(group.get('unitCost')?.value);
+    if (!/[1-9]/.test(price) || !/[1-9]/.test(unitCost)) return null;
+    return compareMoney(price, 2, unitCost, 4) === -1 ? { priceBelowCost: true } : null;
   };
 }

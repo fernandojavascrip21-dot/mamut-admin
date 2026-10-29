@@ -19,8 +19,8 @@ function loadedValue(overrides: Partial<ProductFormValue> = {}): ProductFormValu
   return {
     name: 'Creatina',
     categoryId: 7,
-    price: 450,
-    unitCost: 300,
+    price: '450.00',
+    unitCost: '300.00',
     units: null,
     fractionable: true,
     portionSize: '30 g',
@@ -37,15 +37,18 @@ describe('hasProductChanges', () => {
 
   it('espacios de más y "450" contra "450.00" no cuentan como cambio', () => {
     expect(hasProductChanges(ORIGINAL, loadedValue({ name: '  Creatina ', portionSize: ' 30 g ' }))).toBe(false);
-    expect(hasProductChanges({ ...ORIGINAL, price: '450' }, loadedValue({ price: 450.0 }))).toBe(false);
+    expect(hasProductChanges(ORIGINAL, loadedValue({ price: ' 450 ', unitCost: '300.0000' }))).toBe(false);
   });
 
   it.each<[string, Partial<ProductFormValue>]>([
     ['nombre', { name: 'Creatina HCL' }],
     ['categoría', { categoryId: 8 }],
     ['sin categoría', { categoryId: null }],
-    ['precio', { price: 500 }],
-    ['costo', { unitCost: 310 }],
+    ['precio', { price: '500' }],
+    ['precio por una centésima', { price: '450.01' }],
+    ['costo', { unitCost: '310' }],
+    ['costo por una diezmilésima', { unitCost: '300.0001' }],
+    ['precio a un monto inválido', { price: '450.555' }],
     ['fracciona', { fractionable: false, portionSize: null }],
     ['porción', { portionSize: '25 g' }],
     ['foto nueva', { photo: new File(['x'], 'nueva.png') }],

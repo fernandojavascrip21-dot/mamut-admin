@@ -38,7 +38,7 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
 
   // Las piezas solo entran como movimiento `initial` (T-07): nunca se escribe `stock` directo.
   const insertProduct = () => createProduct({
-    name: name('base'), categoryId: null, price: 100, unitCost: 50, initialQty: 8,
+    name: name('base'), categoryId: null, price: '100.00', unitCost: '50.0000', initialQty: 8,
     fractionable: true, portionSize: '30 g', image: 'https://cdn.test/old.png',
   }, admin.id)
 
@@ -115,6 +115,37 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
     })), ctx(product.id))
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ fractionable: false, portionSize: null, image: '' })
+  })
+
+  // Dinero sin flotantes (spec T-08 §3): nunca se redondea en silencio.
+  it('PATCH de dinero: 422 sin guardar ni redondear, acepta texto o número y compara escalas', async () => {
+    const product = await insertProduct()
+    for (const [overrides, message] of [
+      [{ price: '450.555' }, 'El precio admite hasta 2 decimales'],
+      [{ unitCost: '1.00001' }, 'El costo admite hasta 4 decimales'],
+      [{ price: '100000000' }, 'El precio es demasiado grande'],
+      [{ unitCost: '1000000', price: '2000000' }, 'El costo es demasiado grande'],
+      [{ price: '1e3' }, 'El precio no es un monto válido'],
+      [{ price: '450,50' }, 'El precio no es un monto válido'],
+      [{ price: '83.33', unitCost: '83.3301' }, 'El precio no puede ser menor que el costo'],
+    ] as const) {
+      const res = await PATCH(request(product.id, admin.token, validBody(product.name, overrides)), ctx(product.id))
+      expect(res.status, JSON.stringify(overrides)).toBe(422)
+      expect(await res.json()).toMatchObject({ error: { message } })
+    }
+    const [unchanged] = await db.select().from(products).where(eq(products.id, product.id))
+    expect(unchanged).toMatchObject({ price: '100.00', unitCost: '50.0000' })
+
+    for (const price of ['450.5', 450.5]) {
+      const res = await PATCH(request(product.id, admin.token, validBody(product.name, { price })), ctx(product.id))
+      expect(res.status).toBe(200)
+      expect(await res.json()).toMatchObject({ price: '450.50' })
+    }
+    const equal = await PATCH(request(product.id, admin.token, validBody(product.name, {
+      price: '83.33', unitCost: '83.3300',
+    })), ctx(product.id))
+    expect(equal.status).toBe(200)
+    expect(await equal.json()).toMatchObject({ price: '83.33', unitCost: '83.3300' })
   })
 
   it('PATCH da 404 para inexistente e inactivo y 403 para vendedor', async () => {

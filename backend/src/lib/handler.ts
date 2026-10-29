@@ -1,4 +1,5 @@
 import { notFound, toResponse, validation } from './errors'
+import { compareMoney, decimalPlaces, fromMinorUnits, MONEY_MAX, toMinorUnits, type MoneyScale } from './money'
 
 type Handler<C> = (request: Request, context: C) => Promise<Response>
 
@@ -41,6 +42,36 @@ export function requireNumber(
   if (integer && !Number.isInteger(value)) throw validation(`El campo ${field} debe ser un número entero`)
   if (value <= min) throw validation(`El campo ${field} debe ser mayor a ${min}`)
   return value
+}
+
+// Monto obligatorio (spec T-08): acepta "450.5" o 450.5, valida formato, decimales según `scale`,
+// > 0 y el máximo de su columna, y devuelve el texto normalizado ("450.50") listo para numeric.
+// Nunca redondea: un número JSON con artefactos de flotante (0.30000000000000004) da 422.
+export function requireMoney(
+  body: Record<string, unknown>,
+  field: string,
+  opts: { scale: MoneyScale; label: string },
+): string {
+  const { scale, label } = opts
+  const raw = body[field]
+  if (raw === undefined || raw === null || raw === '') throw validation(`Falta el campo ${field}`)
+  if (typeof raw !== 'string' && (typeof raw !== 'number' || !Number.isFinite(raw))) {
+    throw validation(`${label} no es un monto válido`)
+  }
+  const text = typeof raw === 'number' ? String(raw) : raw.trim()
+  const decimals = decimalPlaces(text)
+  if (decimals === null) throw validation(`${label} no es un monto válido`)
+  if (decimals > scale) throw validation(`${label} admite hasta ${scale} decimales`)
+
+  const [integerPart = ''] = text.split('.')
+  const maxIntegerDigits = MONEY_MAX[scale].split('.')[0]!.length
+  if (integerPart.replace(/^0+(?=\d)/, '').length > maxIntegerDigits) {
+    throw validation(`${label} es demasiado grande`)
+  }
+  const units = toMinorUnits(text, scale)
+  if (units <= 0) throw validation(`El campo ${field} debe ser mayor a 0`)
+  if (compareMoney(text, scale, MONEY_MAX[scale], scale) > 0) throw validation(`${label} es demasiado grande`)
+  return fromMinorUnits(units, scale)
 }
 
 // Parámetro de ruta numérico (`/api/clients/:id`). Si no es un entero positivo, no existe: 404.
