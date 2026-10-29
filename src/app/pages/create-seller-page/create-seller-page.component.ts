@@ -4,9 +4,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { formatPhone, normalizePhone } from '@sellers/rules/seller.rules';
+import { normalizePhone } from '@sellers/rules/seller.rules';
 import { SellerSaveService } from '@sellers/services/seller-save.service';
 import { tenDigitPhone } from '@sellers/validators/seller-form.validators';
+import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { ToastService } from '@shared/toast.service';
 import { notBlank } from '@shared/validators';
 import type { CreateSellerInput, CreateSellerResult, Seller } from '@sellers/interfaces/seller.models';
@@ -19,7 +20,7 @@ import type { CreateSellerState, SellerField } from './create-seller-page.models
 // para entrar (el «usuario», spec T-10) y contraseña temporal. Termina en «Vendedor dado de
 // alta», desde donde se puede dar de alta otro sin recargar.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PhonePipe],
   providers: [SellerSaveService],
   selector: 'app-create-seller-page',
   templateUrl: './create-seller-page.component.html',
@@ -37,7 +38,6 @@ export class CreateSellerPageComponent implements OnInit {
   readonly fieldErrors = signal<Partial<Record<SellerField, string>>>({});
   readonly createdSeller = signal<Seller | null>(null);
   readonly showPassword = signal(false);
-  readonly formatPhone = formatPhone;
   private readonly focusField = signal<SellerField | null>(null);
   private lastInput: CreateSellerInput | null = null;
 

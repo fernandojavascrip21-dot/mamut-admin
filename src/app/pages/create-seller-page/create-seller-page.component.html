@@ -153,7 +153,7 @@
       <dt class="text-muted">Correo</dt>
       <dd class="m-0 text-right font-mono font-semibold break-all">{{ seller.email }}</dd>
       <dt class="text-muted">Teléfono</dt>
-      <dd class="m-0 text-right font-mono font-semibold">{{ formatPhone(seller.phone) }}</dd>
+      <dd class="m-0 text-right font-mono font-semibold">{{ seller.phone | phone }}</dd>
     </dl>
   </div>
 
