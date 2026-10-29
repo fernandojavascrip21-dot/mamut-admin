@@ -126,7 +126,7 @@ insert into public.profiles (id, role, full_name, phone, active) values
 
 **Producción (2026-10-29):** una consulta de solo lectura encontró un perfil `'vendedor'` sin teléfono, `m0-test-vendedor@mammut.local` («Vendedor Prueba»): una cuenta de prueba de M0 que nadie referenciaba. Por decisión del usuario se borró, se aplicó la migración en una transacción (columna `phone` y los 4 checks confirmados) y se volvió a crear la misma cuenta con teléfono `5500000001` y una contraseña nueva que no está en el repo. `vendor_stock` estaba vacía.
 
-**Hallazgo al aplicar:** producción **no tiene T-07** (`20261027000000_stock_from_movements.sql`): no hay triggers de stock ni `stock_movements_qty_sign_check`, y 2 de sus 3 productos tienen `stock` sin movimientos. T-10 no depende de esos objetos, así que se aplicó sola. T-07 queda pendiente en producción, fuera de este spec.
+**Hallazgo al aplicar (resuelto el 2026-10-29):** producción no tenía T-07 (`20261027000000_stock_from_movements.sql`): faltaban los triggers de stock y `stock_movements_qty_sign_check`, y los productos 77 y 91 tenían `stock` sin movimientos. T-10 no depende de esos objetos y se aplicó sola. Después se borraron 77 y 91 (restos de prueba, sin referencias) y se aplicó T-07 en una transacción; ver la nota de producción en `specs/M1-t07-stock-por-movimientos/spec.md`.
 
 ## 7. Decisiones
 
