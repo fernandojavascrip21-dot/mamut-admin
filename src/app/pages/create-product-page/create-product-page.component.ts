@@ -1,12 +1,12 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { ProductFormComponent } from '../../products/components/product-form/product-form.component';
-import { saveFailureMessage } from '../../products/rules/product.rules';
-import { ProductSaveService } from '../../products/services/product-save.service';
-import { ProductsService } from '../../products/services/products.service';
-import { ToastService } from '../../shared/toast.service';
-import type { Category, Product, ProductFormValue, SaveResult } from '../../products/interfaces/product.models';
+import { ProductFormComponent } from '@products/components/product-form/product-form.component';
+import { saveFailureMessage } from '@products/rules/product.rules';
+import { ProductSaveService } from '@products/services/product-save.service';
+import { ProductsService } from '@products/services/products.service';
+import { ToastService } from '@shared/toast.service';
+import type { Category, Product, ProductFormValue, SaveResult } from '@products/interfaces/product.models';
 import type { CreateProductState } from './create-product-page.models';
 
 // Pantalla 03b en alta (/admin/productos/nuevo, HU-04): carga las categorías, recibe el valor

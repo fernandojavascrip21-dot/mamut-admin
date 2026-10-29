@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProductPhotosService } from './product-photos.service';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 
 const PHOTO_URL = `${API_BASE_URL}/api/products/photo`;
 

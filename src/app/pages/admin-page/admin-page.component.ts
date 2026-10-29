@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { TopNavComponent } from '../../shared/components/top-nav/top-nav.component';
-import type { CartLink, NavMenuItem } from '../../shared/components/top-nav/top-nav.models';
+import { TopNavComponent } from '@shared/components/top-nav/top-nav.component';
+import type { CartLink, NavMenuItem } from '@shared/components/top-nav/top-nav.models';
 
 const MENU: NavMenuItem[] = [
   { path: 'stock', label: 'Stock', icon: 'package' },

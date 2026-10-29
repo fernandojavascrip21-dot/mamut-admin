@@ -1,5 +1,5 @@
 import type { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { compareMoney, decimalPlaces, toMinorUnits, type MoneyScale } from '../../shared/money';
+import { compareMoney, decimalPlaces, toMinorUnits, type MoneyScale } from '@shared/money';
 
 // Piezas: llegan como número (input number) o texto; ambos pasan por Number(). Vacío (null o '')
 // nunca es válido. El dinero no pasa por aquí: se lee como texto (spec T-08).

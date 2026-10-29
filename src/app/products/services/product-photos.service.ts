@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 
 // Sube la foto a POST /api/products/photo (el backend la sube a Supabase Storage con la
 // llave de servicio — specs/M1-hu04-dar-de-alta-producto/spec.md §8: la subida directa desde

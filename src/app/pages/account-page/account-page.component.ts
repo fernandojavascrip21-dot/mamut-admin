@@ -1,10 +1,10 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { AuthService } from '../../auth/services/auth.service';
-import { initialsOf } from '../../shared/initials';
-import { ROLE_HOME } from '../../auth/guards/role.guard';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AuthService } from '@auth/services/auth.service';
+import { initialsOf } from '@shared/initials';
+import { ROLE_HOME } from '@auth/guards/role.guard';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 // Pantalla 14/14b Mi cuenta (RF-01), compartida por administrador y vendedor. "Usuario" y
 // "Último acceso" del mockup se omiten en M0: AuthContext no trae ni correo ni fecha de

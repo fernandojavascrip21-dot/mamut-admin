@@ -1,5 +1,5 @@
-import { compareMoney } from '../../shared/money';
-import { normalizeText } from '../../shared/normalize-text';
+import { compareMoney } from '@shared/money';
+import { normalizeText } from '@shared/normalize-text';
 import type { Product, ProductFormValue, ProductSummary, SaveFailureReason } from '../interfaces/product.models';
 
 // true si el valor del formulario difiere de lo cargado (HU-06 §2). Nombre y porción se

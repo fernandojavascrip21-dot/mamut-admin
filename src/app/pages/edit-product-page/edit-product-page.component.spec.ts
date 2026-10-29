@@ -5,10 +5,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
 import { EditProductPageComponent } from './edit-product-page.component';
-import { API_BASE_URL } from '../../shared/api-base-url';
-import { ProductSaveService } from '../../products/services/product-save.service';
-import { ToastService } from '../../shared/toast.service';
-import type { Product, SaveResult } from '../../products/interfaces/product.models';
+import { API_BASE_URL } from '@shared/api-base-url';
+import { ProductSaveService } from '@products/services/product-save.service';
+import { ToastService } from '@shared/toast.service';
+import type { Product, SaveResult } from '@products/interfaces/product.models';
 
 const CATEGORIES_URL = `${API_BASE_URL}/api/categories`;
 const PRODUCT_URL = `${API_BASE_URL}/api/products/1`;

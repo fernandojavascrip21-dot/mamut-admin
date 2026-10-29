@@ -5,7 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { of, throwError } from 'rxjs';
 import { ProductSaveService } from './product-save.service';
 import { ProductPhotosService } from './product-photos.service';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 import type { Product, ProductFormValue, SaveResult } from '../interfaces/product.models';
 
 const PRODUCTS_URL = `${API_BASE_URL}/api/products`;

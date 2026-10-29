@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { ProductsService } from '../../products/services/products.service';
-import type { ProductSummary } from '../../products/interfaces/product.models';
-import { filterProductsByName } from '../../products/rules/product.rules';
+import { ProductsService } from '@products/services/products.service';
+import type { ProductSummary } from '@products/interfaces/product.models';
+import { filterProductsByName } from '@products/rules/product.rules';
 import { ProductCardComponent } from './ui/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from './ui/product-card-skeleton/product-card-skeleton.component';
 import type { ProductsState } from './products-page.models';

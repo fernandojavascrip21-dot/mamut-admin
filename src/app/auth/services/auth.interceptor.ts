@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, defer, switchMap, throwError } from 'rxjs';
-import { API_BASE_URL } from '../../shared/api-base-url';
+import { API_BASE_URL } from '@shared/api-base-url';
 import { AuthService } from './auth.service';
 
 const REFRESH_URL = `${API_BASE_URL}/api/auth/refresh`;

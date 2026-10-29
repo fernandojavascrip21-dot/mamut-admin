@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
-import { httpStatus } from '../../shared/http-errors';
+import { httpStatus } from '@shared/http-errors';
 import { ProductPhotosService } from './product-photos.service';
 import { ProductsService } from './products.service';
 import type { Product, ProductFormValue, SaveResult } from '../interfaces/product.models';

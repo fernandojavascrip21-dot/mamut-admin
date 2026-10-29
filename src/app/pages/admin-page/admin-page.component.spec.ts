@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { AdminPageComponent } from './admin-page.component';
-import type { AuthContext } from '../../auth/interfaces/auth.models';
+import type { AuthContext } from '@auth/interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana López' };
 

@@ -1,8 +1,8 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ProductSummary } from '../../../../products/interfaces/product.models';
-import { initialsOf } from '../../../../shared/initials';
+import type { ProductSummary } from '@products/interfaces/product.models';
+import { initialsOf } from '@shared/initials';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
 // "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. Toda la tarjeta abre

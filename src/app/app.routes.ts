@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { roleGuard } from './auth/guards/role.guard';
-import { guestGuard } from './auth/guards/guest.guard';
+import { roleGuard } from '@auth/guards/role.guard';
+import { guestGuard } from '@auth/guards/guest.guard';
 
 // Árbol de rutas, todo con carga diferida. /admin y /vendedor están protegidas por roleGuard
 // con su rol en `data.roles`; sus hijos (admin.routes.ts, seller.routes.ts) heredan esa
@@ -13,29 +13,29 @@ export const routes: Routes = [
   // el formulario, redirige directo a la home del rol.
   {
     path: 'login',
-    loadComponent: () => import('./pages/login-page/login-page.component').then((m) => m.LoginPageComponent),
+    loadComponent: () => import('@pages/login-page/login-page.component').then((m) => m.LoginPageComponent),
     canMatch: [guestGuard],
   },
   {
     path: 'cuenta',
     loadComponent: () =>
-      import('./pages/account-page/account-page.component').then((m) => m.AccountPageComponent),
+      import('@pages/account-page/account-page.component').then((m) => m.AccountPageComponent),
     canMatch: [roleGuard],
   },
   {
     path: 'admin',
-    loadComponent: () => import('./pages/admin-page/admin-page.component').then((m) => m.AdminPageComponent),
+    loadComponent: () => import('@pages/admin-page/admin-page.component').then((m) => m.AdminPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['admin'] },
-    loadChildren: () => import('./pages/admin-page/admin.routes').then((m) => m.ADMIN_ROUTES),
+    loadChildren: () => import('@pages/admin-page/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
   {
     path: 'vendedor',
     loadComponent: () =>
-      import('./pages/seller-page/seller-page.component').then((m) => m.SellerPageComponent),
+      import('@pages/seller-page/seller-page.component').then((m) => m.SellerPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['vendedor'] },
-    loadChildren: () => import('./pages/seller-page/seller.routes').then((m) => m.SELLER_ROUTES),
+    loadChildren: () => import('@pages/seller-page/seller.routes').then((m) => m.SELLER_ROUTES),
   },
   // Cualquier URL desconocida cae al login (no estaba en el spec, pero sin esto una ruta mal
   // escrita deja al usuario viendo una pantalla en blanco).
