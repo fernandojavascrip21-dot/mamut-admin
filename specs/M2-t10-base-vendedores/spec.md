@@ -1,6 +1,6 @@
 # Spec técnico — T-10 · Preparar la base para los vendedores (teléfono y precios por vendedor)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M1-t03-tablas-productos-stock (`specs/M1-t03-tablas-productos-stock/spec.md`) — crea `vendor_stock` y reusa `profiles.role = 'vendedor'`; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `vendor_stock.qty` solo cambia con movimientos; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — escalas de precio y costo
 > **Fecha:** 2026-10-29
 > **Objetivo:** que la base guarde el teléfono obligatorio de cada vendedor y rechace precios o costos por vendedor menores o iguales a 0, para que las historias de M2 se construyan sobre datos ya validados.
@@ -124,7 +124,9 @@ insert into public.profiles (id, role, full_name, phone, active) values
 - [x] `ng build` y `ng test` del frontend siguen pasando (no se toca el frontend).
 - [x] `CLAUDE.md`, `AGENTS.md` y `specs/README.md` están actualizados.
 
-**Estado de producción (2026-10-29, consulta de solo lectura):** hay un perfil `'vendedor'`, `m0-test-vendedor@mammut.local` («Vendedor Prueba»), una cuenta de prueba de M0 que no se borró. La migración fallará ahí hasta que se le ponga teléfono o se borre. `vendor_stock` está vacía, así que los checks de precio y costo no tienen datos en conflicto. El paso 6 queda pendiente de esa decisión.
+**Producción (2026-10-29):** una consulta de solo lectura encontró un perfil `'vendedor'` sin teléfono, `m0-test-vendedor@mammut.local` («Vendedor Prueba»): una cuenta de prueba de M0 que nadie referenciaba. Por decisión del usuario se borró, se aplicó la migración en una transacción (columna `phone` y los 4 checks confirmados) y se volvió a crear la misma cuenta con teléfono `5500000001` y una contraseña nueva que no está en el repo. `vendor_stock` estaba vacía.
+
+**Hallazgo al aplicar:** producción **no tiene T-07** (`20261027000000_stock_from_movements.sql`): no hay triggers de stock ni `stock_movements_qty_sign_check`, y 2 de sus 3 productos tienen `stock` sin movimientos. T-10 no depende de esos objetos, así que se aplicó sola. T-07 queda pendiente en producción, fuera de este spec.
 
 ## 7. Decisiones
 

@@ -21,7 +21,7 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M1-t06-logica-a-servicios`](M1-t06-logica-a-servicios/spec.md) | Tarea | `SCRUM-27` · T-06 | Aprobado | 2026-10-26 | `M1-t05`, `M1-t04` | Dejar los componentes solo para presentar y emitir eventos; la lógica de negocio pasa a servicios (SOLID). |
 | [`M1-t07-stock-por-movimientos`](M1-t07-stock-por-movimientos/spec.md) | Tarea | `SCRUM-28` · T-07 | Aprobado | 2026-10-26 | `M1-t03`, `M1-hu04` | Que un trigger mantenga los saldos de stock a partir de los movimientos y la base rechace escribirlos a mano. |
 | [`M1-t08-dinero-sin-flotantes`](M1-t08-dinero-sin-flotantes/spec.md) | Tarea | `SCRUM-29` · T-08 | Aprobado | 2026-10-26 | `M1-t06`, `M1-t05` | Precio y costo como texto decimal, calculados en unidades enteras y sin redondeo silencioso; convención para M3. |
-| [`M2-t10-base-vendedores`](M2-t10-base-vendedores/spec.md) | Tarea | `SCRUM-31` · T-10 | Aprobado | 2026-10-29 | `M1-t03`, `M1-t07`, `M1-t08` | Teléfono obligatorio de 10 dígitos para vendedores y precio/costo por vendedor `> 0`, validados en la base. |
+| [`M2-t10-base-vendedores`](M2-t10-base-vendedores/spec.md) | Tarea | `SCRUM-31` · T-10 | Implementado | 2026-10-29 | `M1-t03`, `M1-t07`, `M1-t08` | Teléfono obligatorio de 10 dígitos para vendedores y precio/costo por vendedor `> 0`, validados en la base. |
 
 ## Relaciones que «Depende de» no muestra
 
