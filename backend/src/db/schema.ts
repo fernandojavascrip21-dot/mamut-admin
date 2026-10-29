@@ -535,5 +535,15 @@ export const stockMovements = pgTable("stock_movements", {
 			name: "stock_movements_product_id_fkey"
 		}).onDelete("restrict"),
 	check("stock_movements_qty_check", sql`qty <> 0`),
+	check("stock_movements_qty_sign_check", sql`CHECK (
+CASE
+    WHEN (type = ANY (ARRAY['initial'::text, 'purchase'::text])) THEN ((holder_profile_id IS NULL) AND (qty > 0))
+    WHEN (type = 'delivery'::text) THEN (((holder_profile_id IS NULL) AND (qty < 0)) OR ((holder_profile_id IS NOT NULL) AND (qty > 0)))
+    WHEN (type = 'return'::text) THEN (((holder_profile_id IS NULL) AND (qty > 0)) OR ((holder_profile_id IS NOT NULL) AND (qty < 0)))
+    WHEN (type = ANY (ARRAY['direct_sale'::text, 'shrinkage'::text, 'fraction_out'::text])) THEN (qty < 0)
+    WHEN (type = ANY (ARRAY['direct_sale_void'::text, 'shrinkage_void'::text, 'fraction_in'::text])) THEN (qty > 0)
+    WHEN (type = 'adjustment'::text) THEN (qty <> 0)
+    ELSE false
+END)`),
 	check("stock_movements_type_check", sql`type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text, 'fraction_out'::text, 'fraction_in'::text])`),
 ]);

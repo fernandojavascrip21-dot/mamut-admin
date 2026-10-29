@@ -1,15 +1,17 @@
-import { eq, inArray, like } from 'drizzle-orm'
+import { eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GET, PATCH } from '../app/api/products/[id]/route'
 import { db, sql } from '../src/db/client'
 import { categories, products, stockMovements } from '../src/db/schema'
+import { createProduct } from '../src/products/products'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 const PREFIX = 'test-prod-id-'
 const name = (label: string) => `${PREFIX}${label}-${Date.now()}-${Math.floor(Math.random() * 1e5)}`
 
+// `ilike`: el caso de «otras mayúsculas» deja nombres como `TEST-PROD-ID-…`, que `like` no borraría.
 async function cleanupProducts() {
-  const rows = await db.select({ id: products.id }).from(products).where(like(products.name, `${PREFIX}%`))
+  const rows = await db.select({ id: products.id }).from(products).where(ilike(products.name, `${PREFIX}%`))
   const ids = rows.map((row) => row.id)
   if (ids.length) {
     await db.delete(stockMovements).where(inArray(stockMovements.productId, ids))
@@ -34,14 +36,11 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
   let vendedor: TestUser
   let categoryId: number
 
-  const insertProduct = async (overrides: Partial<typeof products.$inferInsert> = {}) => {
-    const [product] = await db.insert(products).values({
-      name: name('base'), price: '100', unitCost: '50', stock: 8,
-      fractionable: true, portionSize: '30 g', image: 'https://cdn.test/old.png',
-      ...overrides,
-    }).returning()
-    return product!
-  }
+  // Las piezas solo entran como movimiento `initial` (T-07): nunca se escribe `stock` directo.
+  const insertProduct = () => createProduct({
+    name: name('base'), categoryId: null, price: 100, unitCost: 50, initialQty: 8,
+    fractionable: true, portionSize: '30 g', image: 'https://cdn.test/old.png',
+  }, admin.id)
 
   const validBody = (productName: string, overrides: Record<string, unknown> = {}) => ({
     name: productName, categoryId: null, price: 100, unitCost: 50,
@@ -88,7 +87,9 @@ describe.skipIf(!hasServiceKey)('producto por id (con cuentas reales)', () => {
       name: body.name, categoryId, price: '140.00', unitCost: '70.0000',
       stock: 8, portionSize: '25 g', image: body.image,
     })
-    expect(await db.select().from(stockMovements).where(eq(stockMovements.productId, product.id))).toHaveLength(0)
+    const movements = await db.select().from(stockMovements).where(eq(stockMovements.productId, product.id))
+    expect(movements).toHaveLength(1)
+    expect(movements[0]).toMatchObject({ type: 'initial', qty: 8 })
   })
 
   it('PATCH rechaza duplicado y acepta su propio nombre con otras mayúsculas', async () => {

@@ -1,9 +1,10 @@
 import { and, asc, eq } from 'drizzle-orm'
 import { db } from '../db/client'
 import { isForeignKeyViolation, isUniqueViolation } from '../db/errors'
-import { products, stockMovements } from '../db/schema'
+import { products } from '../db/schema'
 import { withTransaction } from '../db/transaction'
 import { conflict, notFound, validation } from '../lib/errors'
+import { insertMovements } from '../stock/movements'
 
 export interface CreateProductInput {
   name: string
@@ -48,7 +49,8 @@ export function listProducts() {
 }
 
 // Inserta el producto y su movimiento `initial` en una sola transacción (RNF-05: las piezas
-// que entran nacen como un movimiento de stock, nunca como un número suelto). Traduce la
+// que entran nacen como un movimiento de stock, nunca como un número suelto). El producto nace
+// con stock 0 y el trigger de stock_movements lo sube (T-07), por eso se relee al final. Traduce la
 // violación del índice único de nombre a 409 y la de la FK de categoryId a 422, en vez de
 // dejar que cualquiera de las dos llegue como 500.
 export async function createProduct(input: CreateProductInput, createdBy: string) {
@@ -66,22 +68,22 @@ export async function createProduct(input: CreateProductInput, createdBy: string
           categoryId: input.categoryId,
           price: String(input.price),
           unitCost: String(input.unitCost),
-          stock: input.initialQty,
           fractionable: input.fractionable,
           portionSize: input.fractionable ? input.portionSize : null,
           image: input.image ?? '',
         })
         .returning()
 
-      await tx.insert(stockMovements).values({
+      await insertMovements(tx, [{
         productId: product!.id,
         type: 'initial',
         qty: input.initialQty,
         holderProfileId: null,
         createdBy,
-      })
+      }])
 
-      return product!
+      const [created] = await tx.select().from(products).where(eq(products.id, product!.id))
+      return created!
     })
   } catch (err) {
     if (isUniqueViolation(err)) throw conflict(DUPLICATE_NAME)

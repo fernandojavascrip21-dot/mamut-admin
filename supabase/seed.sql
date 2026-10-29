@@ -50,9 +50,9 @@ insert into public.categories (name, slug, sort_order) values
   ('Vitaminas', 'vitaminas', 4),
   ('Aminoácidos', 'aminoacidos', 5);
 
-insert into public.products (category_id, name, brand, size, flavor, description, price, unit_cost, stock, fractionable, portion_size)
-select c.id, p.name, p.brand, p.size, p.flavor, p.description, p.price, p.unit_cost, p.stock, p.fractionable, p.portion_size
-from (values
+-- Regla del repo (T-07): el stock nunca se escribe directo; cada producto nace con
+-- stock 0 y su movimiento 'initial' (bodega: holder_profile_id = null) lo sube vía trigger.
+with p(category_slug, name, brand, size, flavor, description, price, unit_cost, stock, fractionable, portion_size) as (values
   ('proteinas',    'Proteína Demo Whey 2 lb',      'MarcaPrueba', '2 lb',     'Chocolate', 'Proteína de suero ficticia para pruebas.', 899.00, 520.0000, 12, true,  '30 g'),
   ('proteinas',    'Proteína Demo Whey 5 lb',      'MarcaPrueba', '5 lb',     'Vainilla',  'Presentación grande de prueba.',           1799.00, 1100.0000, 6, false, null),
   ('proteinas',    'Proteína Vegetal Demo',        'VerdeTest',   '1 kg',     'Natural',   'Proteína de chícharo de prueba.',          749.00, 430.0000, 4, false, null),
@@ -65,27 +65,36 @@ from (values
   ('aminoacidos',  'BCAA Demo 2:1:1',              'MarcaPrueba', '250 g',    'Mango',     'Aminoácidos ramificados de prueba.',       459.00, 230.0000, 9, false, null),
   ('aminoacidos',  'Glutamina Demo',               'MarcaPrueba', '300 g',    'Sin sabor', 'Glutamina ficticia.',                      399.00, 190.0000, 3, false, null),
   ('aminoacidos',  'L-Carnitina Descontinuada Demo', 'VitaTest',  '60 caps',  '',          'Producto archivado para probar filtros.',  279.00, 140.0000, 0, false, null)
-) as p(category_slug, name, brand, size, flavor, description, price, unit_cost, stock, fractionable, portion_size)
-join public.categories c on c.slug = p.category_slug;
+),
+inserted as (
+  insert into public.products (category_id, name, brand, size, flavor, description, price, unit_cost, fractionable, portion_size)
+  select c.id, p.name, p.brand, p.size, p.flavor, p.description, p.price, p.unit_cost, p.fractionable, p.portion_size
+  from p join public.categories c on c.slug = p.category_slug
+  returning id, name
+)
+insert into public.stock_movements (product_id, type, qty, reason, created_by, holder_profile_id)
+select inserted.id, 'initial', p.stock, 'Inventario inicial (seed local)', 'a0000000-0000-4000-8000-000000000001', null
+from inserted join p on p.name = inserted.name
+where p.stock > 0;
 
 update public.products set active = false, archived_at = now()
 where name = 'L-Carnitina Descontinuada Demo';
 
 -- Bolsitas de los productos que se fraccionan (parent_product_id → el producto de origen).
-insert into public.products (category_id, name, brand, size, flavor, price, unit_cost, stock, parent_product_id)
-select parent.category_id, parent.name || ' (bolsita ' || parent.portion_size || ')', parent.brand,
-  parent.portion_size, parent.flavor, b.price, b.unit_cost, b.stock, parent.id
-from (values
+with b(parent_name, price, unit_cost, stock) as (values
   ('Proteína Demo Whey 2 lb', 45.00, 17.3333, 10),
   ('Creatina Monohidratada Demo', 15.00, 4.3333, 12)
-) as b(parent_name, price, unit_cost, stock)
-join public.products parent on parent.name = b.parent_name;
-
--- 3. Movimientos que respaldan el stock de bodega -------------------------------
--- Regla del repo: el stock nunca se escribe sin su movimiento. Cada producto con
--- stock arranca con un movimiento 'initial' (bodega: holder_profile_id = null).
-
+),
+inserted as (
+  insert into public.products (category_id, name, brand, size, flavor, price, unit_cost, parent_product_id)
+  select parent.category_id, parent.name || ' (bolsita ' || parent.portion_size || ')', parent.brand,
+    parent.portion_size, parent.flavor, b.price, b.unit_cost, parent.id
+  from b join public.products parent on parent.name = b.parent_name
+  returning id, parent_product_id
+)
 insert into public.stock_movements (product_id, type, qty, reason, created_by, holder_profile_id)
-select id, 'initial', stock, 'Inventario inicial (seed local)', 'a0000000-0000-4000-8000-000000000001', null
-from public.products
-where stock > 0;
+select inserted.id, 'initial', b.stock, 'Inventario inicial (seed local)', 'a0000000-0000-4000-8000-000000000001', null
+from inserted
+join public.products parent on parent.id = inserted.parent_product_id
+join b on b.parent_name = parent.name
+where b.stock > 0;

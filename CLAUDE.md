@@ -121,6 +121,7 @@ src/auth/        context.ts (getAuthContext: validates Supabase JWT, loads profi
                  guards.ts (requireAuth, requireRole, requireOwnClient), session.ts (login/refresh/logout)
 src/accounts/    use cases: clients.ts, logins.ts, admins.ts — all built on accounts.ts's createAccount/toView
 src/lib/         errors.ts (AppError + {error:{code,message}} format), cors.ts, supabase.ts, handler.ts (readJson/requireString/parseId/parseUuid helpers)
+src/stock/       movements.ts (insertMovements: the only way inventory changes)
 tests/           Vitest, against the real DB (see Commands above)
 ```
 
@@ -129,6 +130,8 @@ Key patterns to follow when adding backend code:
 - **Auth is re-checked on every request, never trusted from JWT claims.** `getAuthContext` loads `profiles` fresh each time specifically so that deactivating an account takes effect immediately.
 - **Account creation is two uncoordinated steps** (Supabase Auth, then `profiles`) with manual compensation: if the `profiles` insert fails, the just-created Auth user is deleted (`createAccount` in `src/accounts/accounts.ts`). Follow this pattern for any new account-creating use case.
 - **Transactional use cases go through `withTransaction`/`lockRows`** (`src/db/transaction.ts`) rather than raw queries, especially anything needing `select … for update`.
+- **Inventory only changes by inserting `stock_movements`, via `insertMovements`** (`src/stock/movements.ts`). Never write `products.stock` or `vendor_stock.qty`: they are a cache kept by Postgres triggers (migration `20261027000000_stock_from_movements.sql`), and the database rejects direct writes — from the backend, Supabase Studio or any other client (including the sibling Vue site if it ever connects). Products are inserted with `stock = 0`; their first movement raises it. `insertMovements` turns a balance that would go negative (`products_stock_check` / `vendor_stock_qty_check`) into `409` «No hay piezas suficientes». Movements are never updated (correct with `*_void` or `adjustment`); deleting one (test cleanup only) reverts its effect, so delete newest first.
+- **Movement sign convention** (check `stock_movements_qty_sign_check`, spec `M1-t07` §3): one row per holder (`holder_profile_id` null = warehouse), signed `qty` — in `> 0`, out `< 0`. A transfer is two rows in the same transaction (deliver 10 to a seller = `delivery` warehouse `−10` + `delivery` seller `+10`). `initial`/`purchase`: warehouse only, `> 0`; `delivery`: warehouse `< 0`, seller `> 0`; `return`: warehouse `> 0`, seller `< 0`; `direct_sale`/`shrinkage`/`fraction_out`: `< 0`; `direct_sale_void`/`shrinkage_void`/`fraction_in`: `> 0`; `adjustment`: `≠ 0`.
 - **Rows with history are deactivated, never deleted** — `DELETE` endpoints rely on Postgres FK `restrict` to surface a 409 rather than hand-checking every referencing table.
 - **Error responses are always `{ error: { code, message } }`** via `AppError`/`toResponse` in `src/lib/errors.ts`, with a fixed HTTP status per `code` (401/403/404/409/422/500). Login/refresh return the same generic message for "wrong password", "no such account", and "deactivated account" — don't leak which case it was.
 - **CORS origins come from `ALLOWED_ORIGINS`** in `backend/.env` (comma-separated) — this still lists the old Vue dev port and needs the Angular dev origin added when the frontend starts calling it.
@@ -213,7 +216,7 @@ Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `prod
 
 ### Dinero e inventario
 - Cantidades monetarias como enteros en centavos o con tipos decimales, nunca con `number` flotante para cálculos de caja.
-- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente.
+- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente. En inventario la base lo impone: solo se insertan `stock_movements` con `insertMovements` (ver «Backend»).
 
 ## Diseño de interfaces
 

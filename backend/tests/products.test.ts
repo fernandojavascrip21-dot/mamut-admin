@@ -1,4 +1,4 @@
-import { eq, inArray, like } from 'drizzle-orm'
+import { eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GET as listProductsRoute, POST as createProductRoute } from '../app/api/products/route'
 import { db, sql } from '../src/db/client'
@@ -34,9 +34,9 @@ const validBody = (overrides: Record<string, unknown> = {}) => ({
 })
 
 // El FK stock_movements_product_id_fkey es `restrict`: hay que borrar los movimientos antes
-// que los productos.
+// que los productos. `ilike` porque algunas pruebas cambian las mayúsculas del nombre.
 async function cleanupProducts() {
-  const rows = await db.select({ id: products.id }).from(products).where(like(products.name, `${PREFIX}%`))
+  const rows = await db.select({ id: products.id }).from(products).where(ilike(products.name, `${PREFIX}%`))
   const ids = rows.map((r) => r.id)
   if (ids.length === 0) return
   await db.delete(stockMovements).where(inArray(stockMovements.productId, ids))

@@ -29,15 +29,14 @@ Lo que encontraron las consultas de solo lectura del 2026-10-26:
 
 - Una migración en `supabase/migrations/` con:
   - Precondición: si algún `products.stock` o `vendor_stock.qty` no coincide con la suma de sus movimientos, la migración falla con un mensaje que lista los ids, en vez de crear triggers sobre datos inconsistentes.
-  - `qty <> 0` y check de **signo por tipo y dueño** en `stock_movements` (§3).
-  - `products.stock >= 0` (`vendor_stock.qty >= 0` ya existe).
+  - Check de **signo por tipo y dueño** en `stock_movements` (§3). `qty <> 0` (`stock_movements_qty_check`), `products.stock >= 0` (`products_stock_check`) y `vendor_stock.qty >= 0` (`vendor_stock_qty_check`) ya existen y se reusan (hallazgo de la implementación, 2026-10-28).
   - Trigger `AFTER INSERT` en `stock_movements`: suma `qty` al saldo de su dueño (`holder_profile_id` nulo = bodega → `products.stock`; no nulo = vendedor → `vendor_stock.qty`, creando la fila si no existe).
   - Trigger `AFTER DELETE` en `stock_movements`: resta `qty` del mismo saldo (para que borrar un movimiento, cosa que solo hacen las pruebas al limpiar, no desincronice la caché).
   - Trigger `BEFORE UPDATE` en `stock_movements`: rechaza cualquier `UPDATE` (un movimiento no se edita; se corrige con otro: `*_void` o `adjustment`).
   - Guardas `BEFORE INSERT/UPDATE` en `products` y `vendor_stock`: rechazan escribir `stock`/`qty` salvo desde el trigger de movimientos (`pg_trigger_depth() > 1`); un `INSERT` de producto debe traer `stock = 0`.
 - Backend:
   - `backend/src/db/errors.ts`: `isCheckViolation` (`23514`).
-  - `backend/src/stock/movements.ts` (nuevo): `insertMovements(tx, rows)` — único punto para insertar movimientos; traduce la violación de `products_stock_nonnegative` / `vendor_stock_qty_check` a `409` «No hay piezas suficientes».
+  - `backend/src/stock/movements.ts` (nuevo): `insertMovements(tx, rows)` — único punto para insertar movimientos; traduce la violación de `products_stock_check` / `vendor_stock_qty_check` a `409` «No hay piezas suficientes».
   - `createProduct` inserta el producto sin `stock`, inserta el movimiento `initial` con `insertMovements`, y devuelve el producto releído (con el `stock` que dejó el trigger).
   - `npm run db:pull` + los dos fixups de `CLAUDE.md` para reflejar los checks nuevos en `schema.ts`.
 - Pruebas:
@@ -88,10 +87,8 @@ do $$ begin
   -- …igual para vendor_stock.qty vs. movimientos por (holder_profile_id, product_id)
 end $$;
 
--- 1. Checks
-alter table stock_movements add constraint stock_movements_qty_nonzero check (qty <> 0);
+-- 1. Checks (qty <> 0 y stock >= 0 ya existen: stock_movements_qty_check, products_stock_check)
 alter table stock_movements add constraint stock_movements_qty_sign_check check ( /* tabla de §3 */ );
-alter table products add constraint products_stock_nonnegative check (stock >= 0);
 
 -- 2. Mantener la caché
 create function apply_stock_movement() returns trigger …   -- AFTER INSERT: +new.qty
@@ -180,6 +177,7 @@ export async function insertMovements(tx: Tx, rows: NewStockMovement[]): Promise
 - **Sí:** guardas `BEFORE INSERT/UPDATE` con `pg_trigger_depth()`. Razón (decisión del usuario): el backend se conecta como `postgres` con `bypassrls`, así que revocar permisos de columna no lo detendría.
 - **Sí:** saldos nunca negativos, `409` «No hay piezas suficientes». Razón (decisión del usuario).
 - **Sí:** prohibir `UPDATE` de movimientos y revertir el saldo en `DELETE`. Razón (decisión técnica de esta sesión): un movimiento editado rompería la caché sin dejar rastro; el `DELETE` existe solo para la limpieza de pruebas, y revertirlo evita que la limpieza deje saldos inconsistentes.
+- **Sí:** reusar `products_stock_check` y `stock_movements_qty_check` en vez de crear `products_stock_nonnegative`/`stock_movements_qty_nonzero`. Razón (decisión del usuario durante la implementación, 2026-10-28): ya existían en la base con la misma regla; duplicarlos haría que Postgres reportara el nombre viejo (va primero en orden alfabético) y el `409` dependiera de dos nombres.
 - **Sí:** precondición en la migración en vez de corregir saldos en silencio. Razón (decisión técnica de esta sesión): los únicos datos inconsistentes (77, 91) son basura de pruebas; si apareciera un producto real descuadrado, hay que decidir a mano con qué movimiento cuadrarlo.
 - **Sí:** arreglar `tests/products-id.test.ts` aquí. Razón (decisión técnica de esta sesión): escribe `stock` a mano (lo que este spec prohíbe) y su limpieza dejó 2 productos de prueba activos en la tabla que comparte el catálogo Vue.
 - **Sí:** tarea Jira `SCRUM-28 · T-07`, ejecutada antes de HU-07 y de «Entrada a bodega». Razón (decisión del usuario): esas historias son las primeras que mueven inventario además del alta.
