@@ -41,6 +41,7 @@ export const profiles = pgTable("profiles", {
 	fullName: text("full_name").notNull(),
 	active: boolean().default(true).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	phone: text(),
 }, (table) => [
 	foreignKey({
 			columns: [table.clientId],
@@ -53,7 +54,9 @@ export const profiles = pgTable("profiles", {
 			name: "profiles_id_fkey"
 		}).onDelete("cascade"),
 	check("profiles_client_id_matches_role", sql`(role = 'client'::text) = (client_id IS NOT NULL)`),
+	check("profiles_phone_format_check", sql`(phone IS NULL) OR (phone ~ '^[0-9]{10}$'::text)`),
 	check("profiles_role_check", sql`role = ANY (ARRAY['admin'::text, 'client'::text, 'vendedor'::text])`),
+	check("profiles_seller_phone_required_check", sql`(role <> 'vendedor'::text) OR (phone IS NOT NULL)`),
 ]);
 
 export const consignmentItems = pgTable("consignment_items", {
@@ -496,6 +499,8 @@ export const vendorStock = pgTable("vendor_stock", {
 		}).onDelete("restrict"),
 	unique("vendor_stock_profile_product_key").on(table.profileId, table.productId),
 	check("vendor_stock_qty_check", sql`qty >= 0`),
+	check("vendor_stock_unit_cost_with_shipping_check", sql`(unit_cost_with_shipping IS NULL) OR (unit_cost_with_shipping > (0)::numeric)`),
+	check("vendor_stock_unit_price_check", sql`(unit_price IS NULL) OR (unit_price > (0)::numeric)`),
 ]);
 
 export const stockMovements = pgTable("stock_movements", {

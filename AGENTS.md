@@ -63,7 +63,7 @@ npm run db:stop
 
 - `backend/.env` has two connection blocks, **PRODUCCIÓN** and **LOCAL**: keep one active, comment the other. Next, tests, `db:check` and drizzle all read that file; restart `npm run dev` after switching. `backend/.env.example` has the same layout.
 - Studio: http://127.0.0.1:54323 · Mailpit: http://127.0.0.1:54324 · DB: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
-- Seed users (`supabase/seed.sql`, all fake data): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated).
+- Seed users (`supabase/seed.sql`, all fake data): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated). Every `vendedor` has a 10-digit phone, which the database requires (spec `M2-t10`).
 - `supabase/migrations/20261024000000_baseline_schema.sql` is a schema-only snapshot of the inherited production schema so an empty DB can replay every migration. Never apply it to production.
 - New migrations: add the `.sql` to `supabase/migrations/`, verify with `npm run db:reset` locally, then apply to production.
 

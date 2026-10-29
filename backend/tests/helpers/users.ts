@@ -6,6 +6,7 @@ import { supabaseAdmin, supabaseAuth } from '../../src/lib/supabase'
 // Todo lo que crean las pruebas lleva este prefijo para poder limpiarlo.
 export const TEST_PREFIX = 'test-auth-'
 export const TEST_PASSWORD = 'Prueba-123456!'
+export const TEST_SELLER_PHONE = '5500000000'
 
 export const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -28,12 +29,14 @@ export async function createTestUser(
   })
   if (error || !data.user) throw new Error(`No se creó el usuario de prueba: ${error?.message}`)
 
+  // La base exige teléfono de 10 dígitos a los vendedores (spec T-10).
   if (profile) {
     await db.insert(profiles).values({
       id: data.user.id,
       role: profile.role,
       clientId: profile.clientId ?? null,
       fullName: `Prueba ${label}`,
+      phone: profile.role === 'vendedor' ? TEST_SELLER_PHONE : null,
       active: profile.active ?? true,
     })
   }
