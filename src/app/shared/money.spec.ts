@@ -1,4 +1,5 @@
-import { compareMoney, decimalPlaces, fromMinorUnits, MONEY_MAX, toMinorUnits } from './money';
+import { compareMoney, decimalPlaces, fromMinorUnits, toMinorUnits } from './money';
+import { MONEY_MAX } from './constants/money.constants';
 
 // Mismos casos que backend/tests/money.test.ts (spec T-08 §7).
 describe('money', () => {

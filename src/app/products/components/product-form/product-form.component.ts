@@ -7,27 +7,13 @@ import { FormBuilder, FormControl, PristineChangeEvent, ReactiveFormsModule } fr
 import { filter, map } from 'rxjs';
 import { initialsOf } from '@shared/initials';
 import { notBlank } from '@shared/validators';
-import { MONEY_MAX } from '@shared/money';
+import { MONEY_MAX } from '@shared/constants/money.constants';
 import {
   maxDecimals, maxMoney, portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from '../../validators/product-form.validators';
 import type { Category, Product, ProductFormValue } from '../../interfaces/product.models';
+import { FIELD_MESSAGES, MONEY_MESSAGES } from './product-form.constants';
 import type { FieldWithError, ProductFormGroup } from './product-form.models';
-
-// Mensajes de cada campo al enviar (HU-04 §2, HU-06 §2).
-const FIELD_MESSAGES: Record<FieldWithError, string> = {
-  name: 'Escribe el nombre del producto',
-  unitCost: 'El costo debe ser mayor a 0',
-  price: 'El precio debe ser mayor a 0',
-  units: 'Las piezas deben ser un número entero mayor a 0',
-  portionSize: 'Escribe la porción',
-};
-
-// Decimales de más o monto fuera de la columna (spec T-08 §3): nunca se redondea en silencio.
-const MONEY_MESSAGES = {
-  unitCost: { maxDecimals: 'El costo admite hasta 4 decimales', maxMoney: 'El costo es demasiado grande' },
-  price: { maxDecimals: 'El precio admite hasta 2 decimales', maxMoney: 'El precio es demasiado grande' },
-};
 
 // Formulario de producto (pantalla 03b) compartido por el alta y la edición. Es presentacional:
 // los datos llegan por `initialValue` y el guardado sale por `submitted`; cargar del backend,

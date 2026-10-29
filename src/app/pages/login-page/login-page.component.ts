@@ -2,7 +2,7 @@ import { Component, DestroyRef, ElementRef, OnInit, inject, signal, viewChild } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ROLE_HOME } from '@auth/guards/role.guard';
+import { ROLE_HOME } from '@auth/constants/auth.constants';
 import { AuthService } from '@auth/services/auth.service';
 import { isOffline } from '@shared/http-errors';
 import { notBlank } from '@shared/validators';

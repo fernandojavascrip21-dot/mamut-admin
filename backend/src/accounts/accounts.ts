@@ -2,18 +2,18 @@ import { db } from '../db/client'
 import { profiles } from '../db/schema'
 import { conflict, validation } from '../lib/errors'
 import { supabaseAdmin } from '../lib/supabase'
-
-const MIN_PASSWORD = 8
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import { EMAIL_PATTERN, MIN_PASSWORD } from './constants'
 
 type Profile = typeof profiles.$inferSelect
 
-// Vista pública de una cuenta con login (cliente o administrador).
+// Vista pública de una cuenta con login (cliente, administrador o vendedor). `phone` solo es
+// obligatorio para vendedores (spec T-10); los demás lo traen nulo.
 export interface AccountView {
   id: string
   clientId: number | null
   fullName: string
   email: string | null
+  phone: string | null
   active: boolean
   createdAt: string
 }
@@ -25,6 +25,7 @@ export async function toView(profile: Profile): Promise<AccountView> {
     clientId: profile.clientId,
     fullName: profile.fullName,
     email: data.user?.email ?? null,
+    phone: profile.phone,
     active: profile.active,
     createdAt: profile.createdAt,
   }
@@ -46,7 +47,7 @@ export function normalizeEmail(email: string): string {
 // dos sistemas: si falla el insert se borra la cuenta recién creada (sin cuentas huérfanas).
 export async function createAccount(
   input: { email: string; password: string; fullName: string },
-  profile: { role: 'admin' | 'client' | 'vendedor'; clientId: number | null; active: boolean },
+  profile: { role: 'admin' | 'client' | 'vendedor'; clientId: number | null; active: boolean; phone?: string | null },
 ): Promise<AccountView> {
   const email = normalizeEmail(input.email)
   validatePassword(input.password)

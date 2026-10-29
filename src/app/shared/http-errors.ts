@@ -16,3 +16,14 @@ export function httpStatus(error: unknown): number | null {
 export function isNotFound(error: unknown): boolean {
   return httpStatus(error) === 404;
 }
+
+// Mensaje que mandó el backend en su formato `{ error: { code, message } }`, o null si la
+// respuesta no lo trae (sin red, otro formato). Sirve para mostrar un 422 tal cual lo redactó.
+export function httpErrorMessage(error: unknown): string | null {
+  if (!(error instanceof HttpErrorResponse)) return null;
+  const body: unknown = error.error;
+  if (typeof body !== 'object' || body === null || !('error' in body)) return null;
+  const detail: unknown = body.error;
+  if (typeof detail !== 'object' || detail === null || !('message' in detail)) return null;
+  return typeof detail.message === 'string' ? detail.message : null;
+}

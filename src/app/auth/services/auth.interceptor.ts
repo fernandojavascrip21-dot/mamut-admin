@@ -4,8 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, defer, switchMap, throwError } from 'rxjs';
 import { API_BASE_URL } from '@shared/api-base-url';
 import { AuthService } from './auth.service';
-
-const REFRESH_URL = `${API_BASE_URL}/api/auth/refresh`;
+import { REFRESH_URL } from '../constants/auth.constants';
 
 // Agrega el Bearer token a las peticiones a la API. Ante un 401, intenta refrescar la sesión
 // una sola vez y reintenta la petición original; si el refresh también falla (o no hay sesión

@@ -1,15 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TopNavComponent } from '@shared/components/top-nav/top-nav.component';
-import type { CartLink, NavMenuItem } from '@shared/components/top-nav/top-nav.models';
-
-const MENU: NavMenuItem[] = [
-  { path: 'mi-stock', label: 'Mi stock', icon: 'package' },
-  { path: 'vender', label: 'Vender', icon: 'bag' },
-  { path: 'mi-corte', label: 'Mi corte', icon: 'receipt' },
-];
-
-const CART: CartLink = { path: 'carrito', label: 'Carrito' };
+import { CART, MENU } from './seller-page.constants';
 
 // Página del vendedor: navbar superior + contenido de la ruta activa
 // Mi stock · Vender · Carrito · Mi corte. Nunca muestra costos ni ganancia (RF-02, RNF-04).

@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Route, Router, UrlTree, provideRouter } from '@angular/router';
-import { ROLE_HOME, roleGuard } from './role.guard';
+import { roleGuard } from './role.guard';
+import { ROLE_HOME } from '../constants/auth.constants';
 import type { AuthContext } from '../interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' };

@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { ROLE_HOME } from './role.guard';
+import { ROLE_HOME } from '../constants/auth.constants';
 
 // Evita que alguien con sesión activa vuelva a ver el formulario de login al reabrir la app
 // o recargar /login: lo manda directo a la home de su rol. Sin sesión, deja pasar (criterio 5

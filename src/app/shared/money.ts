@@ -3,12 +3,9 @@
 // Mismo contrato que backend/src/lib/money.ts, salvo que aquí un monto inválido devuelve null
 // en vez de lanzar (un formulario lo marca como error de campo); sus pruebas cubren los mismos casos.
 
+import { DECIMAL } from './constants/money.constants';
+
 export type MoneyScale = 2 | 4;
-
-// Máximo de cada columna: numeric(10,2) para precios y numeric(10,4) para costos.
-export const MONEY_MAX: Record<MoneyScale, string> = { 2: '99999999.99', 4: '999999.9999' };
-
-const DECIMAL = /^(\d+)(?:\.(\d+))?$/;
 
 // Cuántos decimales trae un texto decimal válido ("450.50" → 2); null si no lo es
 // (notación científica, comas, signo, vacío…).

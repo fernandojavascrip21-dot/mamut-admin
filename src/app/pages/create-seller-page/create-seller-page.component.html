@@ -1,0 +1,176 @@
+<div class="flex w-full flex-col px-5 py-6">
+<a routerLink="/admin/vendedores" class="flex min-h-11 items-center text-sm font-bold text-muted">‹ Vendedores</a>
+@if (state() !== 'created') {
+  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Nuevo vendedor</h1>
+  <p class="mt-1 mb-0 text-sm leading-snug text-muted">
+    Con estos datos entrará a la app y verá solo su stock, sus ventas y su corte.
+  </p>
+
+  @if (state() === 'offline') {
+    <div
+      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+      role="alert"
+    >
+      <div>
+        <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
+        <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+        <button
+          type="button"
+          class="retry mt-2.5 min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+          (click)="retry()"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  }
+
+  <form
+    [formGroup]="form"
+    class="mt-5 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
+    (ngSubmit)="onSubmit()"
+    novalidate
+  >
+    <div class="flex flex-col gap-1.5">
+      <label for="full-name" class="text-sm font-semibold">Nombre</label>
+      <input
+        id="full-name"
+        name="fullName"
+        type="text"
+        autocomplete="off"
+        #fullNameInput
+        formControlName="fullName"
+        [attr.aria-invalid]="fieldErrors().fullName ? 'true' : null"
+        [attr.aria-describedby]="fieldErrors().fullName ? 'full-name-error' : null"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (fieldErrors().fullName ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (fieldErrors().fullName) {
+        <p id="full-name-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ fieldErrors().fullName }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="phone" class="text-sm font-semibold">Teléfono</label>
+      <input
+        id="phone"
+        name="phone"
+        type="tel"
+        inputmode="tel"
+        autocomplete="off"
+        #phoneInput
+        formControlName="phone"
+        [attr.aria-invalid]="fieldErrors().phone ? 'true' : null"
+        [attr.aria-describedby]="fieldErrors().phone ? 'phone-hint phone-error' : 'phone-hint'"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 font-mono text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (fieldErrors().phone ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      <p id="phone-hint" class="m-0 text-xs text-muted">10 dígitos; puedes escribirlo con espacios.</p>
+      @if (fieldErrors().phone) {
+        <p id="phone-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ fieldErrors().phone }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="email" class="text-sm font-semibold">Correo para entrar</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        inputmode="email"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        #emailInput
+        formControlName="email"
+        [attr.aria-invalid]="fieldErrors().email ? 'true' : null"
+        [attr.aria-describedby]="fieldErrors().email ? 'email-error' : null"
+        [class]="
+          'h-[50px] rounded-[10px] px-3.5 font-mono text-base disabled:bg-disabled-input disabled:text-faint ' +
+          (fieldErrors().email ? 'border-2 border-danger' : 'border border-line-strong')
+        "
+      />
+      @if (fieldErrors().email) {
+        <p id="email-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ fieldErrors().email }}</p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="password" class="text-sm font-semibold">Contraseña temporal</label>
+      <div class="flex gap-2">
+        <input
+          id="password"
+          name="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          autocomplete="new-password"
+          #passwordInput
+          formControlName="password"
+          [attr.aria-invalid]="fieldErrors().password ? 'true' : null"
+          [attr.aria-describedby]="fieldErrors().password ? 'password-hint password-error' : 'password-hint'"
+          [class]="
+            'h-[50px] min-w-0 flex-1 rounded-[10px] px-3.5 font-mono text-base disabled:bg-disabled-input disabled:text-faint ' +
+            (fieldErrors().password ? 'border-2 border-danger' : 'border border-line-strong')
+          "
+        />
+        <button
+          type="button"
+          class="toggle-password h-[50px] shrink-0 rounded-[10px] border border-line-strong bg-white px-3.5 text-sm font-bold text-ink disabled:opacity-50"
+          [disabled]="state() === 'saving' || state() === 'offline'"
+          [attr.aria-pressed]="showPassword()"
+          (click)="togglePassword()"
+        >
+          {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+        </button>
+      </div>
+      <p id="password-hint" class="m-0 text-xs text-muted">Al menos 8 caracteres. Dásela en persona para su primer acceso.</p>
+      @if (fieldErrors().password) {
+        <p id="password-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ fieldErrors().password }}</p>
+      }
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="state() === 'saving' || state() === 'offline'"
+      class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {{ state() === 'saving' ? 'Guardando…' : 'Dar de alta vendedor' }}
+    </button>
+  </form>
+} @else if (createdSeller(); as seller) {
+  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Vendedor dado de alta</h1>
+  <p class="mt-1 mb-0 text-sm leading-snug text-muted">
+    {{ seller.fullName }} ya puede entrar con su correo y la contraseña temporal.
+  </p>
+
+  <div class="mt-5 flex flex-col gap-3 rounded-lg border border-line bg-white p-5">
+    <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt class="text-muted">Nombre</dt>
+      <dd class="m-0 text-right font-semibold">{{ seller.fullName }}</dd>
+      <dt class="text-muted">Correo</dt>
+      <dd class="m-0 text-right font-mono font-semibold break-all">{{ seller.email }}</dd>
+      <dt class="text-muted">Teléfono</dt>
+      <dd class="m-0 text-right font-mono font-semibold">{{ formatPhone(seller.phone) }}</dd>
+    </dl>
+  </div>
+
+  <div class="mt-5 flex gap-3">
+    <a
+      routerLink="/admin/vendedores"
+      class="flex h-[48px] flex-1 items-center justify-center rounded-[10px] bg-accent text-[15px] font-bold text-white"
+    >
+      Ver mis vendedores
+    </a>
+    <button
+      type="button"
+      class="h-[48px] flex-1 rounded-[10px] border border-line-strong bg-white text-[15px] font-bold text-ink"
+      (click)="startNewSeller()"
+    >
+      Dar de alta otro vendedor
+    </button>
+  </div>
+}
+</div>

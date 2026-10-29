@@ -4,11 +4,8 @@ import { db } from '../db/client'
 import { profiles } from '../db/schema'
 import { unauthorized } from '../lib/errors'
 import { supabaseAdmin, supabaseAuth } from '../lib/supabase'
+import { INVALID_CREDENTIALS } from './constants'
 import type { AuthContext } from './context'
-
-// Mismo mensaje para correo inexistente, contraseña incorrecta, perfil inexistente o desactivado:
-// no revela si el correo existe.
-const INVALID_CREDENTIALS = 'Correo o contraseña incorrectos'
 
 export interface SessionResult {
   accessToken: string
