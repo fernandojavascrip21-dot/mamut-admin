@@ -56,7 +56,7 @@ El código de los pasos 1 y 2 ya existe; se verifica, no se reescribe.
 **Verificación (2026-10-30, base local con el seed, rama aislada):**
 - `ng test` (48 archivos), `ng build` y `npm run check:architecture` pasan con esta parte sobre T-11.
 - Mi cuenta: escritorio y 390 px, sin scroll horizontal y sin controles de menos de 44 px. Cerrar sesión pasa por el diálogo y lleva a `/login`.
-- Login: campos de 52 px con el padding de sus íconos (48 px) y botón de 54 px, igual que antes de alinearlo. La comparación con capturas se hizo durante la implementación (comentario del paso 8 en `SCRUM-38`). Con datos incorrectos muestra «Usuario o contraseña incorrectos»; con datos correctos entra a `/admin/stock`.
+- Login: campos de 52 px con el padding de sus íconos (48 px) y botón de 54 px, igual que antes de alinearlo. Comparación píxel a píxel de `/login` entre T-11 (sin alinear) y esta rama, sin animación, a 1280 y 390 px: 0 píxeles de diferencia. Con datos incorrectos muestra «Usuario o contraseña incorrectos»; con datos correctos entra a `/admin/stock`.
 - «Reducir movimiento» emulado en un Chrome headless aparte: de 35 animaciones activas a 0 en `/login`, y 0 en `/cuenta`.
 - Sin errores en la consola. Respecto del commit base: cero diferencias de texto visible, y el diff solo toca plantillas `.html` y este spec.
 
