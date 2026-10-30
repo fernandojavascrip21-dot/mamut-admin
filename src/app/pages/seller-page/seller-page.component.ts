@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TopNavComponent } from '@shared/components/top-nav/top-nav.component';
-import { CART, MENU } from './seller-page.constants';
+import { CART, MENU } from '../constants/seller-page.constants';
 
 // Página del vendedor: navbar superior + contenido de la ruta activa
 // Mi stock · Vender · Carrito · Mi corte. Nunca muestra costos ni ganancia (RF-02, RNF-04).

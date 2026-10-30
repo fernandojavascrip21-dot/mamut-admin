@@ -6,7 +6,7 @@ import { ROLE_HOME } from '@auth/constants/auth.constants';
 import { AuthService } from '@auth/services/auth.service';
 import { isOffline } from '@shared/http-errors';
 import { notBlank } from '@shared/validators';
-import type { LoginFormGroup, LoginPayload, LoginState } from './login-page.models';
+import type { LoginFormGroup, LoginPayload, LoginState } from '../models/login-page.models';
 
 // Pantalla 01 Inicio de sesión (RF-01, RF-02, RNF-04). Estados: ver specs/M0-base/spec.md §3.1.
 @Component({

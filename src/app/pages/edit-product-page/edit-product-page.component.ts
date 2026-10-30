@@ -10,7 +10,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 import { isNotFound } from '@shared/http-errors';
 import type { HasUnsavedChanges } from '@products/interfaces/unsaved-changes.models';
 import type { Category, Product, ProductFormValue, SaveResult } from '@products/interfaces/product.models';
-import type { EditProductState, SaveState } from './edit-product-page.models';
+import type { EditProductState, SaveState } from '../models/edit-product-page.models';
 
 // Pantalla 03b en edición (/admin/productos/:id/editar, HU-06): carga el producto completo y
 // las categorías, usa product-form en modo edición y guarda con ProductSaveService. Guardar sin

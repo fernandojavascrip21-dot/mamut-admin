@@ -27,7 +27,7 @@ export const routes: Routes = [
     loadComponent: () => import('@pages/admin-page/admin-page.component').then((m) => m.AdminPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['admin'] },
-    loadChildren: () => import('@pages/admin-page/admin.routes').then((m) => m.ADMIN_ROUTES),
+    loadChildren: () => import('@pages/routes/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
   {
     path: 'vendedor',
@@ -35,7 +35,7 @@ export const routes: Routes = [
       import('@pages/seller-page/seller-page.component').then((m) => m.SellerPageComponent),
     canMatch: [roleGuard],
     data: { roles: ['vendedor'] },
-    loadChildren: () => import('@pages/seller-page/seller.routes').then((m) => m.SELLER_ROUTES),
+    loadChildren: () => import('@pages/routes/seller.routes').then((m) => m.SELLER_ROUTES),
   },
   // Cualquier URL desconocida cae al login (no estaba en el spec, pero sin esto una ruta mal
   // escrita deja al usuario viendo una pantalla en blanco).

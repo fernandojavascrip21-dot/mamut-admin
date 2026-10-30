@@ -7,7 +7,7 @@ import { ProductSaveService } from '@products/services/product-save.service';
 import { ProductsService } from '@products/services/products.service';
 import { ToastService } from '@shared/toast.service';
 import type { Category, Product, ProductFormValue, SaveResult } from '@products/interfaces/product.models';
-import type { CreateProductState } from './create-product-page.models';
+import type { CreateProductState } from '../models/create-product-page.models';
 
 // Pantalla 03b en alta (/admin/productos/nuevo, HU-04): carga las categorías, recibe el valor
 // de product-form y lo guarda con ProductSaveService. Termina en «Producto registrado», desde

@@ -13,8 +13,8 @@ import { notBlank } from '@shared/validators';
 import type { CreateSellerInput, CreateSellerResult, Seller } from '@sellers/interfaces/seller.models';
 import {
   BACKEND_MESSAGE_FIELD, DUPLICATE_EMAIL, FIELD_MESSAGES, MIN_PASSWORD, OFFLINE_MESSAGE,
-} from './create-seller-page.constants';
-import type { CreateSellerState, SellerField } from './create-seller-page.models';
+} from '../constants/create-seller-page.constants';
+import type { CreateSellerState, SellerField } from '../models/create-seller-page.models';
 
 // Pantalla 15 (/admin/vendedores/nuevo, HU-08): alta de un vendedor con nombre, teléfono, correo
 // para entrar (el «usuario», spec T-10) y contraseña temporal. Termina en «Vendedor dado de
