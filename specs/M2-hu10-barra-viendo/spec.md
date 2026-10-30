@@ -1,6 +1,6 @@
 # Spec técnico — HU-10 · Elegir a quién estoy viendo (barra «Viendo»)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M2-hu09-ver-mis-vendedores (`specs/M2-hu09-ver-mis-vendedores/spec.md`) — `GET /api/sellers` y el detalle `/admin/vendedores/:id`; M2-hu08-alta-vendedor (`specs/M2-hu08-alta-vendedor/spec.md`) — alta de vendedor y `SellerSaveService`; M0-base (`specs/M0-base/spec.md`) — `admin-shell`, `seller-shell` y sesión
 > **Fecha:** 2026-10-29
 > **Objetivo:** que el administrador elija en una barra «Viendo», bajo el menú de todo `/admin`, si está viendo la bodega o a un vendedor activo, y que esa elección se mantenga entre pantallas y al recargar.
@@ -11,6 +11,7 @@ Fuentes:
 - **Canvas de mockups:** artboards `AdminInicio` y `AdminInicioLuis` (franja «Viendo» con un `<select>` que cambia de color con un vendedor elegido).
 - **Código:** `core/layout/admin-shell`, `core/layout/top-nav` (patrón de componente presentacional de `core/layout`), `core/toast/` (patrón de servicio de `core`), `core/auth/services/auth.service.ts` (`currentUser`, SSR con `isPlatformBrowser`), `features/sellers/` (`SellersService.list()`, `sellers-page`, `seller-detail-page`, `SellerSaveService`, `sortSellersByName`).
 - **Decisiones del usuario del 2026-10-29** (§8).
+- **Cambio posterior (2026-10-30, `M2-t15-rediseno-navbar`):** en escritorio (≥1024px) la barra «Viendo» va dentro de la barra lateral, bajo la marca, y la barra lateral se puede ocultar. En celular y tablet sigue bajo el menú. Su comportamiento, textos y API (`app-viewing-bar`) no cambian.
 
 ## 1. Alcance
 
@@ -140,21 +141,25 @@ export function sortByName<T extends { fullName: string }>(items: readonly T[]):
 
 Por criterio de `SCRUM-34`:
 
-- [ ] **1.** Como administrador, en «Stock», «Productos» y «Vendedores» (y también en «Carrito» y «Corte») se ve la barra «Viendo» con «Yo · bodega» y cada vendedor activo, en orden alfabético. Los desactivados no aparecen.
-- [ ] **2.** Con un vendedor elegido, cambiar de pantalla dentro de `/admin` deja la barra en ese vendedor. Recargar la página también.
-- [ ] **3 (parcial).** La selección queda disponible en `ViewingService.selectedSellerId()` para «Stock general». *Que «Stock general» muestre la bodega y el total con «Yo», y solo lo del vendedor con un vendedor, se verifica en HU-13 (`SCRUM-37`).*
-- [ ] **4.** Un vendedor recién dado de alta aparece en la barra sin recargar la página.
-- [ ] **5.** Como vendedor no se ve la barra «Viendo», y la app no pide `GET /api/sellers`.
+- [x] **1.** Como administrador, en «Stock», «Productos» y «Vendedores» (y también en «Carrito» y «Corte») se ve la barra «Viendo» con «Yo · bodega» y cada vendedor activo, en orden alfabético. Los desactivados no aparecen.
+- [x] **2.** Con un vendedor elegido, cambiar de pantalla dentro de `/admin` deja la barra en ese vendedor. Recargar la página también.
+- [x] **3 (parcial).** La selección queda disponible en `ViewingService.selectedSellerId()` para «Stock general». *Que «Stock general» muestre la bodega y el total con «Yo», y solo lo del vendedor con un vendedor, se verifica en HU-13 (`SCRUM-37`).*
+- [x] **4.** Un vendedor recién dado de alta aparece en la barra sin recargar la página.
+- [x] **5.** Como vendedor no se ve la barra «Viendo», y la app no pide `GET /api/sellers`.
 
 Además:
 
-- [ ] Cerrar sesión deja la barra en «Yo · bodega» al volver a entrar, y quita `mamut.viewing.sellerId` de `sessionStorage`.
-- [ ] Un id guardado que ya no está en la lista (vendedor desactivado) regresa a «Yo · bodega» al cargar.
-- [ ] Mientras la lista carga, el `<select>` está deshabilitado en «Yo · bodega». Si falla, solo ofrece «Yo · bodega» y «Reintentar» vuelve a pedir la lista.
-- [ ] En «Vendedores»: con un vendedor elegido se abre su detalle; elegir otro abre el suyo; elegir «Yo · bodega» regresa a la lista; abrir un detalle desde la lista pone a ese vendedor en la barra; un detalle `404` no cambia la barra.
-- [ ] Fuera de «Vendedores», cambiar la barra no cambia la URL.
-- [ ] El render de servidor no falla por `sessionStorage` (`ng build` con SSR pasa y la app carga sin errores).
-- [ ] Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan. El backend no cambia.
+- [x] Cerrar sesión deja la barra en «Yo · bodega» al volver a entrar, y quita `mamut.viewing.sellerId` de `sessionStorage`.
+- [x] Un id guardado que ya no está en la lista (vendedor desactivado) regresa a «Yo · bodega» al cargar.
+- [x] Mientras la lista carga, el `<select>` está deshabilitado en «Yo · bodega». Si falla, solo ofrece «Yo · bodega» y «Reintentar» vuelve a pedir la lista.
+- [x] En «Vendedores»: con un vendedor elegido se abre su detalle; elegir otro abre el suyo; elegir «Yo · bodega» regresa a la lista; abrir un detalle desde la lista pone a ese vendedor en la barra; un detalle `404` no cambia la barra.
+- [x] Fuera de «Vendedores», cambiar la barra no cambia la URL.
+- [x] El render de servidor no falla por `sessionStorage` (`ng build` con SSR pasa y la app carga sin errores).
+- [x] Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan. El backend no cambia.
+
+**Verificación automática (2026-10-30):** `ng test` 336/336 (las suites de §7: 18 archivos, 100 pruebas), `ng build` con SSR y `npm run check:architecture` pasan.
+
+**Inspección manual (2026-10-30, por el usuario):** hecha con la barra «Viendo» dentro de la barra lateral de escritorio; `SCRUM-34` pasó a «Finalizada» en Jira.
 
 **Verificación manual (2026-10-29, base local con el seed):**
 - La barra sale en Stock, Productos y Vendedores con «Yo · bodega», Valeria Vendedora y Víctor Vendedor; Iván Inactivo no aparece.
