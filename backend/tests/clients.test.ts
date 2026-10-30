@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { GET as getClientRoute, DELETE as deleteClientRoute, PATCH as patchClientRoute } from '../app/api/clients/[id]/route'
-import { POST as deactivateRoute } from '../app/api/clients/[id]/deactivate/route'
-import { POST as reactivateRoute } from '../app/api/clients/[id]/reactivate/route'
-import { GET as listClientsRoute, POST as createClientRoute } from '../app/api/clients/route'
-import { db, sql } from '../src/db/client'
-import { clients, debtors, profiles } from '../src/db/schema'
+import { GET as getClientRoute, DELETE as deleteClientRoute, PATCH as patchClientRoute } from '@api/clients/[id]/route'
+import { POST as deactivateRoute } from '@api/clients/[id]/deactivate/route'
+import { POST as reactivateRoute } from '@api/clients/[id]/reactivate/route'
+import { GET as listClientsRoute, POST as createClientRoute } from '@api/clients/route'
+import { db, sql } from '@db/client'
+import { clients, debtors, profiles } from '@db/schema'
 import { cleanupTestData, createTestUser, hasServiceKey, TEST_PREFIX, type TestUser } from './helpers/users'
 
 const req = (method: string, token?: string, body?: unknown) =>

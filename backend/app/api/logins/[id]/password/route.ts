@@ -1,6 +1,6 @@
-import { setLoginPassword } from '../../../../../src/accounts'
-import { requireRole } from '../../../../../src/auth'
-import { handle, parseUuid, readJson, requireString } from '../../../../../src/lib/handler'
+import { setLoginPassword } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, parseUuid, readJson, requireString } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

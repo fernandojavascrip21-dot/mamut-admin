@@ -1,6 +1,6 @@
-import { createSeller } from '../../../src/accounts'
-import { requireRole } from '../../../src/auth'
-import { handle, readJson, requireString } from '../../../src/lib/handler'
+import { createSeller } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, readJson, requireString } from '@lib/handler'
 
 // Solo un administrador da de alta vendedores (HU-08); un vendedor recibe 403.
 export const POST = handle(async (request) => {

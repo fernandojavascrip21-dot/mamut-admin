@@ -19,7 +19,14 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@db/*": ["./src/db/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@auth": ["./src/auth"],
+      "@accounts": ["./src/accounts"],
+      "@products": ["./src/products"],
+      "@categories": ["./src/categories"],
+      "@stock": ["./src/stock"],
+      "@api/*": ["./app/api/*"]
     }
   },
   "include": [

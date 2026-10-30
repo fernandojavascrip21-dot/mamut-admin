@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { POST as loginRoute } from '../app/api/auth/login/route'
-import { POST as deactivateRoute } from '../app/api/admins/[id]/deactivate/route'
-import { POST as reactivateRoute } from '../app/api/admins/[id]/reactivate/route'
-import { GET as listAdminsRoute, POST as createAdminRoute } from '../app/api/admins/route'
-import { checkAdminDeactivation } from '../src/accounts/admins'
-import { db, sql } from '../src/db/client'
-import { profiles } from '../src/db/schema'
+import { POST as loginRoute } from '@api/auth/login/route'
+import { POST as deactivateRoute } from '@api/admins/[id]/deactivate/route'
+import { POST as reactivateRoute } from '@api/admins/[id]/reactivate/route'
+import { GET as listAdminsRoute, POST as createAdminRoute } from '@api/admins/route'
+import { checkAdminDeactivation } from '@accounts'
+import { db, sql } from '@db/client'
+import { profiles } from '@db/schema'
 import {
   cleanupTestData,
   createTestClient,

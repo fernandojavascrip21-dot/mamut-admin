@@ -1,6 +1,6 @@
-import { setLoginActive } from '../../../../../src/accounts'
-import { requireRole } from '../../../../../src/auth'
-import { handle, parseUuid } from '../../../../../src/lib/handler'
+import { setLoginActive } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, parseUuid } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

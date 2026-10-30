@@ -1,7 +1,7 @@
-import { uploadProductPhoto } from '../../../../src/products'
-import { requireRole } from '../../../../src/auth'
-import { validation } from '../../../../src/lib/errors'
-import { handle } from '../../../../src/lib/handler'
+import { uploadProductPhoto } from '@products'
+import { requireRole } from '@auth'
+import { validation } from '@lib/errors'
+import { handle } from '@lib/handler'
 
 export const POST = handle(async (request) => {
   await requireRole(request, 'admin')

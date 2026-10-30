@@ -1,6 +1,6 @@
-import { reactivateAdmin } from '../../../../../src/accounts'
-import { requireRole } from '../../../../../src/auth'
-import { handle, parseUuid } from '../../../../../src/lib/handler'
+import { reactivateAdmin } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, parseUuid } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

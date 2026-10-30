@@ -1,8 +1,8 @@
 import { and, asc, eq } from 'drizzle-orm'
-import { db } from '../db/client'
-import { profiles } from '../db/schema'
-import { lockRows, withTransaction } from '../db/transaction'
-import { AppError, conflict, notFound } from '../lib/errors'
+import { db } from '@db/client'
+import { profiles } from '@db/schema'
+import { lockRows, withTransaction } from '@db/transaction'
+import { AppError, conflict, notFound } from '@lib/errors'
 import { createAccount, toView, type AccountView } from './accounts'
 
 export type AdminView = AccountView

@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { getAuthContext } from '../src/auth/context'
-import { requireRole } from '../src/auth/guards'
-import { sql } from '../src/db/client'
-import { AppError } from '../src/lib/errors'
+import { getAuthContext, requireRole } from '@auth'
+import { sql } from '@db/client'
+import { AppError } from '@lib/errors'
 import {
   cleanupTestData,
   createTestClient,

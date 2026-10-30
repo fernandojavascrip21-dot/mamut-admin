@@ -1,5 +1,5 @@
-import { logout, requireAuth } from '../../../../src/auth'
-import { handle } from '../../../../src/lib/handler'
+import { logout, requireAuth } from '@auth'
+import { handle } from '@lib/handler'
 
 export const POST = handle(async (request) => {
   await requireAuth(request)

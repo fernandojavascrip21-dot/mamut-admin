@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { corsHeaders } from './src/lib/cors'
+import { corsHeaders } from '@lib/cors'
 
 // Aplica CORS a toda la API: responde el preflight y agrega las cabeceras a las respuestas.
 // Un origen que no está en ALLOWED_ORIGINS no recibe cabeceras CORS (el navegador lo bloquea).

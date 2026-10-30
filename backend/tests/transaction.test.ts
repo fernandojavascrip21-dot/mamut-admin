@@ -1,8 +1,8 @@
 import { eq, like } from 'drizzle-orm'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
-import { db, sql } from '../src/db/client'
-import { categories } from '../src/db/schema'
-import { lockRows, withTransaction } from '../src/db/transaction'
+import { db, sql } from '@db/client'
+import { categories } from '@db/schema'
+import { lockRows, withTransaction } from '@db/transaction'
 
 // Datos de prueba con prefijo identificable; se limpian antes y después.
 const PREFIX = 'test-tx-'

@@ -1,9 +1,9 @@
 import { asc, eq } from 'drizzle-orm'
-import { db } from '../db/client'
-import { isForeignKeyViolation, isUniqueViolation } from '../db/errors'
-import { clients, profiles } from '../db/schema'
-import { withTransaction } from '../db/transaction'
-import { conflict, notFound, validation } from '../lib/errors'
+import { db } from '@db/client'
+import { isForeignKeyViolation, isUniqueViolation } from '@db/errors'
+import { clients, profiles } from '@db/schema'
+import { withTransaction } from '@db/transaction'
+import { conflict, notFound, validation } from '@lib/errors'
 import { DUPLICATE_CLIENT_NAME } from './constants'
 
 export interface ClientInput {

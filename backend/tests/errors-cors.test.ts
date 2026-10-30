@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { proxy } from '../proxy'
-import { corsHeaders } from '../src/lib/cors'
-import { AppError, conflict, forbidden, notFound, toResponse, unauthorized, validation } from '../src/lib/errors'
+import { corsHeaders } from '@lib/cors'
+import { AppError, conflict, forbidden, notFound, toResponse, unauthorized, validation } from '@lib/errors'
 
 describe('errores', () => {
   it.each([

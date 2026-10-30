@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { AuthContext } from '../src/auth/context'
-import { assertRole, requireOwnClient } from '../src/auth/guards'
-import { AppError } from '../src/lib/errors'
+import type { AuthContext } from '@auth'
+import { assertRole, requireOwnClient } from '@auth'
+import { AppError } from '@lib/errors'
 
 const admin: AuthContext = { userId: 'a', role: 'admin', clientId: null, fullName: 'Admin' }
 const client: AuthContext = { userId: 'c', role: 'client', clientId: 7, fullName: 'Cliente' }

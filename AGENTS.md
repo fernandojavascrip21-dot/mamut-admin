@@ -113,7 +113,7 @@ src/stock/       module: movements.ts (insertMovements: the only way inventory c
 tests/           Vitest against the real DB; architecture.test.ts checks module boundaries
 ```
 
-- **Module boundaries:** each business module exposes its API in `src/<module>/index.ts`; routes and other modules import only that index, never its files; `src/db`/`src/lib` are imported directly and never depend on a module (`tests/architecture.test.ts`). A new area is a new module with `index.ts` + `constants.ts`; a use case spanning modules in one transaction lives in the owning module and passes its `tx` to the others' public functions.
+- **Module boundaries and aliases:** each business module exposes its API in `src/<module>/index.ts`. Between areas, imports use the `backend/tsconfig.json` aliases, like the frontend: `@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock` (a module alias points only at its index, so its internals stay private) and `@api/*`. Inside an area, imports stay relative. `src/db`/`src/lib` never depend on a module, and `src/` never imports `app/` (`tests/architecture.test.ts`). Vitest reads the same aliases (`resolve.tsconfigPaths`). A new area is a new module with `index.ts` + `constants.ts` + its alias. A use case spanning modules in one transaction lives in the owning module and passes its `tx` to the others' public functions.
 
 - **No business logic in routes** — routes validate and delegate to `src/`.
 - **Auth is re-checked on every request**: `getAuthContext` loads `profiles` fresh so deactivation takes effect immediately. Never trust JWT claims for role/active status.

@@ -1,7 +1,7 @@
-import { deleteClient, getClient, updateClient } from '../../../../src/accounts'
-import { requireRole } from '../../../../src/auth'
-import { validation } from '../../../../src/lib/errors'
-import { handle, optionalText, parseId, readJson } from '../../../../src/lib/handler'
+import { deleteClient, getClient, updateClient } from '@accounts'
+import { requireRole } from '@auth'
+import { validation } from '@lib/errors'
+import { handle, optionalText, parseId, readJson } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

@@ -1,7 +1,7 @@
-import { createLogin, listLogins } from '../../../../../src/accounts'
-import { requireRole } from '../../../../../src/auth'
-import { validation } from '../../../../../src/lib/errors'
-import { handle, parseId, readJson, requireString } from '../../../../../src/lib/handler'
+import { createLogin, listLogins } from '@accounts'
+import { requireRole } from '@auth'
+import { validation } from '@lib/errors'
+import { handle, parseId, readJson, requireString } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

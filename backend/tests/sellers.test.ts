@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { POST as loginRoute } from '../app/api/auth/login/route'
-import { POST as createSellerRoute } from '../app/api/sellers/route'
-import { normalizePhone } from '../src/accounts/sellers'
-import { db, sql } from '../src/db/client'
-import { profiles } from '../src/db/schema'
-import { supabaseAdmin } from '../src/lib/supabase'
+import { POST as loginRoute } from '@api/auth/login/route'
+import { POST as createSellerRoute } from '@api/sellers/route'
+import { normalizePhone } from '@accounts'
+import { db, sql } from '@db/client'
+import { profiles } from '@db/schema'
+import { supabaseAdmin } from '@lib/supabase'
 import {
   cleanupTestData,
   createTestUser,

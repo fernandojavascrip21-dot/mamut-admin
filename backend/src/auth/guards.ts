@@ -1,4 +1,4 @@
-import { forbidden } from '../lib/errors'
+import { forbidden } from '@lib/errors'
 import { getAuthContext, type AuthContext } from './context'
 
 // Exige sesión válida (perfil existente y activo).

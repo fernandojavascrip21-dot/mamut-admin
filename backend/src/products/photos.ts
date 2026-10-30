@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '../lib/supabase'
-import { validation } from '../lib/errors'
+import { supabaseAdmin } from '@lib/supabase'
+import { validation } from '@lib/errors'
 import { BUCKET, MAX_BYTES } from './constants'
 
 // Sube la foto al bucket público con la llave de servicio (evade RLS por diseño): la subida
