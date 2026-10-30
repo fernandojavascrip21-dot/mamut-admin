@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerSaveService } from './seller-save.service';
 import { API_BASE_URL } from '@core/api-base-url';
 import type { CreateSellerInput, CreateSellerResult, Seller } from '../interfaces/seller.models';
@@ -13,10 +14,17 @@ describe('SellerSaveService', () => {
   let service: SellerSaveService;
   let httpMock: HttpTestingController;
   let results: CreateSellerResult[];
+  let viewing: { reload: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
+    viewing = { reload: vi.fn() };
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), SellerSaveService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        SellerSaveService,
+        { provide: ViewingService, useValue: viewing },
+      ],
     });
     service = TestBed.inject(SellerSaveService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -32,6 +40,16 @@ describe('SellerSaveService', () => {
     expect(req.request.body).toEqual(INPUT);
     req.flush(SELLER);
     expect(results).toEqual([{ ok: true, seller: SELLER }]);
+  });
+
+  it('un alta exitosa recarga la lista de la barra «Viendo»', () => {
+    httpMock.expectOne(SELLERS_URL).flush(SELLER);
+    expect(viewing.reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('un alta fallida no recarga la barra', () => {
+    httpMock.expectOne(SELLERS_URL).error(new ProgressEvent('error'), { status: 0 });
+    expect(viewing.reload).not.toHaveBeenCalled();
   });
 
   it('un 409 es correo repetido', () => {

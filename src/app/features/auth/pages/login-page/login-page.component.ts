@@ -7,10 +7,12 @@ import { AuthService } from '@core/auth/services/auth.service';
 import { isOffline } from '@shared/utils/http-errors';
 import { notBlank } from '@shared/validators/validators';
 import type { LoginFormGroup, LoginPayload, LoginState } from '../../models/login-page.models';
+import { LoginBackgroundComponent } from './ui/login-background/login-background.component';
 
 // Pantalla 01 Inicio de sesión (RF-01, RF-02, RNF-04). Estados: ver specs/M0-base/spec.md §3.1.
+// El fondo animado (columnas de stock) es decorativo y vive en ui/login-background.
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LoginBackgroundComponent],
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
 })

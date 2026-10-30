@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { SellerShellComponent } from './seller-shell.component';
 import type { AuthContext } from '@core/auth/interfaces/auth.models';
@@ -45,5 +45,11 @@ describe('SellerShellComponent', () => {
   it('muestra el carrito como ícono aparte en la cabecera', () => {
     const cart = fixture.nativeElement.querySelector('a[aria-label="Carrito"]') as HTMLAnchorElement;
     expect(cart.getAttribute('href')).toBe('/carrito');
+  });
+
+  it('no muestra la barra «Viendo» ni pide la lista de vendedores', () => {
+    expect(fixture.nativeElement.querySelector('app-viewing-bar')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Viendo');
+    TestBed.inject(HttpTestingController).verify();
   });
 });

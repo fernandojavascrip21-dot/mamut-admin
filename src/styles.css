@@ -30,6 +30,20 @@
   --font-display: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
+  /* Columnas del fondo del login (features/auth/pages/login-page/ui/login-background): suben y
+     bajan como niveles de stock. scaleY y no height, para no recalcular el layout en cada cuadro.
+     Cada columna sobrescribe duración y retraso en línea. */
+  --animate-stock-level: stock-level 8s ease-in-out infinite alternate;
+
+  @keyframes stock-level {
+    from {
+      transform: scaleY(0.55);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
   /* Entrada de app-toast (shared/components/toast). */
   @keyframes toast-in {
     from {

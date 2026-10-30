@@ -54,6 +54,12 @@ describe('LoginPageComponent', () => {
     fixture.detectChanges();
   }
 
+  it('muestra el fondo animado de columnas de stock, oculto para lectores de pantalla', () => {
+    const background = fixture.nativeElement.querySelector('app-login-background') as HTMLElement;
+    expect(background).not.toBeNull();
+    expect(background.querySelector('[aria-hidden="true"]')).not.toBeNull();
+  });
+
   it('se crea', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });

@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { API_BASE_URL } from '@core/api-base-url';
 import { AdminShellComponent } from './admin-shell.component';
 import type { AuthContext } from '@core/auth/interfaces/auth.models';
 
@@ -22,6 +23,7 @@ describe('AdminShellComponent', () => {
 
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('se crea', () => {
@@ -44,5 +46,17 @@ describe('AdminShellComponent', () => {
   it('muestra el carrito como ícono aparte en la cabecera', () => {
     const cart = fixture.nativeElement.querySelector('a[aria-label="Carrito"]') as HTMLAnchorElement;
     expect(cart.getAttribute('href')).toBe('/carrito');
+  });
+
+  it('muestra la barra «Viendo» y pide la lista de vendedores una vez', () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+    httpMock.expectOne(`${API_BASE_URL}/api/sellers`).flush([{ id: 'v-1', fullName: 'Víctor Vendedor', units: 6 }]);
+    fixture.detectChanges();
+
+    const bar = fixture.nativeElement.querySelector('app-viewing-bar') as HTMLElement;
+    expect(bar).not.toBeNull();
+    const options = Array.from(bar.querySelectorAll('option')).map((o) => o.textContent?.trim());
+    expect(options).toEqual(['Yo · bodega', 'Víctor Vendedor']);
+    httpMock.verify();
   });
 });

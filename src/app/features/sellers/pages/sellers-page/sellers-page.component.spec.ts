@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
+import { signal } from '@angular/core';
+import { ViewingService } from '@core/viewing/viewing.service';
 import { SellersPageComponent } from './sellers-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
 import type { SellerSummary } from '../../interfaces/seller.models';
@@ -16,13 +18,23 @@ const SELLERS: SellerSummary[] = [
 describe('SellersPageComponent', () => {
   let fixture: ComponentFixture<SellersPageComponent>;
   let httpMock: HttpTestingController;
+  let router: Router;
+  const selectedSellerId = signal<string | null>(null);
 
   beforeEach(async () => {
+    selectedSellerId.set(null);
     await TestBed.configureTestingModule({
       imports: [SellersPageComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ViewingService, useValue: { selectedSellerId } },
+      ],
     }).compileComponents();
 
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     fixture = TestBed.createComponent(SellersPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -95,5 +107,25 @@ describe('SellersPageComponent', () => {
     await settle();
 
     expect(fixture.nativeElement.querySelectorAll('app-seller-row')).toHaveLength(2);
+  });
+
+  describe('con la barra «Viendo»', () => {
+    it('con «Yo · bodega» se queda en la lista', async () => {
+      await load(SELLERS);
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('con un vendedor elegido abre su detalle, reemplazando la URL', async () => {
+      selectedSellerId.set('a');
+      await load(SELLERS);
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/vendedores/a', { replaceUrl: true });
+    });
+
+    it('si la barra confirma la selección más tarde, abre el detalle en ese momento', async () => {
+      await load(SELLERS);
+      selectedSellerId.set('b');
+      await settle();
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/vendedores/b', { replaceUrl: true });
+    });
   });
 });

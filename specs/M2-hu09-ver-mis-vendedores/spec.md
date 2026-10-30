@@ -1,6 +1,6 @@
 # Spec técnico — HU-09 · Ver mis vendedores
 
-> **Estado:** aPROVADO
+> **Estado:** Implementado
 > **Depende de:** M2-hu08-alta-vendedor (`specs/M2-hu08-alta-vendedor/spec.md`) — `/admin/vendedores`, `features/sellers/` y `POST /api/sellers`; M2-t10-base-vendedores (`specs/M2-t10-base-vendedores/spec.md`) — `profiles.phone` y `vendor_stock`; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `vendor_stock.qty` lo mantiene el trigger a partir de los movimientos
 > **Fecha:** 2026-10-29
 > **Objetivo:** que el administrador vea en «Mis vendedores» a cada vendedor activo con sus piezas en total, y que al tocar uno vea su stock por producto.

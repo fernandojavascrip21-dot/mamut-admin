@@ -1,17 +1,22 @@
-import { Component, computed, inject } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, computed, effect, inject } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
+import { ViewingService } from '@core/viewing/viewing.service';
 import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
+import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
 import type { SellerDetail } from '../../interfaces/seller.models';
 import type { SellerDetailState } from '../../models/seller-detail-page.models';
 import { unitsLabel } from '../../rules/seller.rules';
 import { SellersService } from '../../services/sellers.service';
 
 // Detalle de un vendedor (/admin/vendedores/:id, HU-09): sus datos, su total y su stock por
-// producto, en solo lectura. «Dejar» y «Retirar» se agregan aquí en HU-11 y HU-12.
+// producto, en solo lectura. «Dejar» y «Retirar» se agregan aquí en HU-11 y HU-12. Sigue a la
+// barra «Viendo» (HU-10): abrir el detalle elige a ese vendedor, y elegir a otro en la barra
+// abre el suyo (o la lista, con «Yo · bodega»).
 @Component({
   imports: [RouterLink, PhonePipe, SellerStockLineComponent],
   selector: 'app-seller-detail-page',
@@ -20,12 +25,18 @@ import { SellersService } from '../../services/sellers.service';
 export class SellerDetailPageComponent {
   private readonly sellersService = inject(SellersService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly viewing = inject(ViewingService);
 
-  // El backend valida el id (un id que no es UUID da 404, igual que uno inexistente).
-  private readonly sellerId = this.route.snapshot.paramMap.get('id') ?? '';
+  // El backend valida el id (un id que no es UUID da 404, igual que uno inexistente). Se lee
+  // de paramMap y no del snapshot porque, al elegir a otro vendedor en la barra, el router
+  // reusa esta misma página con otro :id.
+  private readonly sellerId = toSignal(this.route.paramMap.pipe(map((params) => params.get('id') ?? '')), {
+    initialValue: this.route.snapshot.paramMap.get('id') ?? '',
+  });
 
   readonly sellerResource = rxResource({
-    params: () => this.sellerId,
+    params: () => this.sellerId(),
     stream: ({ params: id }) => this.sellersService.get(id),
   });
   readonly state = computed<SellerDetailState>(() => {
@@ -38,6 +49,20 @@ export class SellerDetailPageComponent {
   );
   readonly initials = computed(() => initialsOf(this.seller()?.fullName ?? ''));
   readonly units = computed(() => unitsLabel(this.seller()?.units ?? 0));
+
+  constructor() {
+    // Un detalle que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.
+    effect(() => {
+      const seller = this.seller();
+      if (this.state() === 'ready' && seller) this.viewing.select(seller.id);
+    });
+
+    // Solo lo que el administrador elige en la barra navega (no el select() de arriba), para
+    // que página y barra no se persigan en bucle.
+    this.viewing.picked.pipe(takeUntilDestroyed()).subscribe((sellerId) => {
+      void this.router.navigateByUrl(sellerId === null ? SELLERS_LIST_URL : `${SELLERS_LIST_URL}/${sellerId}`);
+    });
+  }
 
   // Botón «Reintentar» del error de carga: vuelve a pedir al vendedor.
   retry(): void {

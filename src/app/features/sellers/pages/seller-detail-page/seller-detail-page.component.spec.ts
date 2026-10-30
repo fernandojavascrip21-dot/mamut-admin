@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
 import type { SellerDetail } from '../../interfaces/seller.models';
@@ -25,17 +27,31 @@ const SELLER: SellerDetail = {
 describe('SellerDetailPageComponent', () => {
   let fixture: ComponentFixture<SellerDetailPageComponent>;
   let httpMock: HttpTestingController;
+  let router: Router;
+  let picked: Subject<string | null>;
+  let viewing: { picked: Subject<string | null>; select: ReturnType<typeof vi.fn> };
+  let paramMap: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
   beforeEach(async () => {
+    picked = new Subject<string | null>();
+    viewing = { picked, select: vi.fn() };
+    paramMap = new BehaviorSubject(convertToParamMap({ id: ID }));
     await TestBed.configureTestingModule({
       imports: [SellerDetailPageComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: ID }) } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ id: ID }) }, paramMap: paramMap.asObservable() },
+        },
+        { provide: ViewingService, useValue: viewing },
       ],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
     fixture = TestBed.createComponent(SellerDetailPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
@@ -109,5 +125,38 @@ describe('SellerDetailPageComponent', () => {
     httpMock.expectOne(SELLER_URL).flush(SELLER);
     await settle();
     expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+  });
+
+  describe('con la barra «Viendo»', () => {
+    it('con el detalle cargado elige a ese vendedor en la barra', async () => {
+      await load(SELLER);
+      expect(viewing.select).toHaveBeenCalledWith(ID);
+    });
+
+    it('con un 404 no cambia la barra', async () => {
+      fixture.detectChanges();
+      httpMock.expectOne(SELLER_URL).flush({}, { status: 404, statusText: 'Not Found' });
+      await settle();
+      expect(viewing.select).not.toHaveBeenCalled();
+    });
+
+    it('elegir a otro vendedor abre su detalle, y «Yo · bodega» regresa a la lista', async () => {
+      await load(SELLER);
+      picked.next('otro-id');
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/vendedores/otro-id');
+      picked.next(null);
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/vendedores');
+    });
+
+    it('al cambiar el :id en la misma página pide al vendedor nuevo', async () => {
+      await load(SELLER);
+      const otherId = '3f2c8a1e-0000-4000-8000-000000000002';
+      paramMap.next(convertToParamMap({ id: otherId }));
+      fixture.detectChanges();
+      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
+      await settle();
+      expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Valeria');
+      expect(viewing.select).toHaveBeenLastCalledWith(otherId);
+    });
   });
 });

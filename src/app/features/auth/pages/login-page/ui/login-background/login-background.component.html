@@ -1,0 +1,22 @@
+<!-- Opacidades por segmento (tinta 6 %, ámbar y café 12 %, arena 20 %): así el texto gris del
+     login sigue con contraste de 4.5:1 o más aunque quede encima de una columna. -->
+<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+  <div class="absolute inset-x-0 bottom-0 flex h-[45%] items-end gap-[3px] px-[3px]">
+    @for (bar of bars; track $index) {
+      <div
+        class="stock-bar flex-1 origin-bottom animate-stock-level flex-col-reverse gap-[3px] motion-reduce:animate-none"
+        [class]="bar.showOnMobile ? 'flex' : 'hidden sm:flex'"
+        [style.height.%]="bar.heightPercent"
+        [style.animation-duration.s]="bar.durationSeconds"
+        [style.animation-delay.s]="bar.delaySeconds"
+      >
+        <span class="segment bg-ink/6" [style.flex-grow]="bar.segments[0]"></span>
+        <span class="segment bg-accent/12" [style.flex-grow]="bar.segments[1]"></span>
+        <span class="segment bg-accent-2/12" [style.flex-grow]="bar.segments[2]"></span>
+        <span class="segment rounded-t-md bg-faint/20" [style.flex-grow]="bar.segments[3]"></span>
+      </div>
+    }
+  </div>
+  <!-- Desvanece la parte alta de las columnas hacia el fondo de la página. -->
+  <div class="absolute inset-x-0 bottom-0 h-[45%] bg-linear-to-b from-page to-transparent to-60%"></div>
+</div>

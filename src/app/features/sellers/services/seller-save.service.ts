@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
+import { ViewingService } from '@core/viewing/viewing.service';
 import { httpErrorMessage, httpStatus } from '@shared/utils/http-errors';
 import { SellersService } from './sellers.service';
 import type { CreateSellerInput, CreateSellerResult } from '../interfaces/seller.models';
@@ -10,9 +11,13 @@ import type { CreateSellerInput, CreateSellerResult } from '../interfaces/seller
 @Injectable()
 export class SellerSaveService {
   private readonly sellersService = inject(SellersService);
+  private readonly viewing = inject(ViewingService);
 
+  // Un alta exitosa recarga la lista de la barra «Viendo», para que el vendedor nuevo ya esté
+  // ahí sin recargar la página (HU-10, criterio 4).
   create(input: CreateSellerInput): Observable<CreateSellerResult> {
     return this.sellersService.create(input).pipe(
+      tap(() => this.viewing.reload()),
       map((seller): CreateSellerResult => ({ ok: true, seller })),
       catchError((error: unknown) => of(this.toFailure(error))),
     );

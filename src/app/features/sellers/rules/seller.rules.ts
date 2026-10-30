@@ -1,4 +1,5 @@
 import { PHONE_SEPARATORS, TEN_DIGITS } from '@shared/constants/phone.constants';
+import { sortByName } from '@shared/utils/sort-by-name';
 import type { SellerSummary } from '../interfaces/seller.models';
 
 // Deja el teléfono solo con dígitos si lo que escribió la persona son 10 dígitos con espacios,
@@ -10,10 +11,10 @@ export function normalizePhone(raw: string): string | null {
   return TEN_DIGITS.test(digits) ? digits : null;
 }
 
-// Orden de «Mis vendedores» (HU-09): alfabético por nombre sin distinguir mayúsculas ni acentos
-// («Ángel» junto a «Ana»). Devuelve una copia: no reordena la lista que llegó del backend.
+// Orden de «Mis vendedores» (HU-09): alfabético sin acentos, con la misma regla que la barra
+// «Viendo» (`shared/utils/sort-by-name.ts`). Devuelve una copia.
 export function sortSellersByName(sellers: SellerSummary[]): SellerSummary[] {
-  return [...sellers].sort((a, b) => a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' }));
+  return sortByName(sellers);
 }
 
 // Texto de piezas de un vendedor: «1 pieza» o «N piezas» (también «0 piezas»).
