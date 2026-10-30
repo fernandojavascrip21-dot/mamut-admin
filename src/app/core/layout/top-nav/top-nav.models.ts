@@ -1,4 +1,4 @@
-export type NavIcon = 'package' | 'tag' | 'bag' | 'receipt' | 'users';
+export type NavIcon = 'package' | 'tag' | 'bag' | 'receipt' | 'users' | 'cart' | 'panel-close' | 'panel-open';
 
 export interface NavMenuItem {
   path: string;

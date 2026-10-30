@@ -1,4 +1,4 @@
-<div class="flex min-h-screen flex-col bg-page">
+<div class="flex min-h-screen flex-col bg-page lg:flex-row">
   <app-top-nav [menu]="menu" [cart]="cart" ariaLabel="Menú del administrador">
     <app-viewing-bar
       [sellers]="viewing.sellers()"
@@ -9,8 +9,10 @@
     />
   </app-top-nav>
 
-  <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
-    <div class="mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col">
+  <!-- Con la barra oculta, el botón flotante de «mostrar» ocupa la esquina: se deja aire arriba. -->
+  <main
+    class="flex min-w-0 flex-1 flex-col overflow-y-auto transition-[padding] duration-300 ease-out motion-reduce:transition-none" [class.lg:pt-12]="sidebar.collapsed()">
+    <div class="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col">
       <router-outlet></router-outlet>
     </div>
   </main>
