@@ -76,6 +76,10 @@ describe('ProductFormComponent', () => {
   describe('en alta', () => {
     beforeEach(() => create('create'));
 
+    it('el input de foto se ve y se alcanza con Tab', () => {
+      expect(el<HTMLInputElement>('#photo').tabIndex).toBe(0);
+    });
+
     it('con campos vacíos marca el error de cada uno, enfoca el primero y no emite', () => {
       submit();
       expect(fixture.nativeElement.querySelectorAll('.field-error').length).toBe(4);
@@ -187,6 +191,10 @@ describe('ProductFormComponent', () => {
 
   describe('en edición', () => {
     beforeEach(() => create('edit', PRODUCT));
+
+    it('el input de foto está oculto y fuera del orden de Tab: lo abre «Cambiar foto»', () => {
+      expect(el<HTMLInputElement>('#photo').tabIndex).toBe(-1);
+    });
 
     it('se llena con el producto y muestra las piezas como «N en bodega»', () => {
       expect(el<HTMLInputElement>('#name').value).toBe('Creatina');
