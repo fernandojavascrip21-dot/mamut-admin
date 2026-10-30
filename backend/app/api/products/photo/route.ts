@@ -1,5 +1,5 @@
-import { uploadProductPhoto } from '../../../../src/products/photos'
-import { requireRole } from '../../../../src/auth/guards'
+import { uploadProductPhoto } from '../../../../src/products'
+import { requireRole } from '../../../../src/auth'
 import { validation } from '../../../../src/lib/errors'
 import { handle } from '../../../../src/lib/handler'
 

@@ -1,5 +1,5 @@
-import { deleteClient, getClient, updateClient } from '../../../../src/accounts/clients'
-import { requireRole } from '../../../../src/auth/guards'
+import { deleteClient, getClient, updateClient } from '../../../../src/accounts'
+import { requireRole } from '../../../../src/auth'
 import { validation } from '../../../../src/lib/errors'
 import { handle, optionalText, parseId, readJson } from '../../../../src/lib/handler'
 

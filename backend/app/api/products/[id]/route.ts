@@ -1,5 +1,5 @@
-import { getProduct, updateProduct } from '../../../../src/products/products'
-import { requireRole } from '../../../../src/auth/guards'
+import { getProduct, updateProduct } from '../../../../src/products'
+import { requireRole } from '../../../../src/auth'
 import { validation } from '../../../../src/lib/errors'
 import { handle, parseId, readJson, requireMoney, requireString } from '../../../../src/lib/handler'
 

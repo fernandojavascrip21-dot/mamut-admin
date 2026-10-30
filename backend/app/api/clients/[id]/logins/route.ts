@@ -1,5 +1,5 @@
-import { createLogin, listLogins } from '../../../../../src/accounts/logins'
-import { requireRole } from '../../../../../src/auth/guards'
+import { createLogin, listLogins } from '../../../../../src/accounts'
+import { requireRole } from '../../../../../src/auth'
 import { validation } from '../../../../../src/lib/errors'
 import { handle, parseId, readJson, requireString } from '../../../../../src/lib/handler'
 

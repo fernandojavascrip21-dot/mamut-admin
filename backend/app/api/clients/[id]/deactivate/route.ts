@@ -1,5 +1,5 @@
-import { deactivateClient } from '../../../../../src/accounts/clients'
-import { requireRole } from '../../../../../src/auth/guards'
+import { deactivateClient } from '../../../../../src/accounts'
+import { requireRole } from '../../../../../src/auth'
 import { handle, parseId } from '../../../../../src/lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }

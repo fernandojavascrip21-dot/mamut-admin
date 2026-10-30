@@ -1,5 +1,5 @@
-import { createProduct, listProducts } from '../../../src/products/products'
-import { requireRole } from '../../../src/auth/guards'
+import { createProduct, listProducts } from '../../../src/products'
+import { requireRole } from '../../../src/auth'
 import { validation } from '../../../src/lib/errors'
 import { handle, optionalText, readJson, requireMoney, requireNumber, requireString } from '../../../src/lib/handler'
 

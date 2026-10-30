@@ -1,5 +1,5 @@
-import { createAdmin, listAdmins } from '../../../src/accounts/admins'
-import { requireRole } from '../../../src/auth/guards'
+import { createAdmin, listAdmins } from '../../../src/accounts'
+import { requireRole } from '../../../src/auth'
 import { handle, readJson, requireString } from '../../../src/lib/handler'
 
 // Solo un administrador crea a otro; un cliente recibe 403.

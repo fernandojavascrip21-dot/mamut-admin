@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ToastComponent } from '@shared/components/toast/toast.component';
+import { ToastComponent } from '@core/toast/components/toast/toast.component';
 
 @Component({
   imports: [RouterOutlet, ToastComponent],

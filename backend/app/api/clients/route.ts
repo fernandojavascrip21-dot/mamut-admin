@@ -1,5 +1,5 @@
-import { createClient, listClients } from '../../../src/accounts/clients'
-import { requireRole } from '../../../src/auth/guards'
+import { createClient, listClients } from '../../../src/accounts'
+import { requireRole } from '../../../src/auth'
 import { handle, optionalText, readJson, requireString } from '../../../src/lib/handler'
 
 export const GET = handle(async (request) => {

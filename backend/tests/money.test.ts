@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MONEY_MAX } from '../src/lib/constants'
 import { compareMoney, decimalPlaces, fromMinorUnits, toMinorUnits } from '../src/lib/money'
 
-// Mismos casos que src/app/shared/money.spec.ts del frontend (spec T-08 §7).
+// Mismos casos que src/app/shared/utils/money.spec.ts del frontend (spec T-08 §7).
 describe('money', () => {
   it('convierte texto a unidades mínimas sin pasar por flotantes', () => {
     expect(toMinorUnits('450.5', 2)).toBe(45050)

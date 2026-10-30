@@ -1,5 +1,5 @@
-import { createSeller } from '../../../src/accounts/sellers'
-import { requireRole } from '../../../src/auth/guards'
+import { createSeller } from '../../../src/accounts'
+import { requireRole } from '../../../src/auth'
 import { handle, readJson, requireString } from '../../../src/lib/handler'
 
 // Solo un administrador da de alta vendedores (HU-08); un vendedor recibe 403.

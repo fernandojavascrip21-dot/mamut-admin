@@ -5,7 +5,7 @@ import { products } from '../db/schema'
 import { withTransaction } from '../db/transaction'
 import { conflict, notFound, validation } from '../lib/errors'
 import { compareMoney } from '../lib/money'
-import { insertMovements } from '../stock/movements'
+import { insertMovements } from '../stock'
 import { DUPLICATE_NAME, PRICE_BELOW_COST } from './constants'
 
 export interface CreateProductInput {

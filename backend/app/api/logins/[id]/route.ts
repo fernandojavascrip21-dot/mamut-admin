@@ -1,5 +1,5 @@
-import { deleteLogin, updateLogin } from '../../../../src/accounts/logins'
-import { requireRole } from '../../../../src/auth/guards'
+import { deleteLogin, updateLogin } from '../../../../src/accounts'
+import { requireRole } from '../../../../src/auth'
 import { handle, parseUuid, readJson, requireString } from '../../../../src/lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }

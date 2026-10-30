@@ -15,11 +15,9 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
+      "@core/*": ["./src/app/core/*"],
       "@shared/*": ["./src/app/shared/*"],
-      "@auth/*": ["./src/app/auth/*"],
-      "@products/*": ["./src/app/products/*"],
-      "@pages/*": ["./src/app/pages/*"],
-      "@sellers/*": ["./src/app/sellers/*"]
+      "@features/*": ["./src/app/features/*"]
     }
   },
   "angularCompilerOptions": {

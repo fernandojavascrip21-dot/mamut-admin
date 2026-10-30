@@ -1,5 +1,4 @@
-import { requireAuth } from '../../../../src/auth/guards'
-import { logout } from '../../../../src/auth/session'
+import { logout, requireAuth } from '../../../../src/auth'
 import { handle } from '../../../../src/lib/handler'
 
 export const POST = handle(async (request) => {
