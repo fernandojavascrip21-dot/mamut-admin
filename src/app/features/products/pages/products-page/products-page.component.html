@@ -1,10 +1,10 @@
 <div class="flex w-full flex-col px-5 py-6">
-  <div class="flex items-center justify-between">
-    <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Productos</h1>
+  <div class="flex items-center justify-between gap-3">
+    <h1 class="page-title">Productos</h1>
     <a
       routerLink="/admin/productos/nuevo"
       aria-label="Nuevo producto"
-      class="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-xl font-bold text-white"
+      class="btn-primary h-11 w-11 shrink-0 rounded-full px-0 text-xl"
     >
       +
     </a>
@@ -21,7 +21,7 @@
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="animate-spin stroke-accent"
+        class="animate-spin stroke-accent motion-reduce:animate-none"
       >
         <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
       </svg>
@@ -34,10 +34,7 @@
       <app-product-card-skeleton />
     </div>
   } @else if (state() === 'error') {
-    <div
-      class="mt-6 flex flex-col items-center gap-2 rounded-lg border border-danger-border bg-danger-bg p-5 text-center text-danger-text"
-      role="alert"
-    >
+    <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
       <svg
         aria-hidden="true"
         width="22"
@@ -49,23 +46,21 @@
         stroke-linejoin="round"
         class="shrink-0 stroke-danger"
       >
-        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+        <path
+          d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+        ></path>
         <path d="M12 9v4"></path>
         <path d="M12 17h.01"></path>
       </svg>
       <p class="m-0 text-[15px] font-bold">No pudimos cargar los productos</p>
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button
-        type="button"
-        class="retry mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink"
-        (click)="retry()"
-      >
+      <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retry()">
         Reintentar
       </button>
     </div>
   } @else if (items().length === 0) {
     <div
-      class="mt-6 flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong bg-white p-6 text-center"
+      class="mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
     >
       <svg
         aria-hidden="true"
@@ -83,10 +78,7 @@
       </svg>
       <p class="m-0 text-[17px] font-bold">Aún no tienes productos</p>
       <p class="m-0 text-sm text-muted">Da de alta el primero para empezar a contarlo.</p>
-      <a
-        routerLink="/admin/productos/nuevo"
-        class="mt-2 inline-flex h-12 items-center justify-center rounded-lg bg-accent px-5 text-sm font-bold text-white"
-      >
+      <a routerLink="/admin/productos/nuevo" class="btn-primary mt-2 text-sm">
         Dar de alta mi primer producto
       </a>
     </div>
@@ -113,13 +105,13 @@
         placeholder="Buscar por nombre"
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
-        class="h-[46px] w-full rounded-lg border border-line-strong bg-white pl-11 text-base"
+        class="field-input w-full pl-11"
       />
     </div>
 
     @if (visibleItems().length === 0) {
       <div
-        class="mt-5 flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong bg-white p-6 text-center"
+        class="mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
       >
         <svg
           aria-hidden="true"
@@ -137,18 +129,18 @@
         </svg>
         <p class="m-0 text-[17px] font-bold">No hay productos con ese nombre</p>
         <p class="m-0 text-sm text-muted">Revisa cómo lo escribiste.</p>
-        <button
-          type="button"
-          class="mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink"
-          (click)="clearSearch()"
-        >
+        <button type="button" class="btn-secondary mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
           Limpiar búsqueda
         </button>
       </div>
     } @else {
-      <div class="mt-5 flex flex-col gap-3">
-        @for (item of visibleItems(); track item.id) {
-          <app-product-card [product]="item" />
+      <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+        @for (item of visibleItems(); track item.id; let index = $index) {
+          <app-product-card
+            class="block min-w-0 animate-rise-in motion-reduce:animate-none"
+            [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+            [product]="item"
+          />
         }
       </div>
     }

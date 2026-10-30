@@ -1,68 +1,62 @@
 <div class="flex w-full flex-col px-5 py-6">
-@if (state() !== 'created') {
-  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Nuevo producto</h1>
+  @if (state() !== 'created') {
+    <h1 class="page-title">Nuevo producto</h1>
 
-  @if (state() === 'offline') {
-    <div
-      class="mt-5 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
-      role="alert"
-    >
-      <div>
-        <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
-        <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-        <button
-          type="button"
-          class="retry mt-2.5 min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
-          (click)="retry()"
-        >
-          Reintentar
-        </button>
+    @if (state() === 'offline') {
+      <div class="mt-5 flex items-start gap-2.5 alert-danger" role="alert">
+        <div>
+          <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
+          <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+          <button
+            type="button"
+            class="retry btn-secondary mt-2.5 h-11 border-danger px-3.5 text-sm text-danger hover:bg-danger-bg"
+            (click)="retry()"
+          >
+            Reintentar
+          </button>
+        </div>
       </div>
+    }
+
+    <app-product-form
+      mode="create"
+      [categories]="categories()"
+      [busy]="state() === 'saving' || state() === 'offline'"
+      [saving]="state() === 'saving'"
+      [nameTaken]="nameTaken()"
+      [categoryMissing]="categoryMissing()"
+      (submitted)="save($event)"
+    />
+  } @else if (createdProduct(); as product) {
+    <h1 class="page-title">Producto registrado</h1>
+
+    <div class="mt-5 flex flex-col gap-3 surface-card p-5 sm:p-6">
+      <p class="m-0 text-lg font-bold">{{ product.name }}</p>
+      <dl class="grid grid-cols-2 gap-y-2 text-sm">
+        <dt class="text-muted">Costo de fábrica</dt>
+        <dd class="m-0 text-right font-semibold">{{ product.unitCost }}</dd>
+        <dt class="text-muted">Precio de venta</dt>
+        <dd class="m-0 text-right font-semibold">{{ product.price }}</dd>
+        <dt class="text-muted">Piezas en bodega</dt>
+        <dd class="m-0 text-right font-semibold">{{ product.stock }}</dd>
+        @if (product.fractionable) {
+          <dt class="text-muted">Porción</dt>
+          <dd class="m-0 text-right font-semibold">{{ product.portionSize }}</dd>
+        }
+      </dl>
+    </div>
+
+    <div class="mt-5 flex gap-3">
+      <button
+        type="button"
+        class="btn-primary min-w-0 flex-1 px-3 text-sm"
+        (click)="startNewProduct()"
+      >
+        Dar de alta otro producto
+      </button>
+      <a routerLink="/admin/productos" class="btn-secondary min-w-0 flex-1 px-3 text-sm">
+        Volver a Productos
+      </a>
     </div>
   }
-
-  <app-product-form
-    mode="create"
-    [categories]="categories()"
-    [busy]="state() === 'saving' || state() === 'offline'"
-    [saving]="state() === 'saving'"
-    [nameTaken]="nameTaken()"
-    [categoryMissing]="categoryMissing()"
-    (submitted)="save($event)"
-  />
-} @else if (createdProduct(); as product) {
-  <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Producto registrado</h1>
-
-  <div class="mt-5 flex flex-col gap-3 rounded-lg border border-line bg-white p-5">
-    <p class="m-0 text-lg font-bold">{{ product.name }}</p>
-    <dl class="grid grid-cols-2 gap-y-2 text-sm">
-      <dt class="text-muted">Costo de fábrica</dt>
-      <dd class="m-0 text-right font-semibold">{{ product.unitCost }}</dd>
-      <dt class="text-muted">Precio de venta</dt>
-      <dd class="m-0 text-right font-semibold">{{ product.price }}</dd>
-      <dt class="text-muted">Piezas en bodega</dt>
-      <dd class="m-0 text-right font-semibold">{{ product.stock }}</dd>
-      @if (product.fractionable) {
-        <dt class="text-muted">Porción</dt>
-        <dd class="m-0 text-right font-semibold">{{ product.portionSize }}</dd>
-      }
-    </dl>
-  </div>
-
-  <div class="mt-5 flex gap-3">
-    <button
-      type="button"
-      class="h-[48px] flex-1 rounded-[10px] bg-accent text-[15px] font-bold text-white"
-      (click)="startNewProduct()"
-    >
-      Dar de alta otro producto
-    </button>
-    <a
-      routerLink="/admin/productos"
-      class="flex h-[48px] flex-1 items-center justify-center rounded-[10px] border border-line-strong text-[15px] font-bold"
-    >
-      Volver a Productos
-    </a>
-  </div>
-}
 </div>

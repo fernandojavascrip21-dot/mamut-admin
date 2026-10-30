@@ -1,35 +1,68 @@
 <form
   [formGroup]="form"
-  class="mt-5 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
+  class="mt-5 flex flex-col gap-4 surface-card p-5 sm:p-6"
   (ngSubmit)="onSubmit()"
   novalidate
 >
   <div class="flex flex-col gap-1.5">
-    <label for="photo" class="text-sm font-semibold">Foto (opcional)</label>
+    <label for="photo" class="field-label">Foto (opcional)</label>
     @if (mode() === 'edit') {
       <div class="flex items-center gap-3">
         @if (visibleImage() && !imageBroken()) {
-          <img [src]="visibleImage()" [alt]="initialValue()?.name || 'Producto'" (error)="imageBroken.set(true)" class="h-20 w-20 rounded-md object-cover" />
+          <img
+            [src]="visibleImage()"
+            [alt]="initialValue()?.name || 'Producto'"
+            (error)="imageBroken.set(true)"
+            class="h-20 w-20 rounded-md object-cover"
+          />
         } @else {
-          <div aria-hidden="true" class="flex h-20 w-20 items-center justify-center rounded-md bg-line text-lg font-bold text-ink">{{ initial() }}</div>
+          <div
+            aria-hidden="true"
+            class="flex h-20 w-20 items-center justify-center rounded-md bg-line text-lg font-bold text-ink"
+          >
+            {{ initial() }}
+          </div>
         }
         <div class="flex flex-wrap gap-2">
-          <button type="button" [disabled]="busy()" (click)="photoInput.click()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Cambiar foto</button>
+          <button
+            type="button"
+            [disabled]="busy()"
+            (click)="photoInput.click()"
+            class="btn-secondary h-11 px-4 text-sm"
+          >
+            Cambiar foto
+          </button>
           @if (visibleImage() || selectedPhoto()) {
-            <button type="button" [disabled]="busy()" (click)="removeCurrentPhoto()" class="min-h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink disabled:opacity-50">Quitar foto</button>
+            <button
+              type="button"
+              [disabled]="busy()"
+              (click)="removeCurrentPhoto()"
+              class="btn-secondary h-11 px-4 text-sm"
+            >
+              Quitar foto
+            </button>
           }
         </div>
       </div>
     }
     <input
-      id="photo" name="photo" type="file" accept="image/*" #photoInput
-      [disabled]="busy()" (change)="onPhotoSelected(photoInput.files?.[0] ?? null)"
-      [class]="mode() === 'edit' ? 'sr-only' : 'text-sm disabled:text-faint'"
+      id="photo"
+      name="photo"
+      type="file"
+      accept="image/*"
+      #photoInput
+      [disabled]="busy()"
+      (change)="onPhotoSelected(photoInput.files?.[0] ?? null)"
+      [class]="
+        mode() === 'edit'
+          ? 'sr-only'
+          : 'field-input py-2.5 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-page file:px-3 file:py-1 file:text-ink disabled:text-faint'
+      "
     />
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <label for="name" class="text-sm font-semibold">Nombre</label>
+    <label for="name" class="field-label">Nombre</label>
     <input
       id="name"
       name="name"
@@ -39,17 +72,18 @@
       [attr.aria-invalid]="nameError() ? 'true' : null"
       [attr.aria-describedby]="nameError() ? 'name-error' : null"
       [class]="
-        'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-        (nameError() ? 'border-2 border-danger' : 'border border-line-strong')
+        'field-input ' + (nameError() ? 'border-2 border-danger' : 'border border-line-strong')
       "
     />
     @if (nameError()) {
-      <p id="name-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ nameError() }}</p>
+      <p id="name-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ nameError() }}
+      </p>
     }
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <label for="category" class="text-sm font-semibold">Categoría</label>
+    <label for="category" class="field-label">Categoría</label>
     <select
       id="category"
       name="category"
@@ -57,7 +91,7 @@
       formControlName="categoryId"
       [attr.aria-invalid]="categoryError() ? 'true' : null"
       [attr.aria-describedby]="categoryError() ? 'category-error' : null"
-      class="h-[50px] rounded-[10px] border border-line-strong px-3.5 text-base disabled:bg-disabled-input disabled:text-faint"
+      class="field-input"
     >
       <option value="">Sin categoría</option>
       @for (category of categories(); track category.id) {
@@ -65,12 +99,18 @@
       }
     </select>
     @if (categoryError()) {
-      <p id="category-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ categoryError() }}</p>
+      <p
+        id="category-error"
+        class="field-error m-0 text-[13px] font-semibold text-danger"
+        role="alert"
+      >
+        {{ categoryError() }}
+      </p>
     }
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <label for="unit-cost" class="text-sm font-semibold">Costo de fábrica</label>
+    <label for="unit-cost" class="field-label">Costo de fábrica</label>
     <input
       id="unit-cost"
       name="unit-cost"
@@ -82,17 +122,22 @@
       [attr.aria-invalid]="unitCostError() ? 'true' : null"
       [attr.aria-describedby]="unitCostError() ? 'unit-cost-error' : null"
       [class]="
-        'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-        (unitCostError() ? 'border-2 border-danger' : 'border border-line-strong')
+        'field-input ' + (unitCostError() ? 'border-2 border-danger' : 'border border-line-strong')
       "
     />
     @if (unitCostError()) {
-      <p id="unit-cost-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitCostError() }}</p>
+      <p
+        id="unit-cost-error"
+        class="field-error m-0 text-[13px] font-semibold text-danger"
+        role="alert"
+      >
+        {{ unitCostError() }}
+      </p>
     }
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <label for="price" class="text-sm font-semibold">Precio de venta</label>
+    <label for="price" class="field-label">Precio de venta</label>
     <input
       id="price"
       name="price"
@@ -104,45 +149,68 @@
       [attr.aria-invalid]="priceError() ? 'true' : null"
       [attr.aria-describedby]="priceError() ? 'price-error' : null"
       [class]="
-        'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-        (priceError() ? 'border-2 border-danger' : 'border border-line-strong')
+        'field-input ' + (priceError() ? 'border-2 border-danger' : 'border border-line-strong')
       "
     />
     @if (priceError()) {
-      <p id="price-error" class="field-error m-0 text-[13px] font-semibold text-danger-text" role="alert">{{ priceError() }}</p>
+      <p
+        id="price-error"
+        class="field-error m-0 text-[13px] font-semibold text-danger-text"
+        role="alert"
+      >
+        {{ priceError() }}
+      </p>
     }
   </div>
 
   @if (mode() === 'create') {
     <div class="flex flex-col gap-1.5">
-      <label for="units" class="text-sm font-semibold">Piezas que entran</label>
+      <label for="units" class="field-label">Piezas que entran</label>
       <input
-        id="units" name="units" type="number" min="1" step="1" #unitsInput formControlName="units"
+        id="units"
+        name="units"
+        type="number"
+        min="1"
+        step="1"
+        #unitsInput
+        formControlName="units"
         [attr.aria-invalid]="unitsError() ? 'true' : null"
         [attr.aria-describedby]="unitsError() ? 'units-error' : null"
-        [class]="'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (unitsError() ? 'border-2 border-danger' : 'border border-line-strong')"
+        [class]="
+          'field-input ' + (unitsError() ? 'border-2 border-danger' : 'border border-line-strong')
+        "
       />
       @if (unitsError()) {
-        <p id="units-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ unitsError() }}</p>
+        <p
+          id="units-error"
+          class="field-error m-0 text-[13px] font-semibold text-danger"
+          role="alert"
+        >
+          {{ unitsError() }}
+        </p>
       }
     </div>
   } @else {
     <div>
-      <p class="m-0"><span class="font-mono text-[22px] font-bold">{{ initialValue()?.stock }}</span><span class="ml-1 text-xs font-medium text-muted">en bodega</span></p>
-      <p class="mt-1 mb-0 text-sm text-muted">Las piezas solo cambian con movimientos, por ejemplo una entrada a bodega.</p>
+      <p class="m-0">
+        <span class="font-mono text-[22px] font-bold">{{ initialValue()?.stock }}</span
+        ><span class="ml-1 text-xs font-medium text-muted">en bodega</span>
+      </p>
+      <p class="mt-1 mb-0 text-sm text-muted">
+        Las piezas solo cambian con movimientos, por ejemplo una entrada a bodega.
+      </p>
     </div>
   }
 
-  <label class="flex items-center gap-2 text-sm font-semibold">
-    <input type="checkbox" formControlName="fractionable" />
+  <label class="field-label flex min-h-11 cursor-pointer items-center gap-3">
+    <input type="checkbox" formControlName="fractionable" class="size-5 shrink-0 accent-accent" />
     Se fracciona en bolsitas
   </label>
 
   <!-- Se oculta con una clase en vez de un @if para conservar lo escrito al desmarcar y volver
        a marcar «se fracciona». -->
   <div class="flex flex-col gap-1.5" [class.hidden]="!fractionable()">
-    <label for="portion-size" class="text-sm font-semibold">Porción</label>
+    <label for="portion-size" class="field-label">Porción</label>
     <input
       id="portion-size"
       name="portion-size"
@@ -153,20 +221,22 @@
       [attr.aria-invalid]="portionSizeError() ? 'true' : null"
       [attr.aria-describedby]="portionSizeError() ? 'portion-size-error' : null"
       [class]="
-        'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
+        'field-input ' +
         (portionSizeError() ? 'border-2 border-danger' : 'border border-line-strong')
       "
     />
     @if (portionSizeError()) {
-      <p id="portion-size-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ portionSizeError() }}</p>
+      <p
+        id="portion-size-error"
+        class="field-error m-0 text-[13px] font-semibold text-danger"
+        role="alert"
+      >
+        {{ portionSizeError() }}
+      </p>
     }
   </div>
 
-  <button
-    type="submit"
-    [disabled]="busy() || priceBelowCost()"
-    class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
-  >
+  <button type="submit" [disabled]="busy() || priceBelowCost()" class="btn-primary mt-1">
     {{ saving() ? 'Guardando…' : 'Guardar' }}
   </button>
 </form>
