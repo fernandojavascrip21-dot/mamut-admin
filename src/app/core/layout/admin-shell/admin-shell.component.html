@@ -1,5 +1,13 @@
 <div class="flex min-h-screen flex-col bg-page">
-  <app-top-nav [menu]="menu" [cart]="cart" ariaLabel="Menú del administrador" />
+  <app-top-nav [menu]="menu" [cart]="cart" ariaLabel="Menú del administrador">
+    <app-viewing-bar
+      [sellers]="viewing.sellers()"
+      [selectedSellerId]="viewing.selectedSellerId()"
+      [status]="viewing.listStatus()"
+      (selectionChange)="viewing.pick($event)"
+      (retry)="viewing.reload()"
+    />
+  </app-top-nav>
 
   <main class="flex flex-1 flex-col overflow-y-auto">
     <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col">
