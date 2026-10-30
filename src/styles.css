@@ -44,6 +44,39 @@
     }
   }
 
+  /* Entrada escalonada del login: cada elemento sube y aparece una vez con su propio retraso
+     (animation-fill-mode both). El estado oculto vive solo aquí, así que con «reducir
+     movimiento» (motion-reduce:animate-none) todo se ve de inmediato. */
+  --animate-rise-in: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  /* Las columnas de stock del login crecen desde abajo al entrar, antes de moverse. */
+  --animate-stock-grow: stock-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes stock-grow {
+    from {
+      transform: scaleY(0);
+    }
+  }
+
+  /* Haz de luz que cruza el panel oscuro del login, lento y continuo. */
+  --animate-light-sweep: light-sweep 9s ease-in-out infinite;
+
+  @keyframes light-sweep {
+    from {
+      transform: translateX(-120%) skewX(-18deg);
+    }
+    to {
+      transform: translateX(420%) skewX(-18deg);
+    }
+  }
+
   /* Entrada de app-toast (shared/components/toast). */
   @keyframes toast-in {
     from {

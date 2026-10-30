@@ -1,0 +1,39 @@
+<section class="relative isolate flex h-full min-h-[42vh] flex-col overflow-hidden bg-ink px-6 pt-10 pb-16 text-page sm:px-10 lg:min-h-screen lg:justify-center lg:px-16 lg:pb-10">
+  <app-login-background />
+
+  <div class="relative flex flex-col lg:max-w-md">
+    <div
+      class="flex animate-rise-in items-center gap-3 motion-reduce:animate-none"
+      [style.animation-delay.s]="logoDelay"
+    >
+      <img
+        src="logo-mammoth.png"
+        [alt]="logoAlt"
+        class="h-14 w-14 rounded-full object-cover ring-2 ring-accent ring-offset-4 ring-offset-ink lg:h-20 lg:w-20"
+      />
+      <span class="font-display text-base font-semibold tracking-wide text-page/75 lg:text-lg">{{ brandName }}</span>
+    </div>
+
+    <h1 class="mt-8 font-display text-[44px] leading-[0.95] font-extrabold tracking-[-0.03em] lg:mt-12 lg:text-[76px]">
+      @for (word of headline; track word.text) {
+        <span
+          class="headline-word inline-block animate-rise-in motion-reduce:animate-none"
+          [class.text-accent]="word.highlighted"
+          [style.animation-delay.s]="word.delaySeconds"
+          >{{ word.text }}</span
+        ><!-- El espacio va interpolado: Angular quita los espacios sueltos entre etiquetas. -->@if (word.breakAfter) {
+          <br />
+        } @else {
+          {{ ' ' }}
+        }
+      }
+    </h1>
+
+    <p
+      class="mt-4 max-w-xs animate-rise-in text-base leading-relaxed text-page/75 motion-reduce:animate-none lg:mt-6 lg:text-lg"
+      [style.animation-delay.s]="taglineDelay"
+    >
+      {{ tagline }}
+    </p>
+  </div>
+</section>

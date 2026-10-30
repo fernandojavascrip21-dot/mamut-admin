@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,13 +6,24 @@ import { ROLE_HOME } from '@core/auth/constants/auth.constants';
 import { AuthService } from '@core/auth/services/auth.service';
 import { isOffline } from '@shared/utils/http-errors';
 import { notBlank } from '@shared/validators/validators';
+import {
+  CAPS_LOCK_WARNING,
+  EMPTY_EMAIL_MESSAGE,
+  EMPTY_PASSWORD_MESSAGE,
+  FORM_ENTRANCE_DELAY_SECONDS,
+  HIDE_PASSWORD_LABEL,
+  LOGIN_HINT,
+  LOGIN_TITLE,
+  SHOW_PASSWORD_LABEL,
+} from '../../constants/login-page.constants';
 import type { LoginFormGroup, LoginPayload, LoginState } from '../../models/login-page.models';
-import { LoginBackgroundComponent } from './ui/login-background/login-background.component';
+import { LoginBrandPanelComponent } from './ui/login-brand-panel/login-brand-panel.component';
 
 // Pantalla 01 Inicio de sesión (RF-01, RF-02, RNF-04). Estados: ver specs/M0-base/spec.md §3.1.
-// El fondo animado (columnas de stock) es decorativo y vive en ui/login-background.
+// Pantalla dividida: el panel de la marca (ui/login-brand-panel) es decorativo; aquí vive el
+// formulario con su lógica.
 @Component({
-  imports: [ReactiveFormsModule, LoginBackgroundComponent],
+  imports: [ReactiveFormsModule, LoginBrandPanelComponent],
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
 })
@@ -28,6 +39,17 @@ export class LoginPageComponent implements OnInit {
   readonly state = signal<LoginState>('form');
   readonly emailError = signal<string | null>(null);
   readonly passwordError = signal<string | null>(null);
+  // Ayudas de la contraseña: verla en claro y avisar si Bloq Mayús está activo (un error común
+  // que, si no, el backend contesta igual que una contraseña incorrecta).
+  readonly passwordVisible = signal(false);
+  readonly capsLockOn = signal(false);
+  readonly passwordToggleLabel = computed(() => (this.passwordVisible() ? HIDE_PASSWORD_LABEL : SHOW_PASSWORD_LABEL));
+
+  // Textos visibles
+  readonly title = LOGIN_TITLE;
+  readonly hint = LOGIN_HINT;
+  readonly capsLockWarning = CAPS_LOCK_WARNING;
+  readonly formEntranceDelay = FORM_ENTRANCE_DELAY_SECONDS;
 
   private readonly emailInput = viewChild.required<ElementRef<HTMLInputElement>>('emailInput');
   private readonly passwordInput = viewChild.required<ElementRef<HTMLInputElement>>('passwordInput');
@@ -54,12 +76,23 @@ export class LoginPageComponent implements OnInit {
     });
   }
 
+  // --- Interacción con la contraseña ---
+  // El botón de ojo solo cambia cómo se ve el campo; el valor del formulario no cambia.
+  togglePasswordVisibility(): void {
+    this.passwordVisible.update((visible) => !visible);
+  }
+
+  // Se lee en cada tecla porque el navegador no avisa cuando cambia Bloq Mayús por sí solo.
+  onPasswordKey(event: KeyboardEvent): void {
+    this.capsLockOn.set(event.getModifierState?.('CapsLock') ?? false);
+  }
+
   // --- Validación, payload y envío ---
   // Valida los campos en el cliente antes de llamar al backend (criterio 4 de HU-01): si alguno
   // está vacío, marca el error puntual de ese campo y nunca llega a intentar el login.
   onSubmit(): void {
-    this.emailError.set(this.emailControl.invalid ? 'Escribe tu usuario' : null);
-    this.passwordError.set(this.passwordControl.invalid ? 'Escribe tu contraseña' : null);
+    this.emailError.set(this.emailControl.invalid ? EMPTY_EMAIL_MESSAGE : null);
+    this.passwordError.set(this.passwordControl.invalid ? EMPTY_PASSWORD_MESSAGE : null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       (this.emailControl.invalid ? this.emailInput() : this.passwordInput()).nativeElement.focus();

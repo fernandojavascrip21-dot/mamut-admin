@@ -54,10 +54,58 @@ describe('LoginPageComponent', () => {
     fixture.detectChanges();
   }
 
-  it('muestra el fondo animado de columnas de stock, oculto para lectores de pantalla', () => {
-    const background = fixture.nativeElement.querySelector('app-login-background') as HTMLElement;
-    expect(background).not.toBeNull();
-    expect(background.querySelector('[aria-hidden="true"]')).not.toBeNull();
+  it('muestra el panel de la marca con el fondo animado, oculto para lectores de pantalla', () => {
+    const panel = fixture.nativeElement.querySelector('app-login-brand-panel') as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.querySelector('app-login-background [aria-hidden="true"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('h2').textContent).toContain('Inicia sesión');
+  });
+
+  it('el botón de ojo muestra y oculta la contraseña sin cambiar su valor', () => {
+    const toggle = fixture.nativeElement.querySelector('.password-toggle') as HTMLButtonElement;
+    passwordInput().value = 'secreta';
+    passwordInput().dispatchEvent(new Event('input'));
+    expect(passwordInput().type).toBe('password');
+    expect(toggle.getAttribute('aria-label')).toBe('Mostrar contraseña');
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(passwordInput().type).toBe('text');
+    expect(toggle.getAttribute('aria-label')).toBe('Ocultar contraseña');
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.componentInstance.passwordControl.value).toBe('secreta');
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(passwordInput().type).toBe('password');
+  });
+
+  it('avisa cuando Bloq Mayús está activo al escribir la contraseña', () => {
+    const keyEvent = (type: string, capsLock: boolean) => {
+      const event = new KeyboardEvent(type, { key: 'A' });
+      vi.spyOn(event, 'getModifierState').mockImplementation((key) => key === 'CapsLock' && capsLock);
+      passwordInput().dispatchEvent(event);
+      fixture.detectChanges();
+    };
+    const warning = () => fixture.nativeElement.querySelector('.caps-lock') as HTMLElement | null;
+
+    keyEvent('keydown', true);
+    expect(warning()?.textContent).toContain('Bloq Mayús está activado');
+    expect(warning()?.getAttribute('role')).toBe('status');
+
+    keyEvent('keyup', false);
+    expect(warning()).toBeNull();
+  });
+
+  it('mientras revisa el login el botón muestra el indicador giratorio y «Entrando…»', () => {
+    expect(fixture.nativeElement.querySelector('.spinner')).toBeNull();
+    fillAndSubmit('admin@mammut.local', 'secreta');
+    const submit = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+    expect(submit.querySelector('.spinner')).not.toBeNull();
+    expect(submit.textContent).toContain('Entrando…');
+    httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
   });
 
   it('se crea', () => {
