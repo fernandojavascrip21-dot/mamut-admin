@@ -18,22 +18,28 @@ describe('LoginBackgroundComponent', () => {
     expect(root.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('dibuja una columna por cada barra de stock, con sus cuatro segmentos', () => {
+  it('dibuja una columna por barra: crece al entrar y adentro sube y baja, con cuatro segmentos', () => {
     expect(bars()).toHaveLength(STOCK_BARS.length);
-    for (const bar of bars()) expect(bar.querySelectorAll('.segment')).toHaveLength(4);
+    bars().forEach((bar, index) => {
+      expect(bar.style.height).toBe(`${STOCK_BARS[index].heightPercent}%`);
+      expect(bar.style.animationDelay).toBe(`${STOCK_BARS[index].growDelaySeconds}s`);
+      const level = bar.querySelector('.stock-level') as HTMLElement;
+      expect(level.style.animationDuration).toBe(`${STOCK_BARS[index].durationSeconds}s`);
+      expect(level.style.animationDelay).toBe(`${STOCK_BARS[index].delaySeconds}s`);
+      expect(level.querySelectorAll('.segment')).toHaveLength(4);
+    });
   });
 
-  it('cada columna toma su altura, duración y retraso de las constantes', () => {
-    const first = bars()[0];
-    expect(first.style.height).toBe(`${STOCK_BARS[0].heightPercent}%`);
-    expect(first.style.animationDuration).toBe(`${STOCK_BARS[0].durationSeconds}s`);
-    expect(first.style.animationDelay).toBe(`${STOCK_BARS[0].delaySeconds}s`);
-  });
-
-  it('las columnas se detienen con «reducir movimiento» y en móvil solo salen las marcadas', () => {
+  it('con «reducir movimiento» todo queda quieto, y en móvil solo salen las columnas marcadas', () => {
     bars().forEach((bar, index) => {
       expect(bar.classList).toContain('motion-reduce:animate-none');
+      expect(bar.querySelector('.stock-level')?.classList).toContain('motion-reduce:animate-none');
       expect(bar.classList.contains('hidden')).toBe(!STOCK_BARS[index].showOnMobile);
     });
+    expect(fixture.nativeElement.querySelector('.light-sweep').classList).toContain('motion-reduce:hidden');
+  });
+
+  it('agrega el grano sobre el panel', () => {
+    expect(fixture.nativeElement.querySelector('svg.grain feTurbulence')).not.toBeNull();
   });
 });

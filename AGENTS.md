@@ -90,6 +90,8 @@ npm run db:stop
 
 **Styling:**
 
+Use the shared utilities in `src/styles.css` (`btn-*`, `field-*`, `surface-*`, `page-title`, `alert-*`, `skeleton-block`) before repeating visual utilities in templates. Keep test-hook classes alongside them; local Tailwind utilities may override size, spacing or semantic states.
+
 - Tailwind utility classes in templates only — no per-component `.css` files, no `styleUrl`.
 - Brand colors and fonts are Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`); use them as utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`). Never hard-code hex values or font stacks.
 - One-off sizes can use arbitrary values (`h-[50px]`).

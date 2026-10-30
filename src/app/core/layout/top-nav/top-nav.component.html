@@ -1,9 +1,13 @@
-<header class="sticky top-0 z-10 bg-white">
-  <div class="border-b border-line px-5 py-3">
+<header class="sticky top-0 z-10 bg-ink text-page shadow-card">
+  <div class="border-b border-page/10 px-5 py-3">
     <div class="mx-auto flex w-full max-w-5xl items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <img src="logo-mammoth.png" alt="Mammut Supplements" class="h-9 w-9 rounded-full object-cover" />
-        <span class="text-sm font-semibold text-muted">Mammut Supplements</span>
+      <div class="flex min-w-0 items-center gap-2.5">
+        <img
+          src="logo-mammoth.png"
+          alt="Mammut Supplements"
+          class="h-10 w-10 shrink-0 rounded-full object-cover"
+        />
+        <span class="truncate text-sm font-semibold text-page">Mammut Supplements</span>
       </div>
       <div class="flex items-center gap-2">
         <!-- El contador de items del carrito (M2/M3) va aquí cuando exista; hoy no tiene datos reales. -->
@@ -13,8 +17,8 @@
           #cartRla="routerLinkActive"
           [attr.aria-current]="cartRla.isActive ? 'page' : null"
           [attr.aria-label]="cart().label"
-          class="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors"
-          [class]="cartRla.isActive ? 'bg-accent-2-bg text-accent-2-text' : 'text-ink hover:bg-page'"
+          class="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-page motion-reduce:transition-none"
+          [class]="cartRla.isActive ? 'bg-page/10 text-page' : 'text-page hover:bg-page/10'"
         >
           <svg
             aria-hidden="true"
@@ -29,15 +33,17 @@
           >
             <circle cx="8" cy="21" r="1"></circle>
             <circle cx="19" cy="21" r="1"></circle>
-            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+            <path
+              d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+            ></path>
           </svg>
         </a>
 
         <a
           routerLink="/cuenta"
           aria-label="Mi cuenta"
-          class="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-white"
-          [class]="avatarBg()"
+          class="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-white ring-2 ring-page/20 transition-colors duration-200 focus-visible:outline-page motion-reduce:transition-none"
+          [class]="avatarBg() === 'bg-ink' ? 'bg-accent-2' : avatarBg()"
         >
           {{ initials() }}
         </a>
@@ -45,7 +51,7 @@
     </div>
   </div>
 
-  <nav class="border-b border-line" [attr.aria-label]="ariaLabel()">
+  <nav class="border-b border-page/10" [attr.aria-label]="ariaLabel()">
     <div class="mx-auto grid w-full max-w-5xl" [class]="gridColsClass()">
       @for (item of menu(); track item.path) {
         <a
@@ -53,12 +59,16 @@
           routerLinkActive
           #rla="routerLinkActive"
           [attr.aria-current]="rla.isActive ? 'page' : null"
-          class="flex min-h-12 flex-col items-center justify-center gap-1 px-1 py-2 text-xs leading-tight font-semibold transition-colors"
-          [class]="rla.isActive ? 'text-accent-2-text' : 'text-muted hover:bg-page'"
+          class="flex min-h-16 flex-col items-center justify-center gap-1 border-b-2 px-1 py-2 text-xs leading-tight font-semibold transition-colors duration-200 focus-visible:-outline-offset-4 focus-visible:outline-page motion-reduce:transition-none"
+          [class]="
+            rla.isActive
+              ? 'border-accent text-page'
+              : 'border-transparent text-page/75 hover:bg-page/5 hover:text-page'
+          "
         >
           <span
-            class="flex items-center justify-center rounded-xl px-3 py-1 transition-colors"
-            [class]="rla.isActive ? 'bg-accent-2-bg' : ''"
+            class="flex items-center justify-center rounded-xl px-3 py-1 transition-colors duration-200 motion-reduce:transition-none"
+            [class]="rla.isActive ? 'bg-page/10' : ''"
           >
             <svg
               aria-hidden="true"

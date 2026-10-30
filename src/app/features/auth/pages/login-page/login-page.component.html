@@ -1,155 +1,259 @@
-<div class="relative flex min-h-screen w-full flex-col overflow-hidden bg-page sm:items-center sm:justify-center sm:py-12">
-<app-login-background />
-<div class="relative mx-auto flex w-full max-w-[390px] flex-col px-6 pt-16 pb-8 sm:rounded-2xl sm:border sm:border-line sm:bg-white sm:px-10 sm:pt-12 sm:pb-10 sm:shadow-sm">
-  <div class="flex items-center gap-2.5">
-    <img src="logo-mammoth.png" alt="Mammut Supplements" class="h-9 w-9 rounded-full object-cover" />
-    <span class="text-sm font-semibold text-muted">Mammut Supplements</span>
-  </div>
+<div class="grid min-h-screen w-full bg-page lg:grid-cols-[1.1fr_1fr]">
+  <app-login-brand-panel />
 
-  <h1 class="mt-10 font-display text-[44px] leading-none font-extrabold tracking-[-0.03em]">
-    Tu stock,<br />al día.
-  </h1>
-  <p class="mt-3.5 text-base leading-relaxed text-muted">
-    Bodega, vendedores y ventas en un solo lugar.
-  </p>
-
-  <div class="mt-7 flex h-2.5 gap-[3px] overflow-hidden rounded-full" aria-hidden="true">
-    <span class="flex-[5] bg-ink"></span>
-    <span class="flex-[3] bg-accent"></span>
-    <span class="flex-[2] bg-accent-2"></span>
-    <span class="flex-1 bg-faint"></span>
-  </div>
-
-  @if (state() === 'error-credentials') {
-    <div
-      class="mt-6 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
-      role="alert"
-    >
-      <svg
-        aria-hidden="true"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="shrink-0 stroke-danger"
-      >
-        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
-        <path d="M12 9v4"></path>
-        <path d="M12 17h.01"></path>
-      </svg>
-      <div>
-        <p class="m-0 text-[15px] font-bold">Usuario o contraseña incorrectos</p>
-        <p class="mt-0.5 mb-0 text-sm leading-snug">Revísalos e inténtalo de nuevo.</p>
-      </div>
-    </div>
-  }
-
-  @if (state() === 'offline') {
-    <div
-      class="mt-6 flex items-start gap-2.5 rounded-lg border border-danger-border bg-danger-bg p-3.5 text-danger-text"
-      role="alert"
-    >
-      <svg
-        aria-hidden="true"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="shrink-0 stroke-danger"
-      >
-        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
-        <path d="M12 9v4"></path>
-        <path d="M12 17h.01"></path>
-      </svg>
-      <div>
-        <p class="m-0 text-[15px] font-bold">No hay conexión a internet</p>
-        <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-        <button
-          type="button"
-          class="retry mt-2.5 min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
-          (click)="retry()"
-        >
-          Reintentar
-        </button>
-      </div>
-    </div>
-  }
-
-  <form
-    [formGroup]="form"
-    class="mt-6 flex flex-col gap-4 rounded-lg border border-line bg-white p-5"
-    (ngSubmit)="onSubmit()"
-    novalidate
+  <!-- En el celular el formulario sube como hoja sobre la cabecera oscura; en escritorio es la
+       mitad derecha de la pantalla. -->
+  <main
+    class="relative z-10 -mt-8 flex flex-col rounded-t-3xl bg-page px-6 pt-10 pb-10 sm:px-10 lg:mt-0 lg:justify-center lg:rounded-none lg:px-16"
   >
-    <div class="flex flex-col gap-1.5">
-      <label for="email" class="text-sm font-semibold">Usuario</label>
-      <input
-        id="email"
-        name="email"
-        type="text"
-        autocomplete="username"
-        #emailInput
-        formControlName="email"
-        [attr.aria-invalid]="emailError() ? 'true' : null"
-        [attr.aria-describedby]="emailError() ? 'email-error' : null"
-        [class]="
-          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (emailError() ? 'border-2 border-danger' : 'border border-line-strong')
-        "
-      />
-      @if (emailError()) {
-        <p id="email-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
-          {{ emailError() }}
-        </p>
-      }
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label for="password" class="text-sm font-semibold">Contraseña</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        autocomplete="current-password"
-        #passwordInput
-        formControlName="password"
-        [attr.aria-invalid]="passwordError() ? 'true' : null"
-        [attr.aria-describedby]="passwordError() ? 'password-error' : null"
-        [class]="
-          'h-[50px] rounded-[10px] px-3.5 text-base disabled:bg-disabled-input disabled:text-faint ' +
-          (passwordError() ? 'border-2 border-danger' : 'border border-line-strong')
-        "
-      />
-      @if (passwordError()) {
-        <p id="password-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
-          {{ passwordError() }}
-        </p>
-      }
-    </div>
-
-    <button
-      type="submit"
-      [disabled]="state() === 'loading'"
-      class="mt-1 h-[52px] rounded-[10px] bg-accent text-[17px] font-bold text-white disabled:bg-disabled disabled:text-muted"
+    <div
+      class="mx-auto flex w-full max-w-[400px] animate-rise-in flex-col motion-reduce:animate-none"
+      [style.animation-delay.s]="formEntranceDelay"
     >
-      {{ state() === 'loading' ? 'Entrando…' : 'Entrar' }}
-    </button>
-    @if (state() === 'loading') {
-      <p class="-mt-1 text-center text-[13px] text-muted" role="status">
-        Revisando tu usuario y contraseña.
-      </p>
-    }
-  </form>
+      <h2 class="font-display text-[32px] leading-tight font-extrabold tracking-[-0.02em]">{{ title }}</h2>
+      <p class="mt-2 text-base leading-relaxed text-muted">{{ hint }}</p>
 
-  <p class="mt-6 text-center text-sm leading-relaxed text-muted">
-    Entras como administrador o vendedor según tu usuario. Si olvidaste tu contraseña, pídela al
-    administrador.
-  </p>
-</div>
+      @if (state() === 'error-credentials') {
+        <div
+          class="mt-6 flex items-start gap-2.5 rounded-xl border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+          role="alert"
+        >
+          <svg
+            aria-hidden="true"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="shrink-0 stroke-danger"
+          >
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <div>
+            <p class="m-0 text-[15px] font-bold">Usuario o contraseña incorrectos</p>
+            <p class="mt-0.5 mb-0 text-sm leading-snug">Revísalos e inténtalo de nuevo.</p>
+          </div>
+        </div>
+      }
+
+      @if (state() === 'offline') {
+        <div
+          class="mt-6 flex items-start gap-2.5 rounded-xl border border-danger-border bg-danger-bg p-3.5 text-danger-text"
+          role="alert"
+        >
+          <svg
+            aria-hidden="true"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="shrink-0 stroke-danger"
+          >
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <div>
+            <p class="m-0 text-[15px] font-bold">No hay conexión a internet</p>
+            <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+            <button
+              type="button"
+              class="retry mt-2.5 min-h-11 rounded-lg border border-danger px-3.5 text-sm font-bold text-danger"
+              (click)="retry()"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" class="mt-7 flex flex-col gap-5" (ngSubmit)="onSubmit()" novalidate>
+        <div class="flex flex-col gap-1.5">
+          <label for="email" class="text-sm font-semibold">Usuario</label>
+          <div class="relative">
+            <svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted"
+            >
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 21a8 8 0 0 1 16 0"></path>
+            </svg>
+            <input
+              id="email"
+              name="email"
+              type="text"
+              autocomplete="username"
+              #emailInput
+              formControlName="email"
+              [attr.aria-invalid]="emailError() ? 'true' : null"
+              [attr.aria-describedby]="emailError() ? 'email-error' : null"
+              [class]="
+                'h-[52px] w-full rounded-xl bg-white pr-4 pl-12 text-base transition-shadow focus:shadow-[0_0_0_4px] focus:shadow-accent/15 disabled:bg-disabled-input disabled:text-faint ' +
+                (emailError() ? 'border-2 border-danger' : 'border border-line-strong')
+              "
+            />
+          </div>
+          @if (emailError()) {
+            <p id="email-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+              {{ emailError() }}
+            </p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="password" class="text-sm font-semibold">Contraseña</label>
+          <div class="relative">
+            <svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted"
+            >
+              <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+            </svg>
+            <input
+              id="password"
+              name="password"
+              [type]="passwordVisible() ? 'text' : 'password'"
+              autocomplete="current-password"
+              #passwordInput
+              formControlName="password"
+              (keydown)="onPasswordKey($event)"
+              (keyup)="onPasswordKey($event)"
+              [attr.aria-invalid]="passwordError() ? 'true' : null"
+              [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+              [class]="
+                'h-[52px] w-full rounded-xl bg-white pr-14 pl-12 text-base transition-shadow focus:shadow-[0_0_0_4px] focus:shadow-accent/15 disabled:bg-disabled-input disabled:text-faint ' +
+                (passwordError() ? 'border-2 border-danger' : 'border border-line-strong')
+              "
+            />
+            <button
+              type="button"
+              class="password-toggle absolute top-1/2 right-1 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:bg-page hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+              [attr.aria-label]="passwordToggleLabel()"
+              [attr.aria-pressed]="passwordVisible()"
+              aria-controls="password"
+              [disabled]="state() === 'loading'"
+              (click)="togglePasswordVisibility()"
+            >
+              <svg
+                aria-hidden="true"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                @if (passwordVisible()) {
+                  <path d="M10.7 5.1A10 10 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.7 2.7"></path>
+                  <path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6"></path>
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+                  <path d="m2 2 20 20"></path>
+                } @else {
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                }
+              </svg>
+            </button>
+          </div>
+          @if (passwordError()) {
+            <p id="password-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+              {{ passwordError() }}
+            </p>
+          }
+          @if (capsLockOn()) {
+            <p class="caps-lock m-0 flex items-center gap-1.5 text-[13px] font-semibold text-accent-2-text" role="status">
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m12 4-8 8h5v8h6v-8h5z"></path>
+              </svg>
+              {{ capsLockWarning }}
+            </p>
+          }
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="state() === 'loading'"
+          class="group mt-2 flex h-[54px] items-center justify-center gap-2 rounded-xl bg-accent text-[17px] font-bold text-white shadow-lg shadow-accent/25 transition-colors hover:bg-accent-hover disabled:bg-disabled disabled:text-muted disabled:shadow-none"
+        >
+          @if (state() === 'loading') {
+            <svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              class="spinner animate-spin motion-reduce:animate-none"
+            >
+              <path d="M21 12a9 9 0 1 1-6.2-8.6"></path>
+            </svg>
+            Entrando…
+          } @else {
+            Entrar
+            <svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+            >
+              <path d="M5 12h14"></path>
+              <path d="m13 6 6 6-6 6"></path>
+            </svg>
+          }
+        </button>
+        @if (state() === 'loading') {
+          <p class="-mt-2 text-center text-[13px] text-muted" role="status">Revisando tu usuario y contraseña.</p>
+        }
+      </form>
+
+      <p class="mt-8 border-t border-line pt-6 text-center text-sm leading-relaxed text-muted">
+        Entras como administrador o vendedor según tu usuario. Si olvidaste tu contraseña, pídela al
+        administrador.
+      </p>
+    </div>
+  </main>
 </div>

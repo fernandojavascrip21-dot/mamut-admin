@@ -1,22 +1,41 @@
-<!-- Opacidades por segmento (tinta 6 %, ámbar y café 12 %, arena 20 %): así el texto gris del
-     login sigue con contraste de 4.5:1 o más aunque quede encima de una columna. -->
+<!-- Fondo del panel oscuro del login: resplandor ámbar, columnas de stock que crecen al entrar y
+     después suben y bajan, un haz de luz que cruza y grano. Todo decorativo. -->
 <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-  <div class="absolute inset-x-0 bottom-0 flex h-[45%] items-end gap-[3px] px-[3px]">
+  <div class="absolute inset-0 bg-radial-[at_50%_110%] from-accent/35 via-accent-2/10 to-transparent to-70%"></div>
+
+  <div class="absolute inset-x-0 bottom-0 flex h-[30%] items-end lg:h-[42%] gap-1 px-1">
     @for (bar of bars; track $index) {
       <div
-        class="stock-bar flex-1 origin-bottom animate-stock-level flex-col-reverse gap-[3px] motion-reduce:animate-none"
-        [class]="bar.showOnMobile ? 'flex' : 'hidden sm:flex'"
+        class="stock-bar flex-1 origin-bottom animate-stock-grow motion-reduce:animate-none"
+        [class]="bar.showOnMobile ? 'block' : 'hidden sm:block'"
         [style.height.%]="bar.heightPercent"
-        [style.animation-duration.s]="bar.durationSeconds"
-        [style.animation-delay.s]="bar.delaySeconds"
+        [style.animation-delay.s]="bar.growDelaySeconds"
       >
-        <span class="segment bg-ink/6" [style.flex-grow]="bar.segments[0]"></span>
-        <span class="segment bg-accent/12" [style.flex-grow]="bar.segments[1]"></span>
-        <span class="segment bg-accent-2/12" [style.flex-grow]="bar.segments[2]"></span>
-        <span class="segment rounded-t-md bg-faint/20" [style.flex-grow]="bar.segments[3]"></span>
+        <div
+          class="stock-level flex h-full origin-bottom animate-stock-level flex-col-reverse gap-1 motion-reduce:animate-none"
+          [style.animation-duration.s]="bar.durationSeconds"
+          [style.animation-delay.s]="bar.delaySeconds"
+        >
+          <span class="segment bg-accent-2/45" [style.flex-grow]="bar.segments[0]"></span>
+          <span class="segment bg-accent/55" [style.flex-grow]="bar.segments[1]"></span>
+          <span class="segment bg-faint/30" [style.flex-grow]="bar.segments[2]"></span>
+          <span class="segment rounded-t-md bg-page/15" [style.flex-grow]="bar.segments[3]"></span>
+        </div>
       </div>
     }
   </div>
-  <!-- Desvanece la parte alta de las columnas hacia el fondo de la página. -->
-  <div class="absolute inset-x-0 bottom-0 h-[45%] bg-linear-to-b from-page to-transparent to-60%"></div>
+
+  <!-- Funde la parte alta hacia la tinta para que el titular quede limpio. -->
+  <div class="absolute inset-0 bg-linear-to-b from-ink via-ink/70 to-transparent to-75%"></div>
+
+  <div
+    class="light-sweep absolute inset-y-0 left-0 w-1/4 animate-light-sweep bg-linear-to-r from-transparent via-page/10 to-transparent motion-reduce:hidden"
+  ></div>
+
+  <svg class="grain absolute inset-0 h-full w-full opacity-15 mix-blend-overlay">
+    <filter id="login-grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#login-grain)" />
+  </svg>
 </div>
