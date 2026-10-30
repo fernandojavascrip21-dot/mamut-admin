@@ -23,7 +23,7 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M1-t08-dinero-sin-flotantes`](M1-t08-dinero-sin-flotantes/spec.md) | Tarea | `SCRUM-29` · T-08 | Aprobado | 2026-10-26 | `M1-t06`, `M1-t05` | Precio y costo como texto decimal, calculados en unidades enteras y sin redondeo silencioso; convención para M3. |
 | [`M2-t10-base-vendedores`](M2-t10-base-vendedores/spec.md) | Tarea | `SCRUM-31` · T-10 | Implementado | 2026-10-29 | `M1-t03`, `M1-t07`, `M1-t08` | Teléfono obligatorio de 10 dígitos para vendedores y precio/costo por vendedor `> 0`, validados en la base. |
 | [`M2-hu08-alta-vendedor`](M2-hu08-alta-vendedor/spec.md) | Historia | `SCRUM-32` · HU-08 | Implementado | 2026-10-29 | `M2-t10`, `M0-base`, `M1-t06` | Alta de vendedor (nombre, teléfono, correo y contraseña temporal) en `/admin/vendedores/nuevo`, y que pueda entrar a «Mi stock». |
-| [`M2-hu09-ver-mis-vendedores`](M2-hu09-ver-mis-vendedores/spec.md) | Historia | `SCRUM-33` · HU-09 | Aprobado | 2026-10-29 | `M2-hu08`, `M2-t10`, `M1-t07` | «Mis vendedores» con las piezas de cada vendedor activo, y su detalle con stock por producto (solo lectura). |
+| [`M2-hu09-ver-mis-vendedores`](M2-hu09-ver-mis-vendedores/spec.md) | Historia | `SCRUM-33` · HU-09 | Implementado | 2026-10-29 | `M2-hu08`, `M2-t10`, `M1-t07` | «Mis vendedores» con las piezas de cada vendedor activo, y su detalle con stock por producto (solo lectura). |
 
 ## Relaciones que «Depende de» no muestra
 
