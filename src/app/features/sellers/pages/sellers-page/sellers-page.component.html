@@ -1,11 +1,8 @@
 <div class="flex w-full flex-col px-5 py-6">
   <div class="flex items-center justify-between gap-3">
-    <h1 class="font-display text-2xl font-extrabold tracking-[-0.02em]">Mis vendedores</h1>
+    <h1 class="page-title">Mis vendedores</h1>
     @if (state() !== 'ready' || sellers().length > 0) {
-      <a
-        routerLink="/admin/vendedores/nuevo"
-        class="new-seller flex min-h-11 items-center rounded-[10px] bg-accent px-4 text-sm font-bold text-white"
-      >
+      <a routerLink="/admin/vendedores/nuevo" class="new-seller btn-primary shrink-0 px-4 text-sm">
         Nuevo vendedor
       </a>
     }
@@ -22,7 +19,7 @@
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="animate-spin stroke-accent"
+        class="animate-spin stroke-accent motion-reduce:animate-none"
       >
         <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
       </svg>
@@ -35,10 +32,7 @@
       <app-seller-row-skeleton />
     </div>
   } @else if (state() === 'error') {
-    <div
-      class="mt-6 flex flex-col items-center gap-2 rounded-lg border border-danger-border bg-danger-bg p-5 text-center text-danger-text"
-      role="alert"
-    >
+    <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
       <svg
         aria-hidden="true"
         width="22"
@@ -50,23 +44,21 @@
         stroke-linejoin="round"
         class="shrink-0 stroke-danger"
       >
-        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+        <path
+          d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+        ></path>
         <path d="M12 9v4"></path>
         <path d="M12 17h.01"></path>
       </svg>
       <p class="m-0 text-[15px] font-bold">No pudimos cargar a tus vendedores</p>
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button
-        type="button"
-        class="retry mt-2 h-11 rounded-lg border border-line-strong bg-white px-4 text-sm font-bold text-ink"
-        (click)="retry()"
-      >
+      <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retry()">
         Reintentar
       </button>
     </div>
   } @else if (sellers().length === 0) {
     <div
-      class="empty mt-6 flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong bg-white p-6 text-center"
+      class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
     >
       <svg
         aria-hidden="true"
@@ -85,17 +77,19 @@
       </svg>
       <p class="m-0 text-[17px] font-bold">Aún no tienes vendedores</p>
       <p class="m-0 text-sm text-muted">Da de alta a tu primer vendedor para dejarle producto.</p>
-      <a
-        routerLink="/admin/vendedores/nuevo"
-        class="new-seller mt-2 inline-flex h-12 items-center justify-center rounded-lg bg-accent px-5 text-sm font-bold text-white"
-      >
+      <a routerLink="/admin/vendedores/nuevo" class="new-seller btn-primary mt-2 text-sm">
         Nuevo vendedor
       </a>
     </div>
   } @else {
     <ul class="mt-5 mb-0 flex list-none flex-col gap-3 p-0">
-      @for (seller of sellers(); track seller.id) {
-        <li><app-seller-row [seller]="seller" /></li>
+      @for (seller of sellers(); track seller.id; let index = $index) {
+        <li
+          class="min-w-0 animate-rise-in motion-reduce:animate-none"
+          [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+        >
+          <app-seller-row [seller]="seller" />
+        </li>
       }
     </ul>
   }
