@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ViewingService } from '@core/viewing/viewing.service';
+import { SidebarService } from '../services/sidebar.service';
 import { TopNavComponent } from '../top-nav/top-nav.component';
 import { ViewingBarComponent } from '../viewing-bar/viewing-bar.component';
 import { CART, MENU } from '../constants/admin-shell.constants';
@@ -16,6 +17,7 @@ import { CART, MENU } from '../constants/admin-shell.constants';
 })
 export class AdminShellComponent {
   readonly viewing = inject(ViewingService);
+  readonly sidebar = inject(SidebarService);
 
   readonly menu = MENU;
   readonly cart = CART;

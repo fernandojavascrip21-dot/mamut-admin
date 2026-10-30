@@ -1,130 +1,117 @@
-<header class="sticky top-0 z-10 bg-ink text-page shadow-card">
-  <div class="border-b border-page/10 px-5 py-3">
-    <div class="mx-auto flex w-full max-w-5xl items-center justify-between">
-      <div class="flex min-w-0 items-center gap-2.5">
-        <img
-          src="logo-mammoth.png"
-          alt="Mammut Supplements"
-          class="h-10 w-10 shrink-0 rounded-full object-cover"
-        />
-        <span class="truncate text-sm font-semibold text-page">Mammut Supplements</span>
+<header
+  [id]="sidebarId"
+  [class.lg:-ml-64]="sidebar.collapsed()"
+  [class.lg:opacity-0]="sidebar.collapsed()"
+  [class.lg:invisible]="sidebar.collapsed()"
+  class="sticky top-0 z-10 animate-rise-in bg-ink text-page motion-reduce:animate-none lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:self-start lg:overflow-y-auto lg:px-4 lg:py-6 lg:transition-[margin-left,opacity,visibility] lg:duration-300 lg:ease-out motion-reduce:transition-none"
+>
+  <!-- En celular: fila de marca + cuenta y el menú en su propia banda. En escritorio es una barra
+       lateral: la fila se disuelve (lg:contents) y sus hijos se ordenan con order-* junto al
+       bloque proyectado («Viendo»), sin duplicar el menú en el DOM. -->
+  <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center lg:contents">
+    <div class="order-1 flex min-w-0 items-center gap-3 px-4 py-3 lg:order-1 lg:p-0 lg:pb-4">
+      <img
+        src="logo-mammoth.png"
+        [alt]="brandName"
+        class="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-accent ring-offset-2 ring-offset-ink"
+      />
+      <div class="flex min-w-0 flex-col leading-none">
+        <span class="truncate font-display text-lg font-extrabold tracking-[-0.02em]">{{
+          brandName
+        }}</span>
+        <span class="mt-1 font-mono text-[10px] font-bold tracking-[0.18em] text-accent uppercase">{{
+          roleLabel()
+        }}</span>
       </div>
-      <div class="flex items-center gap-2">
-        <!-- El contador de items del carrito (M2/M3) va aquí cuando exista; hoy no tiene datos reales. -->
-        <a
-          [routerLink]="cart().path"
-          routerLinkActive
-          #cartRla="routerLinkActive"
-          [attr.aria-current]="cartRla.isActive ? 'page' : null"
-          [attr.aria-label]="cart().label"
-          class="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-page motion-reduce:transition-none"
-          [class]="cartRla.isActive ? 'bg-page/10 text-page' : 'text-page hover:bg-page/10'"
-        >
-          <svg
-            aria-hidden="true"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="8" cy="21" r="1"></circle>
-            <circle cx="19" cy="21" r="1"></circle>
-            <path
-              d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
-            ></path>
-          </svg>
-        </a>
-
-        <a
-          routerLink="/cuenta"
-          aria-label="Mi cuenta"
-          class="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-white ring-2 ring-page/20 transition-colors duration-200 focus-visible:outline-page motion-reduce:transition-none"
-          [class]="avatarBg() === 'bg-ink' ? 'bg-accent-2' : avatarBg()"
-        >
-          {{ initials() }}
-        </a>
-      </div>
+      <!-- Solo escritorio: en celular el menú va arriba y no hay barra lateral que ocultar. -->
+      <button
+        type="button"
+        (click)="sidebar.toggle()"
+        [attr.aria-label]="hideSidebarLabel"
+        [attr.aria-controls]="sidebarId"
+        aria-expanded="true"
+        class="ml-auto hidden h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-page/70 transition-colors duration-200 hover:bg-page/10 hover:text-page focus-visible:outline-page motion-reduce:transition-none lg:flex"
+      >
+        <app-nav-icon name="panel-close" />
+      </button>
     </div>
+
+    <div class="order-2 ml-auto flex shrink-0 items-center gap-2 px-4 py-3 lg:order-4 lg:mt-auto lg:ml-0 lg:w-full lg:justify-between lg:p-0 lg:pt-4">
+      <!-- El contador de items del carrito (M2/M3) va aquí cuando exista; hoy no tiene datos reales. -->
+      <a
+        [routerLink]="cart().path"
+        routerLinkActive
+        #cartRla="routerLinkActive"
+        [attr.aria-current]="cartRla.isActive ? 'page' : null"
+        [attr.aria-label]="cart().label"
+        class="flex h-11 w-11 items-center justify-center rounded-xl border transition-[background-color,color,border-color] duration-200 focus-visible:outline-page motion-reduce:transition-none"
+        [class]="
+          cartRla.isActive
+            ? 'border-accent bg-accent text-white'
+            : 'border-page/20 text-page/85 hover:border-page/40 hover:text-page'
+        "
+      >
+        <app-nav-icon name="cart" />
+      </a>
+
+      <a
+        routerLink="/cuenta"
+        [attr.aria-label]="accountLabel"
+        class="flex h-11 w-11 items-center justify-center rounded-xl font-mono text-sm font-bold tracking-wider text-white ring-1 ring-page/25 transition-shadow duration-200 hover:ring-2 hover:ring-page/60 focus-visible:outline-page motion-reduce:transition-none"
+        [class]="avatarBg()"
+      >
+        {{ initials() }}
+      </a>
+    </div>
+
+    <!-- Menú de celdas en celular; en escritorio, pestañas en línea. La activa se llena desde
+         abajo como un nivel de stock (mismo gesto que las columnas del login). -->
+    <nav
+      class="order-3 w-full border-y border-page/10 bg-ink-raised lg:order-3 lg:w-full lg:flex-none lg:border-0 lg:bg-transparent"
+      [attr.aria-label]="ariaLabel()"
+    >
+      <div
+        class="grid divide-x divide-page/10 lg:flex lg:flex-col lg:gap-1 lg:divide-x-0"
+        [class]="gridColsClass()"
+      >
+        @for (item of menu(); track item.path) {
+          <a
+            [routerLink]="item.path"
+            routerLinkActive
+            #rla="routerLinkActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            class="relative isolate flex min-h-17 flex-col items-center justify-center gap-1 px-1 py-2.5 font-display text-[12px] leading-tight font-bold tracking-wide transition-colors duration-200 focus-visible:-outline-offset-4 focus-visible:outline-page motion-reduce:transition-none lg:min-h-11 lg:flex-row lg:justify-start lg:gap-2 lg:rounded-xl lg:px-4 lg:py-0 lg:text-sm"
+            [class]="rla.isActive ? 'text-white' : 'text-page/60 hover:text-page lg:hover:bg-page/5'"
+          >
+            @if (rla.isActive) {
+              <span
+                aria-hidden="true"
+                class="absolute inset-1.5 -z-10 origin-bottom animate-stock-grow rounded-xl bg-accent shadow-lg shadow-accent/30 motion-reduce:animate-none lg:inset-0"
+              ></span>
+            }
+            <app-nav-icon [name]="item.icon" />
+            {{ item.label }}
+          </a>
+        }
+      </div>
+    </nav>
   </div>
 
-  <nav class="border-b border-page/10" [attr.aria-label]="ariaLabel()">
-    <div class="mx-auto grid w-full max-w-5xl" [class]="gridColsClass()">
-      @for (item of menu(); track item.path) {
-        <a
-          [routerLink]="item.path"
-          routerLinkActive
-          #rla="routerLinkActive"
-          [attr.aria-current]="rla.isActive ? 'page' : null"
-          class="flex min-h-16 flex-col items-center justify-center gap-1 border-b-2 px-1 py-2 text-xs leading-tight font-semibold transition-colors duration-200 focus-visible:-outline-offset-4 focus-visible:outline-page motion-reduce:transition-none"
-          [class]="
-            rla.isActive
-              ? 'border-accent text-page'
-              : 'border-transparent text-page/75 hover:bg-page/5 hover:text-page'
-          "
-        >
-          <span
-            class="flex items-center justify-center rounded-xl px-3 py-1 transition-colors duration-200 motion-reduce:transition-none"
-            [class]="rla.isActive ? 'bg-page/10' : ''"
-          >
-            <svg
-              aria-hidden="true"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              @switch (item.icon) {
-                @case ('package') {
-                  <path
-                    d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
-                  ></path>
-                  <path d="M12 22V12"></path>
-                  <polyline points="3.29 7 12 12 20.71 7"></polyline>
-                  <path d="m7.5 4.27 9 5.15"></path>
-                }
-                @case ('tag') {
-                  <path
-                    d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
-                  ></path>
-                  <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>
-                }
-                @case ('bag') {
-                  <path d="M16 10a4 4 0 0 1-8 0"></path>
-                  <path d="M3.103 6.034h17.794"></path>
-                  <path
-                    d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"
-                  ></path>
-                }
-                @case ('receipt') {
-                  <path d="M12 17V7"></path>
-                  <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8"></path>
-                  <path
-                    d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"
-                  ></path>
-                }
-                @case ('users') {
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                }
-              }
-            </svg>
-          </span>
-          {{ item.label }}
-        </a>
-      }
-    </div>
-  </nav>
-
-  <!-- Lo que el shell proyecte (la barra «Viendo» del administrador) queda fijo bajo el menú. -->
-  <ng-content />
+  <div class="mx-auto w-full max-w-7xl px-4 py-3 empty:hidden lg:order-2 lg:mx-0 lg:max-w-none lg:px-0 lg:py-4">
+    <!-- Lo que el shell proyecte (la barra «Viendo» del administrador) queda fijo bajo el menú. -->
+    <ng-content />
+  </div>
 </header>
+
+@if (sidebar.collapsed()) {
+  <button
+    type="button"
+    (click)="sidebar.toggle()"
+    [attr.aria-label]="showSidebarLabel"
+    [attr.aria-controls]="sidebarId"
+    aria-expanded="false"
+    class="fixed top-3 left-3 z-20 hidden animate-rise-in [animation-delay:150ms] motion-reduce:animate-none h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-ink text-page shadow-raised ring-1 ring-page/20 transition-colors duration-200 hover:bg-ink-raised focus-visible:outline-accent motion-reduce:transition-none lg:flex"
+  >
+    <app-nav-icon name="panel-open" />
+  </button>
+}

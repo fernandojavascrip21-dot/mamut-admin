@@ -1,17 +1,17 @@
 <div
-  class="border-b border-page/10 px-5 py-3 text-page transition-colors duration-200 motion-reduce:transition-none"
-  [class]="selectedSeller() ? 'bg-accent-hover' : 'bg-ink-raised'"
+  class="rounded-xl border px-3 py-1.5 text-page lg:w-full transition-colors duration-200 motion-reduce:transition-none"
+  [class]="selectedSeller() ? 'border-accent bg-accent/15' : 'border-page/10 bg-ink-raised'"
 >
-  <div class="mx-auto flex w-full max-w-5xl items-center gap-3">
+  <div class="flex w-full items-center gap-3 lg:flex-col lg:items-start lg:gap-1.5">
     <label for="viewing-select" class="font-display text-sm font-semibold tracking-wide">{{
       label
     }}</label>
 
-    <div class="relative min-w-0 flex-1 sm:max-w-xs">
+    <div class="relative min-w-0 flex-1 sm:w-72 sm:flex-none lg:w-full">
       @if (selectedSeller()) {
         <span
           aria-hidden="true"
-          class="pointer-events-none absolute top-1/2 left-2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white text-xs font-bold text-accent-hover"
+          class="pointer-events-none absolute top-1/2 left-1.5 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white text-xs font-bold text-accent-hover"
         >
           {{ initials() }}
         </span>
@@ -21,7 +21,7 @@
         [disabled]="status() === 'loading'"
         [attr.aria-busy]="status() === 'loading' ? 'true' : null"
         (change)="onChange($event)"
-        class="h-11 w-full cursor-pointer appearance-none truncate rounded-lg border border-page/40 bg-white/10 pr-10 text-[15px] font-bold text-page focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-page disabled:cursor-wait disabled:opacity-70"
+        class="h-10 w-full cursor-pointer appearance-none truncate rounded-lg border border-page/40 bg-white/10 pr-10 text-[15px] font-bold text-page focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-page disabled:cursor-wait disabled:opacity-70"
         [class]="selectedSeller() ? 'pl-11' : 'pl-3'"
       >
         <option

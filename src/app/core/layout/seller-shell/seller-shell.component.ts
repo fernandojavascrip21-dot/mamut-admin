@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SidebarService } from '../services/sidebar.service';
 import { TopNavComponent } from '../top-nav/top-nav.component';
 import { CART, MENU } from '../constants/seller-shell.constants';
 
@@ -11,6 +12,8 @@ import { CART, MENU } from '../constants/seller-shell.constants';
   templateUrl: './seller-shell.component.html',
 })
 export class SellerShellComponent {
+  readonly sidebar = inject(SidebarService);
+
   readonly menu = MENU;
   readonly cart = CART;
 }
