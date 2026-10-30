@@ -1,4 +1,4 @@
-import type { SellerField } from './create-seller-page.models';
+import type { SellerField } from '../models/create-seller-page.models';
 
 // Mismo mínimo que valida el backend (`validatePassword` en backend/src/accounts/accounts.ts).
 export const MIN_PASSWORD = 8;
