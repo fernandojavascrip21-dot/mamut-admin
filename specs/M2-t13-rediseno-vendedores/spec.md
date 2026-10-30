@@ -60,7 +60,8 @@ El código de los pasos 1 y 2 ya existe; se verifica, no se reescribe.
 - Lista: filas con retrasos de 0 a 160 ms. Detalle de Víctor: «55 1000 0001», «6 piezas», y las líneas de creatina y proteína.
 - Barra «Viendo»: abrir el detalle elige a Víctor; «Yo · bodega» regresa a la lista.
 - Alta: el envío vacío muestra los 4 errores; el alta de «Prueba Visual T13» muestra «Vendedor dado de alta», y el vendedor aparece en la barra sin recargar.
-- Escritorio y 390 px, sin scroll horizontal, sin controles de menos de 44 px y sin errores en la consola.
+- Escritorio y 390 px (lista, detalle y alta), sin scroll horizontal, sin controles de menos de 44 px y sin errores en la consola.
+- Hover y press con ratón real (botón sostenido por CDP): la fila sube 2 px y al presionar escala a 0.99; el botón «Nuevo vendedor» escala a 0.98. Con «reducir movimiento» no hay ninguno de esos cambios.
 - «Reducir movimiento» emulado en un Chrome headless aparte: de 5 animaciones activas a 0 en `/admin/vendedores`.
 - Respecto del commit base: cero diferencias de texto visible, y el diff solo toca plantillas `.html` y este spec.
 - **Observación:** a 390 px los nombres largos se recortan en la fila («Valeria Vended…»). Es el `truncate` que ya tenía HU-09; no se cambió aquí.
