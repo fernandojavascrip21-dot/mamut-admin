@@ -1,11 +1,11 @@
 import { and, asc, eq } from 'drizzle-orm'
-import { db } from '../db/client'
-import { isForeignKeyViolation, isUniqueViolation } from '../db/errors'
-import { products } from '../db/schema'
-import { withTransaction } from '../db/transaction'
-import { conflict, notFound, validation } from '../lib/errors'
-import { compareMoney } from '../lib/money'
-import { insertMovements } from '../stock/movements'
+import { db } from '@db/client'
+import { isForeignKeyViolation, isUniqueViolation } from '@db/errors'
+import { products } from '@db/schema'
+import { withTransaction } from '@db/transaction'
+import { conflict, notFound, validation } from '@lib/errors'
+import { compareMoney } from '@lib/money'
+import { insertMovements } from '@stock'
 import { DUPLICATE_NAME, PRICE_BELOW_COST } from './constants'
 
 export interface CreateProductInput {

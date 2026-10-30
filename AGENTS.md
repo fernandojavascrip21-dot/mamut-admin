@@ -28,7 +28,8 @@ npm run dev:all          # db:start (Docker Supabase; no-op if already up) and t
 npm run build            # production build
 npm run watch            # dev build in watch mode
 npm test                 # unit tests (Vitest runner, jsdom) — not Karma/Jasmine
-ng test --include src/app/auth/services/auth.service.spec.ts   # single file
+npm run check:architecture # layer boundaries of src/app (core/shared/features), see «Architecture»
+ng test --include src/app/core/auth/services/auth.service.spec.ts   # single file
 ng test --filter "AuthService"                                  # by name
 ```
 
@@ -69,16 +70,16 @@ npm run db:stop
 
 ## Frontend conventions
 
-**Folder structure (by feature, not by file type):**
+**Folder structure — component-based, grouped by feature** (dependencies one way only: `features → core / shared`, `core → shared`, `shared → nothing internal`; a feature never imports another; `npm run check:architecture` enforces it):
 
-- `src/app/pages/<name>-page/` — one folder per routed page. Pages hosting a `<router-outlet>` (`admin-page`, `seller-page`) still live here. A page folder only holds its component (`.ts`/`.html`/`.spec.ts`) and its `ui/` if any; its types go in `pages/models/<page>.models.ts`, its constants in `pages/constants/<page>.constants.ts`, and the child route tables of `/admin` and `/vendedor` in `pages/routes/` (`admin.routes.ts`, `seller.routes.ts`, still loaded with `loadChildren` after `roleGuard` so a seller never downloads the admin branch).
-- `src/app/<feature>/` — one functional area with its own `services/`, `guards/`, `interfaces/`, and when needed `components/` (presentational, non-page components that only take `input()` and emit `output()`, e.g. `products/components/product-form`), `validators/` (Reactive Forms validators, e.g. `products/validators/product-form.validators.ts`) and `rules/` (pure business-rule functions testable without Angular, e.g. `products/rules/product.rules.ts`). Examples: `auth/`, `products/`.
-- `src/app/shared/` — code reused across features (`api-base-url.ts`, `initials.ts`, `normalize-text.ts`, `http-errors.ts` — `isOffline`/`httpStatus`/`isNotFound`, the only place that reads `HttpErrorResponse` —, `validators.ts`, `pipes/phone.pipe.ts` — `phone`, the only way to display a stored phone (`55 2468 1357`), display only —, `components/top-nav/`, `components/confirm-dialog/` — the single confirmation dialog with focus, trapped `Tab` and `Escape`).
-- Visual-only subcomponents of a page/component go in its own `ui/` subfolder.
-- **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type` or `interface`. Types shared across a feature go in `<feature>/interfaces/*.models.ts` (e.g. `products/interfaces/product.models.ts`, `products/interfaces/unsaved-changes.models.ts`); types used by a single page go in `pages/models/<page>.models.ts` (e.g. `pages/models/login-page.models.ts`), and types used by a single non-page component go in a `<name>.models.ts` file next to it (e.g. `shared/components/top-nav/top-nav.models.ts`, `products/components/product-form/product-form.models.ts`). `type` and `interface` may coexist in the same models file. Import them with `import type`. **Constants live apart too** (user preference): a class file never declares module-level constants such as a messages map, a field→message lookup or a minimum length. This applies to **all** code, frontend and backend. Frontend: constants used by a single page go in `pages/constants/<page>.constants.ts` (e.g. `pages/constants/create-seller-page.constants.ts`); constants of a single non-page component go in a `<name>.constants.ts` file next to it (e.g. `products/components/product-form/product-form.constants.ts`); constants of a feature's services, guards or rules go in `<feature>/constants/<feature>.constants.ts` (e.g. `auth/constants/auth.constants.ts`, `shared/constants/money.constants.ts`). Backend: one `constants.ts` per area (`backend/src/accounts/constants.ts`, `backend/src/lib/constants.ts`, …). Not constants in this sense: functions stored in a `const` (guards, interceptors, error helpers), runtime instances (`db`, `sql`, the Express `app`), config objects a framework requires (`proxy.ts` `config`, `nextConfig`), route arrays (`*.routes.ts`), `shared/api-base-url.ts` (already a constants-only file), and values local to a test file.
-- No root-level `src/app/components/` or `src/app/services/` catch-alls.
+- `src/app/core/` — app-wide singletons: `auth/` (service, interceptor, `role`/`guest` guards, `interfaces/auth.models.ts`, `constants/`), `layout/` (`admin-shell/` and `seller-shell/` hosting the `<router-outlet>`, `top-nav/`, `constants/` with the menus, `routes/admin.routes.ts`/`seller.routes.ts`, still loaded with `loadChildren` after `roleGuard` so a seller never downloads the admin branch; `admin.routes.ts` only mounts each feature's routes), `toast/` (service, `components/toast/`, `constants/`), `api-base-url.ts`. Core never imports features except `core/layout/routes/`.
+- `src/app/shared/` — reusable, stateless code: `utils/` (`initials.ts`, `normalize-text.ts`, `phone.ts`, `money.ts`, `http-errors.ts` — `isOffline`/`httpStatus`/`isNotFound`, the only place that reads `HttpErrorResponse`), `validators/validators.ts`, `pipes/phone.pipe.ts` (`phone`, the only way to display a stored phone (`55 2468 1357`), display only), `constants/`, `components/confirm-dialog/` (the single confirmation dialog with focus, trapped `Tab` and `Escape`), `pages/coming-soon-page/`.
+- `src/app/features/<feature>/` (`auth` = login screen, `account`, `products`, `sellers`) — `pages/<name>-page/` (routed container components; a page folder only holds its component `.ts`/`.html`/`.spec.ts` and its `ui/` if any), `components/` (presentational: only `input()`/`output()`, e.g. `product-form`, `product-card`), `<feature>.routes.ts` (e.g. `PRODUCT_ROUTES`), and when needed `services/`, `guards/`, `interfaces/`, `validators/` (Reactive Forms validators), `rules/` (pure business-rule functions testable without Angular), `models/` (page types, `<page>.models.ts`), `constants/` (page constants, `<page>.constants.ts`, and the feature's own).
+- Visual-only subcomponents of a page/component go in its own `ui/` subfolder; once reused, they move to the feature's `components/`.
+- **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type` or `interface`. Types shared across a feature go in `<feature>/interfaces/*.models.ts` (e.g. `features/products/interfaces/product.models.ts`); types used by a single page go in the feature's `models/<page>.models.ts` (e.g. `features/auth/models/login-page.models.ts`), and types used by a single non-page component go in a `<name>.models.ts` file next to it (e.g. `core/layout/top-nav/top-nav.models.ts`, `features/products/components/product-form/product-form.models.ts`). `type` and `interface` may coexist in the same models file. Import them with `import type`. **Constants live apart too** (user preference): a class file never declares module-level constants such as a messages map, a field→message lookup or a minimum length. This applies to **all** code, frontend and backend. Frontend: page constants go in the feature's `constants/<page>.constants.ts` (e.g. `features/sellers/constants/create-seller-page.constants.ts`); constants of a single non-page component go in a `<name>.constants.ts` file next to it; constants of a feature's or core area's services, guards or rules go in its `constants/` (e.g. `core/auth/constants/auth.constants.ts`, `shared/constants/money.constants.ts`). Backend: one `constants.ts` per module (`backend/src/accounts/constants.ts`, `backend/src/lib/constants.ts`, …). Not constants in this sense: functions stored in a `const` (guards, interceptors, error helpers), runtime instances (`db`, `sql`, the Express `app`), config objects a framework requires (`proxy.ts` `config`, `nextConfig`), route arrays (`*.routes.ts`), `core/api-base-url.ts` (already a constants-only file), and values local to a test file.
+- No root-level `src/app/components/`, `src/app/services/` or `src/app/pages/` catch-alls.
 - Create a new feature's whole folder skeleton before adding files to it.
-- Imports between areas use the `tsconfig.json` aliases `@shared/*`, `@auth/*`, `@products/*`, `@pages/*`; imports inside the same area stay relative. A new feature area adds its own `@<area>/*` line to `paths`.
+- Imports between areas use the `tsconfig.json` aliases `@core/*`, `@shared/*`, `@features/*`; imports inside the same area (one feature, one `core/<area>`, or `shared`) stay relative. A new feature needs no new alias.
 
 **Components:**
 
@@ -97,18 +98,22 @@ npm run db:stop
 
 ## Backend conventions
 
-Next.js App Router, API routes only:
+Next.js App Router, API routes only, as a **modular monolith** (one app, one database, business modules with explicit public APIs; deliberately not microservices: stock lives in Postgres triggers, operations cross modules in one transaction, auth is re-read per request):
 
 ```
 proxy.ts         CORS for /api/** (Next 16's renamed "middleware")
 app/api/         thin routes: validate input, call a use case in src/
-src/db/          Drizzle client, introspected schema.ts, withTransaction + lockRows
-src/auth/        getAuthContext, guards (requireAuth/requireRole/requireOwnClient), session
-src/accounts/    account use cases built on accounts.ts (createAccount/toView)
-src/lib/         errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers, requireMoney), money.ts
-src/stock/       movements.ts (insertMovements: the only way inventory changes)
-tests/           Vitest against the real DB
+src/db/          (infra) Drizzle client, introspected schema.ts, withTransaction + lockRows
+src/lib/         (infra) errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers, requireMoney), money.ts
+src/auth/        module: getAuthContext, guards (requireAuth/requireRole/requireOwnClient), session
+src/accounts/    module: account use cases built on the internal accounts.ts (createAccount/toView)
+src/products/    module: products, photos
+src/categories/  module: categories
+src/stock/       module: movements.ts (insertMovements: the only way inventory changes)
+tests/           Vitest against the real DB; architecture.test.ts checks module boundaries
 ```
+
+- **Module boundaries and aliases:** each business module exposes its API in `src/<module>/index.ts`. Between areas, imports use the `backend/tsconfig.json` aliases, like the frontend: `@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock` (a module alias points only at its index, so its internals stay private) and `@api/*`. Inside an area, imports stay relative. `src/db`/`src/lib` never depend on a module, and `src/` never imports `app/` (`tests/architecture.test.ts`). Vitest reads the same aliases (`resolve.tsconfigPaths`). A new area is a new module with `index.ts` + `constants.ts` + its alias. A use case spanning modules in one transaction lives in the owning module and passes its `tx` to the others' public functions.
 
 - **No business logic in routes** — routes validate and delegate to `src/`.
 - **Auth is re-checked on every request**: `getAuthContext` loads `profiles` fresh so deactivation takes effect immediately. Never trust JWT claims for role/active status.
@@ -139,7 +144,7 @@ tests/           Vitest against the real DB
 
 ### Formularios
 
-Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `products/components/product-form` (presentacional) y `pages/login-page` (llama al servicio).
+Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `features/products/components/product-form` (presentacional) y `features/auth/pages/login-page` (llama al servicio).
 
 - **Orden del componente**, cada sección con un comentario breve: 1) dependencias con `inject()`; 2) formulario y estados; 3) getters y setters; 4) ciclo de vida e inicialización; 5) carga de datos; 6) métodos que agregan, quitan o modifican controles; 7) validación, preparación del payload y envío.
 - **Construcción:** formularios tipados con `FormBuilder` (`.nonNullable` cuando tenga sentido), `FormGroup` para objetos anidados y `FormArray` para colecciones. La estructura y las validaciones van en un método dedicado, `createEmptyForm()`. En `ngOnInit()` se ven las dos etapas: primero `createEmptyForm()` y después la carga de datos (`loadInitialValue()`/`loadX()`). Los validadores van en `<feature>/validators/` o en `shared/validators.ts`, no escritos dentro del componente.

@@ -1,9 +1,9 @@
 import { eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { GET, PATCH } from '../app/api/products/[id]/route'
-import { db, sql } from '../src/db/client'
-import { categories, products, stockMovements } from '../src/db/schema'
-import { createProduct } from '../src/products/products'
+import { GET, PATCH } from '@api/products/[id]/route'
+import { db, sql } from '@db/client'
+import { categories, products, stockMovements } from '@db/schema'
+import { createProduct } from '@products'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 const PREFIX = 'test-prod-id-'

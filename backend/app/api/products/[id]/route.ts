@@ -1,7 +1,7 @@
-import { getProduct, updateProduct } from '../../../../src/products/products'
-import { requireRole } from '../../../../src/auth/guards'
-import { validation } from '../../../../src/lib/errors'
-import { handle, parseId, readJson, requireMoney, requireString } from '../../../../src/lib/handler'
+import { getProduct, updateProduct } from '@products'
+import { requireRole } from '@auth'
+import { validation } from '@lib/errors'
+import { handle, parseId, readJson, requireMoney, requireString } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

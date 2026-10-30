@@ -1,7 +1,7 @@
-import { createProduct, listProducts } from '../../../src/products/products'
-import { requireRole } from '../../../src/auth/guards'
-import { validation } from '../../../src/lib/errors'
-import { handle, optionalText, readJson, requireMoney, requireNumber, requireString } from '../../../src/lib/handler'
+import { createProduct, listProducts } from '@products'
+import { requireRole } from '@auth'
+import { validation } from '@lib/errors'
+import { handle, optionalText, readJson, requireMoney, requireNumber, requireString } from '@lib/handler'
 
 export const GET = handle(async (request) => {
   await requireRole(request, 'admin')

@@ -1,11 +1,11 @@
 import { and, desc, eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { db, sql } from '../src/db/client'
-import { pgErrorCode } from '../src/db/errors'
-import { products, stockMovements, vendorStock } from '../src/db/schema'
-import { withTransaction } from '../src/db/transaction'
-import { AppError } from '../src/lib/errors'
-import { insertMovements, type NewStockMovement } from '../src/stock/movements'
+import { db, sql } from '@db/client'
+import { pgErrorCode } from '@db/errors'
+import { products, stockMovements, vendorStock } from '@db/schema'
+import { withTransaction } from '@db/transaction'
+import { AppError } from '@lib/errors'
+import { insertMovements, type NewStockMovement } from '@stock'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 // Prefijo identificable para limpiar sin tocar el catálogo real (spec T-07 §7).

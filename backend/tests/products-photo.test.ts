@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { POST as uploadPhotoRoute } from '../app/api/products/photo/route'
-import { supabaseAdmin } from '../src/lib/supabase'
+import { POST as uploadPhotoRoute } from '@api/products/photo/route'
+import { supabaseAdmin } from '@lib/supabase'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 const BUCKET = 'product-photos'

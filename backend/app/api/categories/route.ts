@@ -1,6 +1,6 @@
-import { listCategories } from '../../../src/categories/categories'
-import { requireRole } from '../../../src/auth/guards'
-import { handle } from '../../../src/lib/handler'
+import { listCategories } from '@categories'
+import { requireRole } from '@auth'
+import { handle } from '@lib/handler'
 
 export const GET = handle(async (request) => {
   await requireRole(request, 'admin')

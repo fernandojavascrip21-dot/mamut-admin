@@ -8,6 +8,8 @@ try {
 }
 
 export default defineConfig({
+  // Los alias de imports (@db/*, @lib/*, @auth, @api/*…) se leen de tsconfig.json, igual que Next.
+  resolve: { tsconfigPaths: true },
   test: {
     include: ['tests/**/*.test.ts'],
     testTimeout: 20_000,

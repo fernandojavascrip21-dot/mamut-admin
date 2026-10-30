@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { GET as listCategoriesRoute } from '../app/api/categories/route'
-import { sql } from '../src/db/client'
+import { GET as listCategoriesRoute } from '@api/categories/route'
+import { sql } from '@db/client'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 const req = (token?: string) =>

@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
-import { db } from '../db/client'
-import { profiles } from '../db/schema'
-import { unauthorized } from '../lib/errors'
-import { supabaseAuth } from '../lib/supabase'
+import { db } from '@db/client'
+import { profiles } from '@db/schema'
+import { unauthorized } from '@lib/errors'
+import { supabaseAuth } from '@lib/supabase'
 
 export interface AuthContext {
   userId: string // profiles.id (= auth.users.id)

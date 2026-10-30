@@ -1,6 +1,6 @@
-import { createClient, listClients } from '../../../src/accounts/clients'
-import { requireRole } from '../../../src/auth/guards'
-import { handle, optionalText, readJson, requireString } from '../../../src/lib/handler'
+import { createClient, listClients } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, optionalText, readJson, requireString } from '@lib/handler'
 
 export const GET = handle(async (request) => {
   await requireRole(request, 'admin')

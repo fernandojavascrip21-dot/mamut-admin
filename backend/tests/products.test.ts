@@ -1,8 +1,8 @@
 import { eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { GET as listProductsRoute, POST as createProductRoute } from '../app/api/products/route'
-import { db, sql } from '../src/db/client'
-import { categories, products, stockMovements } from '../src/db/schema'
+import { GET as listProductsRoute, POST as createProductRoute } from '@api/products/route'
+import { db, sql } from '@db/client'
+import { categories, products, stockMovements } from '@db/schema'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
 // Prefijo identificable para poder limpiar lo que crean estas pruebas sin tocar el catálogo

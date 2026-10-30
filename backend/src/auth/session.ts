@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm'
 import type { Session } from '@supabase/supabase-js'
-import { db } from '../db/client'
-import { profiles } from '../db/schema'
-import { unauthorized } from '../lib/errors'
-import { supabaseAdmin, supabaseAuth } from '../lib/supabase'
+import { db } from '@db/client'
+import { profiles } from '@db/schema'
+import { unauthorized } from '@lib/errors'
+import { supabaseAdmin, supabaseAuth } from '@lib/supabase'
 import { INVALID_CREDENTIALS } from './constants'
 import type { AuthContext } from './context'
 

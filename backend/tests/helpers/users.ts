@@ -1,7 +1,7 @@
 import { eq, like } from 'drizzle-orm'
-import { db } from '../../src/db/client'
-import { clients, debtors, profiles } from '../../src/db/schema'
-import { supabaseAdmin, supabaseAuth } from '../../src/lib/supabase'
+import { db } from '@db/client'
+import { clients, debtors, profiles } from '@db/schema'
+import { supabaseAdmin, supabaseAuth } from '@lib/supabase'
 
 // Todo lo que crean las pruebas lleva este prefijo para poder limpiarlo.
 export const TEST_PREFIX = 'test-auth-'

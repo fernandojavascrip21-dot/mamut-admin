@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { POST as login } from '../app/api/auth/login/route'
-import { POST as logout } from '../app/api/auth/logout/route'
-import { POST as refresh } from '../app/api/auth/refresh/route'
-import { GET as me } from '../app/api/me/route'
-import { sql } from '../src/db/client'
+import { POST as login } from '@api/auth/login/route'
+import { POST as logout } from '@api/auth/logout/route'
+import { POST as refresh } from '@api/auth/refresh/route'
+import { GET as me } from '@api/me/route'
+import { sql } from '@db/client'
 import {
   cleanupTestData,
   createTestClient,

@@ -1,9 +1,9 @@
 import { and, asc, eq } from 'drizzle-orm'
-import { db } from '../db/client'
-import { isForeignKeyViolation } from '../db/errors'
-import { clients, profiles } from '../db/schema'
-import { conflict, notFound } from '../lib/errors'
-import { supabaseAdmin } from '../lib/supabase'
+import { db } from '@db/client'
+import { isForeignKeyViolation } from '@db/errors'
+import { clients, profiles } from '@db/schema'
+import { conflict, notFound } from '@lib/errors'
+import { supabaseAdmin } from '@lib/supabase'
 import { createAccount, toView, validatePassword, type AccountView } from './accounts'
 
 type Profile = typeof profiles.$inferSelect

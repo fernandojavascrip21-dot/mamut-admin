@@ -1,6 +1,6 @@
-import { deactivateAdmin } from '../../../../../src/accounts/admins'
-import { requireRole } from '../../../../../src/auth/guards'
-import { handle, parseUuid } from '../../../../../src/lib/handler'
+import { deactivateAdmin } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, parseUuid } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

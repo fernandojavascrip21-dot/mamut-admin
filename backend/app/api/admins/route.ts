@@ -1,6 +1,6 @@
-import { createAdmin, listAdmins } from '../../../src/accounts/admins'
-import { requireRole } from '../../../src/auth/guards'
-import { handle, readJson, requireString } from '../../../src/lib/handler'
+import { createAdmin, listAdmins } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, readJson, requireString } from '@lib/handler'
 
 // Solo un administrador crea a otro; un cliente recibe 403.
 export const GET = handle(async (request) => {

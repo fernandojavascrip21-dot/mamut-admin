@@ -1,6 +1,6 @@
 // Dinero sin flotantes (spec T-08): los montos viajan como texto decimal y se calculan en
 // enteros de la unidad mínima de su escala (centavos para 2, diezmilésimas para 4).
-// Mismo contrato que src/app/shared/money.ts del frontend; sus pruebas cubren los mismos casos.
+// Mismo contrato que src/app/shared/utils/money.ts del frontend; sus pruebas cubren los mismos casos.
 
 import { DECIMAL } from './constants'
 

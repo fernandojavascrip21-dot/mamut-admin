@@ -1,4 +1,4 @@
-import { validation } from '../lib/errors'
+import { validation } from '@lib/errors'
 import { createAccount, type AccountView } from './accounts'
 import { PHONE_SEPARATORS, TEN_DIGITS } from './constants'
 

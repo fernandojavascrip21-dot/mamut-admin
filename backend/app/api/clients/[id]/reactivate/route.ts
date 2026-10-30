@@ -1,6 +1,6 @@
-import { reactivateClient } from '../../../../../src/accounts/clients'
-import { requireRole } from '../../../../../src/auth/guards'
-import { handle, parseId } from '../../../../../src/lib/handler'
+import { reactivateClient } from '@accounts'
+import { requireRole } from '@auth'
+import { handle, parseId } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

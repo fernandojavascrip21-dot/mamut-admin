@@ -1,7 +1,7 @@
-import { isCheckViolation } from '../db/errors'
-import { stockMovements } from '../db/schema'
-import type { Tx } from '../db/transaction'
-import { conflict } from '../lib/errors'
+import { isCheckViolation } from '@db/errors'
+import { stockMovements } from '@db/schema'
+import type { Tx } from '@db/transaction'
+import { conflict } from '@lib/errors'
 import { NOT_ENOUGH_UNITS } from './constants'
 
 // Tipos permitidos por stock_movements_type_check.
