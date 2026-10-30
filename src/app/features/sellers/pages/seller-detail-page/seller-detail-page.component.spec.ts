@@ -1,0 +1,113 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { SellerDetailPageComponent } from './seller-detail-page.component';
+import { API_BASE_URL } from '@core/api-base-url';
+import type { SellerDetail } from '../../interfaces/seller.models';
+
+const ID = '3f2c8a1e-0000-4000-8000-000000000001';
+const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
+
+const SELLER: SellerDetail = {
+  id: ID,
+  fullName: 'Luis Prueba',
+  email: 'luis@mammut.local',
+  phone: '5524681357',
+  active: true,
+  units: 6,
+  stock: [
+    { productId: 1, name: 'Creatina Monohidratada', image: null, units: 2 },
+    { productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4 },
+  ],
+};
+
+describe('SellerDetailPageComponent', () => {
+  let fixture: ComponentFixture<SellerDetailPageComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SellerDetailPageComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: ID }) } } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SellerDetailPageComponent);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  async function settle() {
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function load(seller: SellerDetail) {
+    fixture.detectChanges();
+    httpMock.expectOne(SELLER_URL).flush(seller);
+    await settle();
+  }
+
+  const text = () => fixture.nativeElement.textContent as string;
+
+  it('mientras carga muestra «Cargando vendedor…»', () => {
+    fixture.detectChanges();
+    expect(text()).toContain('Cargando vendedor…');
+    httpMock.expectOne(SELLER_URL).flush(SELLER);
+  });
+
+  it('muestra sus datos con el teléfono formateado, su total y su stock por producto', async () => {
+    await load(SELLER);
+
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Luis Prueba');
+    expect(fixture.nativeElement.querySelector('.phone').textContent.trim()).toBe('55 2468 1357');
+    expect(text()).toContain('luis@mammut.local');
+    expect(fixture.nativeElement.querySelector('.total').textContent.trim()).toBe('6 piezas');
+
+    const lines = Array.from(fixture.nativeElement.querySelectorAll('app-seller-stock-line')) as HTMLElement[];
+    expect(lines).toHaveLength(2);
+    expect(lines[0].textContent).toContain('Creatina Monohidratada');
+    expect(lines[0].textContent).toContain('2 piezas');
+    expect(lines[1].textContent).toContain('4 piezas');
+  });
+
+  it('sin productos muestra «Todavía no tiene producto.»', async () => {
+    await load({ ...SELLER, units: 0, stock: [] });
+
+    expect(fixture.nativeElement.querySelector('.empty').textContent.trim()).toBe('Todavía no tiene producto.');
+    expect(fixture.nativeElement.querySelector('.total').textContent.trim()).toBe('0 piezas');
+  });
+
+  it('con un 404 muestra «No encontramos a este vendedor» y un enlace a la lista', async () => {
+    fixture.detectChanges();
+    httpMock.expectOne(SELLER_URL).flush({}, { status: 404, statusText: 'Not Found' });
+    await settle();
+
+    expect(text()).toContain('No encontramos a este vendedor');
+    expect(fixture.nativeElement.querySelector('.retry')).toBeNull();
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
+    expect(links.some((a) => a.textContent?.includes('Volver a Mis vendedores'))).toBe(true);
+  });
+
+  it('si falla la carga muestra el error, y «Reintentar» vuelve a pedirlo', async () => {
+    fixture.detectChanges();
+    httpMock.expectOne(SELLER_URL).error(new ProgressEvent('error'));
+    await settle();
+
+    expect(text()).toContain('No pudimos cargar al vendedor');
+    (fixture.nativeElement.querySelector('.retry') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    httpMock.expectOne(SELLER_URL).flush(SELLER);
+    await settle();
+    expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+  });
+});
