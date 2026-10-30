@@ -1,4 +1,4 @@
-import { createSeller } from '@accounts'
+import { createSeller, listSellers } from '@accounts'
 import { requireRole } from '@auth'
 import { handle, readJson, requireString } from '@lib/handler'
 
@@ -13,4 +13,10 @@ export const POST = handle(async (request) => {
     phone: requireString(body, 'phone'),
   })
   return Response.json(seller, { status: 201 })
+})
+
+// «Mis vendedores» (HU-09): vendedores activos con su total de piezas, solo para administradores.
+export const GET = handle(async (request) => {
+  await requireRole(request, 'admin')
+  return Response.json(await listSellers())
 })

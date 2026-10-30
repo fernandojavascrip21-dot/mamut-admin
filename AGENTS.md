@@ -14,8 +14,8 @@ Guidance for AI coding agents (Codex, Cursor, Copilot, Claude Code, etc.) workin
 Known legacy mismatches inherited from the old project:
 
 - `backend/README.md` still talks about a Vue frontend and a Vite dev port; it's accurate about backend code, outdated about who consumes it.
-- The schema's domain (`clients`, `consignment_items`, `debtors`, …) doesn't map 1:1 onto this project's vocabulary (administrador/vendedor, bodega, dejar/retirar).
-- `profiles.role` only allows `'admin' | 'client'`. Adding `'vendedor'` means **extending** the check constraint and `AuthContext['role']`, not replacing them.
+- The schema's domain (`clients`, `consignment_items`, `debtors`, …) doesn't map 1:1 onto this project's vocabulary (administrador/vendedor, bodega, dejar/retirar). Settled in spec `M1-t03`: a `vendedor` is **not** a `client`. A seller is a `profiles` row with `role = 'vendedor'`, and `clients` stays unused for now.
+- `profiles.role` allows `'admin' | 'client' | 'vendedor'` (check constraint and `AuthContext['role']`); a `vendedor` requires a 10-digit `phone` (spec `M2-t10`). New roles **extend** both, never replace them.
 
 ## Commands
 
@@ -64,6 +64,8 @@ npm run db:stop
 
 - `backend/.env` has two connection blocks, **PRODUCCIÓN** and **LOCAL**: keep one active, comment the other. Next, tests, `db:check` and drizzle all read that file; restart `npm run dev` after switching. `backend/.env.example` has the same layout.
 - Studio: http://127.0.0.1:54323 · Mailpit: http://127.0.0.1:54324 · DB: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- Test users: `usuarios-prueba.md` (seed accounts, sellers created from the app, production test accounts). Keep it updated. It is **local only** (`.gitignore`) because it holds real passwords and emails and the repo is public, so never commit it or copy its contents into tracked files.
+- `next dev` may exit right after start-up with a Next.js security-upgrade notice (exit code 1). Re-run `npm run dev`. Upgrading Next is its own deliberate change.
 - Seed users (`supabase/seed.sql`, all fake data): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated). Every `vendedor` has a 10-digit phone, which the database requires (spec `M2-t10`).
 - `supabase/migrations/20261024000000_baseline_schema.sql` is a schema-only snapshot of the inherited production schema so an empty DB can replay every migration. Never apply it to production.
 - New migrations: add the `.sql` to `supabase/migrations/`, verify with `npm run db:reset` locally, then apply to production.
@@ -123,7 +125,7 @@ tests/           Vitest against the real DB; architecture.test.ts checks module 
 - **Movement sign convention** (`stock_movements_qty_sign_check`, spec `M1-t07` §3): one row per holder (`holder_profile_id` null = warehouse), signed `qty` (in `> 0`, out `< 0`); a transfer is two rows in one transaction. `initial`/`purchase`: warehouse `> 0`; `delivery`: warehouse `< 0`, seller `> 0`; `return`: warehouse `> 0`, seller `< 0`; `direct_sale`/`shrinkage`/`fraction_out`: `< 0`; `*_void`/`fraction_in`: `> 0`; `adjustment`: `≠ 0`.
 - **Rows with history are deactivated, never deleted.** `DELETE` endpoints rely on FK `restrict` to surface a 409.
 - **Errors** are always `{ error: { code, message } }` via `AppError` / `toResponse`, with a fixed HTTP status per code (401/403/404/409/422/500). Login/refresh return one generic message for wrong password, unknown account and deactivated account.
-- **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`; the Angular dev origin (`http://localhost:4200`) must be listed.
+- **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`. It lists `http://localhost:4200` (Angular) plus the legacy Vue port `5173`. Add any new frontend origin there.
 - `src/db/schema.ts` is generated — never hand-edit beyond the `db:pull` fixups, never add Drizzle-generated migrations. Schema changes go in `supabase/migrations/`.
 
 ## Buenas prácticas de código
@@ -147,7 +149,7 @@ tests/           Vitest against the real DB; architecture.test.ts checks module 
 Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `features/products/components/product-form` (presentacional) y `features/auth/pages/login-page` (llama al servicio).
 
 - **Orden del componente**, cada sección con un comentario breve: 1) dependencias con `inject()`; 2) formulario y estados; 3) getters y setters; 4) ciclo de vida e inicialización; 5) carga de datos; 6) métodos que agregan, quitan o modifican controles; 7) validación, preparación del payload y envío.
-- **Construcción:** formularios tipados con `FormBuilder` (`.nonNullable` cuando tenga sentido), `FormGroup` para objetos anidados y `FormArray` para colecciones. La estructura y las validaciones van en un método dedicado, `createEmptyForm()`. En `ngOnInit()` se ven las dos etapas: primero `createEmptyForm()` y después la carga de datos (`loadInitialValue()`/`loadX()`). Los validadores van en `<feature>/validators/` o en `shared/validators.ts`, no escritos dentro del componente.
+- **Construcción:** formularios tipados con `FormBuilder` (`.nonNullable` cuando tenga sentido), `FormGroup` para objetos anidados y `FormArray` para colecciones. La estructura y las validaciones van en un método dedicado, `createEmptyForm()`. En `ngOnInit()` se ven las dos etapas: primero `createEmptyForm()` y después la carga de datos (`loadInitialValue()`/`loadX()`). Los validadores van en `<feature>/validators/` o en `shared/validators/validators.ts`, no escritos dentro del componente.
 - **Getters y setters:** getters para los controles y grupos que se consultan seguido (sobre todo los `FormArray`). Un setter reemplaza una colección que viene del backend: limpia los controles anteriores y crea los nuevos con un método privado, el mismo que usa «agregar», para que tengan las mismas validaciones. Nada de HTTP en getters ni setters.
 - **Carga:** `patchValue()` para los campos simples. Los elementos de un `FormArray` se crean antes de asignarles valor, porque `patchValue()` no los crea. Hay que contemplar colecciones vacías y opcionales según el contrato de la API. El modelo del backend (`interfaces/`), la estructura del formulario (tipo `FormGroup<…>`) y el payload quedan separados cuando sus nombres o formatos difieren.
 - **Interacción:** métodos específicos para agregar y quitar. Se revisa el índice antes de quitar y se llama a `markAsDirty()` cuando el usuario cambia una colección.
@@ -207,7 +209,7 @@ Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `feat
 ## Workflow
 
 - Specs are written with `/spec` and implemented with `/spec-impl`; `specs/.spec-config.yml` (`AutoCreateBranch`) controls whether a `spec-<slug>` branch is created automatically.
-- `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, and cross-spec relationships). Update it in the same change whenever a spec is created, changes status, or affects another spec.
+- `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, and cross-spec relationships). Update it in the same change whenever a spec is created, changes status, or affects another spec. Older specs cite pre-reorganization paths (`pages/…`, `@pages/*`…); the old → new table is the last bullet of its «Relaciones» section.
 - When a spec maps to a Jira user story (`HU-NN`):
   - **During implementation**, comment progress on the Jira issue: current step of the spec's plan and the status (✅ done / ❌ pending / ⏳ deferred) of each acceptance criterion — follow the pattern on `SCRUM-17`.
   - **At 100%** (all acceptance criteria checked, tests passing), transition the story to `Finalizada`.

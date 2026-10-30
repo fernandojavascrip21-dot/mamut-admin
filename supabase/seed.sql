@@ -4,7 +4,7 @@
 --
 -- Cuentas (todas con email confirmado):
 --   admin@mammut.local        Admin-123456!     admin
---   vendedor1@mammut.local    Vendedor-123456!  vendedor (tel. 5510000001)
+--   vendedor1@mammut.local    Vendedor-123456!  vendedor (tel. 5510000001; 6 piezas entregadas, ver §3)
 --   vendedor2@mammut.local    Vendedor-123456!  vendedor (tel. 5510000002)
 --   inactivo@mammut.local     Vendedor-123456!  vendedor (tel. 5510000003; desactivado: el login debe rechazarlo)
 
@@ -99,3 +99,23 @@ from inserted
 join public.products parent on parent.id = inserted.parent_product_id
 join b on b.parent_name = parent.name
 where b.stock > 0;
+
+-- 3. Entregas a vendedores (HU-09) ----------------------------------------------
+-- Víctor (vendedor1@) recibe 6 piezas para ver «Mis vendedores» con producto antes de HU-11.
+-- Cada entrega son dos filas `delivery` (spec T-07 §3): bodega −N y vendedor +N; el trigger
+-- mueve products.stock y vendor_stock.qty.
+with d(product_name, qty) as (values
+  ('Proteína Demo Whey 2 lb', 4),
+  ('Creatina Monohidratada Demo', 2)
+),
+deliveries as (
+  select p.id as product_id, d.qty
+  from d join public.products p on p.name = d.product_name
+)
+insert into public.stock_movements (product_id, type, qty, reason, created_by, holder_profile_id)
+select product_id, 'delivery', -qty, 'Entrega de prueba (seed local)', 'a0000000-0000-4000-8000-000000000001'::uuid, null::uuid
+from deliveries
+union all
+select product_id, 'delivery', qty, 'Entrega de prueba (seed local)', 'a0000000-0000-4000-8000-000000000001'::uuid,
+  'a0000000-0000-4000-8000-000000000002'::uuid
+from deliveries;

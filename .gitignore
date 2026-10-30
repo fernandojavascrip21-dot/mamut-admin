@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Usuarios de prueba locales (contraseñas y correos reales): no van al repo público
+/usuarios-prueba.md

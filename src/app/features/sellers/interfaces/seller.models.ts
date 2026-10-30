@@ -23,3 +23,24 @@ export type CreateSellerFailure = 'duplicate-email' | 'invalid' | 'offline';
 export type CreateSellerResult =
   | { ok: true; seller: Seller }
   | { ok: false; reason: CreateSellerFailure; message?: string };
+
+// Fila de «Mis vendedores» (GET /api/sellers, HU-09): total de piezas que tiene en mano.
+export interface SellerSummary {
+  id: string;
+  fullName: string;
+  units: number;
+}
+
+// Un producto del stock de un vendedor. `image` es null si el producto no tiene foto.
+export interface SellerStockLine {
+  productId: number;
+  name: string;
+  image: string | null;
+  units: number;
+}
+
+// Detalle de un vendedor (GET /api/sellers/:id): sus datos, su total y solo los productos con piezas.
+export interface SellerDetail extends Seller {
+  units: number;
+  stock: SellerStockLine[];
+}
