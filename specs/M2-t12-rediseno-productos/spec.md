@@ -32,7 +32,7 @@ Las de `M2-t11-rediseno-visual` §2, incluida su tabla de contraste (§6). Este 
 
 ## 3. Endpoints y datos
 
-No hay cambios en el backend, en los endpoints ni en los modelos. El diff solo toca plantillas `.html`.
+No hay cambios en el backend, en los endpoints ni en los modelos. El diff solo toca plantillas `.html` y las dos pruebas del input de foto (§7).
 
 ## 4. Plan de implementación
 
@@ -48,7 +48,7 @@ El código de los pasos 1 y 2 ya existe; se verifica, no se reescribe.
 - [x] **1.** La lista, el alta y la edición usan las clases base.
 - [x] **2.** Las tarjetas responden a hover y press, y la lista entra escalonada con un máximo de 320 ms.
 - [x] **3.** La búsqueda, el alta y la edición funcionan igual que antes.
-- [x] No cambió ningún texto visible, ruta, servicio ni regla de validación. El diff solo toca plantillas `.html` y este spec.
+- [x] No cambió ningún texto visible, ruta, servicio ni regla de validación. El diff solo toca plantillas `.html`, este spec y las dos pruebas del input de foto (§7).
 - [x] Todo control mide 44 px o más y tiene foco visible.
 - [x] Hay capturas en escritorio y a 390 px, sin scroll horizontal.
 - [x] Las pruebas actuales pasan sin cambiarlas. `ng build` y `npm run check:architecture` pasan.
@@ -58,13 +58,16 @@ El código de los pasos 1 y 2 ya existe; se verifica, no se reescribe.
 - `ng test` (48 archivos), `ng build` y `npm run check:architecture` pasan con esta parte sobre T-11.
 - Lista: 14 tarjetas con retrasos de 0 a 320 ms. Búsqueda: «creatina» deja 3 tarjetas.
 - Alta: el envío vacío muestra los 4 errores; el alta de «Prueba Visual T12» muestra «Producto registrado» y el aviso flotante. Edición: el precio cambió a `160.00`, confirmado en la base local.
-- Escritorio y 390 px, sin scroll horizontal; sin controles de menos de 44 px en la lista ni en el alta (salvo el selector de archivo y las casillas, que no se midieron) y sin errores en la consola.
+- Escritorio y 390 px (lista, alta y edición), sin scroll horizontal y sin errores en la consola.
+- Tamaños: selector de archivo, campos, «Porción» y botones de 52 px; «Cambiar foto» de 44 px. La casilla «Se fracciona» mide 20 px, pero toda su etiqueta es clicable y mide 44 px de alto.
+- Hover y press con ratón real (botón sostenido por CDP): la tarjeta sube 2 px, pasa a `shadow-raised` y se oscurece su borde; al presionar escala a 0.99, y los botones `btn-primary` a 0.98. Con «reducir movimiento» no hay ninguno de esos cambios. La sombra cambia sin transición, como pide T-11 (solo se animan `transform`, `opacity` y colores).
 - «Reducir movimiento» emulado en un Chrome headless aparte: de 14 animaciones activas a 0 en `/admin/productos`.
-- Respecto del commit base: cero diferencias de texto visible, y el diff solo toca plantillas `.html` y este spec.
+- Respecto del commit base: cero diferencias de texto visible.
+- **Defecto encontrado y corregido:** en la edición, `Tab` caía en el input de foto oculto (`sr-only`, 1×1 px) y el foco desaparecía de la pantalla. Venía desde antes de T-11. Ahora lleva `tabindex="-1"` en modo edición; «Cambiar foto» lo sigue abriendo, y `Tab` pasa de ese botón a «Nombre».
 
 ## 6. Plan de pruebas
 
-- No se escriben pruebas nuevas, porque la lógica no cambia. La suite actual (`ng test`) es la red de seguridad.
+- La lógica no cambia, así que la suite actual (`ng test`) es la red de seguridad. La única adición son dos pruebas del `tabIndex` del input de foto, por el defecto de foco del §5.
 - Si una prueba falla por un cambio visual, se corrige la plantilla, no la prueba.
 - Verificación visual: capturas, foco con `Tab` y emulación de «reducir movimiento» en Chrome.
 
@@ -72,6 +75,7 @@ El código de los pasos 1 y 2 ya existe; se verifica, no se reescribe.
 
 - **Sí:** spec propio, por la división de T-11 (decisión del usuario del 2026-10-30): se revisa y se fusiona por separado.
 - **Sí:** aplicar la entrada escalonada y las clases base como dice T-11, sin decisiones nuevas.
+- **Sí:** corregir aquí el foco invisible del input de foto (`tabindex="-1"` en edición), porque incumple el criterio de foco visible de este spec, aunque viniera de antes. Se agregaron dos pruebas para que no regrese.
 
 ## 8. Riesgos
 

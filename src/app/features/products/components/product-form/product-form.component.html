@@ -51,6 +51,7 @@
       type="file"
       accept="image/*"
       #photoInput
+      [attr.tabindex]="mode() === 'edit' ? -1 : null"
       [disabled]="busy()"
       (change)="onPhotoSelected(photoInput.files?.[0] ?? null)"
       [class]="
