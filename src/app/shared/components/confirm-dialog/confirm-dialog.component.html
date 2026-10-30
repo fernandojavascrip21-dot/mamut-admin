@@ -5,9 +5,11 @@
     aria-labelledby="confirm-dialog-title"
     [attr.aria-describedby]="message() ? 'confirm-dialog-desc' : null"
     (keydown)="onKeydown($event)"
-    class="flex w-full max-w-sm flex-col gap-3 rounded-lg bg-white p-5"
+    class="surface-card flex w-full max-w-sm flex-col gap-4 p-6 shadow-raised"
   >
-    <h2 id="confirm-dialog-title" class="text-lg font-bold">{{ title() }}</h2>
+    <h2 id="confirm-dialog-title" class="font-display text-[24px] font-extrabold tracking-tight">
+      {{ title() }}
+    </h2>
     @if (message()) {
       <p id="confirm-dialog-desc" class="text-[15px] leading-relaxed text-muted">{{ message() }}</p>
     }
@@ -16,7 +18,7 @@
         #cancelButton
         type="button"
         (click)="cancelled.emit()"
-        class="h-[50px] flex-1 rounded-lg border border-line-strong font-semibold"
+        class="btn-secondary flex-1 px-3 text-[15px]"
       >
         {{ cancelLabel() }}
       </button>
@@ -24,7 +26,10 @@
         #confirmButton
         type="button"
         (click)="confirmed.emit()"
-        [class]="'h-[50px] flex-1 rounded-lg font-bold text-white ' + (tone() === 'danger' ? 'bg-danger' : 'bg-accent')"
+        [class]="
+          'btn-primary flex-1 px-3 text-[15px] ' +
+          (tone() === 'danger' ? 'bg-danger hover:bg-danger-text' : '')
+        "
       >
         {{ confirmLabel() }}
       </button>

@@ -109,6 +109,8 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 
 **Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (the component schematic in `angular.json` already uses `style: "none"`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own. New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — never copy mockup colors or Vue code verbatim.
 
+Use the shared utilities in `src/styles.css` (`btn-*`, `field-*`, `surface-*`, `page-title`, `alert-*`, `skeleton-block`) before repeating visual utilities in templates. Keep test-hook classes alongside them; local Tailwind utilities may override size, spacing or semantic states.
+
 **Components:**
 
 - Always create components with `ng generate component`, never by hand-writing the files.

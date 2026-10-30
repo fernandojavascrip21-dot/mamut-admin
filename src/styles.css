@@ -6,6 +6,7 @@
 @theme {
   --color-page: #f5efe4;
   --color-ink: #231a14;
+  --color-ink-raised: #2c211a;
   --color-muted: #6b6056;
   --color-accent: #ac5e1c;
   --color-accent-hover: #8f3b18;
@@ -29,6 +30,10 @@
   --font-sans: 'Public Sans', system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  --shadow-card: 0 1px 2px rgb(35 26 20 / 0.06), 0 4px 16px rgb(35 26 20 / 0.06);
+  --shadow-raised: 0 8px 28px rgb(35 26 20 / 0.14);
+  --radius-card: 1rem;
 
   /* Columnas del fondo del login (features/auth/pages/login-page/ui/login-background): suben y
      bajan como niveles de stock. scaleY y no height, para no recalcular el layout en cada cuadro.
@@ -84,6 +89,55 @@
       transform: translateX(16px);
     }
   }
+}
+
+/* Base visual compartida (T-11): las utilidades de cada plantilla pueden ajustar tamaños,
+   separación o estados de error sin volver a definir el aspecto de todos los controles. */
+@utility btn-primary {
+  @apply inline-flex h-[52px] min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[17px] font-bold text-white shadow-lg shadow-accent/25 transition-[color,background-color,transform,scale] duration-200 hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:shadow-none disabled:active:scale-100 motion-reduce:scale-none motion-reduce:transition-none motion-reduce:active:scale-none;
+}
+
+@utility btn-secondary {
+  @apply inline-flex h-[52px] min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 text-[15px] font-bold text-ink transition-[color,background-color,border-color,transform,scale] duration-200 hover:bg-page active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:active:scale-100 motion-reduce:scale-none motion-reduce:transition-none motion-reduce:active:scale-none;
+}
+
+/* El óxido conserva contraste en blanco y crema; accent sobre crema solo llega a 4.20:1. */
+@utility btn-ghost {
+  @apply inline-flex h-[52px] min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border-0 bg-transparent px-4 text-sm font-bold text-accent-hover transition-[color,background-color,transform,scale] duration-200 hover:bg-page active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-muted disabled:active:scale-100 motion-reduce:scale-none motion-reduce:transition-none motion-reduce:active:scale-none;
+}
+
+@utility field-input {
+  @apply h-[52px] min-w-0 rounded-xl border border-line-strong bg-white px-3.5 text-base text-ink placeholder:text-muted transition-colors duration-200 focus:shadow-[0_0_0_4px] focus:shadow-accent/15 focus:outline-3 focus:outline-offset-2 focus:outline-accent disabled:cursor-not-allowed disabled:bg-disabled-input disabled:text-faint motion-reduce:transition-none;
+}
+
+@utility field-label {
+  @apply text-sm font-semibold text-ink;
+}
+
+@utility surface-card {
+  @apply rounded-card border border-line bg-white shadow-card;
+}
+
+/* Tailwind v4 usa translate y scale independientes: transform-none por sí solo no apaga
+   el movimiento. Se anulan también en hover y active para conservar la prioridad del selector. */
+@utility surface-interactive {
+  @apply surface-card cursor-pointer transition-[color,background-color,border-color,transform,translate,scale] duration-200 hover:-translate-y-0.5 hover:shadow-raised active:scale-[0.99] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent motion-reduce:transform-none motion-reduce:translate-none motion-reduce:scale-none motion-reduce:transition-none motion-reduce:hover:translate-none motion-reduce:active:scale-none;
+}
+
+@utility page-title {
+  @apply font-display text-[32px] leading-tight font-extrabold tracking-[-0.02em] text-ink;
+}
+
+@utility alert-danger {
+  @apply rounded-xl border border-danger-border bg-danger-bg p-3.5 text-danger-text;
+}
+
+@utility alert-success {
+  @apply rounded-xl border border-success-border bg-success-bg p-3.5 text-success-text;
+}
+
+@utility skeleton-block {
+  @apply animate-pulse rounded-lg bg-line motion-reduce:animate-none;
 }
 
 @layer base {

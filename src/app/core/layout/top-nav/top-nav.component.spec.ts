@@ -65,14 +65,16 @@ describe('TopNavComponent', () => {
     expect(account.getAttribute('href')).toBe('/cuenta');
   });
 
-  it('el avatar usa bg-ink para admin y bg-accent-2 para vendedor', async () => {
+  it('el enlace a la cuenta conserva sus iniciales para administrador y vendedor', async () => {
     await render(ADMIN, ADMIN_MENU, 'Menú del administrador');
     let account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
-    expect(account.classList.contains('bg-ink')).toBe(true);
+    expect(account.textContent?.trim()).toBe('AL');
+    expect(account.getAttribute('aria-label')).toBe('Mi cuenta');
 
     await render(SELLER, ADMIN_MENU, 'Menú del vendedor');
     account = fixture.nativeElement.querySelector('a[aria-label="Mi cuenta"]') as HTMLAnchorElement;
-    expect(account.classList.contains('bg-accent-2')).toBe(true);
+    expect(account.textContent?.trim()).toBe('LU');
+    expect(account.getAttribute('href')).toBe('/cuenta');
   });
 
   it('el avatar tiene el tamaño táctil mínimo de 44px (h-11 w-11)', async () => {
@@ -82,7 +84,7 @@ describe('TopNavComponent', () => {
     expect(account.classList.contains('w-11')).toBe(true);
   });
 
-  it('marca el item activo con aria-current y la pastilla de fondo al navegar', async () => {
+  it('marca solo el item activo con aria-current al navegar', async () => {
     await render(ADMIN, ADMIN_MENU, 'Menú del administrador');
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/productos');
@@ -93,9 +95,7 @@ describe('TopNavComponent', () => {
     const inactiveLink = links.find((a) => a.textContent?.trim() === 'Stock')!;
 
     expect(activeLink.getAttribute('aria-current')).toBe('page');
-    expect(activeLink.querySelector('span')?.classList.contains('bg-accent-2-bg')).toBe(true);
     expect(inactiveLink.getAttribute('aria-current')).toBeNull();
-    expect(inactiveLink.querySelector('span')?.classList.contains('bg-accent-2-bg')).toBe(false);
   });
 
   it('el ícono de carrito vive en la cabecera, aparte del menú, y marca activo al navegar', async () => {
@@ -111,6 +111,6 @@ describe('TopNavComponent', () => {
     fixture.detectChanges();
 
     expect(cartLink.getAttribute('aria-current')).toBe('page');
-    expect(cartLink.classList.contains('bg-accent-2-bg')).toBe(true);
+    expect(cartLink.closest('nav')).toBeNull();
   });
 });
