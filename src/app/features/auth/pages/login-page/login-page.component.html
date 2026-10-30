@@ -10,7 +10,9 @@
       class="mx-auto flex w-full max-w-[400px] animate-rise-in flex-col motion-reduce:animate-none"
       [style.animation-delay.s]="formEntranceDelay"
     >
-      <h2 class="font-display text-[32px] leading-tight font-extrabold tracking-[-0.02em]">{{ title }}</h2>
+      <h2 class="font-display text-[32px] leading-tight font-extrabold tracking-[-0.02em]">
+        {{ title }}
+      </h2>
       <p class="mt-2 text-base leading-relaxed text-muted">{{ hint }}</p>
 
       @if (state() === 'error-credentials') {
@@ -29,7 +31,9 @@
             stroke-linejoin="round"
             class="shrink-0 stroke-danger"
           >
-            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path
+              d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+            ></path>
             <path d="M12 9v4"></path>
             <path d="M12 17h.01"></path>
           </svg>
@@ -56,7 +60,9 @@
             stroke-linejoin="round"
             class="shrink-0 stroke-danger"
           >
-            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path
+              d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+            ></path>
             <path d="M12 9v4"></path>
             <path d="M12 17h.01"></path>
           </svg>
@@ -76,7 +82,7 @@
 
       <form [formGroup]="form" class="mt-7 flex flex-col gap-5" (ngSubmit)="onSubmit()" novalidate>
         <div class="flex flex-col gap-1.5">
-          <label for="email" class="text-sm font-semibold">Usuario</label>
+          <label for="email" class="field-label">Usuario</label>
           <div class="relative">
             <svg
               aria-hidden="true"
@@ -103,20 +109,24 @@
               [attr.aria-invalid]="emailError() ? 'true' : null"
               [attr.aria-describedby]="emailError() ? 'email-error' : null"
               [class]="
-                'h-[52px] w-full rounded-xl bg-white pr-4 pl-12 text-base transition-shadow focus:shadow-[0_0_0_4px] focus:shadow-accent/15 disabled:bg-disabled-input disabled:text-faint ' +
+                'field-input w-full pr-4 pl-12 transition-shadow duration-150 motion-reduce:transition-none ' +
                 (emailError() ? 'border-2 border-danger' : 'border border-line-strong')
               "
             />
           </div>
           @if (emailError()) {
-            <p id="email-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+            <p
+              id="email-error"
+              class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger"
+              role="alert"
+            >
               {{ emailError() }}
             </p>
           }
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label for="password" class="text-sm font-semibold">Contraseña</label>
+          <label for="password" class="field-label">Contraseña</label>
           <div class="relative">
             <svg
               aria-hidden="true"
@@ -145,13 +155,13 @@
               [attr.aria-invalid]="passwordError() ? 'true' : null"
               [attr.aria-describedby]="passwordError() ? 'password-error' : null"
               [class]="
-                'h-[52px] w-full rounded-xl bg-white pr-14 pl-12 text-base transition-shadow focus:shadow-[0_0_0_4px] focus:shadow-accent/15 disabled:bg-disabled-input disabled:text-faint ' +
+                'field-input w-full pr-14 pl-12 transition-shadow duration-150 motion-reduce:transition-none ' +
                 (passwordError() ? 'border-2 border-danger' : 'border border-line-strong')
               "
             />
             <button
               type="button"
-              class="password-toggle absolute top-1/2 right-1 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:bg-page hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+              class="password-toggle absolute top-1/2 right-1 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition-colors hover:bg-page hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
               [attr.aria-label]="passwordToggleLabel()"
               [attr.aria-pressed]="passwordVisible()"
               aria-controls="password"
@@ -182,12 +192,19 @@
             </button>
           </div>
           @if (passwordError()) {
-            <p id="password-error" class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger" role="alert">
+            <p
+              id="password-error"
+              class="field-error m-0 flex items-center gap-1.5 text-[13px] font-semibold text-danger"
+              role="alert"
+            >
               {{ passwordError() }}
             </p>
           }
           @if (capsLockOn()) {
-            <p class="caps-lock m-0 flex items-center gap-1.5 text-[13px] font-semibold text-accent-2-text" role="status">
+            <p
+              class="caps-lock m-0 flex items-center gap-1.5 text-[13px] font-semibold text-accent-2-text"
+              role="status"
+            >
               <svg
                 aria-hidden="true"
                 width="16"
@@ -209,7 +226,7 @@
         <button
           type="submit"
           [disabled]="state() === 'loading'"
-          class="group mt-2 flex h-[54px] items-center justify-center gap-2 rounded-xl bg-accent text-[17px] font-bold text-white shadow-lg shadow-accent/25 transition-colors hover:bg-accent-hover disabled:bg-disabled disabled:text-muted disabled:shadow-none"
+          class="btn-primary group mt-2 h-[54px]"
         >
           @if (state() === 'loading') {
             <svg
@@ -238,7 +255,7 @@
               stroke-width="2.5"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+              class="transition-transform group-hover:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-none"
             >
               <path d="M5 12h14"></path>
               <path d="m13 6 6 6-6 6"></path>
@@ -246,7 +263,9 @@
           }
         </button>
         @if (state() === 'loading') {
-          <p class="-mt-2 text-center text-[13px] text-muted" role="status">Revisando tu usuario y contraseña.</p>
+          <p class="-mt-2 text-center text-[13px] text-muted" role="status">
+            Revisando tu usuario y contraseña.
+          </p>
         }
       </form>
 
