@@ -1,9 +1,6 @@
 import type { ReturnTarget } from '../models/create-delivery-page.models';
 
-// URLs de la feature. Productos y el detalle del vendedor enlazan a `DELIVERY_NEW_URL` con los
-// parámetros `producto`, `vendedor` y `volver`.
-export const DELIVERY_NEW_URL = '/admin/entregas/nueva';
-export const DELIVERY_URL = '/admin/entregas';
+// URLs de los resúmenes y sus destinos de regreso.
 
 export const PRODUCTS_URL = '/admin/productos';
 export const SELLERS_URL = '/admin/vendedores';

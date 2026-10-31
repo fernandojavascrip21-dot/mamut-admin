@@ -2,8 +2,11 @@ import { Component, DestroyRef, computed, effect, inject, signal } from '@angula
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ViewingService } from '@core/viewing/viewing.service';
+import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
+import { closeModalLink } from '@shared/utils/modal-links';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
 import { ReturnFormComponent } from '../../components/return-form/return-form.component';
@@ -22,11 +25,12 @@ import type {
 import { ReturnSaveService } from '../../services/return-save.service';
 import { SellersService } from '../../services/sellers.service';
 
-// «Retirar producto» (/admin/vendedores/:id/retirar, HU-12): carga al vendedor con su stock, deja
-// elegir un producto de los que tiene y guarda el retiro con ReturnSaveService. Termina en el
-// resumen del retiro. Sigue a la barra «Viendo» (HU-10), como el detalle del vendedor.
+// «Retirar producto» (HU-12), en un pop-up sobre la página actual (spec T-16): ruta `retirar/:sellerId`
+// del outlet `ventana` de admin-shell. Carga al vendedor con su stock, deja elegir un producto de los
+// que tiene y guarda el retiro con ReturnSaveService. Al guardar avisa con un toast, le dice a las
+// páginas de atrás que el inventario cambió y se cierra; el resumen se abre desde «Últimos retiros».
 @Component({
-  imports: [RouterLink, ReturnFormComponent],
+  imports: [RouterLink, ModalPanelComponent, ReturnFormComponent],
   providers: [ReturnSaveService],
   selector: 'app-return-units-page',
   templateUrl: './return-units-page.component.html',
@@ -34,18 +38,20 @@ import { SellersService } from '../../services/sellers.service';
 export class ReturnUnitsPageComponent {
   // --- Dependencias ---
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly viewing = inject(ViewingService);
   private readonly sellersService = inject(SellersService);
   private readonly saveService = inject(ReturnSaveService);
   private readonly toastService = inject(ToastService);
+  private readonly stockChanges = inject(StockChangesService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  // Se lee de paramMap y no del snapshot porque, al elegir a otro vendedor en la barra, el router
-  // podría reusar esta misma página con otro :id.
-  readonly sellerId = toSignal(this.route.paramMap.pipe(map((params) => params.get('id') ?? '')), {
-    initialValue: this.route.snapshot.paramMap.get('id') ?? '',
-  });
+  readonly sellersListUrl = SELLERS_LIST_URL;
+
+  readonly sellerId = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('sellerId') ?? '')),
+    { initialValue: this.route.snapshot.paramMap.get('sellerId') ?? '' },
+  );
 
   // --- Carga de datos ---
   private readonly sellerResource = rxResource({
@@ -74,20 +80,19 @@ export class ReturnUnitsPageComponent {
   });
   readonly saving = computed(() => this.saveState() === 'saving');
   readonly offline = computed(() => this.saveState() === 'offline');
-  readonly detailUrl = computed(() => `${SELLERS_LIST_URL}/${this.sellerId()}`);
 
   constructor() {
-    // Una pantalla que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.
+    // Un vendedor que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.
     effect(() => {
       const seller = this.seller();
       if (seller) this.viewing.select(seller.id);
     });
+  }
 
-    // Solo lo que el administrador elige en la barra navega (no el select() de arriba), para que
-    // página y barra no se persigan en bucle.
-    this.viewing.picked.pipe(takeUntilDestroyed()).subscribe((sellerId) => {
-      void this.router.navigateByUrl(sellerId === null ? SELLERS_LIST_URL : `${SELLERS_LIST_URL}/${sellerId}`);
-    });
+  // X, «Cancelar» y Escape: cierra el pop-up. Mientras guarda no se puede cerrar.
+  close(): void {
+    if (this.saving()) return;
+    void this.router.navigate(closeModalLink());
   }
 
   // Botón «Reintentar» del error de carga.
@@ -122,11 +127,8 @@ export class ReturnUnitsPageComponent {
       this.toastService.success(
         `Le retiraste ${unitsLabel(sellerReturn.qty)} a ${sellerReturn.seller.fullName}`,
       );
-      // replaceUrl: «Atrás» desde el resumen no debe reabrir un formulario ya enviado.
-      void this.router.navigate(
-        [SELLERS_LIST_URL, this.sellerId(), 'retiros', sellerReturn.requestId],
-        { replaceUrl: true },
-      );
+      this.stockChanges.notify();
+      void this.router.navigate(closeModalLink());
       return;
     }
     const message =

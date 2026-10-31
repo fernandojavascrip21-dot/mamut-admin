@@ -70,7 +70,7 @@ describe('DeliverySummaryPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Le dejaste 6 piezas');
     expect(fixture.nativeElement.querySelector('a.done').getAttribute('href')).toBe('/admin/vendedores/v-1');
     expect(fixture.nativeElement.querySelector('a.another').getAttribute('href')).toBe(
-      '/admin/entregas/nueva?volver=vendedor&vendedor=v-1',
+      '/admin/(ventana:dejar;vendedor=v-1)',
     );
   });
 

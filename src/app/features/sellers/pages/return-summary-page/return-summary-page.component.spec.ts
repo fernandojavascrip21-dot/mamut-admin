@@ -90,7 +90,7 @@ describe('ReturnSummaryPageComponent', () => {
     fixture.detectChanges();
 
     expect(root().querySelector('.done')!.getAttribute('href')).toBe('/admin/vendedores/v-1');
-    expect(root().querySelector('.another')!.getAttribute('href')).toBe('/admin/vendedores/v-1/retirar');
+    expect(root().querySelector('.another')!.getAttribute('href')).toBe('/admin/(ventana:retirar/v-1)');
   });
 
   it('un 404 muestra «No encontramos este retiro» y no cambia la barra', async () => {

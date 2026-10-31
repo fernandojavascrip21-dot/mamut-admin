@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { MODAL_DELIVERY_PATH, MODAL_OUTLET, MODAL_RETURN_PATH } from '@shared/constants/modal.constants';
+import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
 
 const comingSoon = () =>
   import('@shared/pages/coming-soon-page/coming-soon-page.component').then((m) => m.ComingSoonPageComponent);
@@ -18,6 +20,28 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'entregas',
     loadChildren: () => import('@features/deliveries/deliveries.routes').then((m) => m.DELIVERY_ROUTES),
+  },
+  // Pop-ups de «Dejar» y «Retirar» (spec T-16): viven en el outlet `ventana` de admin-shell, sobre la
+  // página actual. Se montan aquí porque esta es la única capa de core que puede cargar features.
+  {
+    path: MODAL_DELIVERY_PATH,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [modalSavingGuard],
+    loadComponent: () =>
+      import('@features/deliveries/pages/create-delivery-page/create-delivery-page.component').then(
+        (m) => m.CreateDeliveryPageComponent,
+      ),
+    data: { title: 'Dejar a vendedor' },
+  },
+  {
+    path: `${MODAL_RETURN_PATH}/:sellerId`,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [modalSavingGuard],
+    loadComponent: () =>
+      import('@features/sellers/pages/return-units-page/return-units-page.component').then(
+        (m) => m.ReturnUnitsPageComponent,
+      ),
+    data: { title: 'Retirar producto' },
   },
   {
     path: 'vendedores',

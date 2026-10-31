@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { ProductsPageComponent } from './products-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import type { ProductSummary } from '../../interfaces/product.models';
 
 const PRODUCTS_URL = `${API_BASE_URL}/api/products`;
@@ -114,5 +115,24 @@ describe('ProductsPageComponent', () => {
     await settle();
 
     expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(2);
+  });
+  describe('cambios de inventario (spec T-16)', () => {
+    it('al avisarse un cambio vuelve a pedir la lista sin mostrar «cargando» y pinta las piezas nuevas', async () => {
+      await load(PRODUCTS);
+      TestBed.inject(StockChangesService).notify();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(2);
+      expect(fixture.nativeElement.querySelector('app-product-card-skeleton')).toBeNull();
+      httpMock.expectOne(PRODUCTS_URL).flush([{ ...PRODUCTS[0]!, stock: 8 }, PRODUCTS[1]!]);
+      await settle();
+      expect(fixture.nativeElement.textContent).toContain('8');
+    });
+
+    it('una versión que ya existía al crearse la página no vuelve a pedir la lista', async () => {
+      TestBed.inject(StockChangesService).notify();
+      await load(PRODUCTS);
+      httpMock.expectNone(PRODUCTS_URL);
+    });
   });
 });

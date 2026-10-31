@@ -39,5 +39,7 @@ export const routes: Routes = [
   },
   // Cualquier URL desconocida cae al login (no estaba en el spec, pero sin esto una ruta mal
   // escrita deja al usuario viendo una pantalla en blanco).
-  { path: '**', redirectTo: 'login' },
+  // El extractor SSR no reconoce combinaciones de outlets. Resolver este redirect en el cliente
+  // evita que su fallback mande a /login una URL válida con `ventana` al recargarla.
+  { path: '**', redirectTo: () => '/login' },
 ];

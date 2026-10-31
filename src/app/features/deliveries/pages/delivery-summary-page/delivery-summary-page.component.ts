@@ -40,12 +40,7 @@ export class DeliverySummaryPageComponent {
   readonly doneUrl = computed(() =>
     returnUrl(this.returnTarget, this.delivery()?.seller.id ?? null),
   );
-  readonly anotherQueryParams = computed<Record<string, string>>(() => {
-    const params: Record<string, string> = { volver: this.returnTarget };
-    const sellerId = this.delivery()?.seller.id;
-    if (sellerId) params['vendedor'] = sellerId;
-    return params;
-  });
+
 
   // Botón «Reintentar» del error de carga.
   retry(): void {

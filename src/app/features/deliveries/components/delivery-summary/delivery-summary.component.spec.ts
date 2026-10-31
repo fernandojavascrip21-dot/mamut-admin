@@ -23,7 +23,6 @@ describe('DeliverySummaryComponent', () => {
     fixture = TestBed.createComponent(DeliverySummaryComponent);
     fixture.componentRef.setInput('delivery', delivery);
     fixture.componentRef.setInput('doneUrl', '/admin/productos');
-    fixture.componentRef.setInput('anotherQueryParams', { vendedor: 'v-1', volver: 'productos' });
     fixture.detectChanges();
   }
 
@@ -75,7 +74,7 @@ describe('DeliverySummaryComponent', () => {
       '/admin/productos',
     );
     expect((fixture.nativeElement.querySelector('a.another') as HTMLAnchorElement).getAttribute('href')).toBe(
-      '/admin/entregas/nueva?vendedor=v-1&volver=productos',
+      '/admin/(ventana:dejar;vendedor=v-1)',
     );
   });
 });

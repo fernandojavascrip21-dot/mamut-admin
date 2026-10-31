@@ -14,5 +14,7 @@ export const serverRoutes: ServerRoute[] = [
   // login depende de guestGuard (HU-03, criterio 5), que también lee localStorage: mismo
   // motivo que las rutas de arriba.
   { path: 'login', renderMode: RenderMode.Client },
-  { path: '**', renderMode: RenderMode.Prerender },
+  // Incluye URLs con outlets auxiliares, que el extractor SSR no enumera: el cliente conoce tanto
+  // la sesión como la ruta completa y restaura la ventana en vez de perderla con una redirección.
+  { path: '**', renderMode: RenderMode.Client },
 ];

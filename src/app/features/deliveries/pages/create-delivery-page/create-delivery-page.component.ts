@@ -1,13 +1,16 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ViewingService } from '@core/viewing/viewing.service';
+import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
+import { closeModalLink } from '@shared/utils/modal-links';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
 import type { HoldingStatus } from '../../components/delivery-form/delivery-form.models';
 import { DeliveryFormComponent } from '../../components/delivery-form/delivery-form.component';
-import { DELIVERY_URL, FAILURE_TOASTS } from '../../constants/deliveries.constants';
+import { FAILURE_TOASTS } from '../../constants/deliveries.constants';
 import type {
   DeliveryFormValue,
   DeliveryProduct,
@@ -19,17 +22,18 @@ import type {
   CreateDeliveryState,
   DeliveryFailureNotice,
 } from '../../models/create-delivery-page.models';
-import { parseProductId, parseReturnTarget, returnUrl } from '../../rules/delivery.rules';
+import { parseProductId } from '../../rules/delivery.rules';
 import { DeliveriesService } from '../../services/deliveries.service';
 import { DeliveryProductsService } from '../../services/delivery-products.service';
 import { DeliverySaveService } from '../../services/delivery-save.service';
 
-// «Dejar a vendedor» (pantalla 03a, /admin/entregas/nueva, HU-11): carga el vendedor, el producto
-// y lo que el vendedor ya tiene, y guarda la entrega con DeliverySaveService. Los parámetros de la
-// URL fijan el producto (`producto`), el vendedor (`vendedor`) y a dónde regresa (`volver`).
-// Termina en el resumen de la entrega.
+// «Dejar a vendedor» (pantalla 03a, HU-11), en un pop-up sobre la página actual (spec T-16): ruta
+// `dejar` del outlet `ventana` de admin-shell. Carga el vendedor, el producto y lo que el vendedor ya
+// tiene, y guarda la entrega con DeliverySaveService. Los parámetros matriciales de la ruta fijan el
+// producto (`producto`) y el vendedor (`vendedor`). Al guardar avisa con un toast, le dice a las
+// páginas de atrás que el inventario cambió y se cierra; el resumen se abre desde «Últimas entregas».
 @Component({
-  imports: [RouterLink, DeliveryFormComponent],
+  imports: [ModalPanelComponent, DeliveryFormComponent],
   providers: [DeliverySaveService],
   selector: 'app-create-delivery-page',
   templateUrl: './create-delivery-page.component.html',
@@ -37,20 +41,20 @@ import { DeliverySaveService } from '../../services/delivery-save.service';
 export class CreateDeliveryPageComponent {
   // --- Dependencias ---
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly viewing = inject(ViewingService);
   private readonly productsService = inject(DeliveryProductsService);
   private readonly deliveriesService = inject(DeliveriesService);
   private readonly saveService = inject(DeliverySaveService);
   private readonly toastService = inject(ToastService);
+  private readonly stockChanges = inject(StockChangesService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  // --- Parámetros de la URL (no cambian mientras la página vive) ---
-  private readonly queryParams = this.route.snapshot.queryParamMap;
-  readonly fixedSellerId = this.queryParams.get('vendedor');
-  private readonly fixedProductId = parseProductId(this.queryParams.get('producto'));
+  // --- Parámetros de la ruta (no cambian mientras la página vive) ---
+  private readonly routeParams = this.route.snapshot.paramMap;
+  readonly fixedSellerId = this.routeParams.get('vendedor');
+  private readonly fixedProductId = parseProductId(this.routeParams.get('producto'));
   readonly fixedProduct = this.fixedProductId !== null;
-  private readonly returnTarget = parseReturnTarget(this.queryParams.get('volver'));
 
   // --- Elección actual ---
   readonly sellerId = signal<string | null>(this.fixedSellerId);
@@ -130,12 +134,17 @@ export class CreateDeliveryPageComponent {
     return saving === 'idle' ? 'form' : saving;
   });
   readonly saving = computed(() => this.state() === 'saving');
-  readonly cancelUrl = computed(() => returnUrl(this.returnTarget, this.sellerId()));
 
   constructor() {
     // La lista de vendedores de la barra «Viendo» es la misma que la del select (la pide
     // admin-shell; load() no repite la petición).
     this.viewing.load();
+  }
+
+  // X, «Cancelar» y Escape: cierra el pop-up. Mientras guarda no se puede cerrar.
+  close(): void {
+    if (this.saving()) return;
+    void this.router.navigate(closeModalLink());
   }
 
   // --- Elección de vendedor y producto ---
@@ -189,9 +198,8 @@ export class CreateDeliveryPageComponent {
       this.toastService.success(
         `Le dejaste ${unitsLabel(delivery.qty)} a ${delivery.seller.fullName}`,
       );
-      void this.router.navigate([DELIVERY_URL, delivery.requestId], {
-        queryParams: { volver: this.returnTarget },
-      });
+      this.stockChanges.notify();
+      void this.router.navigate(closeModalLink());
       return;
     }
     const message =

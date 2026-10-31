@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import type { ReturnFormValue, SellerStockLine } from '../../interfaces/seller.models';
 import { ReturnFormComponent } from './return-form.component';
 
@@ -21,12 +20,10 @@ describe('ReturnFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ReturnFormComponent],
-      providers: [provideRouter([])],
     }).compileComponents();
     fixture = TestBed.createComponent(ReturnFormComponent);
     fixture.componentRef.setInput('sellerName', 'Luis');
     fixture.componentRef.setInput('stock', STOCK);
-    fixture.componentRef.setInput('cancelUrl', '/admin/vendedores/v-1');
     submitted = [];
     fixture.componentInstance.submitted.subscribe((value) => submitted.push(value));
     fixture.detectChanges();
@@ -158,8 +155,19 @@ describe('ReturnFormComponent', () => {
     expect(button.disabled).toBe(false);
   });
 
-  it('«Cancelar» vuelve al detalle del vendedor', () => {
-    const cancel = Array.from(root().querySelectorAll('a')).find((a) => a.textContent!.trim() === 'Cancelar')!;
-    expect(cancel.getAttribute('href')).toBe('/admin/vendedores/v-1');
+  it('«Cancelar» es un botón que avisa para cerrar el pop-up, y no envía', () => {
+    let cancelled = 0;
+    fixture.componentInstance.cancelled.subscribe(() => cancelled++);
+    const cancel = root().querySelector<HTMLButtonElement>('.cancel')!;
+    expect(cancel.type).toBe('button');
+    cancel.click();
+    expect(cancelled).toBe(1);
+    expect(submitted).toEqual([]);
+  });
+
+  it('mientras guarda «Cancelar» está deshabilitado', () => {
+    fixture.componentRef.setInput('saving', true);
+    fixture.detectChanges();
+    expect(root().querySelector<HTMLButtonElement>('.cancel')!.disabled).toBe(true);
   });
 });

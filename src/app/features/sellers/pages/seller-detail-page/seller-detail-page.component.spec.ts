@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
@@ -167,7 +168,7 @@ describe('SellerDetailPageComponent', () => {
       await load(SELLER);
       const link = fixture.nativeElement.querySelector('a.deliver') as HTMLAnchorElement;
       expect(link.textContent?.trim()).toBe('Dejar producto');
-      expect(link.getAttribute('href')).toBe(`/admin/entregas/nueva?vendedor=${ID}&volver=vendedor`);
+      expect(link.getAttribute('href')).toBe(`/admin/(ventana:dejar;vendedor=${ID})`);
     });
 
     it('lista las entregas, con enlace al resumen solo si tienen requestId', async () => {
@@ -210,7 +211,7 @@ describe('SellerDetailPageComponent', () => {
       await load(SELLER);
       const link = fixture.nativeElement.querySelector('a.return') as HTMLAnchorElement;
       expect(link.textContent?.trim()).toBe('Retirar producto');
-      expect(link.getAttribute('href')).toBe(`/admin/vendedores/${ID}/retirar`);
+      expect(link.getAttribute('href')).toBe(`/admin/(ventana:retirar/${ID})`);
       expect(fixture.nativeElement.querySelector('a.deliver')).not.toBeNull();
     });
 
@@ -267,6 +268,31 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(RETURNS_URL).flush(RETURNS);
       await settle();
       expect(fixture.nativeElement.querySelectorAll('app-return-history-line')).toHaveLength(2);
+    });
+  });
+
+  describe('cambios de inventario (spec T-16)', () => {
+    it('al avisarse un cambio vuelve a pedir stock y los dos historiales, sin mostrar «cargando»', async () => {
+      await load(SELLER, HISTORY, RETURNS);
+      TestBed.inject(StockChangesService).notify();
+      fixture.detectChanges();
+      await tick();
+
+      expect(text()).not.toContain('Cargando vendedor…');
+      expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+      httpMock.expectOne(SELLER_URL).flush({ ...SELLER, units: 4, stock: [SELLER.stock[1]!] });
+      httpMock.expectOne(HISTORY_URL).flush(HISTORY);
+      httpMock.expectOne(RETURNS_URL).flush([]);
+      await settle();
+
+      expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(1);
+      expect(fixture.nativeElement.querySelector('.returns-empty')).not.toBeNull();
+    });
+
+    it('una versión que ya existía al crearse la página no pide nada de más', async () => {
+      TestBed.inject(StockChangesService).notify();
+      await load(SELLER);
+      httpMock.expectNone(SELLER_URL);
     });
   });
 

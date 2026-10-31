@@ -95,7 +95,7 @@ describe('ProductCardComponent', () => {
       await render(PRODUCT);
       const deliver = fixture.nativeElement.querySelector('a.deliver') as HTMLAnchorElement;
       expect(deliver.textContent?.trim()).toBe('Dejar a vendedor');
-      expect(deliver.getAttribute('href')).toBe('/admin/entregas/nueva?producto=1&volver=productos');
+      expect(deliver.getAttribute('href')).toBe('/admin/(ventana:dejar;producto=1)');
       expect(deliver.getAttribute('aria-label')).toBe('Dejar CBUM Thavage a un vendedor');
       // Un enlace no puede ir dentro de otro: ninguno contiene al otro.
       expect(links()).toHaveLength(2);
@@ -108,7 +108,7 @@ describe('ProductCardComponent', () => {
       fixture.componentRef.setInput('sellerId', 'v-1');
       fixture.detectChanges();
       const deliver = fixture.nativeElement.querySelector('a.deliver') as HTMLAnchorElement;
-      expect(deliver.getAttribute('href')).toBe('/admin/entregas/nueva?producto=1&volver=productos&vendedor=v-1');
+      expect(deliver.getAttribute('href')).toBe('/admin/(ventana:dejar;vendedor=v-1;producto=1)');
     });
 
     it('sin piezas en la bodega no ofrece dejar el producto', async () => {

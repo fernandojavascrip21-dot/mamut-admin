@@ -13,13 +13,7 @@ export const SELLER_ADMIN_ROUTES: Routes = [
       import('./pages/create-seller-page/create-seller-page.component').then((m) => m.CreateSellerPageComponent),
     data: { title: 'Nuevo vendedor' },
   },
-  // Retirar producto y su resumen (HU-12): rutas de dos o más segmentos, no del menú.
-  {
-    path: ':id/retirar',
-    loadComponent: () =>
-      import('./pages/return-units-page/return-units-page.component').then((m) => m.ReturnUnitsPageComponent),
-    data: { title: 'Retirar producto' },
-  },
+  // El resumen del retiro sigue siendo una pantalla; el formulario vive en el outlet ventana.
   {
     path: ':id/retiros/:requestId',
     loadComponent: () =>

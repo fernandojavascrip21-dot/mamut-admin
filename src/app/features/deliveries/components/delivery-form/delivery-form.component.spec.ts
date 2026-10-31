@@ -43,7 +43,6 @@ describe('DeliveryFormComponent', () => {
       holdingStatus: setup.holdingStatus ?? 'ready',
       saving: setup.saving ?? false,
       notEnoughUnits: setup.notEnoughUnits ?? false,
-      cancelUrl: '/admin/productos',
     };
     for (const [name, value] of Object.entries(inputs)) fixture.componentRef.setInput(name, value);
     submitted = [];
@@ -299,9 +298,14 @@ describe('DeliveryFormComponent', () => {
     expect(retried).toBe(1);
   });
 
-  it('«Cancelar» enlaza a la URL de regreso', () => {
+  it('«Cancelar» es un botón que emite cancelled sin enviar', () => {
     render();
-    const cancel = Array.from(el().querySelectorAll('a')).find((a) => a.textContent!.includes('Cancelar'))!;
-    expect(cancel.getAttribute('href')).toBe('/admin/productos');
+    let cancelled = 0;
+    fixture.componentInstance.cancelled.subscribe(() => cancelled++);
+    const cancel = el().querySelector<HTMLButtonElement>('.cancel')!;
+    expect(cancel.type).toBe('button');
+    cancel.click();
+    expect(cancelled).toBe(1);
+    expect(submitted).toEqual([]);
   });
 });
