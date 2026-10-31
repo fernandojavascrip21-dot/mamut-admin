@@ -16,8 +16,3 @@ export function normalizePhone(raw: string): string | null {
 export function sortSellersByName(sellers: SellerSummary[]): SellerSummary[] {
   return sortByName(sellers);
 }
-
-// Texto de piezas de un vendedor: «1 pieza» o «N piezas» (también «0 piezas»).
-export function unitsLabel(units: number): string {
-  return units === 1 ? '1 pieza' : `${units} piezas`;
-}

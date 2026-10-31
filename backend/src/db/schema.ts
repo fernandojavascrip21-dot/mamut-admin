@@ -517,8 +517,10 @@ export const stockMovements = pgTable("stock_movements", {
 	createdBy: uuid("created_by").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	holderProfileId: uuid("holder_profile_id"),
+	requestId: uuid("request_id"),
 }, (table) => [
 	index("stock_movements_product_created_idx").using("btree", table.productId.asc().nullsLast().op("int8_ops"), table.createdAt.desc().nullsFirst().op("int8_ops")),
+	uniqueIndex("stock_movements_request_holder_key").using("btree", table.requestId.asc().nullsLast().op("uuid_ops"), table.holderProfileId.asc().nullsLast().op("uuid_ops")).where(sql`(request_id IS NOT NULL)`),
 	foreignKey({
 			columns: [table.clientId],
 			foreignColumns: [clients.id],

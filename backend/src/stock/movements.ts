@@ -17,6 +17,7 @@ export interface NewStockMovement {
   holderProfileId: string | null    // null = bodega
   createdBy: string
   reason?: string | null
+  requestId?: string | null         // llave de idempotencia de una entrega (HU-11); las dos filas la comparten
 }
 
 // Único punto para mover inventario. El trigger de la base ajusta products.stock /
@@ -32,6 +33,7 @@ export async function insertMovements(tx: Tx, rows: NewStockMovement[]): Promise
       holderProfileId: row.holderProfileId,
       createdBy: row.createdBy,
       reason: row.reason ?? null,
+      requestId: row.requestId ?? null,
     })))
   } catch (err) {
     if (isCheckViolation(err, 'products_stock_check') || isCheckViolation(err, 'vendor_stock_qty_check')) {

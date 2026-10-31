@@ -1,44 +1,62 @@
-<a
-  [routerLink]="['/admin/productos', product().id, 'editar']"
-  [attr.aria-label]="'Editar ' + product().name"
-  class="surface-interactive flex h-full min-w-0 gap-4 p-4 text-ink hover:border-line-strong"
->
-  <div class="relative h-24 w-24 flex-shrink-0">
-    @if (showPhoto()) {
-      <img
-        [src]="product().image"
-        [alt]="product().name"
-        loading="lazy"
-        (error)="onPhotoError()"
-        class="h-24 w-24 rounded-md object-cover"
-      />
-    } @else {
-      <div
-        class="flex h-24 w-24 items-center justify-center rounded-md bg-line text-lg font-bold text-ink"
-        aria-hidden="true"
-      >
-        {{ initial() }}
+<div class="surface-card flex h-full min-w-0 flex-col overflow-hidden">
+  <a
+    [routerLink]="['/admin/productos', product().id, 'editar']"
+    [attr.aria-label]="'Editar ' + product().name"
+    class="flex min-w-0 flex-1 gap-4 p-4 text-ink transition-colors duration-200 hover:bg-page focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
+  >
+    <div class="relative h-24 w-24 flex-shrink-0">
+      @if (showPhoto()) {
+        <img
+          [src]="product().image"
+          [alt]="product().name"
+          loading="lazy"
+          (error)="onPhotoError()"
+          class="h-24 w-24 rounded-md object-cover"
+        />
+      } @else {
+        <div
+          class="flex h-24 w-24 items-center justify-center rounded-md bg-line text-lg font-bold text-ink"
+          aria-hidden="true"
+        >
+          {{ initial() }}
+        </div>
+      }
+
+      <div class="absolute top-1 left-1 flex flex-col gap-1">
+        @if (outOfStock()) {
+          <span class="rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-white">Agotado</span>
+        }
+        @if (product().fractionable) {
+          <span
+            class="rounded bg-accent-2-bg px-1.5 py-0.5 text-[11px] font-bold text-accent-2-text"
+          >
+            Fraccionado
+          </span>
+        }
       </div>
-    }
-
-    <div class="absolute top-1 left-1 flex flex-col gap-1">
-      @if (outOfStock()) {
-        <span class="rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-white">Agotado</span>
-      }
-      @if (product().fractionable) {
-        <span class="rounded bg-accent-2-bg px-1.5 py-0.5 text-[11px] font-bold text-accent-2-text">
-          Fraccionado
-        </span>
-      }
     </div>
-  </div>
 
-  <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
-    <p class="m-0 text-sm font-bold leading-tight break-words">{{ product().name }}</p>
-    <p class="m-0">
-      <span class="font-mono text-[22px] font-bold">{{ product().stock }}</span>
-      <span class="ml-1 text-xs font-medium text-muted">en bodega</span>
-    </p>
-    <p class="m-0 font-mono text-sm font-bold">{{ price() | currency: 'MXN' : 'symbol-narrow' }}</p>
-  </div>
-</a>
+    <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
+      <p class="m-0 text-sm font-bold leading-tight break-words">{{ product().name }}</p>
+      <p class="m-0">
+        <span class="font-mono text-[22px] font-bold">{{ product().stock }}</span>
+        <span class="ml-1 text-xs font-medium text-muted">en bodega</span>
+      </p>
+      <p class="m-0 font-mono text-sm font-bold">
+        {{ price() | currency: 'MXN' : 'symbol-narrow' }}
+      </p>
+    </div>
+  </a>
+  @if (canDeliver()) {
+    <div class="border-t border-line px-2 py-1">
+      <a
+        [routerLink]="deliveryUrl"
+        [queryParams]="deliveryParams()"
+        [attr.aria-label]="'Dejar ' + product().name + ' a un vendedor'"
+        class="deliver btn-ghost h-11 w-full justify-start text-sm"
+      >
+        Dejar a vendedor
+      </a>
+    </div>
+  }
+</div>

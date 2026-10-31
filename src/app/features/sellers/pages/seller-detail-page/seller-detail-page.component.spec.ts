@@ -6,10 +6,11 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
-import type { SellerDetail } from '../../interfaces/seller.models';
+import type { DeliveryHistoryItem, SellerDetail } from '../../interfaces/seller.models';
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
+const HISTORY_URL = `${SELLER_URL}/deliveries`;
 
 const SELLER: SellerDetail = {
   id: ID,
@@ -19,10 +20,21 @@ const SELLER: SellerDetail = {
   active: true,
   units: 6,
   stock: [
-    { productId: 1, name: 'Creatina Monohidratada', image: null, units: 2 },
-    { productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4 },
+    {
+      productId: 1, name: 'Creatina Monohidratada', image: null, units: 2,
+      price: '300.00', unitCost: '200.0000', unitPrice: null, unitCostWithShipping: null,
+    },
+    {
+      productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4,
+      price: '450.00', unitCost: '300.0000', unitPrice: '520.00', unitCostWithShipping: '310.5000',
+    },
   ],
 };
+
+const HISTORY: DeliveryHistoryItem[] = [
+  { requestId: 'r-1', createdAt: '2026-10-30T18:21:07.000Z', productId: 2, name: 'Proteína Whey 2 lb', image: null, qty: 4 },
+  { requestId: null, createdAt: '2026-10-29T12:00:00.000Z', productId: 1, name: 'Creatina Monohidratada', image: null, qty: 2 },
+];
 
 describe('SellerDetailPageComponent', () => {
   let fixture: ComponentFixture<SellerDetailPageComponent>;
@@ -66,18 +78,30 @@ describe('SellerDetailPageComponent', () => {
     fixture.detectChanges();
   }
 
-  async function load(seller: SellerDetail) {
+  // Deja correr los microtasks y una vuelta del reloj: el historial se pide en cuanto el vendedor
+  // carga, y fixture.whenStable() esperaría para siempre a esa petición abierta.
+  async function tick() {
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+  }
+
+  // Carga el detalle y, ya con el vendedor en pantalla, «Últimas entregas» (se pide después).
+  async function load(seller: SellerDetail, history: DeliveryHistoryItem[] = []) {
     fixture.detectChanges();
     httpMock.expectOne(SELLER_URL).flush(seller);
+    await tick();
+    httpMock.expectOne(HISTORY_URL).flush(history);
     await settle();
   }
 
   const text = () => fixture.nativeElement.textContent as string;
 
-  it('mientras carga muestra «Cargando vendedor…»', () => {
+  it('mientras carga muestra «Cargando vendedor…»', async () => {
     fixture.detectChanges();
     expect(text()).toContain('Cargando vendedor…');
     httpMock.expectOne(SELLER_URL).flush(SELLER);
+    await tick();
+    httpMock.expectOne(HISTORY_URL).flush([]);
   });
 
   it('muestra sus datos con el teléfono formateado, su total y su stock por producto', async () => {
@@ -123,8 +147,52 @@ describe('SellerDetailPageComponent', () => {
     fixture.detectChanges();
 
     httpMock.expectOne(SELLER_URL).flush(SELLER);
+    await tick();
+    httpMock.expectOne(HISTORY_URL).flush([]);
     await settle();
     expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+  });
+
+  describe('dejar producto y últimas entregas (HU-11)', () => {
+    it('«Dejar producto» abre la ventana con el vendedor fijo y regresa al detalle', async () => {
+      await load(SELLER);
+      const link = fixture.nativeElement.querySelector('a.deliver') as HTMLAnchorElement;
+      expect(link.textContent?.trim()).toBe('Dejar producto');
+      expect(link.getAttribute('href')).toBe(`/admin/entregas/nueva?vendedor=${ID}&volver=vendedor`);
+    });
+
+    it('lista las entregas, con enlace al resumen solo si tienen requestId', async () => {
+      await load(SELLER, HISTORY);
+      const items = Array.from(fixture.nativeElement.querySelectorAll('app-delivery-history-line')) as HTMLElement[];
+      expect(items).toHaveLength(2);
+      expect(items[0].textContent).toContain('Proteína Whey 2 lb');
+      expect(items[0].textContent).toContain('+4 piezas');
+      expect(items[0].querySelector('a')?.getAttribute('href')).toBe('/admin/entregas/r-1?volver=vendedor');
+      expect(items[1].querySelector('a')).toBeNull();
+    });
+
+    it('sin entregas muestra «Todavía no le has dejado producto.»', async () => {
+      await load(SELLER, []);
+      expect(fixture.nativeElement.querySelector('.history-empty').textContent.trim()).toBe(
+        'Todavía no le has dejado producto.',
+      );
+    });
+
+    it('si falla el historial lo avisa sin esconder el detalle, y «Reintentar» lo vuelve a pedir', async () => {
+      fixture.detectChanges();
+      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      await tick();
+      httpMock.expectOne(HISTORY_URL).error(new ProgressEvent('error'));
+      await settle();
+
+      expect(fixture.nativeElement.querySelector('.history-error')).not.toBeNull();
+      expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+      (fixture.nativeElement.querySelector('.retry-history') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      httpMock.expectOne(HISTORY_URL).flush(HISTORY);
+      await settle();
+      expect(fixture.nativeElement.querySelectorAll('app-delivery-history-line')).toHaveLength(2);
+    });
   });
 
   describe('con la barra «Viendo»', () => {
@@ -154,6 +222,8 @@ describe('SellerDetailPageComponent', () => {
       paramMap.next(convertToParamMap({ id: otherId }));
       fixture.detectChanges();
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
+      await tick();
+      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/deliveries`).flush([]);
       await settle();
       expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Valeria');
       expect(viewing.select).toHaveBeenLastCalledWith(otherId);

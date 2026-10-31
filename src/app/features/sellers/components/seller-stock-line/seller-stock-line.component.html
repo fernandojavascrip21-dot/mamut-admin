@@ -15,6 +15,24 @@
       {{ initials() }}
     </div>
   }
-  <p class="m-0 min-w-0 flex-1 text-sm leading-tight font-bold">{{ line().name }}</p>
+  <div class="flex min-w-0 flex-1 flex-col gap-1">
+    <p class="m-0 text-sm leading-tight font-bold break-words">{{ line().name }}</p>
+    <p class="prices m-0 flex flex-wrap items-baseline gap-x-1.5 text-xs text-muted">
+      <span class="price font-mono font-semibold text-ink">{{
+        price() | currency: 'MXN' : 'symbol-narrow'
+      }}</span>
+      @if (hasOwnPrice()) {
+        <span class="own-price font-semibold text-accent-2-text">propio</span>
+      }
+      <span aria-hidden="true">·</span>
+      <span>costo</span>
+      <span class="cost font-mono font-semibold text-ink">{{
+        cost() | currency: 'MXN' : 'symbol-narrow' : '1.2-4'
+      }}</span>
+      @if (hasOwnCost()) {
+        <span class="own-cost font-semibold text-accent-2-text">propio</span>
+      }
+    </p>
+  </div>
   <p class="units m-0 font-mono text-base font-bold whitespace-nowrap">{{ units() }}</p>
 </div>

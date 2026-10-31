@@ -140,6 +140,7 @@
             class="block min-w-0 animate-rise-in motion-reduce:animate-none"
             [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
             [product]="item"
+            [sellerId]="viewing.selectedSellerId()"
           />
         }
       </div>

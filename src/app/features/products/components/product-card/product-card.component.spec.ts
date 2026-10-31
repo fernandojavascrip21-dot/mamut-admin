@@ -87,4 +87,34 @@ describe('ProductCardComponent', () => {
     expect(fixture.nativeElement.querySelector('img')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('CR');
   });
+
+  describe('Dejar a vendedor (HU-11)', () => {
+    const links = () => Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
+
+    it('con piezas en la bodega ofrece «Dejar a vendedor», como enlace hermano del de edición', async () => {
+      await render(PRODUCT);
+      const deliver = fixture.nativeElement.querySelector('a.deliver') as HTMLAnchorElement;
+      expect(deliver.textContent?.trim()).toBe('Dejar a vendedor');
+      expect(deliver.getAttribute('href')).toBe('/admin/entregas/nueva?producto=1&volver=productos');
+      expect(deliver.getAttribute('aria-label')).toBe('Dejar CBUM Thavage a un vendedor');
+      // Un enlace no puede ir dentro de otro: ninguno contiene al otro.
+      expect(links()).toHaveLength(2);
+      expect(links().some((a) => a.querySelector('a'))).toBe(false);
+    });
+
+    it('con un vendedor en «Viendo» lo manda fijo en la URL', async () => {
+      fixture = TestBed.createComponent(ProductCardComponent);
+      fixture.componentRef.setInput('product', PRODUCT);
+      fixture.componentRef.setInput('sellerId', 'v-1');
+      fixture.detectChanges();
+      const deliver = fixture.nativeElement.querySelector('a.deliver') as HTMLAnchorElement;
+      expect(deliver.getAttribute('href')).toBe('/admin/entregas/nueva?producto=1&volver=productos&vendedor=v-1');
+    });
+
+    it('sin piezas en la bodega no ofrece dejar el producto', async () => {
+      await render({ ...PRODUCT, stock: 0 });
+      expect(fixture.nativeElement.querySelector('a.deliver')).toBeNull();
+      expect(links()).toHaveLength(1);
+    });
+  });
 });

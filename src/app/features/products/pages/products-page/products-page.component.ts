@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { ViewingService } from '@core/viewing/viewing.service';
 import { ProductsService } from '../../services/products.service';
 import type { ProductSummary } from '../../interfaces/product.models';
 import { filterProductsByName } from '../../rules/product.rules';
@@ -18,6 +19,8 @@ import type { ProductsState } from '../../models/products-page.models';
 })
 export class ProductsPageComponent {
   private readonly productsService = inject(ProductsService);
+  // Con un vendedor en «Viendo» (HU-10), «Dejar a vendedor» lo lleva ya elegido.
+  readonly viewing = inject(ViewingService);
 
   // La lista se pide al entrar; «Reintentar» es productsResource.reload(). El estado de la
   // pantalla se deriva del status del recurso (reloading cuenta como cargando).

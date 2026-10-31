@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { initialsOf } from '@shared/utils/initials';
 import type { SellerSummary } from '../../interfaces/seller.models';
-import { unitsLabel } from '../../rules/seller.rules';
+import { unitsLabel } from '@shared/utils/units-label';
 
 // Fila de «Mis vendedores» (HU-09, pantalla 04): iniciales, nombre y piezas en total. Toda la
 // fila es un enlace a su detalle; «Dejar» y «Retirar» llegan en HU-11 y HU-12.
