@@ -55,13 +55,20 @@
       </div>
     </section>
 
-    <a
-      [routerLink]="deliveryNewUrl"
-      [queryParams]="{ vendedor: seller.id, volver: 'vendedor' }"
-      class="deliver btn-primary mt-4 w-full"
-    >
-      Dejar producto
-    </a>
+    <div class="mt-4 grid gap-3" [class.grid-cols-2]="canReturn()">
+      <a
+        [routerLink]="deliveryNewUrl"
+        [queryParams]="{ vendedor: seller.id, volver: 'vendedor' }"
+        class="deliver btn-primary"
+      >
+        Dejar producto
+      </a>
+      @if (canReturn()) {
+        <a [routerLink]="[sellersListUrl, seller.id, 'retirar']" class="return btn-secondary">
+          Retirar producto
+        </a>
+      }
+    </div>
 
     <div class="mt-6 flex items-baseline justify-between gap-3">
       <h2 class="m-0 text-base font-bold">Su stock</h2>
@@ -106,6 +113,34 @@
       <ul class="history mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
         @for (item of history(); track $index) {
           <li><app-delivery-history-line [item]="item" /></li>
+        }
+      </ul>
+    }
+
+    <h2 class="mt-8 mb-0 text-base font-bold">Últimos retiros</h2>
+    @if (returnsState() === 'loading') {
+      <p class="returns-loading mt-3 mb-0 text-sm text-muted" role="status">Cargando retiros…</p>
+    } @else if (returnsState() === 'error') {
+      <div class="returns-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
+        <p class="m-0 text-sm font-bold">No pudimos cargar los retiros</p>
+        <button
+          type="button"
+          class="retry-returns btn-secondary h-11 px-4 text-sm"
+          (click)="retryReturns()"
+        >
+          Reintentar
+        </button>
+      </div>
+    } @else if (returns().length === 0) {
+      <p
+        class="returns-empty mt-3 mb-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
+      >
+        Todavía no le has retirado producto.
+      </p>
+    } @else {
+      <ul class="returns mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
+        @for (item of returns(); track $index) {
+          <li><app-return-history-line [item]="item" [sellerId]="seller.id" /></li>
         }
       </ul>
     }

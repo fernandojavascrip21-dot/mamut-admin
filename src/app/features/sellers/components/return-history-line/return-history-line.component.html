@@ -1,0 +1,36 @@
+<ng-template #content>
+  @if (showPhoto()) {
+    <img
+      [src]="item().image"
+      alt=""
+      loading="lazy"
+      (error)="onPhotoError()"
+      class="h-12 w-12 flex-shrink-0 rounded-md object-cover"
+    />
+  } @else {
+    <div
+      class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-line text-sm font-bold text-ink"
+      aria-hidden="true"
+    >
+      {{ initials() }}
+    </div>
+  }
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <p class="name m-0 text-sm leading-tight font-bold break-words">{{ item().name }}</p>
+    <p class="date m-0 text-xs text-muted">{{ item().createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+  </div>
+  <p class="qty m-0 font-mono text-base font-bold whitespace-nowrap">−{{ units() }}</p>
+</ng-template>
+
+@if (item().requestId; as requestId) {
+  <a
+    [routerLink]="[summaryUrl(), requestId]"
+    class="summary-link surface-interactive flex items-center gap-3 p-3 text-ink hover:border-line-strong"
+  >
+    <ng-container *ngTemplateOutlet="content" />
+  </a>
+} @else {
+  <div class="flex items-center gap-3 surface-card p-3">
+    <ng-container *ngTemplateOutlet="content" />
+  </div>
+}
