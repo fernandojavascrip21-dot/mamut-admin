@@ -135,13 +135,14 @@ src/products/    module: products.ts, photos.ts
 src/categories/  module: categories.ts
 src/stock/       module: movements.ts (insertMovements: the only way inventory changes), holdings.ts (reads/prices of vendor_stock, delivery history)
 src/deliveries/  module: deliveries.ts (createDelivery: leave pieces to a seller, idempotent by requestId; spec M2-hu11)
+src/returns/     module: returns.ts (createReturn: take pieces back from a seller to the warehouse, idempotent by requestId; spec M2-hu12)
 tests/           Vitest, against the real DB (see Commands above); architecture.test.ts checks the module boundaries without touching it
 ```
 
 **Module boundaries** (enforced by `tests/architecture.test.ts`):
 
 - Each business module (`src/<module>/`) exposes its public API in `src/<module>/index.ts`. Anything not exported there is internal (e.g. `accounts/accounts.ts`).
-- **Imports between areas use the `backend/tsconfig.json` path aliases**, like the frontend: `@db/*`, `@lib/*` (infrastructure), `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries` (business modules) and `@api/*` (routes, used by the tests). A module alias points only at its `index.ts` (`import { requireRole } from '@auth'`, `products` → `import { insertMovements } from '@stock'`), so a module's internal files can't be imported from outside it. Imports inside the same area (one `src/<module>`, `app/`, `tests/`) stay relative; root files like `proxy.ts` have no alias. Infrastructure never depends on a business module, and `src/` never imports `app/`. Next and Vitest (`resolve.tsconfigPaths` in `vitest.config.mts`) both read the aliases from `tsconfig.json`; a new module adds its `@<module>` line there.
+- **Imports between areas use the `backend/tsconfig.json` path aliases**, like the frontend: `@db/*`, `@lib/*` (infrastructure), `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries`, `@returns` (business modules) and `@api/*` (routes, used by the tests). A module alias points only at its `index.ts` (`import { requireRole } from '@auth'`, `products` → `import { insertMovements } from '@stock'`), so a module's internal files can't be imported from outside it. Imports inside the same area (one `src/<module>`, `app/`, `tests/`) stay relative; root files like `proxy.ts` have no alias. Infrastructure never depends on a business module, and `src/` never imports `app/`. Next and Vitest (`resolve.tsconfigPaths` in `vitest.config.mts`) both read the aliases from `tsconfig.json`; a new module adds its `@<module>` line there.
 - A new area (sales, deliveries, cuts…) is a new `src/<module>/` with its `index.ts` and `constants.ts`. A use case that writes to several modules in one transaction lives in the module that owns the operation, opens the `withTransaction` there and calls the other modules' public functions with that `tx` (as `createProduct` does with `insertMovements`).
 
 Key patterns to follow when adding backend code:

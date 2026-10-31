@@ -1,6 +1,6 @@
 # Spec técnico — HU-12 · Retirarle producto a un vendedor
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M2-hu09-ver-mis-vendedores (`specs/M2-hu09-ver-mis-vendedores/spec.md`) — detalle `/admin/vendedores/:id` y `stockOfHolder`; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — `ViewingService`; M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — `stock_movements.request_id`, idempotencia y patrón de resumen; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `insertMovements` y signos de `return`
 > **Fecha:** 2026-10-31
 > **Objetivo:** que el administrador le retire piezas de un producto a un vendedor desde su detalle, y que esas piezas regresen a la bodega sin registrarse dos veces.
@@ -225,28 +225,28 @@ FormGroup<{
 
 Por criterio de `SCRUM-36`:
 
-- [ ] **1.** En el detalle de un vendedor con piezas, «Retirar producto» abre una pantalla con una lista desplegable que solo ofrece los productos que tiene, el campo de piezas y la vista previa vendedor → bodega.
-- [ ] **2.** Con 6 piezas en el vendedor y 4 en la bodega, retirar 2 muestra «Luis: 6 → 4» y «Bodega: 4 → 6» (en la vista previa y en el resumen), con «El total del negocio no cambia», y la suma de ambos sigue en 10.
-- [ ] **3.** Confirmar con más piezas de las que tiene, `0`, un negativo, un decimal o texto muestra el error en el campo, y no se crean movimientos ni cambian `products.stock` y `vendor_stock.qty`.
-- [ ] **4.** Sin conexión al confirmar se ve el aviso con «Reintentar». «Reintentar» reenvía el mismo `requestId` y el retiro queda registrado una sola vez, incluso si la primera petición sí llegó (prueba de backend con dos peticiones iguales).
+- [x] **1.** En el detalle de un vendedor con piezas, «Retirar producto» abre una pantalla con una lista desplegable que solo ofrece los productos que tiene, el campo de piezas y la vista previa vendedor → bodega.
+- [x] **2.** Con 6 piezas en el vendedor y 4 en la bodega, retirar 2 muestra «Luis: 6 → 4» y «Bodega: 4 → 6» (en la vista previa y en el resumen), con «El total del negocio no cambia», y la suma de ambos sigue en 10.
+- [x] **3.** Confirmar con más piezas de las que tiene, `0`, un negativo, un decimal o texto muestra el error en el campo, y no se crean movimientos ni cambian `products.stock` y `vendor_stock.qty`.
+- [x] **4.** Sin conexión al confirmar se ve el aviso con «Reintentar». «Reintentar» reenvía el mismo `requestId` y el retiro queda registrado una sola vez, incluso si la primera petición sí llegó (prueba de backend con dos peticiones iguales).
 
 Además:
 
-- [ ] Un retiro crea dos movimientos `return` con el mismo `request_id`: vendedor `−N` y bodega `+N`.
-- [ ] Al confirmar se ve el toast «Le retiraste N piezas a Luis» («1 pieza» en singular) y después el resumen, que se ve igual al recargar.
-- [ ] «Atrás» desde el resumen no regresa al formulario enviado.
-- [ ] Al retirar todas las piezas de un producto, sale de «Su stock» y conserva en `vendor_stock` su precio y su costo con envío; la siguiente entrega llega prellenada con ellos.
-- [ ] Un retiro no cambia `unit_price` ni `unit_cost_with_shipping`.
-- [ ] Un producto archivado en manos del vendedor aparece en la lista y se puede retirar.
-- [ ] Sin piezas, el detalle no muestra «Retirar producto», y abrir `/admin/vendedores/:id/retirar` muestra «Este vendedor no tiene piezas para retirar».
-- [ ] «Últimos retiros» muestra hasta 20, del más nuevo al más viejo, y cada uno enlaza a su resumen; «Últimas entregas» no cambia.
-- [ ] Registrar un retiro con un vendedor desactivado, un id inventado o un producto inexistente responde `404`.
-- [ ] Retirar un producto que el vendedor nunca tuvo responde `409` y no deja una fila en `vendor_stock`.
-- [ ] Reusar un `requestId` con otro producto, vendedor o cantidad, o uno de una entrega, responde `409` y no mueve nada; uno ausente o que no es UUID responde `422`.
-- [ ] `GET /api/sellers/:id/returns/:requestId` responde `404` con un retiro de otro vendedor o con un `requestId` de entrega, y `GET /api/deliveries/:requestId` responde `404` con uno de retiro.
-- [ ] Elegir a otro vendedor en «Viendo» desde la pantalla de retiro abre el detalle de ese vendedor.
-- [ ] Los tres endpoints responden `403` a un vendedor y `401` sin sesión.
-- [ ] Backend: `npm run type-check` y `npm test` pasan, con `SUPABASE_SERVICE_ROLE_KEY` puesta. Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] Un retiro crea dos movimientos `return` con el mismo `request_id`: vendedor `−N` y bodega `+N`.
+- [x] Al confirmar se ve el toast «Le retiraste N piezas a Luis» («1 pieza» en singular) y después el resumen, que se ve igual al recargar.
+- [x] «Atrás» desde el resumen no regresa al formulario enviado.
+- [x] Al retirar todas las piezas de un producto, sale de «Su stock» y conserva en `vendor_stock` su precio y su costo con envío; la siguiente entrega llega prellenada con ellos.
+- [x] Un retiro no cambia `unit_price` ni `unit_cost_with_shipping`.
+- [x] Un producto archivado en manos del vendedor aparece en la lista y se puede retirar.
+- [x] Sin piezas, el detalle no muestra «Retirar producto», y abrir `/admin/vendedores/:id/retirar` muestra «Este vendedor no tiene piezas para retirar».
+- [x] «Últimos retiros» muestra hasta 20, del más nuevo al más viejo, y cada uno enlaza a su resumen; «Últimas entregas» no cambia.
+- [x] Registrar un retiro con un vendedor desactivado, un id inventado o un producto inexistente responde `404`.
+- [x] Retirar un producto que el vendedor nunca tuvo responde `409` y no deja una fila en `vendor_stock`.
+- [x] Reusar un `requestId` con otro producto, vendedor o cantidad, o uno de una entrega, responde `409` y no mueve nada; uno ausente o que no es UUID responde `422`.
+- [x] `GET /api/sellers/:id/returns/:requestId` responde `404` con un retiro de otro vendedor o con un `requestId` de entrega, y `GET /api/deliveries/:requestId` responde `404` con uno de retiro.
+- [x] Elegir a otro vendedor en «Viendo» desde la pantalla de retiro abre el detalle de ese vendedor.
+- [x] Los tres endpoints responden `403` a un vendedor y `401` sin sesión.
+- [x] Backend: `npm run type-check` y `npm test` pasan, con `SUPABASE_SERVICE_ROLE_KEY` puesta. Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 ## 7. Verificación manual
 
@@ -259,6 +259,15 @@ Contra la base local tras `npm run db:reset` (avisar antes: borra las cuentas cr
 - Con el backend apagado, confirmar muestra el aviso con «Reintentar»; encender el backend y reintentar registra un solo par de movimientos (se revisa en Studio).
 - Elegir a otro vendedor en «Viendo» desde la pantalla abre su detalle.
 - A 375 px de ancho no hay scroll horizontal ni zoom necesario (RNF-03). No hay errores en la consola.
+
+**Verificación manual (2026-10-31, base local sin `db:reset`, que quedó bloqueado por permisos; se usó la base tal como estaba):**
+- El detalle de Víctor muestra «Retirar producto» y «Últimos retiros». La lista solo ofrece los productos que tiene.
+- Confirmar vacío muestra los dos errores de campo. Pedir 99 piezas muestra «No hay piezas suficientes» sin mover nada.
+- Retirar 2 de la proteína: vista previa y resumen «Víctor Vendedor: 6 → 4 · Bodega: 6 → 8», toast, dos movimientos `return` con el mismo `request_id` y el total sin cambio. El resumen se ve igual al recargar, y «Atrás» vuelve al detalle.
+- Retirar las 4 restantes deja `qty = 0` y conserva el precio `950.00`; «Dejar a vendedor» llega prellenado con él. Después se le dejaron de nuevo las 4 piezas.
+- A 375 px (iframe) el detalle, la pantalla y el resumen no tienen scroll horizontal. No hay errores en la consola.
+- **No verificado a mano:** el aviso sin conexión con «Reintentar» (para no apagar el backend en uso) y el retiro de un producto archivado. Los cubren las pruebas de frontend y de backend.
+- **Pendiente:** aplicar a producción la migración `20261030000000` de HU-11, sin la cual HU-12 no funciona ahí (§10). No se aplicó nada a producción.
 
 ## 8. Plan de pruebas
 
@@ -304,6 +313,7 @@ Contra la base local tras `npm run db:reset` (avisar antes: borra las cuentas cr
 - **Sí:** `getReturn` no exige un vendedor activo, como `getDelivery`. Crear sí lo exige.
 - **Sí:** `replaceUrl` al ir al resumen. «Atrás» no debe reabrir un formulario ya enviado.
 - **Sí:** `MAX_QTY` y `HISTORY_LIMIT` propios en `returns/constants.ts`. Son dos usos, y `CLAUDE.md` pide constantes por módulo. Si una tercera operación las necesita, se suben a `stock`.
+- **Sí:** `ReturnFormValue` queda en `interfaces/seller.models.ts`, no junto al componente como decía §4. Lo usa `ReturnSaveService`, y un servicio no debe importar de la carpeta de un componente (igual que `DeliveryFormValue` en HU-11).
 - **No:** guarda de cambios sin guardar. Son dos campos y «Cancelar» está a la vista, como en HU-11.
 
 ## 10. Riesgos
