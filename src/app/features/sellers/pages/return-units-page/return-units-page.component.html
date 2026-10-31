@@ -1,0 +1,72 @@
+<div class="mx-auto flex w-full max-w-xl flex-col px-5 py-6">
+  <h1 class="page-title m-0">Retirar producto</h1>
+
+  @if (state() === 'loading') {
+    <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
+      <svg
+        aria-hidden="true"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="animate-spin stroke-accent motion-reduce:animate-none"
+      >
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+      </svg>
+      <p class="m-0 text-sm font-semibold">Cargando…</p>
+    </div>
+  } @else if (state() === 'error') {
+    <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+      <p class="m-0 text-[15px] font-bold">No pudimos cargar al vendedor</p>
+      <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retryLoad()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (state() === 'not-found') {
+    <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+      <p class="m-0 text-[15px] font-bold">No encontramos a este vendedor</p>
+      <a routerLink="/admin/vendedores" class="btn-secondary mt-2 h-11 px-4 text-sm"
+        >Volver a Mis vendedores</a
+      >
+    </div>
+  } @else if (state() === 'empty') {
+    <div
+      class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-5 text-center"
+    >
+      <p class="m-0 text-[15px] font-bold">Este vendedor no tiene piezas para retirar</p>
+      <a [routerLink]="detailUrl()" class="btn-secondary mt-2 h-11 px-4 text-sm">Ver su detalle</a>
+    </div>
+  } @else {
+    @if (offline()) {
+      <div class="offline mt-5 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
+        <p class="m-0 text-[15px] font-bold">No pudimos registrar el retiro</p>
+        <p class="m-0 text-sm leading-snug">
+          Revisa tu conexión. Si ya se había registrado, reintentar no lo duplica.
+        </p>
+        <button type="button" class="retry btn-secondary mt-1 h-11 px-4 text-sm" (click)="retrySave()">
+          Reintentar
+        </button>
+      </div>
+    }
+    @if (failure(); as failed) {
+      <div class="failure mt-5 alert-danger p-4" role="alert">
+        <p class="m-0 text-sm font-semibold">{{ failed.message }}</p>
+      </div>
+    }
+
+    <div class="mt-5">
+      <app-return-form
+        [sellerName]="seller()!.fullName"
+        [stock]="stock()"
+        [saving]="saving()"
+        [notEnoughUnits]="notEnoughUnits()"
+        [cancelUrl]="detailUrl()"
+        (submitted)="save($event)"
+      />
+    </div>
+  }
+</div>

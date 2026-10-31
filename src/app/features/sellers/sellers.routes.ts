@@ -13,6 +13,19 @@ export const SELLER_ADMIN_ROUTES: Routes = [
       import('./pages/create-seller-page/create-seller-page.component').then((m) => m.CreateSellerPageComponent),
     data: { title: 'Nuevo vendedor' },
   },
+  // Retirar producto y su resumen (HU-12): rutas de dos o más segmentos, no del menú.
+  {
+    path: ':id/retirar',
+    loadComponent: () =>
+      import('./pages/return-units-page/return-units-page.component').then((m) => m.ReturnUnitsPageComponent),
+    data: { title: 'Retirar producto' },
+  },
+  {
+    path: ':id/retiros/:requestId',
+    loadComponent: () =>
+      import('./pages/return-summary-page/return-summary-page.component').then((m) => m.ReturnSummaryPageComponent),
+    data: { title: 'Retiro' },
+  },
   // Después de `nuevo`, para que esa ruta no se lea como un id.
   {
     path: ':id',
