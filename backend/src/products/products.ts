@@ -102,6 +102,14 @@ export async function getProduct(id: number) {
   return product
 }
 
+// Producto en cualquier estado, también archivado (HU-11): el resumen de una entrega ya hecha sigue
+// mostrando su producto aunque después se archive. 404 solo si no existe.
+export async function findProduct(id: number) {
+  const [product] = await db.select().from(products).where(eq(products.id, id))
+  if (!product) throw notFound()
+  return product
+}
+
 // Solo escribe los campos editables. Las piezas y sus movimientos pertenecen al flujo de bodega.
 export async function updateProduct(id: number, input: UpdateProductInput) {
   if (priceBelowCost(input)) throw validation(PRICE_BELOW_COST)

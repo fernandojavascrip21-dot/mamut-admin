@@ -1,4 +1,4 @@
-import { normalizePhone, sortSellersByName, unitsLabel } from './seller.rules';
+import { normalizePhone, sortSellersByName } from './seller.rules';
 
 // Mismos casos que backend/tests/sellers.test.ts (contrato compartido).
 describe('normalizePhone', () => {
@@ -24,15 +24,5 @@ describe('sortSellersByName', () => {
     const original = [seller('Beto'), seller('Ana')];
     sortSellersByName(original);
     expect(original.map((s) => s.fullName)).toEqual(['Beto', 'Ana']);
-  });
-});
-
-describe('unitsLabel', () => {
-  it.each([
-    [0, '0 piezas'],
-    [1, '1 pieza'],
-    [6, '6 piezas'],
-  ])('%i → «%s»', (units, label) => {
-    expect(unitsLabel(units)).toBe(label);
   });
 });

@@ -26,6 +26,7 @@
       "@products": ["./src/products"],
       "@categories": ["./src/categories"],
       "@stock": ["./src/stock"],
+      "@deliveries": ["./src/deliveries"],
       "@api/*": ["./app/api/*"]
     }
   },

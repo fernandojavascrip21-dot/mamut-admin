@@ -111,8 +111,14 @@ describe.skipIf(!hasServiceKey)('Mis vendedores (HU-09, con cuentas reales)', ()
     expect(body).toMatchObject({ id: seller.id, fullName: 'Prueba hu09-luis', email: seller.email, phone: '5500000000', active: true, units: 6 })
     expect(body.stock).toHaveLength(2)
     expect(body.stock).toEqual(expect.arrayContaining([
-      { productId: whey, name: expect.stringContaining('whey'), image: 'https://example.com/whey.jpg', units: 4 },
-      { productId: creatine, name: expect.stringContaining('creatina'), image: null, units: 2 },
+      {
+        productId: whey, name: expect.stringContaining('whey'), image: 'https://example.com/whey.jpg', units: 4,
+        price: '100.00', unitCost: '50.0000', unitPrice: null, unitCostWithShipping: null,
+      },
+      {
+        productId: creatine, name: expect.stringContaining('creatina'), image: null, units: 2,
+        price: '100.00', unitCost: '50.0000', unitPrice: null, unitCostWithShipping: null,
+      },
     ]))
   })
 

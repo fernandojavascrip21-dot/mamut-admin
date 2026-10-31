@@ -60,3 +60,25 @@ export async function getSeller(id: string): Promise<SellerDetail> {
   const units = stock.reduce((total, line) => total + line.units, 0)
   return { ...view, units, stock }
 }
+
+// Nombre de un vendedor activo, sin llamar a Supabase Auth (HU-11): las entregas no necesitan su
+// correo. Un id que no es de un vendedor activo responde 404, sin distinguir el motivo.
+export async function getActiveSellerName(id: string): Promise<{ id: string; fullName: string }> {
+  const [profile] = await db
+    .select({ id: profiles.id, fullName: profiles.fullName })
+    .from(profiles)
+    .where(and(eq(profiles.id, id), isActiveSeller))
+  if (!profile) throw notFound()
+  return profile
+}
+
+// Igual, pero también de un vendedor que luego se desactivó: el resumen de una entrega ya hecha no
+// debe desaparecer por eso. Solo exige que el perfil sea de un vendedor.
+export async function getSellerName(id: string): Promise<{ id: string; fullName: string }> {
+  const [profile] = await db
+    .select({ id: profiles.id, fullName: profiles.fullName })
+    .from(profiles)
+    .where(and(eq(profiles.id, id), eq(profiles.role, 'vendedor')))
+  if (!profile) throw notFound()
+  return profile
+}

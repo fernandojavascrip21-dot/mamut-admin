@@ -6,19 +6,20 @@ import { ViewingService } from '@core/viewing/viewing.service';
 import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
+import { unitsLabel } from '@shared/utils/units-label';
+import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
-import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
-import type { SellerDetail } from '../../interfaces/seller.models';
-import type { SellerDetailState } from '../../models/seller-detail-page.models';
-import { unitsLabel } from '../../rules/seller.rules';
+import { DELIVERY_NEW_URL, SELLERS_LIST_URL } from '../../constants/sellers.constants';
+import type { DeliveryHistoryItem, SellerDetail } from '../../interfaces/seller.models';
+import type { DeliveryHistoryState, SellerDetailState } from '../../models/seller-detail-page.models';
 import { SellersService } from '../../services/sellers.service';
 
 // Detalle de un vendedor (/admin/vendedores/:id, HU-09): sus datos, su total y su stock por
-// producto, en solo lectura. «Dejar» y «Retirar» se agregan aquí en HU-11 y HU-12. Sigue a la
-// barra «Viendo» (HU-10): abrir el detalle elige a ese vendedor, y elegir a otro en la barra
+// producto con los precios que le aplican (HU-11), el botón «Dejar producto» y «Últimas
+// entregas». «Retirar» se agrega aquí en HU-12. Sigue a la barra «Viendo» (HU-10): abrir el detalle elige a ese vendedor, y elegir a otro en la barra
 // abre el suyo (o la lista, con «Yo · bodega»).
 @Component({
-  imports: [RouterLink, PhonePipe, SellerStockLineComponent],
+  imports: [RouterLink, PhonePipe, SellerStockLineComponent, DeliveryHistoryLineComponent],
   selector: 'app-seller-detail-page',
   templateUrl: './seller-detail-page.component.html',
 })
@@ -47,6 +48,21 @@ export class SellerDetailPageComponent {
   readonly seller = computed<SellerDetail | null>(() =>
     this.sellerResource.hasValue() ? this.sellerResource.value() : null,
   );
+
+  // «Últimas entregas» se pide cuando el vendedor ya cargó, y una falla suya no esconde el detalle.
+  readonly historyResource = rxResource({
+    params: () => (this.state() === 'ready' ? this.sellerId() : undefined),
+    stream: ({ params: id }) => this.sellersService.deliveries(id),
+  });
+  readonly historyState = computed<DeliveryHistoryState>(() => {
+    if (this.historyResource.status() === 'error') return 'error';
+    return this.historyResource.hasValue() ? 'ready' : 'loading';
+  });
+  readonly history = computed<DeliveryHistoryItem[]>(() =>
+    this.historyResource.hasValue() ? this.historyResource.value() : [],
+  );
+  readonly deliveryNewUrl = DELIVERY_NEW_URL;
+
   readonly initials = computed(() => initialsOf(this.seller()?.fullName ?? ''));
   readonly units = computed(() => unitsLabel(this.seller()?.units ?? 0));
 
@@ -67,5 +83,10 @@ export class SellerDetailPageComponent {
   // Botón «Reintentar» del error de carga: vuelve a pedir al vendedor.
   retry(): void {
     this.sellerResource.reload();
+  }
+
+  // «Reintentar» de «Últimas entregas».
+  retryHistory(): void {
+    this.historyResource.reload();
   }
 }

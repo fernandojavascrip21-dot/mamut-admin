@@ -1,0 +1,98 @@
+<section class="flex flex-col gap-5" aria-labelledby="summary-title">
+  <div class="flex flex-col gap-1">
+    <h1 id="summary-title" class="page-title m-0">Entrega registrada</h1>
+    <p class="headline m-0 text-base text-muted">
+      Le dejaste {{ units() }} a <strong class="text-ink">{{ delivery().seller.fullName }}</strong
+      >.
+    </p>
+  </div>
+
+  <div class="flex items-center gap-3 surface-card p-4">
+    @if (delivery().product.image && !imageBroken()) {
+      <img
+        [src]="delivery().product.image"
+        [alt]="delivery().product.name"
+        (error)="imageBroken.set(true)"
+        class="h-16 w-16 flex-shrink-0 rounded-md object-cover"
+      />
+    } @else {
+      <span
+        class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line text-base font-bold"
+        aria-hidden="true"
+        >{{ initials() }}</span
+      >
+    }
+    <p class="product-name m-0 min-w-0 flex-1 text-[15px] leading-tight font-bold break-words">
+      {{ delivery().product.name }}
+    </p>
+    <p class="qty m-0 font-mono text-xl font-bold whitespace-nowrap">{{ units() }}</p>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <div class="grid grid-cols-2 gap-3">
+      <div class="balance-warehouse flex flex-col gap-1 surface-card p-3.5">
+        <span class="text-xs font-semibold text-muted">Bodega</span>
+        <span class="font-mono text-xl font-bold">
+          {{ delivery().warehouse.before }} <span class="text-muted" aria-hidden="true">→</span>
+          {{ delivery().warehouse.after }}
+        </span>
+      </div>
+      <div
+        class="balance-seller flex flex-col gap-1 rounded-card border border-accent-2/40 bg-accent-2-bg p-3.5"
+      >
+        <span class="truncate text-xs font-semibold text-accent-2-text">{{
+          delivery().seller.fullName
+        }}</span>
+        <span class="font-mono text-xl font-bold text-accent-2-text">
+          {{ delivery().sellerStock.before }} <span aria-hidden="true">→</span>
+          {{ delivery().sellerStock.after }}
+        </span>
+      </div>
+    </div>
+    <p class="balances-text m-0 text-sm text-muted">
+      Bodega: {{ delivery().warehouse.before }} → {{ delivery().warehouse.after }} ·
+      {{ delivery().seller.fullName }}: {{ delivery().sellerStock.before }} →
+      {{ delivery().sellerStock.after }}. El total del negocio no cambia.
+    </p>
+  </div>
+
+  <dl class="m-0 flex flex-col gap-3 surface-card p-4">
+    <div class="flex items-baseline justify-between gap-3">
+      <dt class="text-sm text-muted">Precio de venta</dt>
+      <dd class="price m-0 text-right font-mono font-bold">
+        {{ price() | currency: 'MXN' : 'symbol-narrow' }}
+        <span class="font-sans text-xs font-medium text-muted">{{
+          hasOwnPrice() ? 'propio' : 'general'
+        }}</span>
+      </dd>
+    </div>
+    <div class="flex items-baseline justify-between gap-3">
+      <dt class="text-sm text-muted">
+        {{ hasOwnCost() ? 'Costo con envío' : 'Costo de fábrica' }}
+      </dt>
+      <dd class="cost m-0 text-right font-mono font-bold">
+        {{ cost() | currency: 'MXN' : 'symbol-narrow' : '1.2-4' }}
+        <span class="font-sans text-xs font-medium text-muted">{{
+          hasOwnCost() ? 'propio' : 'de fábrica'
+        }}</span>
+      </dd>
+    </div>
+    <div class="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+      <dt class="text-sm font-semibold">Ganancia por pieza</dt>
+      <dd class="profit m-0 font-mono text-lg font-bold" [class.text-danger]="belowCost()">
+        {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+      </dd>
+    </div>
+  </dl>
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+    <a
+      [routerLink]="newDeliveryUrl"
+      [queryParams]="anotherQueryParams()"
+      class="another btn-secondary"
+    >
+      Dejar otro producto
+    </a>
+    <a [routerLink]="doneUrl()" class="done btn-primary">Listo</a>
+  </div>
+</section>
