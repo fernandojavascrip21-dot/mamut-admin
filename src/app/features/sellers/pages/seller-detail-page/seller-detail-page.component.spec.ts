@@ -21,11 +21,11 @@ const SELLER: SellerDetail = {
   units: 6,
   stock: [
     {
-      productId: 1, name: 'Creatina Monohidratada', image: null, units: 2,
+      productId: 1, name: 'Creatina Monohidratada', image: null, units: 2, warehouseUnits: 1,
       price: '300.00', unitCost: '200.0000', unitPrice: null, unitCostWithShipping: null,
     },
     {
-      productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4,
+      productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4, warehouseUnits: 8,
       price: '450.00', unitCost: '300.0000', unitPrice: '520.00', unitCostWithShipping: '310.5000',
     },
   ],

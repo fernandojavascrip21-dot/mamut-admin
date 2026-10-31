@@ -4,3 +4,6 @@ export type SellerDetailState = 'loading' | 'error' | 'not-found' | 'ready';
 
 // Estado de «Últimas entregas»: se carga aparte del detalle y su error no lo esconde.
 export type DeliveryHistoryState = 'loading' | 'error' | 'ready';
+
+// Estado de «Últimos retiros» (HU-12): igual que el de las entregas, se carga aparte.
+export type ReturnHistoryState = 'loading' | 'error' | 'ready';
