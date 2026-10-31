@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, inArray, isNull, lte, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { products, stockMovements, vendorStock } from '@db/schema'
 import type { Tx } from '@db/transaction'
@@ -6,12 +6,15 @@ import type { Tx } from '@db/transaction'
 // Una línea del stock de un vendedor: un producto con las piezas que tiene (qty > 0).
 // `image` es null cuando el producto no tiene foto (products.image guarda '' en ese caso).
 // `price` y `unitCost` son los generales del producto; `unitPrice` y `unitCostWithShipping` son los
-// propios del vendedor (HU-11), null = usa los generales. Solo los lee el administrador (RNF-04).
+// propios del vendedor (HU-11), null = usa los generales. `warehouseUnits` son las piezas de la bodega
+// de ese producto (products.stock), para la vista previa de un retiro (HU-12).
+// Solo los lee el administrador (RNF-04).
 export interface HolderStockLine {
   productId: number
   name: string
   image: string | null
   units: number
+  warehouseUnits: number
   price: string
   unitCost: string
   unitPrice: string | null
@@ -39,6 +42,7 @@ export async function stockOfHolder(profileId: string): Promise<HolderStockLine[
       name: products.name,
       image: products.image,
       units: vendorStock.qty,
+      warehouseUnits: products.stock,
       price: products.price,
       unitCost: products.unitCost,
       unitPrice: vendorStock.unitPrice,
@@ -117,7 +121,43 @@ export async function listDeliveries(profileId: string, limit: number): Promise<
   return rows.map((row) => ({ ...row, image: row.image || null }))
 }
 
-// Las dos filas de una entrega más los saldos antes y después de cada lado.
+// Un retiro del historial del vendedor (HU-12). `qty` va en positivo. `requestId` es null en un
+// movimiento `return` creado fuera de este flujo (p. ej. desde Studio), que por eso no tiene resumen.
+export interface ReturnRow {
+  requestId: string | null
+  createdAt: string
+  productId: number
+  name: string
+  image: string | null
+  qty: number
+}
+
+// Últimos retiros de un vendedor: la fila de su lado (qty < 0) de cada movimiento `return`,
+// de la más nueva a la más vieja.
+export async function listReturns(profileId: string, limit: number): Promise<ReturnRow[]> {
+  const rows = await db
+    .select({
+      requestId: stockMovements.requestId,
+      createdAt: stockMovements.createdAt,
+      productId: products.id,
+      name: products.name,
+      image: products.image,
+      qty: stockMovements.qty,
+    })
+    .from(stockMovements)
+    .innerJoin(products, eq(products.id, stockMovements.productId))
+    .where(and(
+      eq(stockMovements.type, 'return'),
+      eq(stockMovements.holderProfileId, profileId),
+      lt(stockMovements.qty, 0),
+    ))
+    .orderBy(desc(stockMovements.id))
+    .limit(limit)
+  return rows.map((row) => ({ ...row, image: row.image || null, qty: -row.qty }))
+}
+
+// Las dos filas de una entrega o de un retiro más los saldos antes y después de cada lado.
+// `qty` siempre es positivo: son las piezas que se movieron, sin importar el sentido.
 export interface RequestMovements {
   requestId: string
   createdAt: string
@@ -142,12 +182,16 @@ async function balanceUpTo(productId: number, holder: string | null, upToId: num
   return row?.total ?? 0
 }
 
-// Entrega registrada con ese requestId, o null si no existe (HU-11).
-export async function movementsOfRequest(requestId: string): Promise<RequestMovements | null> {
+// Entrega (HU-11) o retiro (HU-12) registrado con ese requestId, o null si no existe o es del otro
+// tipo: así el resumen de una entrega nunca muestra un retiro, ni al revés.
+export async function movementsOfRequest(
+  requestId: string,
+  type: 'delivery' | 'return',
+): Promise<RequestMovements | null> {
   const rows = await db
     .select()
     .from(stockMovements)
-    .where(and(eq(stockMovements.requestId, requestId), eq(stockMovements.type, 'delivery')))
+    .where(and(eq(stockMovements.requestId, requestId), eq(stockMovements.type, type)))
   const sellerRow = rows.find((row) => row.holderProfileId !== null)
   const warehouseRow = rows.find((row) => row.holderProfileId === null)
   if (!sellerRow || !warehouseRow || !sellerRow.holderProfileId) return null
@@ -161,7 +205,7 @@ export async function movementsOfRequest(requestId: string): Promise<RequestMove
     createdAt: sellerRow.createdAt,
     productId: sellerRow.productId,
     sellerId: sellerRow.holderProfileId,
-    qty: sellerRow.qty,
+    qty: Math.abs(sellerRow.qty),
     warehouse: { before: warehouseAfter - warehouseRow.qty, after: warehouseAfter },
     sellerStock: { before: sellerAfter - sellerRow.qty, after: sellerAfter },
   }
