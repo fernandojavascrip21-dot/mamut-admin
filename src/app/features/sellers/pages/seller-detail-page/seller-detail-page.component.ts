@@ -8,23 +8,33 @@ import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
 import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
+import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
 import { DELIVERY_NEW_URL, SELLERS_LIST_URL } from '../../constants/sellers.constants';
-import type { DeliveryHistoryItem, SellerDetail } from '../../interfaces/seller.models';
-import type { DeliveryHistoryState, SellerDetailState } from '../../models/seller-detail-page.models';
+import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail } from '../../interfaces/seller.models';
+import type { DeliveryHistoryState, ReturnHistoryState, SellerDetailState } from '../../models/seller-detail-page.models';
+import { SellerReturnsService } from '../../services/seller-returns.service';
 import { SellersService } from '../../services/sellers.service';
 
 // Detalle de un vendedor (/admin/vendedores/:id, HU-09): sus datos, su total y su stock por
-// producto con los precios que le aplican (HU-11), el botón «Dejar producto» y «Últimas
-// entregas». «Retirar» se agrega aquí en HU-12. Sigue a la barra «Viendo» (HU-10): abrir el detalle elige a ese vendedor, y elegir a otro en la barra
-// abre el suyo (o la lista, con «Yo · bodega»).
+// producto con los precios que le aplican (HU-11), los botones «Dejar producto» y «Retirar
+// producto» (HU-12), «Últimas entregas» y «Últimos retiros». Sigue a la barra «Viendo» (HU-10):
+// abrir el detalle elige a ese vendedor, y elegir a otro en la barra abre el suyo (o la lista, con
+// «Yo · bodega»).
 @Component({
-  imports: [RouterLink, PhonePipe, SellerStockLineComponent, DeliveryHistoryLineComponent],
+  imports: [
+    RouterLink,
+    PhonePipe,
+    SellerStockLineComponent,
+    DeliveryHistoryLineComponent,
+    ReturnHistoryLineComponent,
+  ],
   selector: 'app-seller-detail-page',
   templateUrl: './seller-detail-page.component.html',
 })
 export class SellerDetailPageComponent {
   private readonly sellersService = inject(SellersService);
+  private readonly returnsService = inject(SellerReturnsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly viewing = inject(ViewingService);
@@ -63,8 +73,24 @@ export class SellerDetailPageComponent {
   );
   readonly deliveryNewUrl = DELIVERY_NEW_URL;
 
+  // «Últimos retiros» (HU-12) se carga igual que las entregas, aparte y sin esconder el detalle.
+  readonly returnsResource = rxResource({
+    params: () => (this.state() === 'ready' ? this.sellerId() : undefined),
+    stream: ({ params: id }) => this.returnsService.list(id),
+  });
+  readonly returnsState = computed<ReturnHistoryState>(() => {
+    if (this.returnsResource.status() === 'error') return 'error';
+    return this.returnsResource.hasValue() ? 'ready' : 'loading';
+  });
+  readonly returns = computed<ReturnHistoryItem[]>(() =>
+    this.returnsResource.hasValue() ? this.returnsResource.value() : [],
+  );
+
   readonly initials = computed(() => initialsOf(this.seller()?.fullName ?? ''));
   readonly units = computed(() => unitsLabel(this.seller()?.units ?? 0));
+  // Sin piezas no hay nada que retirar: el botón «Retirar producto» no se muestra.
+  readonly canReturn = computed(() => (this.seller()?.units ?? 0) > 0);
+  readonly sellersListUrl = SELLERS_LIST_URL;
 
   constructor() {
     // Un detalle que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.
@@ -88,5 +114,10 @@ export class SellerDetailPageComponent {
   // «Reintentar» de «Últimas entregas».
   retryHistory(): void {
     this.historyResource.reload();
+  }
+
+  // «Reintentar» de «Últimos retiros».
+  retryReturns(): void {
+    this.returnsResource.reload();
   }
 }

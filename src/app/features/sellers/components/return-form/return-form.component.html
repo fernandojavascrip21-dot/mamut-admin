@@ -1,0 +1,133 @@
+<form [formGroup]="form" class="flex flex-col gap-5" (ngSubmit)="onSubmit()" novalidate>
+  <!-- Vendedor: siempre viene de la URL -->
+  <div class="flex flex-col gap-1.5">
+    <span id="seller-label" class="field-label">Vendedor</span>
+    <p
+      aria-labelledby="seller-label"
+      class="seller-fixed m-0 flex h-[52px] items-center rounded-xl border border-line bg-disabled-input px-3.5 font-semibold text-ink"
+    >
+      {{ sellerName() }}
+    </p>
+  </div>
+
+  <!-- Producto: solo lo que el vendedor tiene -->
+  <div class="flex flex-col gap-1.5">
+    <label for="product" class="field-label">Producto</label>
+    <select
+      id="product"
+      name="product"
+      #productSelect
+      formControlName="productId"
+      [attr.aria-invalid]="productError() ? 'true' : null"
+      [attr.aria-describedby]="productError() ? 'product-error' : null"
+      [class]="
+        'field-input ' + (productError() ? 'border-2 border-danger' : 'border border-line-strong')
+      "
+    >
+      <option [ngValue]="null">Elige un producto</option>
+      @for (option of options(); track option.id) {
+        <option [ngValue]="option.id">{{ option.label }}</option>
+      }
+    </select>
+    @if (productError()) {
+      <p id="product-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ productError() }}
+      </p>
+    }
+  </div>
+
+  @if (line(); as selected) {
+    <section class="product-card flex items-center gap-3 surface-card p-4" aria-label="Producto elegido">
+      @if (selected.image && !imageBroken()) {
+        <img
+          [src]="selected.image"
+          [alt]="selected.name"
+          (error)="imageBroken.set(true)"
+          class="h-16 w-16 flex-shrink-0 rounded-md object-cover"
+        />
+      } @else {
+        <span
+          class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line text-base font-bold"
+          aria-hidden="true"
+          >{{ lineInitials() }}</span
+        >
+      }
+      <div class="min-w-0 flex-1">
+        <p class="m-0 text-[15px] leading-tight font-bold break-words">{{ selected.name }}</p>
+        <p class="m-0 mt-1 text-sm text-muted">
+          <span class="font-mono font-bold text-ink">{{ selected.units }}</span> con
+          {{ sellerName() }}
+        </p>
+      </div>
+    </section>
+  }
+
+  <!-- Piezas -->
+  <div class="flex flex-col gap-1.5">
+    <label for="qty" class="field-label">Piezas a retirar</label>
+    <input
+      id="qty"
+      name="qty"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      #qtyInput
+      formControlName="qty"
+      [attr.aria-invalid]="qtyError() ? 'true' : null"
+      [attr.aria-describedby]="qtyError() ? 'qty-error' : null"
+      [class]="
+        'field-input font-mono ' + (qtyError() ? 'border-2 border-danger' : 'border border-line-strong')
+      "
+    />
+    @if (qtyError()) {
+      <p id="qty-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ qtyError() }}
+      </p>
+    }
+  </div>
+
+  <!-- Vista previa de saldos: el vendedor baja, la bodega sube y el total no cambia -->
+  @if (line()) {
+    <div class="flex flex-col gap-2" aria-live="polite">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="balance-warehouse flex flex-col gap-1 surface-card p-3.5">
+          <span class="text-xs font-semibold text-muted">Bodega</span>
+          <span class="font-mono text-xl font-bold">
+            {{ warehouseUnits() }}
+            @if (preview(); as moved) {
+              <span class="text-muted" aria-hidden="true">→</span> {{ moved.warehouse }}
+            }
+          </span>
+        </div>
+        <div
+          class="balance-seller flex flex-col gap-1 rounded-card border border-accent-2/40 bg-accent-2-bg p-3.5"
+        >
+          <span class="truncate text-xs font-semibold text-accent-2-text">{{ sellerName() }}</span>
+          <span class="font-mono text-xl font-bold text-accent-2-text">
+            {{ sellerUnits() }}
+            @if (preview(); as moved) {
+              <span aria-hidden="true">→</span> {{ moved.seller }}
+            }
+          </span>
+        </div>
+      </div>
+      @if (preview(); as moved) {
+        <p class="preview-text m-0 text-sm text-muted">
+          {{ sellerName() }}: {{ sellerUnits() }} → {{ moved.seller }} · Bodega:
+          {{ warehouseUnits() }} → {{ moved.warehouse }}. El total del negocio no cambia.
+        </p>
+      }
+    </div>
+  }
+
+  <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+    <a [routerLink]="cancelUrl()" class="btn-secondary">Cancelar</a>
+    <button type="submit" class="btn-primary" [disabled]="saving()">
+      @if (saving()) {
+        Retirando…
+      } @else {
+        Retirar
+      }
+    </button>
+  </div>
+</form>

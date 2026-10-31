@@ -268,7 +268,7 @@ describe.skipIf(!hasServiceKey)('Dejar a vendedor (HU-11, con cuentas reales)', 
     const body = await res.json()
     expect(body.stock).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        productId, units: 2, price: '450.00', unitCost: '300.0000', unitPrice: '500.00', unitCostWithShipping: null,
+        productId, units: 2, warehouseUnits: 8, price: '450.00', unitCost: '300.0000', unitPrice: '500.00', unitCostWithShipping: null,
       }),
     ]))
   })

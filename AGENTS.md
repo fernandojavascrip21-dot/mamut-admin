@@ -115,10 +115,11 @@ src/products/    module: products, photos
 src/categories/  module: categories
 src/stock/       module: movements.ts (insertMovements: the only way inventory changes), holdings.ts (reads/prices of vendor_stock, delivery history)
 src/deliveries/  module: deliveries.ts (createDelivery: leave pieces to a seller, idempotent by requestId; spec M2-hu11)
+src/returns/     module: returns.ts (createReturn: take pieces back from a seller to the warehouse, idempotent by requestId; spec M2-hu12)
 tests/           Vitest against the real DB; architecture.test.ts checks module boundaries
 ```
 
-- **Module boundaries and aliases:** each business module exposes its API in `src/<module>/index.ts`. Between areas, imports use the `backend/tsconfig.json` aliases, like the frontend: `@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries` (a module alias points only at its index, so its internals stay private) and `@api/*`. Inside an area, imports stay relative. `src/db`/`src/lib` never depend on a module, and `src/` never imports `app/` (`tests/architecture.test.ts`). Vitest reads the same aliases (`resolve.tsconfigPaths`). A new area is a new module with `index.ts` + `constants.ts` + its alias. A use case spanning modules in one transaction lives in the owning module and passes its `tx` to the others' public functions.
+- **Module boundaries and aliases:** each business module exposes its API in `src/<module>/index.ts`. Between areas, imports use the `backend/tsconfig.json` aliases, like the frontend: `@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries`, `@returns` (a module alias points only at its index, so its internals stay private) and `@api/*`. Inside an area, imports stay relative. `src/db`/`src/lib` never depend on a module, and `src/` never imports `app/` (`tests/architecture.test.ts`). Vitest reads the same aliases (`resolve.tsconfigPaths`). A new area is a new module with `index.ts` + `constants.ts` + its alias. A use case spanning modules in one transaction lives in the owning module and passes its `tx` to the others' public functions.
 
 - **No business logic in routes** — routes validate and delegate to `src/`.
 - **Auth is re-checked on every request**: `getAuthContext` loads `profiles` fresh so deactivation takes effect immediately. Never trust JWT claims for role/active status.

@@ -38,6 +38,7 @@ export interface SellerStockLine {
   name: string;
   image: string | null;
   units: number;
+  warehouseUnits: number;
   price: string;
   unitCost: string;
   unitPrice: string | null;
@@ -54,6 +55,48 @@ export interface DeliveryHistoryItem {
   image: string | null;
   qty: number;
 }
+
+// Cuerpo de POST /api/sellers/:id/returns (HU-12). El `requestId` lo genera ReturnSaveService.
+export interface NewReturnInput {
+  requestId: string;
+  productId: number;
+  qty: number;
+}
+
+// Lo que emite el formulario de «Retirar producto»: producto elegido y piezas ya como entero.
+export interface ReturnFormValue {
+  productId: number;
+  qty: number;
+}
+
+// Un retiro registrado (resumen y respuesta de POST). `qty` va en positivo: son las piezas que
+// regresaron a la bodega. `before` y `after` salen de los movimientos, no del saldo actual.
+export interface SellerReturn {
+  requestId: string;
+  createdAt: string;
+  qty: number;
+  seller: { id: string; fullName: string };
+  product: { id: number; name: string; image: string | null };
+  sellerStock: { before: number; after: number };
+  warehouse: { before: number; after: number };
+}
+
+// Un retiro del historial «Últimos retiros» (GET /api/sellers/:id/returns, HU-12). `requestId` es
+// null en un movimiento `return` creado fuera de este flujo: no tiene resumen.
+export interface ReturnHistoryItem {
+  requestId: string | null;
+  createdAt: string;
+  productId: number;
+  name: string;
+  image: string | null;
+  qty: number;
+}
+
+export type ReturnFailure = 'not-enough-units' | 'mismatch' | 'not-found' | 'invalid' | 'offline';
+
+// Resultado de ReturnSaveService: la página decide qué pintar sin leer HttpErrorResponse.
+export type ReturnResult =
+  { ok: true; sellerReturn: SellerReturn } | { ok: false; reason: ReturnFailure; message?: string };
 
 // Detalle de un vendedor (GET /api/sellers/:id): sus datos, su total y solo los productos con piezas.
 export interface SellerDetail extends Seller {

@@ -58,7 +58,7 @@ async function toDelivery(moved: RequestMovements): Promise<Delivery> {
 
 // Si el requestId ya existe: con los mismos datos devuelve esa entrega, con otros lanza 409.
 async function findReplay(input: CreateDeliveryInput): Promise<Delivery | null> {
-  const moved = await movementsOfRequest(input.requestId)
+  const moved = await movementsOfRequest(input.requestId, 'delivery')
   if (!moved) return null
   if (moved.sellerId !== input.sellerId || moved.productId !== input.productId || moved.qty !== input.qty) {
     throw conflict(DELIVERY_MISMATCH)
@@ -103,14 +103,14 @@ export async function createDelivery(
     throw err
   }
 
-  const moved = await movementsOfRequest(input.requestId)
+  const moved = await movementsOfRequest(input.requestId, 'delivery')
   if (!moved) throw new Error('La entrega no quedó registrada')
   return { delivery: await toDelivery(moved), replayed: false }
 }
 
 // Resumen de una entrega por su requestId; sobrevive a una recarga de la pantalla.
 export async function getDelivery(requestId: string): Promise<Delivery> {
-  const moved = await movementsOfRequest(requestId)
+  const moved = await movementsOfRequest(requestId, 'delivery')
   if (!moved) throw notFound()
   return toDelivery(moved)
 }

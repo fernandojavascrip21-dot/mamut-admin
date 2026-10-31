@@ -6,11 +6,12 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
-import type { DeliveryHistoryItem, SellerDetail } from '../../interfaces/seller.models';
+import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail } from '../../interfaces/seller.models';
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
 const HISTORY_URL = `${SELLER_URL}/deliveries`;
+const RETURNS_URL = `${SELLER_URL}/returns`;
 
 const SELLER: SellerDetail = {
   id: ID,
@@ -21,11 +22,11 @@ const SELLER: SellerDetail = {
   units: 6,
   stock: [
     {
-      productId: 1, name: 'Creatina Monohidratada', image: null, units: 2,
+      productId: 1, name: 'Creatina Monohidratada', image: null, units: 2, warehouseUnits: 1,
       price: '300.00', unitCost: '200.0000', unitPrice: null, unitCostWithShipping: null,
     },
     {
-      productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4,
+      productId: 2, name: 'Proteína Whey 2 lb', image: 'https://example.com/whey.jpg', units: 4, warehouseUnits: 8,
       price: '450.00', unitCost: '300.0000', unitPrice: '520.00', unitCostWithShipping: '310.5000',
     },
   ],
@@ -34,6 +35,11 @@ const SELLER: SellerDetail = {
 const HISTORY: DeliveryHistoryItem[] = [
   { requestId: 'r-1', createdAt: '2026-10-30T18:21:07.000Z', productId: 2, name: 'Proteína Whey 2 lb', image: null, qty: 4 },
   { requestId: null, createdAt: '2026-10-29T12:00:00.000Z', productId: 1, name: 'Creatina Monohidratada', image: null, qty: 2 },
+];
+
+const RETURNS: ReturnHistoryItem[] = [
+  { requestId: 'rt-1', createdAt: '2026-10-31T10:00:00.000Z', productId: 2, name: 'Proteína Whey 2 lb', image: null, qty: 2 },
+  { requestId: null, createdAt: '2026-10-30T10:00:00.000Z', productId: 1, name: 'Creatina Monohidratada', image: null, qty: 1 },
 ];
 
 describe('SellerDetailPageComponent', () => {
@@ -86,11 +92,12 @@ describe('SellerDetailPageComponent', () => {
   }
 
   // Carga el detalle y, ya con el vendedor en pantalla, «Últimas entregas» (se pide después).
-  async function load(seller: SellerDetail, history: DeliveryHistoryItem[] = []) {
+  async function load(seller: SellerDetail, history: DeliveryHistoryItem[] = [], returns: ReturnHistoryItem[] = []) {
     fixture.detectChanges();
     httpMock.expectOne(SELLER_URL).flush(seller);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush(history);
+    httpMock.expectOne(RETURNS_URL).flush(returns);
     await settle();
   }
 
@@ -102,6 +109,7 @@ describe('SellerDetailPageComponent', () => {
     httpMock.expectOne(SELLER_URL).flush(SELLER);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush([]);
+    httpMock.expectOne(RETURNS_URL).flush([]);
   });
 
   it('muestra sus datos con el teléfono formateado, su total y su stock por producto', async () => {
@@ -149,6 +157,7 @@ describe('SellerDetailPageComponent', () => {
     httpMock.expectOne(SELLER_URL).flush(SELLER);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush([]);
+    httpMock.expectOne(RETURNS_URL).flush([]);
     await settle();
     expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
   });
@@ -183,6 +192,7 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(SELLER_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).error(new ProgressEvent('error'));
+      httpMock.expectOne(RETURNS_URL).flush([]);
       await settle();
 
       expect(fixture.nativeElement.querySelector('.history-error')).not.toBeNull();
@@ -192,6 +202,71 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(HISTORY_URL).flush(HISTORY);
       await settle();
       expect(fixture.nativeElement.querySelectorAll('app-delivery-history-line')).toHaveLength(2);
+    });
+  });
+
+  describe('retirar producto y últimos retiros (HU-12)', () => {
+    it('«Retirar producto» abre la pantalla de retiro de ese vendedor', async () => {
+      await load(SELLER);
+      const link = fixture.nativeElement.querySelector('a.return') as HTMLAnchorElement;
+      expect(link.textContent?.trim()).toBe('Retirar producto');
+      expect(link.getAttribute('href')).toBe(`/admin/vendedores/${ID}/retirar`);
+      expect(fixture.nativeElement.querySelector('a.deliver')).not.toBeNull();
+    });
+
+    it('sin piezas no muestra «Retirar producto» y «Dejar producto» sigue disponible', async () => {
+      await load({ ...SELLER, units: 0, stock: [] });
+      expect(fixture.nativeElement.querySelector('a.return')).toBeNull();
+      expect(fixture.nativeElement.querySelector('a.deliver')).not.toBeNull();
+    });
+
+    it('lista los retiros, con enlace al resumen solo si tienen requestId', async () => {
+      await load(SELLER, [], RETURNS);
+      const items = Array.from(fixture.nativeElement.querySelectorAll('app-return-history-line')) as HTMLElement[];
+      expect(items).toHaveLength(2);
+      expect(items[0].textContent).toContain('Proteína Whey 2 lb');
+      expect(items[0].textContent).toContain('−2 piezas');
+      expect(items[0].querySelector('a')?.getAttribute('href')).toBe(`/admin/vendedores/${ID}/retiros/rt-1`);
+      expect(items[1].querySelector('a')).toBeNull();
+    });
+
+    it('«Últimas entregas» no cambia cuando hay retiros', async () => {
+      await load(SELLER, HISTORY, RETURNS);
+      expect(fixture.nativeElement.querySelectorAll('app-delivery-history-line')).toHaveLength(2);
+    });
+
+    it('sin retiros muestra «Todavía no le has retirado producto.»', async () => {
+      await load(SELLER, [], []);
+      expect(fixture.nativeElement.querySelector('.returns-empty').textContent.trim()).toBe(
+        'Todavía no le has retirado producto.',
+      );
+    });
+
+    it('mientras carga los retiros muestra «Cargando retiros…»', async () => {
+      fixture.detectChanges();
+      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      await tick();
+      httpMock.expectOne(HISTORY_URL).flush([]);
+      expect(fixture.nativeElement.querySelector('.returns-loading')?.textContent).toContain('Cargando retiros…');
+      httpMock.expectOne(RETURNS_URL).flush([]);
+      await settle();
+    });
+
+    it('si falla el historial de retiros lo avisa sin esconder el detalle, y «Reintentar» lo vuelve a pedir', async () => {
+      fixture.detectChanges();
+      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      await tick();
+      httpMock.expectOne(HISTORY_URL).flush([]);
+      httpMock.expectOne(RETURNS_URL).error(new ProgressEvent('error'));
+      await settle();
+
+      expect(fixture.nativeElement.querySelector('.returns-error')).not.toBeNull();
+      expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+      (fixture.nativeElement.querySelector('.retry-returns') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      httpMock.expectOne(RETURNS_URL).flush(RETURNS);
+      await settle();
+      expect(fixture.nativeElement.querySelectorAll('app-return-history-line')).toHaveLength(2);
     });
   });
 
@@ -224,6 +299,7 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
       await tick();
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/deliveries`).flush([]);
+      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/returns`).flush([]);
       await settle();
       expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Valeria');
       expect(viewing.select).toHaveBeenLastCalledWith(otherId);
