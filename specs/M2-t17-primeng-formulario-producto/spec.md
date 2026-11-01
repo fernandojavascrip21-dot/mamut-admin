@@ -154,7 +154,7 @@ Cada paso conserva el proyecto ejecutable. No se crean commits ni se hace push a
 - [ ] Los comandos npm de inicio, desarrollo, watch, build y tests preparan la licencia antes de compilar; la preparación directa para `ng` está documentada.
 - [ ] Sin clave la preparación informa cómo configurarla; con la licencia del usuario los controles funcionan sin avisos de licencia inválida o ausente.
 - [x] La clave y los archivos locales que la contienen están excluidos de Git y no aparecen en logs ni ejemplos.
-- [ ] PrimeNG se registra una sola vez y utiliza el tema de Mammut tanto al arrancar como al recargar.
+- [x] PrimeNG se registra una sola vez y utiliza el tema de Mammut tanto al arrancar como al recargar.
 - [ ] El contenido permanece claro aunque el sistema tenga tema oscuro; no cambia el aspecto de login, navegación, tarjetas, vendedores, toast o ventanas existentes.
 - [ ] Nombre, precio, costo, porción y botones del piloto usan PrimeNG; categoría y fraccionamiento usan Select y Checkbox.
 - [ ] Alta envía el mismo contrato de datos con categoría y sin ella; edición carga la categoría y permite volver a «Sin categoría».
@@ -230,4 +230,10 @@ Las siguientes migraciones se definen en sus propios specs después de evaluar e
 - `scripts/prepare-primeng-license.mjs` lee la variable de proceso o el `.env` local y genera únicamente la exportación de la clave. Los hooks npm preparan el archivo; `.env` y el generado están ignorados por Git. Se conserva el `.env` del usuario.
 - `node --test scripts/prepare-primeng-license.test.mjs`: cuatro pruebas pasan para clave ausente, lectura local sin exportar otras variables, precedencia del entorno, serialización segura y rechazo de un valor de entorno vacío.
 - La preparación con la configuración local disponible termina correctamente sin imprimir la clave. Su validez dentro de PrimeNG se comprobará al registrar el provider en el paso 2.
-- Los pasos 2 a 7 siguen pendientes; aún no se migran controles ni se declara la integración completa.
+- **Paso 2 completado:** provider único en `app.config.ts`, configuración tipada en `core/ui/constants/primeng.constants.ts` y preset en `mammut-theme.constants.ts`. El servidor hereda la misma configuración. Se desactivan Preflight de PrimeNG, ripple y modo oscuro automático; los textos del piloto quedan en español.
+- El preset usa la base de Aura y los tokens de InputText, Select y Checkbox. Los botones configuran únicamente las variantes primaria y secundaria que usa el piloto. No se incluye el preset de todos los componentes ni las severidades de botones ajenas al piloto; así se conserva el presupuesto inicial sin modificar sus límites.
+- Las capas se declaran antes del import de Tailwind. Las transiciones de PrimeNG referencian una variable que pasa a `0s` con `prefers-reduced-motion`.
+- Verificación en Chrome del build de producción: login renderizado y recargado, sin avisos de licencia ni errores de la aplicación. Los mensajes de consola encontrados pertenecen a extensiones del navegador. Los estilos calculados resuelven `--p-primary-color` a `#ac5e1c` y la fuente a Public Sans. Al emular preferencia oscura, el esquema sigue en `light` y el fondo del campo en blanco; al emular movimiento reducido, las transiciones semánticas y de campo resuelven a `0s`.
+- Para la prueba local del servidor se usó `NG_ALLOWED_HOSTS=localhost`; el `allowedHosts` vacío del proyecto rechaza ese host por defecto. No se cambia `angular.json`. El proceso y la pestaña de prueba se cerraron al terminar.
+- Validación del paso 2: `npm run build -- --stats-json`, `npm test -- --watch=false` (531 pruebas) y `npm run check:architecture` pasan. Bundle inicial: **492.67 kB**, transferencia estimada **130.45 kB**, sin advertencias de presupuesto (línea base: 397.57 kB / 103.41 kB).
+- Los pasos 3 a 7 siguen pendientes; aún no se migran controles ni se declara la integración completa. La comprobación de licencia con controles del piloto sigue pendiente de esa migración.

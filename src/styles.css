@@ -1,4 +1,18 @@
+/* Fijar el orden antes de importar Tailwind evita que los estilos inyectados ganen a utilities. */
+@layer theme, base, primeng, components, utilities;
 @import 'tailwindcss';
+
+@layer primeng {
+  :root {
+    --mammut-ui-transition-duration: 200ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --mammut-ui-transition-duration: 0s;
+    }
+  }
+}
 
 /* Tokens de marca (ver mockups 01 y 14 en specs/M0-base/spec.md): se definen una vez aquí y se
    usan en todos los componentes como utilidades normales de Tailwind (bg-page, text-ink, etc.),
