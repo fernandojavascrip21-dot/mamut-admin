@@ -213,10 +213,19 @@
     </div>
   }
 
-  <label class="field-label flex min-h-11 cursor-pointer items-center gap-3">
-    <input type="checkbox" formControlName="fractionable" class="size-5 shrink-0 accent-accent" />
-    Se fracciona en bolsitas
-  </label>
+  <div class="flex min-h-11 items-center gap-3">
+    <p-checkbox
+      inputId="fractionable"
+      name="fractionable"
+      formControlName="fractionable"
+      [binary]="true"
+      size="large"
+      class="shrink-0"
+    />
+    <label for="fractionable" class="field-label flex min-h-11 flex-1 cursor-pointer items-center">
+      Se fracciona en bolsitas
+    </label>
+  </div>
 
   <!-- Se oculta con una clase en vez de un @if para conservar lo escrito al desmarcar y volver
        a marcar «se fracciona». -->

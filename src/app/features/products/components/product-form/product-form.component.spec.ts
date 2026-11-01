@@ -41,10 +41,10 @@ describe('ProductFormComponent', () => {
     fixture.detectChanges();
   }
 
+  // El clic recorre el ControlValueAccessor de Checkbox, en vez de modificar solo su DOM.
   function setFractionable(checked: boolean) {
-    const checkbox = el<HTMLInputElement>('input[type="checkbox"]');
-    checkbox.checked = checked;
-    checkbox.dispatchEvent(new Event('change'));
+    const checkbox = el<HTMLInputElement>('#fractionable');
+    if (checkbox.checked !== checked) checkbox.click();
     fixture.detectChanges();
   }
 
@@ -233,6 +233,59 @@ describe('ProductFormComponent', () => {
       expect(fixture.nativeElement.textContent).not.toContain('Escribe la porción');
     });
 
+    it('la etiqueta acciona la casilla de PrimeNG una sola vez y emite un booleano y dirtyChange', () => {
+      const checkbox = el<HTMLInputElement>('#fractionable');
+      const label = el<HTMLLabelElement>('label[for="fractionable"]');
+      expect(label.control).toBe(checkbox);
+      expect(checkbox.checked).toBe(false);
+      expect(fixture.componentInstance.form.pristine).toBe(true);
+
+      label.click();
+      fixture.detectChanges();
+      expect(checkbox.checked).toBe(true);
+      expect(fixture.componentInstance.fractionableControl.value).toBe(true);
+      expect(dirty).toContain(true);
+    });
+
+    it('desmarcar conserva la porción escrita pero solo la incluye en el payload al volver a marcar', () => {
+      fill();
+      setFractionable(true);
+      type('#portion-size', '30 g');
+      setFractionable(false);
+      expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
+      expect(el<HTMLInputElement>('#portion-size').value).toBe('30 g');
+      submit();
+      expect(submitted.at(-1)).toMatchObject({ fractionable: false, portionSize: null });
+
+      setFractionable(true);
+      expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(false);
+      expect(el<HTMLInputElement>('#portion-size').value).toBe('30 g');
+      submit();
+      expect(submitted.at(-1)).toMatchObject({ fractionable: true, portionSize: '30 g' });
+    });
+
+    it('busy bloquea cambiar el fraccionamiento desde la casilla y su etiqueta hasta habilitarla', () => {
+      setFractionable(true);
+      fixture.componentRef.setInput('busy', true);
+      fixture.detectChanges();
+      const checkbox = el<HTMLInputElement>('#fractionable');
+      const label = el<HTMLLabelElement>('label[for="fractionable"]');
+      expect(checkbox.disabled).toBe(true);
+      checkbox.click();
+      label.click();
+      fixture.detectChanges();
+      expect(checkbox.checked).toBe(true);
+      expect(fixture.componentInstance.fractionableControl.value).toBe(true);
+
+      fixture.componentRef.setInput('busy', false);
+      fixture.detectChanges();
+      expect(checkbox.disabled).toBe(false);
+      label.click();
+      fixture.detectChanges();
+      expect(checkbox.checked).toBe(false);
+      expect(fixture.componentInstance.fractionableControl.value).toBe(false);
+    });
+
     it('precio menor que el costo muestra el error en vivo y deshabilita Guardar', () => {
       fill({ price: '50', unitCost: '100' });
       expect(fixture.nativeElement.textContent).toContain('El precio no puede ser menor que el costo');
@@ -299,7 +352,7 @@ describe('ProductFormComponent', () => {
       expect(el<HTMLInputElement>('#unit-cost').value).toBe('100.00');
       expect(el<HTMLInputElement>('#price').value).toBe('200.00');
       expect(el<HTMLInputElement>('#portion-size').value).toBe('30 g');
-      expect(el<HTMLInputElement>('input[type="checkbox"]').checked).toBe(true);
+      expect(el<HTMLInputElement>('#fractionable').checked).toBe(true);
       expect(el('#units')).toBeNull();
       expect(fixture.nativeElement.textContent).toContain('en bodega');
       expect(fixture.nativeElement.textContent).toContain('Las piezas solo cambian con movimientos');

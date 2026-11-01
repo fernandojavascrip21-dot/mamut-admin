@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, PristineChangeEvent, ReactiveFormsModule } from '@angular/forms';
 import { filter, map } from 'rxjs';
 import { ButtonDirective } from 'primeng/button';
+import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import type { SelectPassThrough } from 'primeng/types/select';
@@ -26,7 +27,7 @@ import type { FieldWithError, ProductFormGroup } from './product-form.models';
 // guardar y los estados de espera son de la página. Los errores de cada campo aparecen al
 // enviar; solo «precio menor que el costo» se muestra en vivo y deshabilita «Guardar».
 @Component({
-  imports: [ReactiveFormsModule, InputText, ButtonDirective, Select],
+  imports: [ReactiveFormsModule, InputText, ButtonDirective, Select, Checkbox],
   selector: 'app-product-form',
   templateUrl: './product-form.component.html',
 })

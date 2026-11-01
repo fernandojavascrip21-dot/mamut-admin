@@ -161,7 +161,7 @@ Cada paso conserva el proyecto ejecutable. No se crean commits ni se hace push a
 - [ ] Precio y costo conservan su texto decimal; los excesos de decimales o rango muestran error y no emiten un payload válido.
 - [ ] Precio menor que costo sigue mostrando el aviso en vivo y bloqueando Guardar.
 - [ ] Los demás errores aparecen al enviar; nombre duplicado y categoría inexistente enfocan el campo correcto.
-- [ ] Marcar y desmarcar fraccionamiento conserva la porción escrita y mantiene sus reglas de validación.
+- [x] Marcar y desmarcar fraccionamiento conserva la porción escrita y mantiene sus reglas de validación.
 - [ ] El estado ocupado bloquea todos los controles y acciones; «Guardando…» y la prevención de envíos repetidos siguen funcionando.
 - [ ] Foto opcional, cambio y eliminación de foto mantienen su flujo; edición no permite modificar piezas.
 - [ ] La guarda de cambios sin guardar y los estados sin conexión de ambas páginas conservan su comportamiento.
@@ -247,4 +247,8 @@ Las siguientes migraciones se definen en sus propios specs después de evaluar e
 - Se adaptaron las pruebas del formulario y de ambas páginas al DOM accesible de Select. Se comprueban selección mediante clic, selección con teclado, catálogo vacío, vuelta a «Sin categoría» en edición, payload, foco y bloqueo durante guardado. La carga del producto antes que el catálogo conserva la selección.
 - `src/test-setup.ts` aporta `matchMedia` al entorno jsdom, que no implementa esa API ni evalúa media queries. Se registra exclusivamente en `architect.test.options.setupFiles` de `angular.json`; los presupuestos de build no cambian.
 - Validación del paso 4: **141 pruebas de Productos** pasan y la suite completa pasa con **538 pruebas en 75 archivos**. `npm run build` y `npm run check:architecture` pasan. Bundle inicial: **513.14 kB**, transferencia estimada **136.85 kB**; el build avisa que supera en **13.14 kB** el umbral de advertencia de 500 kB. El tamaño y las oportunidades de optimización quedan incluidos en la revisión del paso 6, sin elevar los límites.
-- Los pasos 5 a 7 siguen pendientes: fraccionamiento, verificación manual del piloto y documentación de cierre. La comprobación de licencia en navegador con los controles del piloto sigue pendiente de esa verificación.
+- **Paso 5 completado:** `product-form` importa `Checkbox` individualmente y lo conecta a `fractionable` en modo binario. `inputId` y una etiqueta externa asociada conservan un área de interacción de al menos 44 px, sin envolver el componente en otra etiqueta que pueda duplicar el clic.
+- El control conserva su valor booleano, la carga inicial en edición y la emisión de `dirtyChange`. Desmarcar oculta la porción sin borrar su texto; el payload la omite con `null` hasta volver a marcar. El formulario deshabilitado bloquea tanto el clic en la casilla como en su etiqueta.
+- Las pruebas de fraccionamiento ahora realizan clics reales sobre el input de Checkbox. Se agregaron casos de etiqueta y valor booleano, conservación de porción y payload, y bloqueo y posterior habilitación; la validación de porción obligatoria y su foco siguen pasando.
+- Validación del paso 5: **144 pruebas de Productos en 11 archivos**, `npm run build` y `npm run check:architecture` pasan. Bundle inicial: **513.12 kB**, transferencia estimada **136.84 kB**; se mantiene la advertencia de presupuesto (**13.12 kB** sobre el umbral de 500 kB), sin modificar sus límites.
+- Los pasos 6 y 7 siguen pendientes: verificación manual del piloto, revisión de tamaño y documentación de cierre. La comprobación de licencia en navegador con los controles del piloto sigue pendiente de esa verificación.
