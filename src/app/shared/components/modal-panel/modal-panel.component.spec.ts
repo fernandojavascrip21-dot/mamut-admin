@@ -8,7 +8,11 @@ import { ModalPanelComponent } from './modal-panel.component';
   template: `
     <button id="opener" type="button" (click)="open.set(true)">Abrir</button>
     @if (open()) {
-      <app-modal-panel title="Retirar producto" [closable]="closable()" (closed)="closes = closes + 1; open.set(false)">
+      <app-modal-panel
+        title="Retirar producto"
+        [closable]="closable()"
+        (closed)="closes = closes + 1; open.set(false)"
+      >
         <input id="first" type="text" />
         <button id="last" type="button">Guardar</button>
       </app-modal-panel>
@@ -81,6 +85,33 @@ describe('ModalPanelComponent', () => {
     keydown('Escape');
     expect(fixture.componentInstance.closes).toBe(1);
     expect(dialog()).toBeNull();
+  });
+
+  it('Tab desde el marco entra al primer control y Shift+Tab va al último', async () => {
+    await openDialog();
+    keydown('Tab');
+    expect(document.activeElement).toBe(root().querySelector('.close'));
+    dialog()!.focus();
+    keydown('Tab', true);
+    expect(document.activeElement).toBe(root().querySelector('#last'));
+  });
+
+  it('si desaparece el control enfocado, Tab vuelve al diálogo', async () => {
+    await openDialog();
+    const input = root().querySelector<HTMLInputElement>('#first')!;
+    input.focus();
+    input.remove();
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }),
+    );
+    expect(document.activeElement).toBe(root().querySelector('.close'));
+  });
+
+  it('bloquea el scroll del fondo y lo libera al cerrar', async () => {
+    await openDialog();
+    expect(document.body.classList.contains('overflow-hidden')).toBe(true);
+    keydown('Escape');
+    expect(document.body.classList.contains('overflow-hidden')).toBe(false);
   });
 
   it('la X cierra', async () => {

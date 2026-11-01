@@ -1,6 +1,6 @@
 # Spec técnico — T-16 · «Dejar» y «Retirar» en pop-up
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — formulario y guardado de una entrega; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — formulario y guardado de un retiro; M2-t11-rediseno-visual (`specs/M2-t11-rediseno-visual/spec.md`) — clases de diseño
 > **Fecha:** 2026-10-31
 > **Objetivo:** que «Dejar producto» y «Retirar producto» abran su formulario en un pop-up sobre la página actual, sin llevar al administrador a otra pantalla.
@@ -114,24 +114,24 @@ notify(): void;
 
 ## 6. Criterios de aceptación
 
-- [ ] Desde el detalle de un vendedor, «Dejar producto» y «Retirar producto» abren el pop-up, y el detalle sigue visible detrás con el mismo scroll.
-- [ ] «Dejar a vendedor» de una tarjeta de «Productos» abre el pop-up con ese producto fijo, y con el vendedor fijo si hay uno en «Viendo».
-- [ ] Al confirmar un retiro o una entrega, el pop-up se cierra, sale el toast y no se navega a otra pantalla.
-- [ ] Tras confirmar, el detalle muestra el stock y el historial nuevos sin recargar el navegador ni mostrar el spinner.
-- [ ] Tras confirmar desde «Productos», la tarjeta muestra las piezas nuevas sin recargar el navegador.
-- [ ] «Cancelar», la X y `Escape` cierran sin registrar nada; un clic en el fondo no cierra.
-- [ ] Mientras guarda, ni la X ni `Escape` cierran el pop-up.
-- [ ] Sin conexión, el aviso con «Reintentar» sale dentro del pop-up y reenvía el mismo `requestId`.
-- [ ] Los errores de campo y el `409` por piezas siguen saliendo en el campo, dentro del pop-up.
-- [ ] Al abrir, el foco entra en el pop-up; `Tab` no sale de él; al cerrar, el foco vuelve al botón que lo abrió.
-- [ ] Recargar con el pop-up abierto lo mantiene abierto, y «Atrás» lo cierra.
-- [ ] Al cerrar, la URL ya no tiene `ventana` ni sus parámetros.
-- [ ] Los enlaces de «Últimas entregas» y «Últimos retiros» abren sus resúmenes, y «Dejar otro producto» y «Retirar otro producto» abren el pop-up.
-- [ ] `/admin/entregas/nueva` y `/admin/vendedores/:id/retirar` ya no abren un formulario.
-- [ ] El toast se ve por encima del pop-up.
-- [ ] A 375 px no hay scroll horizontal, y el formulario de «Dejar» se desplaza dentro del pop-up.
-- [ ] Un vendedor no descarga estas rutas: siguen dentro de `ADMIN_ROUTES`.
-- [ ] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] Desde el detalle de un vendedor, «Dejar producto» y «Retirar producto» abren el pop-up, y el detalle sigue visible detrás con el mismo scroll.
+- [x] «Dejar a vendedor» de una tarjeta de «Productos» abre el pop-up con ese producto fijo, y con el vendedor fijo si hay uno en «Viendo».
+- [x] Al confirmar un retiro o una entrega, el pop-up se cierra, sale el toast y no se navega a otra pantalla.
+- [x] Tras confirmar, el detalle muestra el stock y el historial nuevos sin recargar el navegador ni mostrar el spinner.
+- [x] Tras confirmar desde «Productos», la tarjeta muestra las piezas nuevas sin recargar el navegador.
+- [x] «Cancelar», la X y `Escape` cierran sin registrar nada; un clic en el fondo no cierra.
+- [x] Mientras guarda, ni la X ni `Escape` cierran el pop-up.
+- [x] Sin conexión, el aviso con «Reintentar» sale dentro del pop-up y reenvía el mismo `requestId`.
+- [x] Los errores de campo y el `409` por piezas siguen saliendo en el campo, dentro del pop-up.
+- [x] Al abrir, el foco entra en el pop-up; `Tab` no sale de él; al cerrar, el foco vuelve al botón que lo abrió.
+- [x] Recargar con el pop-up abierto lo mantiene abierto, y «Atrás» lo cierra.
+- [x] Al cerrar, la URL ya no tiene `ventana` ni sus parámetros.
+- [x] Los enlaces de «Últimas entregas» y «Últimos retiros» abren sus resúmenes, y «Dejar otro producto» y «Retirar otro producto» abren el pop-up.
+- [x] `/admin/entregas/nueva` y `/admin/vendedores/:id/retirar` ya no abren un formulario.
+- [x] El toast se ve por encima del pop-up.
+- [x] A 375 px no hay scroll horizontal, y el formulario de «Dejar» se desplaza dentro del pop-up.
+- [x] Un vendedor no descarga estas rutas: siguen dentro de `ADMIN_ROUTES`.
+- [x] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 **Verificación manual,** contra la base local: repetir en el navegador los criterios anteriores con Víctor, desde su detalle y desde «Productos». El registro de una entrega y de un retiro se comprueba con sus movimientos en Studio. No hay errores en la consola.
 
@@ -183,3 +183,14 @@ notify(): void;
 - Avisos de inventario entre pestañas o usuarios.
 
 Cada uno, si llega, va en su propio spec.
+
+## 10. Implementación y verificación — 2026-10-31
+
+- Implementado en `spec-M2-t16-ventanas-dejar-retirar`, retomando los cambios existentes.
+- Los enlaces puros de `shared/utils/modal-links.ts` conservan la ruta primaria con comandos absolutos: la prueba del router y Chrome lo confirman. Angular serializa la URL como `/admin/(vendedores/ID//ventana:dejar;vendedor=ID)`.
+- `modal-panel` bloquea el scroll del fondo, conserva el foco al cerrar y recupera el recorrido de Tab si desaparece el control enfocado al elegir un producto. El toast (`z-50`) queda sobre el panel (`z-40`), y este cubre la navegación (`z-10`/`z-20`).
+- `modalSavingGuard` bloquea también la navegación de salida mientras la petición está pendiente, sin avisos de cambios sin guardar.
+- La prueba de recarga detectó que el extractor SSR no enumera combinaciones de outlets y aplicaba el redirect comodín a `/login`. Se resolvió entregando CSR en el fallback y resolviendo ese redirect en cliente. La URL auxiliar responde HTTP 200 y conserva el pop-up al recargar en Chrome.
+- Verificación del agente con Víctor en la base local: entrega y retiro de una pieza de BCAA, cierre sin navegar al resumen, toast, foco de regreso y actualización del stock y de ambos historiales. Se comprobaron los cuatro movimientos con una consulta de solo lectura a Postgres local: `delivery` bodega −1 / vendedor +1 y `return` vendedor −1 / bodega +1; los saldos originales quedaron restaurados. Desde Productos se comprobó el producto y vendedor fijos, conservando la búsqueda.
+- El usuario confirmó que completó las pruebas manuales y que el flujo funciona. Esta confirmación completa la revisión manual del §6; no se obtuvo una captura de pantalla del agente a 375 px.
+- Validación automatizada: `ng test --watch=false` (531 pruebas), `ng build` de producción y `npm run check:architecture`. Sin cambios en `backend/`.

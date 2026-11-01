@@ -1,5 +1,14 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, output, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { FOCUSABLE_SELECTOR } from './modal-panel.constants';
 
 // Marco de los pop-ups de «Dejar» y «Retirar» (spec T-16): título, botón de cerrar y el contenido
@@ -11,6 +20,7 @@ import { FOCUSABLE_SELECTOR } from './modal-panel.constants';
   imports: [],
   selector: 'app-modal-panel',
   templateUrl: './modal-panel.component.html',
+  host: { '(document:keydown)': 'onOutsideKeydown($event)' },
 })
 export class ModalPanelComponent {
   readonly title = input.required<string>();
@@ -38,6 +48,12 @@ export class ModalPanelComponent {
     });
   }
 
+  // Elegir un producto quita el botón del buscador y puede dejar el foco en body. El siguiente
+  // Tab vuelve al diálogo, sin alcanzar los controles de la página que está detrás.
+  onOutsideKeydown(event: KeyboardEvent): void {
+    if (!this.panel().nativeElement.contains(event.target as Node | null)) this.onKeydown(event);
+  }
+
   // Escape cierra (si se puede) y Tab no sale del pop-up: del último pasa al primero y al revés.
   onKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
@@ -48,8 +64,9 @@ export class ModalPanelComponent {
     }
     if (event.key !== 'Tab') return;
     const panel = this.panel().nativeElement;
-    const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
-      .filter((item) => !item.hidden && !item.closest('[hidden], [inert]') && item.tabIndex >= 0);
+    const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+      (item) => !item.hidden && !item.closest('[hidden], [inert]') && item.tabIndex >= 0,
+    );
     const first = items[0];
     const last = items[items.length - 1];
     if (!first || !last) {
@@ -57,10 +74,13 @@ export class ModalPanelComponent {
       return;
     }
     const active = panel.ownerDocument.activeElement;
-    if (event.shiftKey && (active === first || active === panel)) {
+    if (event.shiftKey && (active === first || active === panel || !panel.contains(active))) {
       event.preventDefault();
       last.focus();
-    } else if (!event.shiftKey && (active === last || active === panel)) {
+    } else if (
+      !event.shiftKey &&
+      (active === last || active === panel || !panel.contains(active))
+    ) {
       event.preventDefault();
       first.focus();
     }

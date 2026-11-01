@@ -32,7 +32,7 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M2-t13-rediseno-vendedores`](M2-t13-rediseno-vendedores/spec.md) | Tarea | `SCRUM-40` · T-13 | Implementado | 2026-10-30 | `M2-t11` | «Mis vendedores», detalle y alta de vendedor con la base visual de T-11. |
 | [`M2-t14-rediseno-cuenta-login`](M2-t14-rediseno-cuenta-login/spec.md) | Tarea | `SCRUM-41` · T-14 | Implementado | 2026-10-30 | `M2-t11` | Mi cuenta con la base visual de T-11, y login alineado sin cambiar su aspecto. |
 | [`M2-t15-rediseno-navbar`](M2-t15-rediseno-navbar/spec.md) | Tarea | — | Implementado | 2026-10-30 | `M2-t11` | Navbar con menú tipo medidor de inventario, íconos en componente propio y estilo alineado al login. |
-| [`M2-t16-ventanas-dejar-retirar`](M2-t16-ventanas-dejar-retirar/spec.md) | Tarea | — | Borrador | 2026-10-31 | `M2-hu11`, `M2-hu12`, `M2-t11` | «Dejar producto» y «Retirar producto» abren su formulario en un pop-up sobre la página actual. |
+| [`M2-t16-ventanas-dejar-retirar`](M2-t16-ventanas-dejar-retirar/spec.md) | Tarea | — | Implementado | 2026-10-31 | `M2-hu11`, `M2-hu12`, `M2-t11` | «Dejar producto» y «Retirar producto» abren su formulario en un pop-up sobre la página actual. |
 
 ## Relaciones que «Depende de» no muestra
 
