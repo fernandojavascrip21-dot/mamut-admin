@@ -61,6 +61,17 @@ describe('app.routes', () => {
     expect(router.url).toBe('/vendedor/mi-stock');
   });
 
+  it('un vendedor tampoco carga la rama admin al abrir una URL de ventana', async () => {
+    localStorage.setItem('mamut.user', JSON.stringify(SELLER));
+    const router = configure();
+    const admin = routes.find((route) => route.path === 'admin')!;
+    const loadChildren = vi.spyOn(admin, 'loadChildren');
+    await router.navigateByUrl('/admin/(productos//ventana:dejar;producto=3)');
+    expect(router.url).toBe('/vendedor/mi-stock');
+    expect(loadChildren).not.toHaveBeenCalled();
+    loadChildren.mockRestore();
+  });
+
   it('un administrador que intenta /vendedor cae en la home de su propio rol', async () => {
     localStorage.setItem('mamut.user', JSON.stringify(ADMIN));
     const router = configure();

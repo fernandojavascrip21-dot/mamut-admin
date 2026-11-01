@@ -2,7 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
-import { DELIVERY_NEW_URL } from '../../constants/products.constants';
+import { deliveryModalLink } from '@shared/utils/modal-links';
 import { initialsOf } from '@shared/utils/initials';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
@@ -18,7 +18,6 @@ export class ProductCardComponent {
   readonly product = input.required<ProductSummary>();
   readonly sellerId = input<string | null>(null); // vendedor en «Viendo»: la ventana lo deja fijo
 
-  readonly deliveryUrl = DELIVERY_NEW_URL;
 
   // Si la URL de la foto no carga, cae a la inicial en vez de dejar una imagen rota (§2).
   private readonly imageBroken = signal(false);
@@ -30,15 +29,10 @@ export class ProductCardComponent {
 
   // Solo se puede dejar lo que hay en la bodega.
   readonly canDeliver = computed(() => this.product().stock > 0);
-  readonly deliveryParams = computed<Record<string, string>>(() => {
-    const params: Record<string, string> = {
-      producto: String(this.product().id),
-      volver: 'productos',
-    };
-    const sellerId = this.sellerId();
-    if (sellerId) params['vendedor'] = sellerId;
-    return params;
-  });
+  readonly deliveryLink = computed(() => deliveryModalLink({
+    productId: this.product().id,
+    sellerId: this.sellerId() ?? undefined,
+  }));
 
   onPhotoError(): void {
     this.imageBroken.set(true);

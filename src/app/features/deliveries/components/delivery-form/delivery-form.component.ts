@@ -14,7 +14,6 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import type { Observable } from 'rxjs';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import { MONEY_MAX } from '@shared/constants/money.constants';
@@ -43,7 +42,7 @@ import type { DeliveryFormGroup, FieldWithError, HoldingStatus } from './deliver
 // espera son de la página. Los errores de cada campo aparecen al enviar; solo «el precio es menor
 // que el costo» se muestra en vivo, y avisa sin bloquear.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, CurrencyPipe, DeliveryProductPickerComponent],
+  imports: [ReactiveFormsModule, CurrencyPipe, DeliveryProductPickerComponent],
   selector: 'app-delivery-form',
   templateUrl: './delivery-form.component.html',
 })
@@ -63,12 +62,12 @@ export class DeliveryFormComponent implements OnInit {
   readonly holdingStatus = input<HoldingStatus>('idle');
   readonly saving = input(false); // cambia «Dejar» por «Dejando…» y bloquea el envío
   readonly notEnoughUnits = input(false); // 409: «No hay piezas suficientes» en el campo
-  readonly cancelUrl = input.required<string>();
   readonly sellerPicked = output<string>();
   readonly productPicked = output<number>();
   readonly productCleared = output<void>();
   readonly holdingRetried = output<void>();
   readonly submitted = output<DeliveryFormValue>();
+  readonly cancelled = output<void>(); // «Cancelar»: la página cierra el pop-up
 
   // --- Formulario y estados ---
   form!: DeliveryFormGroup;

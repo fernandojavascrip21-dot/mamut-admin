@@ -6,6 +6,7 @@ import { ViewingService } from '@core/viewing/viewing.service';
 import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
+import { returnModalLink } from '@shared/utils/modal-links';
 import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
 import type { SellerReturn } from '../../interfaces/seller.models';
 import type { ReturnSummaryPageState } from '../../models/return-summary-page.models';
@@ -55,7 +56,7 @@ export class ReturnSummaryPageComponent {
   readonly imageBroken = signal(false);
 
   readonly detailUrl = computed(() => `${SELLERS_LIST_URL}/${this.sellerId()}`);
-  readonly anotherUrl = computed(() => `${SELLERS_LIST_URL}/${this.sellerId()}/retirar`);
+  readonly anotherLink = computed(() => returnModalLink(this.sellerId()));
 
   constructor() {
     // Un resumen que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.

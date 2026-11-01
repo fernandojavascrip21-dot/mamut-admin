@@ -4,6 +4,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
+import { closeModalLink } from '@shared/utils/modal-links';
 import { ToastService } from '@core/toast/toast.service';
 import type { ViewingListStatus } from '@core/viewing/interfaces/viewing.models';
 import { ViewingService } from '@core/viewing/viewing.service';
@@ -48,7 +50,7 @@ describe('CreateDeliveryPageComponent', () => {
     reload: ReturnType<typeof vi.fn>;
   };
 
-  function setup(query: Record<string, string>) {
+  function setup(params: Record<string, string>) {
     viewing = {
       sellers: signal([{ id: SELLER_ID, fullName: 'Luis Pérez' }]),
       listStatus: signal<ViewingListStatus>('ready'),
@@ -61,7 +63,7 @@ describe('CreateDeliveryPageComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(query) } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
         { provide: ViewingService, useValue: viewing },
       ],
     });
@@ -92,8 +94,8 @@ describe('CreateDeliveryPageComponent', () => {
   };
 
   // Abre la ventana con producto y vendedor fijos (la ruta que usa el detalle del vendedor).
-  async function openFixed(volver = 'vendedor') {
-    setup({ producto: '10', vendedor: SELLER_ID, volver });
+  async function openFixed() {
+    setup({ producto: '10', vendedor: SELLER_ID });
     fixture.detectChanges();
     httpMock.expectOne(PRODUCT_URL).flush(PRODUCT);
     httpMock.expectOne(HOLDING_URL).flush(HOLDING);
@@ -134,17 +136,21 @@ describe('CreateDeliveryPageComponent', () => {
     expect((el().querySelector('#unit-cost') as HTMLInputElement).value).toBe('');
   });
 
-  it('«Cancelar» regresa al detalle del vendedor con volver=vendedor, y a Productos con un valor desconocido', async () => {
-    await openFixed('vendedor');
-    const cancel = () =>
-      Array.from(el().querySelectorAll('a')).find((a) => a.textContent!.includes('Cancelar'))!.getAttribute('href');
-    expect(cancel()).toBe(`/admin/vendedores/${SELLER_ID}`);
+  it('«Cancelar» cierra sin registrar nada ni avisar de cambios', async () => {
+    await openFixed();
+    el().querySelector<HTMLButtonElement>('.cancel')!.click();
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
+    expect(TestBed.inject(StockChangesService).version()).toBe(0);
+    httpMock.expectNone(DELIVERIES_URL);
   });
 
-  it('un volver desconocido regresa a Productos', async () => {
-    await openFixed('https://malo.test');
-    const cancel = Array.from(el().querySelectorAll('a')).find((a) => a.textContent!.includes('Cancelar'))!;
-    expect(cancel.getAttribute('href')).toBe('/admin/productos');
+  it('la X y Escape cierran la ventana', async () => {
+    await openFixed();
+    el().querySelector<HTMLButtonElement>('.close')!.click();
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
+    vi.mocked(router.navigate).mockClear();
+    el().querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
   });
 
   it('sin producto en la URL pide la lista, la ofrece en el buscador y al elegir uno pide su detalle', async () => {
@@ -167,7 +173,7 @@ describe('CreateDeliveryPageComponent', () => {
     expect(el().querySelector('app-delivery-product-picker')).not.toBeNull();
   });
 
-  it('confirma: manda el cuerpo, avisa con un toast y navega al resumen', async () => {
+  it('confirma: manda el cuerpo, avisa con un toast, refresca inventario y cierra sin ir al resumen', async () => {
     await openFixed();
     type('#qty', '6');
     submit();
@@ -181,7 +187,8 @@ describe('CreateDeliveryPageComponent', () => {
     await settle();
 
     expect(toast.success).toHaveBeenCalledWith('Le dejaste 6 piezas a Luis Pérez');
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/entregas', 'r-1'], { queryParams: { volver: 'vendedor' } });
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
+    expect(TestBed.inject(StockChangesService).version()).toBe(1);
   });
 
   it('ignora un segundo envío mientras el primero sigue en curso', async () => {
@@ -192,6 +199,19 @@ describe('CreateDeliveryPageComponent', () => {
     const reqs = httpMock.match(DELIVERIES_URL);
     expect(reqs).toHaveLength(1);
     reqs[0].flush(DELIVERY);
+    await settle();
+  });
+
+  it('mientras guarda bloquea Cancelar, X, Escape y el método de cierre', async () => {
+    await openFixed();
+    type('#qty', '2');
+    submit();
+    expect(el().querySelector('.close')).toBeNull();
+    expect(el().querySelector<HTMLButtonElement>('.cancel')!.disabled).toBe(true);
+    fixture.componentInstance.close();
+    el().querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(router.navigate).not.toHaveBeenCalled();
+    httpMock.expectOne(DELIVERIES_URL).flush(DELIVERY);
     await settle();
   });
 
@@ -219,6 +239,8 @@ describe('CreateDeliveryPageComponent', () => {
     await settle();
 
     expect(el().querySelector('.offline')).not.toBeNull();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(TestBed.inject(StockChangesService).version()).toBe(0);
     expect(text()).toContain('No pudimos registrar la entrega');
     (el().querySelector('.offline .retry') as HTMLButtonElement).click();
     fixture.detectChanges();

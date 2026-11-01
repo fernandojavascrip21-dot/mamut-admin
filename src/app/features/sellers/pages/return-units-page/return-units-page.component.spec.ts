@@ -2,10 +2,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ViewingService } from '@core/viewing/viewing.service';
+import { closeModalLink } from '@shared/utils/modal-links';
 import type { SellerDetail, SellerReturn } from '../../interfaces/seller.models';
 import { ReturnUnitsPageComponent } from './return-units-page.component';
 
@@ -41,16 +43,15 @@ const SELLER_RETURN: SellerReturn = {
 describe('ReturnUnitsPageComponent', () => {
   let fixture: ComponentFixture<ReturnUnitsPageComponent>;
   let httpMock: HttpTestingController;
-  let router: Router;
   let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
-  let picked: Subject<string | null>;
-  let viewing: { picked: Subject<string | null>; select: ReturnType<typeof vi.fn> };
+  let viewing: { select: ReturnType<typeof vi.fn> };
+  let router: Router;
+  let stockChanges: StockChangesService;
 
   beforeEach(async () => {
-    picked = new Subject<string | null>();
-    viewing = { picked, select: vi.fn() };
+    viewing = { select: vi.fn() };
     toast = { success: vi.fn(), error: vi.fn() };
-    const paramMap = new BehaviorSubject(convertToParamMap({ id: ID }));
+    const paramMap = new BehaviorSubject(convertToParamMap({ sellerId: ID }));
     await TestBed.configureTestingModule({
       imports: [ReturnUnitsPageComponent],
       providers: [
@@ -59,15 +60,15 @@ describe('ReturnUnitsPageComponent', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: convertToParamMap({ id: ID }) }, paramMap: paramMap.asObservable() },
+          useValue: { snapshot: { paramMap: convertToParamMap({ sellerId: ID }) }, paramMap: paramMap.asObservable() },
         },
         { provide: ViewingService, useValue: viewing },
         { provide: ToastService, useValue: toast },
       ],
     }).compileComponents();
     router = TestBed.inject(Router);
-    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    stockChanges = TestBed.inject(StockChangesService);
     fixture = TestBed.createComponent(ReturnUnitsPageComponent);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -117,17 +118,18 @@ describe('ReturnUnitsPageComponent', () => {
 
   it('con el vendedor cargado muestra el formulario con sus productos y elige al vendedor en la barra', async () => {
     await load();
-    expect(root().querySelector('h1')!.textContent).toContain('Retirar producto');
+    expect(root().querySelector('[role="dialog"] h2')!.textContent).toContain('Retirar producto');
     expect(root().querySelector('.seller-fixed')!.textContent).toContain('Luis Prueba');
     expect(root().querySelectorAll('#product option')).toHaveLength(2);
     expect(viewing.select).toHaveBeenCalledWith(ID);
   });
 
-  it('un vendedor sin piezas muestra que no hay nada que retirar, con enlace a su detalle', async () => {
+  it('un vendedor sin piezas permite cerrar la ventana', async () => {
     await load({ ...SELLER, units: 0, stock: [] });
     expect(text()).toContain('Este vendedor no tiene piezas para retirar');
     expect(root().querySelector('app-return-form')).toBeNull();
-    expect(root().querySelector('.empty a')!.getAttribute('href')).toBe('/admin/vendedores/v-1');
+    root().querySelector<HTMLButtonElement>('.close-empty')!.click();
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
   });
 
   it('un 404 muestra «No encontramos a este vendedor» y no cambia la barra', async () => {
@@ -149,7 +151,7 @@ describe('ReturnUnitsPageComponent', () => {
     httpMock.expectOne(SELLER_URL).flush(SELLER);
   });
 
-  it('al registrar avisa con un toast y va al resumen reemplazando la entrada del historial', async () => {
+  it('al registrar avisa con un toast, avisa del cambio de inventario y cierra el pop-up', async () => {
     await load();
     await fillAndSubmit('2');
 
@@ -160,7 +162,8 @@ describe('ReturnUnitsPageComponent', () => {
     await settle();
 
     expect(toast.success).toHaveBeenCalledWith('Le retiraste 2 piezas a Luis Prueba');
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/vendedores', ID, 'retiros', 'r-1'], { replaceUrl: true });
+    expect(stockChanges.version()).toBe(1);
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
   });
 
   it('no manda un segundo envío mientras el primero sigue en curso', async () => {
@@ -220,9 +223,38 @@ describe('ReturnUnitsPageComponent', () => {
     expect(root().querySelector('.offline')).toBeNull();
   });
 
-  it('elegir a otro vendedor en la barra abre su detalle', async () => {
+  it('«Cancelar» cierra el pop-up sin registrar nada', async () => {
     await load();
-    picked.next('v-2');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/vendedores/v-2');
+    root().querySelector<HTMLButtonElement>('.cancel')!.click();
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
+    expect(stockChanges.version()).toBe(0);
+  });
+
+  it('la X cierra el pop-up', async () => {
+    await load();
+    root().querySelector<HTMLButtonElement>('.close')!.click();
+    expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
+  });
+
+  it('mientras guarda no se puede cerrar: no hay X', async () => {
+    await load();
+    await fillAndSubmit('2');
+    fixture.detectChanges();
+    expect(root().querySelector('.close')).toBeNull();
+    expect(root().querySelector<HTMLButtonElement>('.cancel')!.disabled).toBe(true);
+    fixture.componentInstance.close();
+    root().querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(router.navigate).not.toHaveBeenCalled();
+    httpMock.expectOne(RETURNS_URL).flush(SELLER_RETURN, { status: 201, statusText: 'Created' });
+    await settle();
+  });
+
+  it('un fallo no cierra el pop-up ni avisa del cambio de inventario', async () => {
+    await load();
+    await fillAndSubmit('2');
+    httpMock.expectOne(RETURNS_URL).error(new ProgressEvent('error'));
+    await settle();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(stockChanges.version()).toBe(0);
   });
 });

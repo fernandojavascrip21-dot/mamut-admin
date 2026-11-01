@@ -13,7 +13,6 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { initialsOf } from '@shared/utils/initials';
 import { unitsLabel } from '@shared/utils/units-label';
 import { RETURN_FIELD_MESSAGES } from '../../constants/sellers.constants';
@@ -31,7 +30,7 @@ import type {
 // página. Los errores de cada campo aparecen al enviar, no al tocar el campo, y el botón solo se
 // bloquea mientras guarda para que esos errores se puedan ver.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   selector: 'app-return-form',
   templateUrl: './return-form.component.html',
 })
@@ -45,8 +44,8 @@ export class ReturnFormComponent implements OnInit {
   readonly stock = input<SellerStockLine[]>([]); // lo que el vendedor tiene en mano (units > 0)
   readonly saving = input(false); // cambia «Retirar» por «Retirando…» y bloquea el envío
   readonly notEnoughUnits = input(false); // 409: «No hay piezas suficientes» en el campo
-  readonly cancelUrl = input.required<string>();
   readonly submitted = output<ReturnFormValue>();
+  readonly cancelled = output<void>(); // «Cancelar»: la página cierra el pop-up
 
   // --- Formulario y estados ---
   form!: ReturnFormGroup;

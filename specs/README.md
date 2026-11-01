@@ -32,6 +32,7 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M2-t13-rediseno-vendedores`](M2-t13-rediseno-vendedores/spec.md) | Tarea | `SCRUM-40` · T-13 | Implementado | 2026-10-30 | `M2-t11` | «Mis vendedores», detalle y alta de vendedor con la base visual de T-11. |
 | [`M2-t14-rediseno-cuenta-login`](M2-t14-rediseno-cuenta-login/spec.md) | Tarea | `SCRUM-41` · T-14 | Implementado | 2026-10-30 | `M2-t11` | Mi cuenta con la base visual de T-11, y login alineado sin cambiar su aspecto. |
 | [`M2-t15-rediseno-navbar`](M2-t15-rediseno-navbar/spec.md) | Tarea | — | Implementado | 2026-10-30 | `M2-t11` | Navbar con menú tipo medidor de inventario, íconos en componente propio y estilo alineado al login. |
+| [`M2-t16-ventanas-dejar-retirar`](M2-t16-ventanas-dejar-retirar/spec.md) | Tarea | — | Implementado | 2026-10-31 | `M2-hu11`, `M2-hu12`, `M2-t11` | «Dejar producto» y «Retirar producto» abren su formulario en un pop-up sobre la página actual. |
 
 ## Relaciones que «Depende de» no muestra
 
@@ -54,6 +55,7 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 - **`M2-hu11` → `M1-hu05`:** la tarjeta de «Productos» deja de ser un único enlace y pasa a tener dos acciones hermanas, «Editar» y «Dejar a vendedor».
 - **`M2-hu11` → `M1-t07`:** agrega `stock_movements.request_id` (migración `20261030000000`) para que reintentar una entrega no la duplique, y el módulo `backend/src/deliveries/` con el alias `@deliveries`.
 - **`M2-hu12` → `M2-hu09`, `M2-hu11`:** HU-12 completa el criterio 3 de HU-09 (el botón «Retirar» del detalle) y amplía `GET /api/sellers/:id` con `warehouseUnits`. Reusa `stock_movements.request_id` de HU-11 sin migración nueva, así que **necesita que `20261030000000` esté aplicada en producción**. Agrega `type` a `movementsOfRequest` y el módulo `backend/src/returns/` con el alias `@returns`. Resuelve el «por decidir» de `SCRUM-36`: al llegar a 0 piezas se conservan el precio y el costo propios del vendedor, que HU-11 prellena en la siguiente entrega. Su botón no se deshabilita con piezas inválidas, a diferencia del de HU-11.
+- **`M2-t16` → `M2-hu11`, `M2-hu12`:** T-16 lleva los dos formularios a un pop-up en un outlet `ventana` de `admin-shell`, y **revierte** que terminen en el resumen: al confirmar, el pop-up se cierra, sale el toast y la página de atrás se refresca. Los resúmenes siguen en su URL y se abren desde los historiales. Quita `/admin/entregas/nueva` y `/admin/vendedores/:id/retirar`.
 - **Rediseño del login (sin spec) → `M2-t11`:** el login pasó a pantalla dividida (`login-brand-panel`, `login-background` en tinta y ámbar, animaciones `rise-in`, `stock-grow` y `light-sweep`). T-11 extiende ese estilo con tokens nuevos (`ink-raised`, sombras, radio) y clases `@utility` (`btn-*`, `field-*`, `surface-*`, `page-title`, `alert-*`, `skeleton-block`), sin cambiar los tokens existentes.
 - **`M2-t15` → `M2-hu10`:** T-15 mueve la barra «Viendo» a la barra lateral en escritorio (bajo la marca) y la deja bajo el menú en celular. No cambia su comportamiento ni su API.
 - **`M2-t11` → `M2-t12`, `M2-t13`, `M2-t14`:** T-11 se dividió el 2026-10-30 con el código ya escrito. Las tres partes usan las clases de T-11 y no dependen entre sí, así que T-11 se fusiona primero. Tocan las plantillas de M0, HU-04/05/06 y HU-08/09/10 solo en su aspecto: textos, rutas y lógica no cambian.
@@ -67,4 +69,4 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 - **Autenticación y roles:** `M0-base`, `M0-hu03`.
 - **Productos y bodega (M1):** `M1-t03`, `M1-hu04`, `M1-hu05`, `M1-hu06`, `M1-t07`.
 - **Vendedores y entregas (M2):** `M2-t10`, `M2-hu08`, `M2-hu09`, `M2-hu10`, `M2-hu11`, `M2-hu12`.
-- **Calidad y refactor:** `M1-t04`, `M1-t05`, `M1-t06`, `M1-t08`, `M2-t11`, `M2-t12`, `M2-t13`, `M2-t14`, `M2-t15`.
+- **Calidad y refactor:** `M1-t04`, `M1-t05`, `M1-t06`, `M1-t08`, `M2-t11`, `M2-t12`, `M2-t13`, `M2-t14`, `M2-t15`, `M2-t16`.

@@ -258,7 +258,9 @@
   }
 
   <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-    <a [routerLink]="cancelUrl()" class="btn-secondary">Cancelar</a>
+    <button type="button" class="cancel btn-secondary" [disabled]="saving()" (click)="cancelled.emit()">
+      Cancelar
+    </button>
     <button type="submit" class="btn-primary" [disabled]="!canSubmit()">
       @if (saving()) {
         Dejando…

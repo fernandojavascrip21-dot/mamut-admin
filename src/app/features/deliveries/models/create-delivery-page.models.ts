@@ -5,7 +5,7 @@ import type { DeliveryFailure } from '../interfaces/delivery.models';
 // que no se pudo registrar y se puede reintentar.
 export type CreateDeliveryState = 'loading' | 'error' | 'not-found' | 'form' | 'saving' | 'offline';
 
-// A dónde regresan «Cancelar» y «Listo». Solo estos dos valores se aceptan del parámetro `volver`.
+// A dónde regresa «Listo» del resumen. Solo estos valores se aceptan del parámetro `volver`.
 export type ReturnTarget = 'productos' | 'vendedor';
 
 // Aviso fijo de un fallo que reintentar no arregla (datos distintos con la misma llave, producto o

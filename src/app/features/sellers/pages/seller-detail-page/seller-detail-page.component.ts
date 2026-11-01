@@ -1,16 +1,18 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
+import { deliveryModalLink, returnModalLink } from '@shared/utils/modal-links';
 import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
 import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
-import { DELIVERY_NEW_URL, SELLERS_LIST_URL } from '../../constants/sellers.constants';
+import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
 import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail } from '../../interfaces/seller.models';
 import type { DeliveryHistoryState, ReturnHistoryState, SellerDetailState } from '../../models/seller-detail-page.models';
 import { SellerReturnsService } from '../../services/seller-returns.service';
@@ -38,6 +40,7 @@ export class SellerDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly viewing = inject(ViewingService);
+  private readonly stockChanges = inject(StockChangesService);
 
   // El backend valida el id (un id que no es UUID da 404, igual que uno inexistente). Se lee
   // de paramMap y no del snapshot porque, al elegir a otro vendedor en la barra, el router
@@ -53,7 +56,7 @@ export class SellerDetailPageComponent {
   readonly state = computed<SellerDetailState>(() => {
     const status = this.sellerResource.status();
     if (status === 'error') return isNotFound(this.sellerResource.error()) ? 'not-found' : 'error';
-    return this.sellerResource.hasValue() && status !== 'reloading' ? 'ready' : 'loading';
+    return this.sellerResource.hasValue() ? 'ready' : 'loading';
   });
   readonly seller = computed<SellerDetail | null>(() =>
     this.sellerResource.hasValue() ? this.sellerResource.value() : null,
@@ -71,7 +74,8 @@ export class SellerDetailPageComponent {
   readonly history = computed<DeliveryHistoryItem[]>(() =>
     this.historyResource.hasValue() ? this.historyResource.value() : [],
   );
-  readonly deliveryNewUrl = DELIVERY_NEW_URL;
+  readonly deliveryLink = computed(() => deliveryModalLink({ sellerId: this.sellerId() }));
+  readonly returnLink = computed(() => returnModalLink(this.sellerId()));
 
   // «Últimos retiros» (HU-12) se carga igual que las entregas, aparte y sin esconder el detalle.
   readonly returnsResource = rxResource({
@@ -93,6 +97,19 @@ export class SellerDetailPageComponent {
   readonly sellersListUrl = SELLERS_LIST_URL;
 
   constructor() {
+    // Dejar o retirar piezas desde el pop-up (spec T-16) cambia el stock y los dos historiales: se
+    // vuelven a pedir sin pasar por «cargando», para que el detalle no parpadee detrás del pop-up. Se
+    // ignora la versión con la que nació la página, para no pedir todo dos veces al entrar.
+    const initial = this.stockChanges.version();
+    effect(() => {
+      if (this.stockChanges.version() === initial) return;
+      untracked(() => {
+        this.sellerResource.reload();
+        this.historyResource.reload();
+        this.returnsResource.reload();
+      });
+    });
+
     // Un detalle que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.
     effect(() => {
       const seller = this.seller();

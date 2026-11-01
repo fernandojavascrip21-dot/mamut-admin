@@ -57,14 +57,13 @@
 
     <div class="mt-4 grid gap-3" [class.grid-cols-2]="canReturn()">
       <a
-        [routerLink]="deliveryNewUrl"
-        [queryParams]="{ vendedor: seller.id, volver: 'vendedor' }"
+        [routerLink]="deliveryLink()"
         class="deliver btn-primary"
       >
         Dejar producto
       </a>
       @if (canReturn()) {
-        <a [routerLink]="[sellersListUrl, seller.id, 'retirar']" class="return btn-secondary">
+        <a [routerLink]="returnLink()" class="return btn-secondary">
           Retirar producto
         </a>
       }

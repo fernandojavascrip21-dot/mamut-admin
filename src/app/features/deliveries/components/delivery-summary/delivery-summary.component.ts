@@ -3,7 +3,7 @@ import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { initialsOf } from '@shared/utils/initials';
 import { unitsLabel } from '@shared/utils/units-label';
-import { DELIVERY_NEW_URL } from '../../constants/deliveries.constants';
+import { deliveryModalLink } from '@shared/utils/modal-links';
 import type { Delivery } from '../../interfaces/delivery.models';
 import {
   effectiveCost,
@@ -23,9 +23,7 @@ import {
 export class DeliverySummaryComponent {
   readonly delivery = input.required<Delivery>();
   readonly doneUrl = input.required<string>();
-  readonly anotherQueryParams = input.required<Record<string, string>>();
-
-  readonly newDeliveryUrl = DELIVERY_NEW_URL;
+  readonly anotherLink = computed(() => deliveryModalLink({ sellerId: this.delivery().seller.id }));
   readonly units = computed(() => unitsLabel(this.delivery().qty));
   readonly initials = computed(() => initialsOf(this.delivery().product.name));
   readonly imageBroken = signal(false);

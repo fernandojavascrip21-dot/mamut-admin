@@ -1,6 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { ProductsService } from '../../services/products.service';
 import type { ProductSummary } from '../../interfaces/product.models';
@@ -21,19 +22,30 @@ export class ProductsPageComponent {
   private readonly productsService = inject(ProductsService);
   // Con un vendedor en «Viendo» (HU-10), «Dejar a vendedor» lo lleva ya elegido.
   readonly viewing = inject(ViewingService);
+  private readonly stockChanges = inject(StockChangesService);
 
   // La lista se pide al entrar; «Reintentar» es productsResource.reload(). El estado de la
-  // pantalla se deriva del status del recurso (reloading cuenta como cargando).
+  // pantalla se deriva del status del recurso; volver a pedirla con la lista ya en pantalla (tras
+  // dejar piezas, spec T-16) no cuenta como cargando, para que no parpadee detrás del pop-up.
   readonly productsResource = rxResource({ stream: () => this.productsService.listProducts() });
   readonly state = computed<ProductsState>(() => {
     const status = this.productsResource.status();
     if (status === 'error') return 'error';
-    return this.productsResource.hasValue() && status !== 'reloading' ? 'ready' : 'loading';
+    return this.productsResource.hasValue() ? 'ready' : 'loading';
   });
   readonly items = computed<ProductSummary[]>(() =>
     this.productsResource.hasValue() ? this.productsResource.value() : [],
   );
   readonly searchQuery = signal('');
+
+  constructor() {
+    // Dejar piezas desde el pop-up cambia la bodega: se vuelve a pedir la lista. Se ignora la versión
+    // con la que nació la página, para no pedirla dos veces al entrar.
+    const initial = this.stockChanges.version();
+    effect(() => {
+      if (this.stockChanges.version() !== initial) untracked(() => this.productsResource.reload());
+    });
+  }
 
   // Filtra en el cliente (criterio 2): la lista completa ya está en memoria, así que responde
   // sin otra llamada. La regla de comparación vive en product.rules.ts.
