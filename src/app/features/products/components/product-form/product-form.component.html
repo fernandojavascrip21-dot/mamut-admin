@@ -89,21 +89,23 @@
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <label for="category" class="field-label">Categoría</label>
-    <select
-      id="category"
+    <label id="category-label" for="category" class="field-label" (click)="focusCategory()">Categoría</label>
+    <p-select
+      inputId="category"
+      ariaLabelledBy="category-label"
       name="category"
       #categoryInput
       formControlName="categoryId"
-      [attr.aria-invalid]="categoryError() ? 'true' : null"
-      [attr.aria-describedby]="categoryError() ? 'category-error' : null"
-      class="field-input"
-    >
-      <option value="">Sin categoría</option>
-      @for (category of categories(); track category.id) {
-        <option [value]="category.id">{{ category.name }}</option>
-      }
-    </select>
+      [options]="categoryOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [optionDisabled]="isCategoryOptionDisabled"
+      [showClear]="false"
+      [invalid]="!!categoryError()"
+      [pt]="categoryPassThrough()"
+      [motionOptions]="categoryMotionOptions"
+      class="h-[52px] min-w-0 w-full"
+    />
     @if (categoryError()) {
       <p
         id="category-error"

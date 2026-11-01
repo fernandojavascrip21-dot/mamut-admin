@@ -7,6 +7,8 @@ import { FormBuilder, FormControl, PristineChangeEvent, ReactiveFormsModule } fr
 import { filter, map } from 'rxjs';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import type { SelectPassThrough } from 'primeng/types/select';
 import { initialsOf } from '@shared/utils/initials';
 import { notBlank } from '@shared/validators/validators';
 import { MONEY_MAX } from '@shared/constants/money.constants';
@@ -14,7 +16,9 @@ import {
   maxDecimals, maxMoney, portionRequiredWhenFractionable, positiveInteger, positiveNumber, priceNotBelowCost,
 } from '../../validators/product-form.validators';
 import type { Category, Product, ProductFormValue } from '../../interfaces/product.models';
-import { FIELD_MESSAGES, MONEY_MESSAGES } from './product-form.constants';
+import {
+  CATEGORY_SELECT_MOTION_OPTIONS, FIELD_MESSAGES, MONEY_MESSAGES, NO_CATEGORY_OPTION,
+} from './product-form.constants';
 import type { FieldWithError, ProductFormGroup } from './product-form.models';
 
 // Formulario de producto (pantalla 03b) compartido por el alta y la edición. Es presentacional:
@@ -22,7 +26,7 @@ import type { FieldWithError, ProductFormGroup } from './product-form.models';
 // guardar y los estados de espera son de la página. Los errores de cada campo aparecen al
 // enviar; solo «precio menor que el costo» se muestra en vivo y deshabilita «Guardar».
 @Component({
-  imports: [ReactiveFormsModule, InputText, ButtonDirective],
+  imports: [ReactiveFormsModule, InputText, ButtonDirective, Select],
   selector: 'app-product-form',
   templateUrl: './product-form.component.html',
 })
@@ -54,6 +58,19 @@ export class ProductFormComponent implements OnInit {
   readonly categoryError = computed(() =>
     this.categoryMissing() ? 'La categoría ya no existe. Actualiza la página e inténtalo otra vez.' : null,
   );
+  readonly categoryOptions = computed(() => [
+    NO_CATEGORY_OPTION,
+    ...this.categories().map((category) => ({ label: category.name, value: String(category.id) })),
+  ]);
+  readonly categoryPassThrough = computed<SelectPassThrough>(() => ({
+    label: {
+      'aria-describedby': this.categoryError() ? 'category-error' : undefined,
+      'aria-invalid': this.categoryError() ? 'true' : undefined,
+    },
+  }));
+  readonly categoryMotionOptions = CATEGORY_SELECT_MOTION_OPTIONS;
+  // Impide seleccionar una opción que aún permanezca en el panel mientras termina de cerrarse.
+  readonly isCategoryOptionDisabled = () => this.busy();
   readonly unitCostError = computed(() => this.fieldErrors().unitCost ?? null);
   readonly priceError = computed(() =>
     this.fieldErrors().price ?? (this.priceBelowCost() ? 'El precio no puede ser menor que el costo' : null),
@@ -72,7 +89,7 @@ export class ProductFormComponent implements OnInit {
   readonly initial = computed(() => initialsOf(this.initialValue()?.name || 'Producto'));
 
   private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
-  private readonly categoryInput = viewChild<ElementRef<HTMLSelectElement>>('categoryInput');
+  private readonly categoryInput = viewChild<Select>('categoryInput');
   private readonly unitCostInput = viewChild<ElementRef<HTMLInputElement>>('unitCostInput');
   private readonly priceInput = viewChild<ElementRef<HTMLInputElement>>('priceInput');
   private readonly unitsInput = viewChild<ElementRef<HTMLInputElement>>('unitsInput');
@@ -104,15 +121,20 @@ export class ProductFormComponent implements OnInit {
   constructor() {
     // Mientras la página guarda (o está sin conexión) el formulario queda deshabilitado.
     effect(() => {
-      if (this.busy()) this.form.disable({ emitEvent: false });
-      else this.form.enable({ emitEvent: false });
+      if (this.busy()) {
+        this.form.disable({ emitEvent: false });
+        // Cierra las opciones al empezar a guardar para que el panel no permita otra selección.
+        this.categoryInput()?.hide(false);
+      } else {
+        this.form.enable({ emitEvent: false });
+      }
     });
 
     // Tras un 409 o un 422 el foco va al campo señalado, una vez que el formulario se habilitó.
     afterRenderEffect(() => {
       if (this.busy()) return;
       if (this.nameTaken()) this.nameInput()?.nativeElement.focus();
-      else if (this.categoryMissing()) this.categoryInput()?.nativeElement.focus();
+      else if (this.categoryMissing()) this.categoryInput()?.focus();
     });
   }
 
@@ -179,6 +201,11 @@ export class ProductFormComponent implements OnInit {
   }
 
   // --- Controles que cambia el usuario ---
+  // Select usa un span como combobox: la etiqueta necesita esta acción para conservar el foco al pulsarla.
+  focusCategory(): void {
+    if (!this.busy()) this.categoryInput()?.focus();
+  }
+
   // La selección se conserva hasta guardar; el servicio decide si ya se subió.
   onPhotoSelected(file: File | null): void {
     this.selectedPhoto.set(file);

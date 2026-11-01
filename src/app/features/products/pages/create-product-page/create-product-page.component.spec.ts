@@ -75,10 +75,15 @@ describe('CreateProductPageComponent', () => {
     fixture.detectChanges();
   }
 
-  it('muestra el formulario de alta con las categorías', () => {
+  it('muestra el formulario de alta con las categorías', async () => {
     expect(fixture.nativeElement.textContent).toContain('Nuevo producto');
     expect(el('#units')).toBeTruthy();
-    expect(el<HTMLSelectElement>('#category').options.length).toBe(2);
+    expect(el('#category').textContent).toContain('Sin categoría');
+    el<HTMLElement>('#category').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const options = el<HTMLElement>('p-select').querySelectorAll('[role="option"]');
+    expect(Array.from(options, (option) => option.textContent?.trim())).toEqual(['Sin categoría', 'Proteína']);
   });
 
   it('con campos vacíos no llama al servicio', () => {

@@ -6,7 +6,7 @@ import type { FormControl, FormGroup } from '@angular/forms';
 // aceptar notación científica. Piezas sí es número.
 export type ProductFormGroup = FormGroup<{
   name: FormControl<string>;
-  categoryId: FormControl<string>; // '' = sin categoría; texto para que <select> use [value]
+  categoryId: FormControl<string>; // '' = sin categoría; los valores de Select también son texto.
   unitCost: FormControl<string>;
   price: FormControl<string>;
   units: FormControl<number | null>;
@@ -16,3 +16,8 @@ export type ProductFormGroup = FormGroup<{
 
 // Campos que pueden mostrar un error propio al enviar.
 export type FieldWithError = 'name' | 'unitCost' | 'price' | 'units' | 'portionSize';
+
+export interface ProductCategoryOption {
+  label: string;
+  value: string;
+}

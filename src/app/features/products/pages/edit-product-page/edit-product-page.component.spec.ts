@@ -108,7 +108,7 @@ describe('EditProductPageComponent', () => {
 
       expect(fixture.nativeElement.textContent).toContain('Editar producto');
       expect(el<HTMLInputElement>('#name').value).toBe('Creatina');
-      expect(el<HTMLSelectElement>('#category').value).toBe('7');
+      expect(el('#category').textContent).toContain('Proteína');
       expect(el('#units')).toBeNull();
       expect(fixture.nativeElement.textContent).toContain('Las piezas solo cambian con movimientos');
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
@@ -120,7 +120,7 @@ describe('EditProductPageComponent', () => {
       await settle();
       httpMock.expectOne(CATEGORIES_URL).flush(CATEGORIES);
       await settle();
-      expect(el<HTMLSelectElement>('#category').value).toBe('7');
+      expect(el('#category').textContent).toContain('Proteína');
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     });
 

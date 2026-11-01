@@ -61,6 +61,19 @@ describe('ProductFormComponent', () => {
     fixture.detectChanges();
   }
 
+  // Interactúa con el selector real para comprobar su integración con Reactive Forms.
+  async function selectCategory(label: string) {
+    el<HTMLElement>('#category').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const options = el<HTMLElement>('p-select').querySelectorAll<HTMLElement>('[role="option"]');
+    const option = Array.from(options).find((item) => item.textContent?.trim() === label);
+    expect(option).toBeDefined();
+    option!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+
   function attachFile(): File {
     const file = new File(['x'], 'foto.png', { type: 'image/png' });
     Object.defineProperty(el<HTMLInputElement>('#photo'), 'files', { value: [file], configurable: true });
@@ -151,6 +164,63 @@ describe('ProductFormComponent', () => {
       expect(submitted[0]).toMatchObject({ price: '450.5', unitCost: '83.3333' });
     });
 
+    it('elegir una categoría conserva su id como texto en el control y como número en el payload', async () => {
+      fill();
+      await selectCategory('Proteína');
+      expect(fixture.componentInstance.form.controls.categoryId.value).toBe('7');
+      expect(el('#category').textContent).toContain('Proteína');
+      submit();
+      expect(submitted[0].categoryId).toBe(7);
+    });
+
+    it('sin categorías ofrece «Sin categoría» y emite null', async () => {
+      fixture.componentRef.setInput('categories', []);
+      fixture.detectChanges();
+      fill();
+      await selectCategory('Sin categoría');
+      expect(fixture.componentInstance.form.controls.categoryId.value).toBe('');
+      submit();
+      expect(submitted[0].categoryId).toBeNull();
+    });
+
+    it('selecciona una categoría con el teclado y conserva la etiqueta accesible', async () => {
+      const combobox = el<HTMLElement>('#category');
+      expect(combobox.getAttribute('role')).toBe('combobox');
+      expect(combobox.getAttribute('aria-labelledby')).toBe('category-label');
+      expect(el('#category-label').textContent).toBe('Categoría');
+      el<HTMLElement>('#category-label').click();
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(combobox);
+      combobox.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', code: 'End', bubbles: true, cancelable: true }));
+      fixture.detectChanges();
+      combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(fixture.componentInstance.form.controls.categoryId.value).toBe('7');
+      expect(combobox.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('al empezar a guardar cierra el selector abierto y bloquea otra selección', async () => {
+      const combobox = el<HTMLElement>('#category');
+      combobox.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(combobox.getAttribute('aria-expanded')).toBe('true');
+      const option = el<HTMLElement>('p-select').querySelector<HTMLElement>('[role="option"][aria-label="Proteína"]');
+      expect(option).not.toBeNull();
+      fixture.componentRef.setInput('busy', true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(combobox.getAttribute('aria-expanded')).toBe('false');
+      expect(combobox.getAttribute('aria-disabled')).toBe('true');
+      option!.click();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.form.controls.categoryId.value).toBe('');
+    });
+
     it('la porción está oculta sin fraccionar; al marcarlo aparece y es obligatoria', () => {
       expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
       fill();
@@ -206,7 +276,13 @@ describe('ProductFormComponent', () => {
       await fixture.whenStable();
       expect(fixture.nativeElement.textContent).toContain('La categoría ya no existe');
       expect(el('#category').getAttribute('aria-describedby')).toBe('category-error');
+      expect(el('#category').getAttribute('aria-invalid')).toBe('true');
       expect(document.activeElement).toBe(el('#category'));
+
+      fixture.componentRef.setInput('categoryMissing', false);
+      fixture.detectChanges();
+      expect(el('#category').getAttribute('aria-describedby')).toBeNull();
+      expect(el('#category').getAttribute('aria-invalid')).toBeNull();
     });
   });
 
@@ -219,7 +295,7 @@ describe('ProductFormComponent', () => {
 
     it('se llena con el producto y muestra las piezas como «N en bodega»', () => {
       expect(el<HTMLInputElement>('#name').value).toBe('Creatina');
-      expect(el<HTMLSelectElement>('#category').value).toBe('7');
+      expect(el('#category').textContent).toContain('Proteína');
       expect(el<HTMLInputElement>('#unit-cost').value).toBe('100.00');
       expect(el<HTMLInputElement>('#price').value).toBe('200.00');
       expect(el<HTMLInputElement>('#portion-size').value).toBe('30 g');
@@ -236,6 +312,14 @@ describe('ProductFormComponent', () => {
     it('cargar el producto no marca el formulario como modificado', () => {
       expect(fixture.componentInstance.form.pristine).toBe(true);
       expect(dirty).toEqual([]);
+    });
+
+    it('volver a «Sin categoría» en edición marca cambios y envía null', async () => {
+      await selectCategory('Sin categoría');
+      expect(fixture.componentInstance.form.controls.categoryId.value).toBe('');
+      expect(dirty).toContain(true);
+      submit();
+      expect(submitted[0]).toMatchObject({ categoryId: null, units: null });
     });
 
     it('escribir marca el formulario como sucio (dirtyChange)', () => {
