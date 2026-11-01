@@ -95,6 +95,19 @@ describe('ProductFormComponent', () => {
       expect(submitted).toEqual([]);
     });
 
+    it('el aspecto inválido de PrimeNG espera al envío aunque el campo ya esté tocado', () => {
+      const nameInput = el<HTMLInputElement>('#name');
+      nameInput.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+      expect(fixture.componentInstance.nameControl.touched).toBe(true);
+      expect(nameInput.classList.contains('p-invalid')).toBe(false);
+      expect(fixture.nativeElement.querySelector('.field-error')).toBeNull();
+
+      submit();
+      expect(nameInput.classList.contains('p-invalid')).toBe(true);
+      expect(document.activeElement).toBe(nameInput);
+    });
+
     it('piezas con decimales marca error y enfoca piezas', () => {
       fill({ units: '2.5' });
       submit();
@@ -128,6 +141,12 @@ describe('ProductFormComponent', () => {
 
     it('dinero: el valor emitido trae precio y costo como el texto escrito', () => {
       fill({ price: ' 450.5 ', unitCost: '83.3333' });
+      for (const selector of ['#price', '#unit-cost']) {
+        expect(el<HTMLInputElement>(selector).type).toBe('text');
+        expect(el<HTMLInputElement>(selector).inputMode).toBe('decimal');
+      }
+      expect(fixture.componentInstance.priceControl.value).toBe(' 450.5 ');
+      expect(fixture.componentInstance.unitCostControl.value).toBe('83.3333');
       submit();
       expect(submitted[0]).toMatchObject({ price: '450.5', unitCost: '83.3333' });
     });
@@ -166,7 +185,9 @@ describe('ProductFormComponent', () => {
       fixture.componentRef.setInput('busy', true);
       fixture.componentRef.setInput('saving', true);
       fixture.detectChanges();
-      expect(el<HTMLInputElement>('#name').disabled).toBe(true);
+      for (const selector of ['#name', '#unit-cost', '#price', '#units', '#portion-size']) {
+        expect(el<HTMLInputElement>(selector).disabled).toBe(true);
+      }
       expect(el<HTMLInputElement>('#photo').disabled).toBe(true);
       expect(buttonWithText('Guardando…').disabled).toBe(true);
     });

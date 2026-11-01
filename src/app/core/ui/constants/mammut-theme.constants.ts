@@ -1,19 +1,26 @@
 import { definePreset } from '@primeuix/themes';
-import AuraBase from '@primeuix/themes/aura/base';
 import AuraCheckbox from '@primeuix/themes/aura/checkbox';
 import AuraInputText from '@primeuix/themes/aura/inputtext';
 import AuraSelect from '@primeuix/themes/aura/select';
+import type { Preset } from '@primeuix/themes/types';
 
-// Solo la base y los controles del piloto: los demás presets no deben aumentar el arranque.
+// Solo los tokens que usan los controles de Aura del piloto, sin sus paletas ajenas a Mammut.
 // Las referencias CSS mantienen a styles.css como única fuente de colores y tipografías.
-export const MAMMUT_THEME = definePreset(AuraBase, {
+export const MAMMUT_THEME = definePreset({
+  primitive: {
+    borderRadius: { sm: 'var(--radius-sm)' },
+  },
   semantic: {
     typography: {
       fontFamily: 'var(--font-sans)',
       fontSize: '1rem',
       lineHeight: '1.5',
+      fontWeight: '400',
     },
     transitionDuration: 'var(--mammut-ui-transition-duration)',
+    disabledOpacity: '1',
+    iconSize: '1rem',
+    anchorGutter: '2px',
     primary: {
       50: 'color-mix(in srgb, var(--color-accent) 6%, var(--color-white))',
       100: 'color-mix(in srgb, var(--color-accent) 12%, var(--color-white))',
@@ -39,8 +46,14 @@ export const MAMMUT_THEME = definePreset(AuraBase, {
       shadow: 'none',
     },
     formField: {
+      fontSize: '{typography.font.size}',
+      fontWeight: '{typography.font.weight}',
       paddingX: '0.875rem',
       paddingY: '0.8125rem',
+      sm: { fontSize: '0.875rem', paddingX: '0.75rem', paddingY: '0.625rem' },
+      lg: { fontSize: '1.125rem', paddingX: '1rem', paddingY: '0.875rem' },
+      transitionDuration: '{transition.duration}',
+      shadow: 'none',
       borderRadius: 'var(--radius-xl)',
       background: 'var(--color-white)',
       disabledBackground: 'var(--color-disabled-input)',
@@ -84,8 +97,15 @@ export const MAMMUT_THEME = definePreset(AuraBase, {
       focusColor: 'var(--color-accent-2-text)',
     },
     list: {
+      padding: '0.25rem',
+      gap: '2px',
+      header: { padding: '0.5rem 0.875rem' },
       option: {
+        fontSize: '{typography.font.size}',
+        fontWeight: '{typography.font.weight}',
         padding: '0.75rem 0.875rem',
+        borderRadius: 'var(--radius-sm)',
+        selectedFontWeight: '600',
         focusBackground: 'var(--color-page)',
         selectedBackground: 'var(--color-accent-2-bg)',
         selectedFocusBackground: 'var(--color-accent-2-bg)',
@@ -93,6 +113,13 @@ export const MAMMUT_THEME = definePreset(AuraBase, {
         focusColor: 'var(--color-ink)',
         selectedColor: 'var(--color-accent-2-text)',
         selectedFocusColor: 'var(--color-accent-2-text)',
+      },
+      optionGroup: {
+        fontSize: '{typography.font.size}',
+        fontWeight: '600',
+        padding: '0.75rem 0.875rem',
+        background: 'var(--color-white)',
+        color: 'var(--color-muted)',
       },
     },
     overlay: {
@@ -151,4 +178,4 @@ export const MAMMUT_THEME = definePreset(AuraBase, {
       },
     },
   },
-});
+} satisfies Preset);
