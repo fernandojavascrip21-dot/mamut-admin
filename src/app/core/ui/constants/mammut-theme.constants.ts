@@ -186,34 +186,41 @@ export const MAMMUT_THEME = definePreset({
         },
       },
     },
+    // Solo existen los avisos de éxito y de error (ToastService); se omiten los demás tonos de Aura.
     toast: {
-      ...AuraToast,
-      root: { ...AuraToast.root, width: '22rem' },
+      root: {
+        ...AuraToast.root,
+        width: '22rem',
+        borderRadius: 'var(--radius-xl)',
+      },
+      icon: AuraToast.icon,
       content: { ...AuraToast.content, padding: '0.875rem 1rem', gap: '0.75rem' },
+      text: AuraToast.text,
       summary: { ...AuraToast.summary, fontWeight: '700' },
+      detail: AuraToast.detail,
+      closeButton: AuraToast.closeButton,
+      closeIcon: AuraToast.closeIcon,
       success: {
-        ...AuraToast.success,
         background: 'var(--color-success-bg)',
         borderColor: 'var(--color-success-border)',
         color: 'var(--color-success-text)',
         detailColor: 'var(--color-success-text)',
         shadow: 'var(--shadow-raised)',
+        closeButton: {
+          hoverBackground: 'var(--color-success-border)',
+          focusRing: { color: 'var(--color-success-text)', shadow: 'none' },
+        },
       },
       error: {
-        ...AuraToast.error,
         background: 'var(--color-danger-bg)',
         borderColor: 'var(--color-danger-border)',
         color: 'var(--color-danger-text)',
         detailColor: 'var(--color-danger-text)',
         shadow: 'var(--shadow-raised)',
-      },
-      info: {
-        ...AuraToast.info,
-        background: 'var(--color-accent-2-bg)',
-        borderColor: 'var(--color-accent-2)',
-        color: 'var(--color-accent-2-text)',
-        detailColor: 'var(--color-accent-2-text)',
-        shadow: 'var(--shadow-raised)',
+        closeButton: {
+          hoverBackground: 'var(--color-danger-border)',
+          focusRing: { color: 'var(--color-danger-text)', shadow: 'none' },
+        },
       },
     },
     dialog: {
@@ -226,7 +233,6 @@ export const MAMMUT_THEME = definePreset({
     confirmdialog: {
       ...AuraConfirmDialog,
       icon: { ...AuraConfirmDialog.icon, color: 'var(--color-danger)' },
-      message: { ...AuraConfirmDialog.message, color: 'var(--color-muted)' },
     },
     dataview: {
       ...AuraDataView,
