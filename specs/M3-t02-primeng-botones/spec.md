@@ -1,6 +1,6 @@
 # Spec técnico — T-02 · PrimeNG: botones y enlaces con aspecto de botón
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M3-t01-primeng-listas-dialogos (`specs/M3-t01-primeng-listas-dialogos/spec.md`) — su cuadro «Camino de migración» (§2) y el preset con `button` (`primary`, `secondary`, `danger`) que este spec completa; M2-t17-primeng-formulario-producto (`specs/M2-t17-primeng-formulario-producto/spec.md`) — primer uso de `pButton`; M2-t11-rediseno-visual (`specs/M2-t11-rediseno-visual/spec.md`) — las utilidades `btn-*` que se reemplazan y los tokens de color.
 > **Fecha:** 2026-11-02
 > **Objetivo:** reemplazar las utilidades `btn-primary`, `btn-secondary` y `btn-ghost` por el `pButton` de PrimeNG (en `<button>` y en `<a routerLink>`), tematizado con el preset `MAMMUT_THEME`, y retirar esas utilidades de `styles.css`.
