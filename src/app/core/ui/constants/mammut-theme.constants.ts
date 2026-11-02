@@ -1,7 +1,11 @@
 import { definePreset } from '@primeuix/themes';
 import AuraCheckbox from '@primeuix/themes/aura/checkbox';
+import AuraConfirmDialog from '@primeuix/themes/aura/confirmdialog';
+import AuraDataView from '@primeuix/themes/aura/dataview';
+import AuraDialog from '@primeuix/themes/aura/dialog';
 import AuraInputText from '@primeuix/themes/aura/inputtext';
 import AuraSelect from '@primeuix/themes/aura/select';
+import AuraToast from '@primeuix/themes/aura/toast';
 import type { Preset } from '@primeuix/themes/types';
 
 // Solo los tokens que usan los controles de Aura del piloto, sin sus paletas ajenas a Mammut.
@@ -111,6 +115,13 @@ export const MAMMUT_THEME = definePreset({
         color: 'var(--color-muted)',
       },
     },
+    // Fondo que oscurece la página tras un diálogo de PrimeNG: el mismo 55 % de negro que el
+    // pop-up propio (`modal-panel`), para que ambos se vean igual.
+    mask: {
+      transitionDuration: '{transition.duration}',
+      background: 'rgb(0 0 0 / 0.55)',
+      color: 'var(--color-white)',
+    },
     overlay: {
       select: {
         background: 'var(--color-white)',
@@ -118,6 +129,22 @@ export const MAMMUT_THEME = definePreset({
         color: 'var(--color-ink)',
         borderRadius: 'var(--radius-xl)',
         shadow: 'var(--shadow-raised)',
+      },
+      popover: {
+        background: 'var(--color-white)',
+        borderColor: 'var(--color-line-strong)',
+        color: 'var(--color-ink)',
+        borderRadius: 'var(--radius-xl)',
+        shadow: 'var(--shadow-raised)',
+        padding: '1rem',
+      },
+      modal: {
+        background: 'var(--color-white)',
+        borderColor: 'var(--color-line)',
+        color: 'var(--color-ink)',
+        borderRadius: 'var(--radius-card)',
+        shadow: 'var(--shadow-raised)',
+        padding: '1.5rem',
       },
     },
   },
@@ -164,7 +191,73 @@ export const MAMMUT_THEME = definePreset({
           activeColor: 'var(--color-ink)',
           focusRing: { color: 'var(--color-accent)', shadow: 'none' },
         },
+        // Acciones destructivas de los diálogos («Cerrar sesión», «Descartar»): mismos
+        // colores que el botón peligroso de hoy (bg-danger, hover bg-danger-text).
+        danger: {
+          background: 'var(--color-danger)',
+          hoverBackground: 'var(--color-danger-text)',
+          activeBackground: 'var(--color-danger-text)',
+          borderColor: 'var(--color-danger)',
+          hoverBorderColor: 'var(--color-danger-text)',
+          activeBorderColor: 'var(--color-danger-text)',
+          color: 'var(--color-white)',
+          hoverColor: 'var(--color-white)',
+          activeColor: 'var(--color-white)',
+          focusRing: { color: 'var(--color-danger)', shadow: 'none' },
+        },
       },
+    },
+    // Solo existen los avisos de éxito y de error (ToastService); se omiten los demás tonos de Aura.
+    toast: {
+      root: {
+        ...AuraToast.root,
+        width: '22rem',
+        borderRadius: 'var(--radius-xl)',
+      },
+      icon: AuraToast.icon,
+      content: { ...AuraToast.content, padding: '0.875rem 1rem', gap: '0.75rem' },
+      text: AuraToast.text,
+      summary: { ...AuraToast.summary, fontWeight: '700' },
+      detail: AuraToast.detail,
+      closeButton: AuraToast.closeButton,
+      closeIcon: AuraToast.closeIcon,
+      success: {
+        background: 'var(--color-success-bg)',
+        borderColor: 'var(--color-success-border)',
+        color: 'var(--color-success-text)',
+        detailColor: 'var(--color-success-text)',
+        shadow: 'var(--shadow-raised)',
+        closeButton: {
+          hoverBackground: 'var(--color-success-border)',
+          focusRing: { color: 'var(--color-success-text)', shadow: 'none' },
+        },
+      },
+      error: {
+        background: 'var(--color-danger-bg)',
+        borderColor: 'var(--color-danger-border)',
+        color: 'var(--color-danger-text)',
+        detailColor: 'var(--color-danger-text)',
+        shadow: 'var(--shadow-raised)',
+        closeButton: {
+          hoverBackground: 'var(--color-danger-border)',
+          focusRing: { color: 'var(--color-danger-text)', shadow: 'none' },
+        },
+      },
+    },
+    dialog: {
+      ...AuraDialog,
+      header: { ...AuraDialog.header, padding: '1.5rem 1.5rem 0.5rem' },
+      title: { ...AuraDialog.title, fontWeight: '800' },
+      content: { ...AuraDialog.content, padding: '0 1.5rem 1rem' },
+      footer: { ...AuraDialog.footer, padding: '0 1.5rem 1.5rem', gap: '0.625rem' },
+    },
+    confirmdialog: {
+      ...AuraConfirmDialog,
+      icon: { ...AuraConfirmDialog.icon, color: 'var(--color-danger)' },
+    },
+    dataview: {
+      ...AuraDataView,
+      content: { ...AuraDataView.content, background: 'transparent' },
     },
   },
 } satisfies Preset);

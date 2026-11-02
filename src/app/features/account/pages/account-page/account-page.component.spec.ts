@@ -5,17 +5,24 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, Router } from '@angular/router';
 import { AccountPageComponent } from './account-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
+import { ConfirmService } from '@core/confirm/confirm.service';
 import type { AuthContext } from '@core/auth/interfaces/auth.models';
 
 const ADMIN: AuthContext = { userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana López' };
 const SELLER: AuthContext = { userId: 'v1', role: 'vendedor', clientId: null, fullName: 'Luis' };
 const LOGOUT_URL = `${API_BASE_URL}/api/auth/logout`;
+const ask = vi.fn<ConfirmService['ask']>();
 
 function createFor(user: AuthContext) {
   localStorage.setItem('mamut.user', JSON.stringify(user));
   TestBed.configureTestingModule({
     imports: [AccountPageComponent],
-    providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideRouter([]),
+      { provide: ConfirmService, useValue: { ask } },
+    ],
   });
   const fixture: ComponentFixture<AccountPageComponent> =
     TestBed.createComponent(AccountPageComponent);
@@ -26,6 +33,8 @@ function createFor(user: AuthContext) {
 }
 
 describe('AccountPageComponent', () => {
+  beforeEach(() => ask.mockReset());
+
   afterEach(() => {
     localStorage.clear();
   });
@@ -50,55 +59,39 @@ describe('AccountPageComponent', () => {
     httpMock.verify();
   });
 
-  it('"Cerrar sesión" pide confirmación, y "Cancelar" la descarta sin tocar la sesión', () => {
+  it('"Cerrar sesión" pide confirmación con la pregunta de siempre, en tono de peligro', async () => {
+    ask.mockResolvedValue(false);
     const { fixture, httpMock } = createFor(ADMIN);
     const logoutButton = fixture.nativeElement.querySelector(
       'button:not([aria-label])',
     ) as HTMLButtonElement;
     logoutButton.click();
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="alertdialog"]')).toBeTruthy();
-
-    const cancelButton = fixture.nativeElement.querySelector(
-      '[role="alertdialog"] button',
-    ) as HTMLButtonElement;
-    cancelButton.click();
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="alertdialog"]')).toBeFalsy();
-    httpMock.verify();
-  });
-
-  it('el diálogo recibe el foco, retiene Tab y devuelve el foco al cerrarse con Escape', () => {
-    const { fixture, httpMock } = createFor(ADMIN);
-    const logoutButton = fixture.nativeElement.querySelector(
-      'button:not([aria-label])',
-    ) as HTMLButtonElement;
-    logoutButton.focus();
-    logoutButton.click();
-    fixture.detectChanges();
-
-    const dialog = fixture.nativeElement.querySelector('[role="alertdialog"]') as HTMLElement;
-    const [cancel, confirm] = Array.from(dialog.querySelectorAll('button')) as HTMLButtonElement[];
-    expect(document.activeElement).toBe(cancel);
-
-    cancel.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
+    await fixture.whenStable();
+    expect(ask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: '¿Cerrar sesión?',
+        confirmLabel: 'Cerrar sesión',
+        cancelLabel: 'Cancelar',
+        tone: 'danger',
+      }),
     );
-    expect(document.activeElement).toBe(confirm);
-    confirm.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    expect(document.activeElement).toBe(cancel);
-
-    cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="alertdialog"]')).toBeFalsy();
-    expect(document.activeElement).toBe(logoutButton);
     httpMock.verify();
   });
 
-  it('al confirmar, llama a logout y navega a /login', () => {
+  it('si cancela la confirmación, no toca la sesión', async () => {
+    ask.mockResolvedValue(false);
     const { fixture, httpMock, router } = createFor(ADMIN);
     fixture.componentInstance.askLogout();
-    fixture.componentInstance.confirmLogout();
+    await fixture.whenStable();
+    httpMock.expectNone(LOGOUT_URL);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('al confirmar, llama a logout y navega a /login', async () => {
+    ask.mockResolvedValue(true);
+    const { fixture, httpMock, router } = createFor(ADMIN);
+    fixture.componentInstance.askLogout();
+    await fixture.whenStable();
 
     httpMock.expectOne(LOGOUT_URL).flush(null, { status: 204, statusText: 'No Content' });
 

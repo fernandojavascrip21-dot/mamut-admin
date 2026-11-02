@@ -111,11 +111,16 @@ describe('DeliveryFormComponent', () => {
     expect(text()).toContain('Cambiar');
   });
 
-  it('elegir un producto del buscador avisa a la página, y «Cambiar» lo suelta', () => {
+  it('elegir un producto del selector avisa a la página, y «Cambiar» lo suelta', async () => {
     render({ product: null, holding: null, holdingStatus: 'idle' });
     const picked: number[] = [];
     fixture.componentInstance.productPicked.subscribe((id) => picked.push(id));
-    (el().querySelector('.option') as HTMLButtonElement).click();
+    // El selector es un Select de PrimeNG: se abre con un clic y se elige una opción de la lista.
+    (el().querySelector('.p-select') as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (el().querySelector('li.p-select-option') as HTMLElement).click();
     expect(picked).toEqual([10]);
 
     render();

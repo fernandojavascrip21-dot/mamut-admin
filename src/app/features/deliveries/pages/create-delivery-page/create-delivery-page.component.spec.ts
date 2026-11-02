@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
@@ -60,6 +61,7 @@ describe('CreateDeliveryPageComponent', () => {
     TestBed.configureTestingModule({
       imports: [CreateDeliveryPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -159,8 +161,11 @@ describe('CreateDeliveryPageComponent', () => {
     httpMock.expectOne(PRODUCTS_URL).flush(SUMMARIES);
     await settle();
 
-    expect(el().querySelectorAll('.option')).toHaveLength(1);
-    (el().querySelector('.option') as HTMLButtonElement).click();
+    // El selector es un Select de PrimeNG: se abre con un clic y la lista ofrece el producto.
+    (el().querySelector('.p-select') as HTMLElement).click();
+    await settle();
+    expect(el().querySelectorAll('li.p-select-option')).toHaveLength(1);
+    (el().querySelector('li.p-select-option') as HTMLElement).click();
     fixture.detectChanges();
     httpMock.expectOne(PRODUCT_URL).flush(PRODUCT);
     httpMock.expectOne(HOLDING_URL).flush(HOLDING);

@@ -6,6 +6,7 @@ import { provideClientHydration } from '@angular/platform-browser';
 import { authInterceptor } from '@core/auth/services/auth.interceptor';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { providePrimeNG } from 'primeng/config';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { PRIMENG_CONFIG } from '@core/ui/constants/primeng.constants';
 
 export const appConfig: ApplicationConfig = {
@@ -15,6 +16,10 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     providePrimeNG(PRIMENG_CONFIG),
+    // No son providedIn root: el toast y el diálogo de confirmación (app.html) y quienes los
+    // disparan (ToastService, ConfirmService) tienen que compartir la misma instancia.
+    MessageService,
+    ConfirmationService,
     // La barra «Viendo» se crea al arrancar, no al entrar a /admin: así ve cerrar sesión desde
     // cualquier pantalla (p. ej. /cuenta tras recargar) y borra la selección guardada (HU-10).
     provideEnvironmentInitializer(() => inject(ViewingService)),

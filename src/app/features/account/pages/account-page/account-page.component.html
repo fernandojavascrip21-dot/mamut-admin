@@ -76,15 +76,4 @@
     </div>
   </div>
 
-  @if (confirmingLogout()) {
-    <app-confirm-dialog
-      title="¿Cerrar sesión?"
-      message="Para volver a entrar necesitarás tu usuario y contraseña. Lo que ya registraste queda guardado."
-      confirmLabel="Cerrar sesión"
-      cancelLabel="Cancelar"
-      tone="danger"
-      (confirmed)="confirmLogout()"
-      (cancelled)="cancelLogout()"
-    />
-  }
 </div>

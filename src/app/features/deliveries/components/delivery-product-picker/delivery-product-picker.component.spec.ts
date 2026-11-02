@@ -9,83 +9,126 @@ const PRODUCTS = [
   product(1, 'Creatina Ñandú', 5),
   product(2, 'Whey Proteína', 0),
   product(3, 'Proteína Vegana', 3, 'https://example.com/v.jpg'),
+  product(4, 'BCAA 2lb', 8),
 ];
 
 describe('DeliveryProductPickerComponent', () => {
   let fixture: ComponentFixture<DeliveryProductPickerComponent>;
 
-  const names = () =>
-    Array.from(fixture.nativeElement.querySelectorAll('.option .font-bold, .option span.flex-1')).map((el) =>
-      (el as HTMLElement).textContent?.trim(),
-    );
-  const search = (text: string) => {
-    const input = fixture.nativeElement.querySelector('#product-search') as HTMLInputElement;
+  const root = () => fixture.nativeElement as HTMLElement;
+  const options = () => Array.from(root().querySelectorAll<HTMLElement>('.option'));
+  const optionNames = () =>
+    options().map((option) => option.querySelector('span.flex-1')?.textContent?.trim());
+
+  async function settle() {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function render(products: DeliveryProductSummary[]) {
+    fixture.componentRef.setInput('products', products);
+    await settle();
+  }
+
+  // Abre la lista del Select como lo hace el usuario: un clic en el control.
+  async function open() {
+    root().querySelector<HTMLElement>('.p-select')?.click();
+    await settle();
+  }
+
+  // Escribe en el buscador del Select, igual que el usuario.
+  async function search(text: string) {
+    const input = root().querySelector<HTMLInputElement>('input.p-select-filter')!;
     input.value = text;
     input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-  };
+    await settle();
+  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({ imports: [DeliveryProductPickerComponent] }).compileComponents();
     fixture = TestBed.createComponent(DeliveryProductPickerComponent);
   });
 
-  function render(products: DeliveryProductSummary[]) {
-    fixture.componentRef.setInput('products', products);
-    fixture.detectChanges();
-  }
-
-  it('lista solo los productos con piezas en la bodega', () => {
-    render(PRODUCTS);
-    const options = fixture.nativeElement.querySelectorAll('.option');
-    expect(options).toHaveLength(2);
-    expect(fixture.nativeElement.textContent).toContain('Creatina Ñandú');
-    expect(fixture.nativeElement.textContent).not.toContain('Whey Proteína');
-    expect(options[0].textContent).toContain('5');
-    expect(options[0].textContent).toContain('en bodega');
+  it('es un Select de PrimeNG con la etiqueta «Producto»', async () => {
+    await render(PRODUCTS);
+    expect(root().querySelector('p-select')).not.toBeNull();
+    expect(root().querySelector('label')?.textContent?.trim()).toBe('Producto');
   });
 
-  it('busca sin distinguir mayúsculas ni acentos', () => {
-    render(PRODUCTS);
-    search('PROTEINA');
-    expect(fixture.nativeElement.querySelectorAll('.option')).toHaveLength(1);
-    expect(fixture.nativeElement.textContent).toContain('Proteína Vegana');
-    expect(names().length).toBeGreaterThan(0);
+  it('lista solo los productos con piezas en la bodega', async () => {
+    await render(PRODUCTS);
+    await open();
+    expect(optionNames()).toEqual(['Creatina Ñandú', 'Proteína Vegana', 'BCAA 2lb']);
+    expect(options()[0].textContent).toContain('5');
+    expect(options()[0].textContent).toContain('en bodega');
   });
 
-  it('sin resultados lo dice, y sin productos con piezas también', () => {
-    render(PRODUCTS);
-    search('zzz');
-    expect(fixture.nativeElement.querySelector('.empty').textContent).toContain('No hay productos con ese nombre');
-
-    fixture = TestBed.createComponent(DeliveryProductPickerComponent);
-    render([product(2, 'Whey', 0)]);
-    expect(fixture.nativeElement.querySelector('.empty').textContent).toContain(
-      'No hay productos con piezas en la bodega',
-    );
+  it('la lista no se ensancha más que la pantalla (sin scroll horizontal en celular)', async () => {
+    await render(PRODUCTS);
+    await open();
+    const overlay = document.querySelector<HTMLElement>('.p-select-overlay');
+    expect(overlay).not.toBeNull();
+    expect(overlay!.style.maxWidth).toBe('calc(100vw - 2rem)');
   });
 
-  it('emite el id del producto elegido', () => {
-    render(PRODUCTS);
+  it('buscar «bcaa» encuentra «BCAA 2lb»', async () => {
+    await render(PRODUCTS);
+    await open();
+    await search('bcaa');
+    expect(optionNames()).toEqual(['BCAA 2lb']);
+  });
+
+  it('busca sin distinguir mayúsculas ni acentos, teclee o no la tilde', async () => {
+    await render(PRODUCTS);
+    await open();
+    for (const query of ['PROTEINA', 'proteína', 'Proteína']) {
+      await search(query);
+      expect(optionNames(), query).toEqual(['Proteína Vegana']);
+    }
+    for (const query of ['nandu', 'ÑANDÚ', 'ñandu']) {
+      await search(query);
+      expect(optionNames(), query).toEqual(['Creatina Ñandú']);
+    }
+  });
+
+  it('sin resultados lo dice', async () => {
+    await render(PRODUCTS);
+    await open();
+    await search('zzz');
+    expect(options()).toHaveLength(0);
+    expect(root().querySelector('.empty')?.textContent).toContain('No hay productos con ese nombre');
+  });
+
+  it('sin productos con piezas en la bodega lo dice y no muestra el Select', async () => {
+    await render([product(2, 'Whey', 0)]);
+    expect(root().querySelector('p-select')).toBeNull();
+    expect(root().querySelector('.empty')?.textContent).toContain('No hay productos con piezas en la bodega');
+  });
+
+  it('emite el id del producto elegido', async () => {
+    await render(PRODUCTS);
     const picked: number[] = [];
     fixture.componentInstance.picked.subscribe((id) => picked.push(id));
-    (fixture.nativeElement.querySelectorAll('.option')[1] as HTMLButtonElement).click();
+    await open();
+    root().querySelectorAll<HTMLElement>('li.p-select-option')[1].click();
+    await settle();
     expect(picked).toEqual([3]);
   });
 
-  it('si la foto no carga cae a las iniciales', () => {
-    render(PRODUCTS);
-    const img = fixture.nativeElement.querySelector('img') as HTMLImageElement;
-    img.dispatchEvent(new Event('error'));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('img')).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('PV');
+  it('si la foto no carga cae a las iniciales', async () => {
+    await render(PRODUCTS);
+    await open();
+    root().querySelector('img')!.dispatchEvent(new Event('error'));
+    await settle();
+    expect(root().querySelector('img')).toBeNull();
+    expect(root().textContent).toContain('PV');
   });
 
-  it('con invalid marca el buscador con el borde de error', () => {
-    render(PRODUCTS);
+  it('con invalid marca el selector con el borde de error', async () => {
+    await render(PRODUCTS);
     fixture.componentRef.setInput('invalid', true);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('#product-search').getAttribute('aria-invalid')).toBe('true');
+    await settle();
+    expect(root().querySelector('.p-select')?.classList).toContain('p-invalid');
   });
 });

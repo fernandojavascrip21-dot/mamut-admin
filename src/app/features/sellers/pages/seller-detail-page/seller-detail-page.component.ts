@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DataView } from 'primeng/dataview';
 import { map } from 'rxjs';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
@@ -26,6 +27,7 @@ import { SellersService } from '../../services/sellers.service';
 @Component({
   imports: [
     RouterLink,
+    DataView,
     PhonePipe,
     SellerStockLineComponent,
     DeliveryHistoryLineComponent,

@@ -1,4 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
+import { MessageService } from 'primeng/api';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
@@ -55,6 +56,7 @@ describe('ReturnUnitsPageComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ReturnUnitsPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
