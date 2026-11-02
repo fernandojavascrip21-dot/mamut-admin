@@ -31,6 +31,7 @@
       <div class="flex flex-col gap-1.5">
         <label for="full-name" class="field-label">Nombre</label>
         <input
+          pInputText
           id="full-name"
           name="fullName"
           type="text"
@@ -39,10 +40,8 @@
           formControlName="fullName"
           [attr.aria-invalid]="fieldErrors().fullName ? 'true' : null"
           [attr.aria-describedby]="fieldErrors().fullName ? 'full-name-error' : null"
-          [class]="
-            'field-input ' +
-            (fieldErrors().fullName ? 'border-2 border-danger' : 'border border-line-strong')
-          "
+          [invalid]="!!fieldErrors().fullName"
+          class="h-[52px] min-w-0"
         />
         @if (fieldErrors().fullName) {
           <p
@@ -58,6 +57,7 @@
       <div class="flex flex-col gap-1.5">
         <label for="phone" class="field-label">Teléfono</label>
         <input
+          pInputText
           id="phone"
           name="phone"
           type="tel"
@@ -67,10 +67,8 @@
           formControlName="phone"
           [attr.aria-invalid]="fieldErrors().phone ? 'true' : null"
           [attr.aria-describedby]="fieldErrors().phone ? 'phone-hint phone-error' : 'phone-hint'"
-          [class]="
-            'field-input font-mono ' +
-            (fieldErrors().phone ? 'border-2 border-danger' : 'border border-line-strong')
-          "
+          [invalid]="!!fieldErrors().phone"
+          class="h-[52px] min-w-0 font-mono"
         />
         <p id="phone-hint" class="m-0 text-xs text-muted">
           10 dígitos; puedes escribirlo con espacios.
@@ -89,6 +87,7 @@
       <div class="flex flex-col gap-1.5">
         <label for="email" class="field-label">Correo para entrar</label>
         <input
+          pInputText
           id="email"
           name="email"
           type="email"
@@ -100,10 +99,8 @@
           formControlName="email"
           [attr.aria-invalid]="fieldErrors().email ? 'true' : null"
           [attr.aria-describedby]="fieldErrors().email ? 'email-error' : null"
-          [class]="
-            'field-input font-mono ' +
-            (fieldErrors().email ? 'border-2 border-danger' : 'border border-line-strong')
-          "
+          [invalid]="!!fieldErrors().email"
+          class="h-[52px] min-w-0 font-mono"
         />
         @if (fieldErrors().email) {
           <p
@@ -120,6 +117,7 @@
         <label for="password" class="field-label">Contraseña temporal</label>
         <div class="flex gap-2">
           <input
+            pInputText
             id="password"
             name="password"
             [type]="showPassword() ? 'text' : 'password'"
@@ -130,10 +128,8 @@
             [attr.aria-describedby]="
               fieldErrors().password ? 'password-hint password-error' : 'password-hint'
             "
-            [class]="
-              'field-input min-w-0 flex-1 font-mono ' +
-              (fieldErrors().password ? 'border-2 border-danger' : 'border border-line-strong')
-            "
+            [invalid]="!!fieldErrors().password"
+            class="h-[52px] min-w-0 flex-1 font-mono"
           />
           <button pButton severity="secondary"
             type="button"
