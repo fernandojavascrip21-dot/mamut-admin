@@ -1,6 +1,6 @@
 # Spec técnico — T-03 · PrimeNG: inputs de formularios
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M3-t02-primeng-botones (`specs/M3-t02-primeng-botones/spec.md`) — patrón de «una sola sección en `styles.css`» y retiro de utilidades al terminar; M3-t01-primeng-listas-dialogos (`specs/M3-t01-primeng-listas-dialogos/spec.md`) — cuadro «Camino de migración» (tramo 6) y el `Select` con filtro normalizado del picker de «Dejar»; M2-t17-primeng-formulario-producto (`specs/M2-t17-primeng-formulario-producto/spec.md`) — primer uso de `pInputText` y `p-select` con `[invalid]`; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — reglas de los campos de dinero.
 > **Fecha:** 2026-11-02
 > **Objetivo:** pasar todos los campos de texto que usan `field-input` a `pInputText` y los dos `<select>` nativos de «Dejar» y «Retirar» a `p-select`, con el borde de error en una sola regla de `styles.css`, y retirar la utilidad `field-input`.
@@ -110,19 +110,19 @@ Cada paso queda commiteable y la app funcional: mientras no llegue el paso 6, `f
 
 ## 7. Criterios de aceptación
 
-- [ ] `styles.css` tiene una sección «PrimeNG: campos» con el borde de error de 2 px para `.p-inputtext.p-invalid` y `.p-select.p-invalid`, y ninguna plantilla repite `border-2`/`border-danger` en un campo.
-- [ ] Los 11 campos de texto de §2 usan `pInputText` con `[invalid]`, y conservan `type`, `inputmode`, `id`, `formControlName` y `aria-*`.
-- [ ] El selector de vendedor de «Dejar» y el de producto de «Retirar» son `p-select`; el de producto filtra sin mayúsculas ni acentos.
-- [ ] Enviar con un selector vacío muestra el error y deja el foco en ese `p-select`.
-- [ ] Costo, precio, piezas y teléfono siguen siendo texto sin formatear ni redondear al escribir; los validadores y mensajes no cambian.
-- [ ] Los iconos del login y la lupa del buscador siguen en su sitio, y el botón «Mostrar»/ojo conserva `aria-pressed`.
-- [ ] `product-form` ya no tiene `[class.border-2]` y su input de foto se ve como hoy.
-- [ ] `@utility field-input` no existe y `grep -rn 'field-input' src` no devuelve resultados.
-- [ ] A 375 px ninguna pantalla migrada hace scroll horizontal, y la lista de los `p-select` no desborda.
-- [ ] Un campo migrado no se distingue a simple vista de los de `product-form` en reposo, con foco, con error y deshabilitado.
-- [ ] El selector «Viendo», las tarjetas, los shells y el pop-up `ventana` no cambian.
-- [ ] `CLAUDE.md`, `AGENTS.md`, `specs/README.md` y el cuadro de M3-t01 quedan actualizados y en sincronía.
-- [ ] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] `styles.css` tiene una sección «PrimeNG: campos» con el borde de error de 2 px para `.p-inputtext.p-invalid` y `.p-select.p-invalid`, y ninguna plantilla repite `border-2`/`border-danger` en un campo.
+- [x] Los 11 campos de texto de §2 usan `pInputText` con `[invalid]`, y conservan `type`, `inputmode`, `id`, `formControlName` y `aria-*`.
+- [x] El selector de vendedor de «Dejar» y el de producto de «Retirar» son `p-select`; el de producto filtra sin mayúsculas ni acentos.
+- [x] Enviar con un selector vacío muestra el error y deja el foco en ese `p-select`.
+- [x] Costo, precio, piezas y teléfono siguen siendo texto sin formatear ni redondear al escribir; los validadores y mensajes no cambian.
+- [x] Los iconos del login y la lupa del buscador siguen en su sitio, y el botón «Mostrar»/ojo conserva `aria-pressed`.
+- [x] `product-form` ya no tiene `[class.border-2]` y su input de foto se ve como hoy.
+- [x] `@utility field-input` no existe y `grep -rn 'field-input' src` no devuelve resultados.
+- [x] A 375 px ninguna pantalla migrada hace scroll horizontal, y la lista de los `p-select` no desborda.
+- [x] Un campo migrado no se distingue a simple vista de los de `product-form` en reposo, con foco, con error y deshabilitado.
+- [x] El selector «Viendo», las tarjetas, los shells y el pop-up `ventana` no cambian.
+- [x] `CLAUDE.md`, `AGENTS.md`, `specs/README.md` y el cuadro de M3-t01 quedan actualizados y en sincronía.
+- [x] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 ## 8. Decisiones
 
