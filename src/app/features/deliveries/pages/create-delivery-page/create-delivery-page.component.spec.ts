@@ -161,8 +161,11 @@ describe('CreateDeliveryPageComponent', () => {
     httpMock.expectOne(PRODUCTS_URL).flush(SUMMARIES);
     await settle();
 
-    expect(el().querySelectorAll('.option')).toHaveLength(1);
-    (el().querySelector('.option') as HTMLButtonElement).click();
+    // El selector es un Select de PrimeNG: se abre con un clic y la lista ofrece el producto.
+    (el().querySelector('.p-select') as HTMLElement).click();
+    await settle();
+    expect(el().querySelectorAll('li.p-select-option')).toHaveLength(1);
+    (el().querySelector('li.p-select-option') as HTMLElement).click();
     fixture.detectChanges();
     httpMock.expectOne(PRODUCT_URL).flush(PRODUCT);
     httpMock.expectOne(HOLDING_URL).flush(HOLDING);
