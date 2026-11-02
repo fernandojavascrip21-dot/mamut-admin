@@ -1,5 +1,5 @@
 <div class="flex w-full flex-col px-5 py-6">
-  <a routerLink="/admin/productos" class="btn-ghost w-fit px-0">‹ Productos</a>
+  <a pButton [text]="true" routerLink="/admin/productos" class="h-[52px] w-fit px-0">‹ Productos</a>
   @if (state() === 'loading-product') {
     <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
       <svg
@@ -29,14 +29,20 @@
       @if (state() === 'load-error') {
         <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
         <button
+          pButton
+          severity="secondary"
           type="button"
-          class="retry btn-secondary mt-2 h-11 px-4 text-sm"
+          class="retry mt-2 h-11 px-4 text-sm"
           (click)="loadProduct()"
         >
           Reintentar
         </button>
       } @else {
-        <a routerLink="/admin/productos" class="btn-secondary mt-2 h-11 px-4 text-sm"
+        <a
+          pButton
+          severity="secondary"
+          routerLink="/admin/productos"
+          class="mt-2 h-11 px-4 text-sm"
           >Volver a Productos</a
         >
       }
@@ -50,8 +56,11 @@
           <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
           <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
           <button
+            pButton
+            severity="danger"
+            [outlined]="true"
             type="button"
-            class="retry btn-secondary mt-2.5 h-11 border-danger px-3.5 text-sm text-danger hover:bg-danger-bg"
+            class="retry mt-2.5 h-11 px-3.5 text-sm"
             (click)="retry()"
           >
             Reintentar

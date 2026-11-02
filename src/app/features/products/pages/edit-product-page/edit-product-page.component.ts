@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -18,7 +19,7 @@ import type { EditProductState, SaveState } from '../../models/edit-product-page
 // cambios regresa sin llamar al backend, y salir con cambios pregunta «¿Descartar los cambios?»
 // (unsavedChangesGuard y beforeunload).
 @Component({
-  imports: [RouterLink, ProductFormComponent],
+  imports: [RouterLink, ButtonDirective, ProductFormComponent],
   providers: [ProductSaveService],
   selector: 'app-edit-product-page',
   templateUrl: './edit-product-page.component.html',

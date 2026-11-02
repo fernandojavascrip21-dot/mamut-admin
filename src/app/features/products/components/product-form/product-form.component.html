@@ -30,7 +30,7 @@
             type="button"
             [disabled]="busy()"
             (click)="photoInput.click()"
-            class="h-11 min-w-11 px-4 text-sm disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-muted disabled:opacity-100"
+            class="h-11 min-w-11 px-4 text-sm"
           >
             Cambiar foto
           </button>
@@ -41,7 +41,7 @@
               type="button"
               [disabled]="busy()"
               (click)="removeCurrentPhoto()"
-              class="h-11 min-w-11 px-4 text-sm disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-muted disabled:opacity-100"
+              class="h-11 min-w-11 px-4 text-sm"
             >
               Quitar foto
             </button>
@@ -260,7 +260,7 @@
     pButton
     type="submit"
     [disabled]="busy() || priceBelowCost()"
-    class="mt-1 h-[52px] min-w-11 w-full text-[17px] font-bold shadow-lg shadow-accent/25 disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-muted disabled:opacity-100 disabled:shadow-none"
+    class="mt-1 h-[52px] min-w-11 w-full text-[17px] font-bold"
   >
     {{ saving() ? 'Guardando…' : 'Guardar' }}
   </button>

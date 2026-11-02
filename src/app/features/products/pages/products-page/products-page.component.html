@@ -2,9 +2,11 @@
   <div class="flex items-center justify-between gap-3">
     <h1 class="page-title">Productos</h1>
     <a
+      pButton
+      [rounded]="true"
       routerLink="/admin/productos/nuevo"
       aria-label="Nuevo producto"
-      class="btn-primary h-11 w-11 shrink-0 rounded-full px-0 text-xl"
+      class="h-11 w-11 shrink-0 rounded-full px-0 text-xl"
     >
       +
     </a>
@@ -54,7 +56,13 @@
       </svg>
       <p class="m-0 text-[15px] font-bold">No pudimos cargar los productos</p>
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retry()">
+      <button
+        pButton
+        severity="secondary"
+        type="button"
+        class="retry mt-2 h-11 px-4 text-sm"
+        (click)="retry()"
+      >
         Reintentar
       </button>
     </div>
@@ -78,7 +86,7 @@
       </svg>
       <p class="m-0 text-[17px] font-bold">Aún no tienes productos</p>
       <p class="m-0 text-sm text-muted">Da de alta el primero para empezar a contarlo.</p>
-      <a routerLink="/admin/productos/nuevo" class="btn-primary mt-2 text-sm">
+      <a pButton routerLink="/admin/productos/nuevo" class="mt-2 h-[52px] text-sm">
         Dar de alta mi primer producto
       </a>
     </div>
@@ -129,7 +137,13 @@
         </svg>
         <p class="m-0 text-[17px] font-bold">No hay productos con ese nombre</p>
         <p class="m-0 text-sm text-muted">Revisa cómo lo escribiste.</p>
-        <button type="button" class="btn-secondary mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+        <button
+          pButton
+          severity="secondary"
+          type="button"
+          class="mt-2 h-11 px-4 text-sm"
+          (click)="clearSearch()"
+        >
           Limpiar búsqueda
         </button>
       </div>

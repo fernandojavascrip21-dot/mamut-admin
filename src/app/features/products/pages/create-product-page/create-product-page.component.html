@@ -8,8 +8,11 @@
           <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
           <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
           <button
+            pButton
+            severity="danger"
+            [outlined]="true"
             type="button"
-            class="retry btn-secondary mt-2.5 h-11 border-danger px-3.5 text-sm text-danger hover:bg-danger-bg"
+            class="retry mt-2.5 h-11 px-3.5 text-sm"
             (click)="retry()"
           >
             Reintentar
@@ -48,13 +51,19 @@
 
     <div class="mt-5 flex gap-3">
       <button
+        pButton
         type="button"
-        class="btn-primary min-w-0 flex-1 px-3 text-sm"
+        class="h-[52px] min-w-0 flex-1 px-3 text-sm"
         (click)="startNewProduct()"
       >
         Dar de alta otro producto
       </button>
-      <a routerLink="/admin/productos" class="btn-secondary min-w-0 flex-1 px-3 text-sm">
+      <a
+        pButton
+        severity="secondary"
+        routerLink="/admin/productos"
+        class="h-[52px] min-w-0 flex-1 px-3 text-sm"
+      >
         Volver a Productos
       </a>
     </div>

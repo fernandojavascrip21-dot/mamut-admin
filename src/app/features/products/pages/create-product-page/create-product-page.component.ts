@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ import type { CreateProductState } from '../../models/create-product-page.models
 // de product-form y lo guarda con ProductSaveService. Termina en «Producto registrado», desde
 // donde se puede dar de alta otro sin recargar.
 @Component({
-  imports: [RouterLink, ProductFormComponent],
+  imports: [RouterLink, ButtonDirective, ProductFormComponent],
   providers: [ProductSaveService],
   selector: 'app-create-product-page',
   templateUrl: './create-product-page.component.html',
