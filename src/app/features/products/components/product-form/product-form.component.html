@@ -61,7 +61,7 @@
       [class]="
         mode() === 'edit'
           ? 'sr-only'
-          : 'field-input py-2.5 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-page file:px-3 file:py-1 file:text-ink disabled:text-faint'
+          : 'h-[52px] min-w-0 rounded-xl border border-line-strong bg-white px-3.5 py-2.5 text-sm text-ink transition-colors duration-200 focus:shadow-[0_0_0_4px] focus:shadow-accent/15 focus:outline-3 focus:outline-offset-2 focus:outline-accent disabled:cursor-not-allowed disabled:bg-disabled-input motion-reduce:transition-none file:mr-3 file:rounded-md file:border-0 file:bg-page file:px-3 file:py-1 file:text-ink disabled:text-faint'
       "
     />
   </div>
@@ -78,7 +78,6 @@
       [attr.aria-invalid]="nameError() ? 'true' : null"
       [attr.aria-describedby]="nameError() ? 'name-error' : null"
       [invalid]="!!nameError()"
-      [class.border-2]="!!nameError()"
       class="h-[52px] min-w-0 w-full"
     />
     @if (nameError()) {
@@ -131,7 +130,6 @@
       [attr.aria-invalid]="unitCostError() ? 'true' : null"
       [attr.aria-describedby]="unitCostError() ? 'unit-cost-error' : null"
       [invalid]="!!unitCostError()"
-      [class.border-2]="!!unitCostError()"
       class="h-[52px] min-w-0 w-full"
     />
     @if (unitCostError()) {
@@ -159,7 +157,6 @@
       [attr.aria-invalid]="priceError() ? 'true' : null"
       [attr.aria-describedby]="priceError() ? 'price-error' : null"
       [invalid]="!!priceError()"
-      [class.border-2]="!!priceError()"
       class="h-[52px] min-w-0 w-full"
     />
     @if (priceError()) {
@@ -188,7 +185,6 @@
         [attr.aria-invalid]="unitsError() ? 'true' : null"
         [attr.aria-describedby]="unitsError() ? 'units-error' : null"
         [invalid]="!!unitsError()"
-        [class.border-2]="!!unitsError()"
         class="h-[52px] min-w-0 w-full"
       />
       @if (unitsError()) {
@@ -242,7 +238,6 @@
       [attr.aria-invalid]="portionSizeError() ? 'true' : null"
       [attr.aria-describedby]="portionSizeError() ? 'portion-size-error' : null"
       [invalid]="!!portionSizeError()"
-      [class.border-2]="!!portionSizeError()"
       class="h-[52px] min-w-0 w-full"
     />
     @if (portionSizeError()) {

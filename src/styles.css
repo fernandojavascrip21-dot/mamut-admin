@@ -149,6 +149,15 @@
   align-items: flex-start;
 }
 
+/* PrimeNG: campos (M3-t03). Borde de error de 2 px para todo campo con `[invalid]`; ninguna
+   plantilla lo repite. Capa `primeng`: las utilidades locales de Tailwind siguen ganando. */
+@layer primeng {
+  .p-inputtext.p-invalid,
+  .p-select.p-invalid {
+    border-width: 2px;
+  }
+}
+
 /* PrimeNG: botones (M3-t02). Lo que el preset de Aura no expone como tokens: estado
    deshabilitado, brillo del botón primario y pulsación. Está en la capa `primeng`, así que las
    utilidades locales de Tailwind (h-11, px-4…) siguen ganando. */
