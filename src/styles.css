@@ -153,8 +153,13 @@
    deshabilitado, brillo del botón primario y pulsación. Está en la capa `primeng`, así que las
    utilidades locales de Tailwind (h-11, px-4…) siguen ganando. */
 @layer primeng {
-  .p-button:disabled {
+  /* PrimeNG trae `.p-button:disabled { cursor: default }` en esta misma capa y gana por orden;
+     con el tipo de elemento delante esta regla tiene más especificidad. */
+  button.p-button:disabled {
     cursor: not-allowed;
+  }
+
+  .p-button:disabled {
     opacity: 1;
     border-color: var(--color-disabled);
     background: var(--color-disabled);
