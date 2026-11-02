@@ -162,6 +162,60 @@
   align-items: flex-start;
 }
 
+/* PrimeNG: botones (M3-t02). Lo que el preset de Aura no expone como tokens: estado
+   deshabilitado, brillo del botón primario y pulsación. Está en la capa `primeng`, así que las
+   utilidades locales de Tailwind (h-11, px-4…) siguen ganando. */
+@layer primeng {
+  .p-button:disabled {
+    cursor: not-allowed;
+    opacity: 1;
+    border-color: var(--color-disabled);
+    background: var(--color-disabled);
+    color: var(--color-muted);
+    box-shadow: none;
+  }
+
+  .p-button-text:disabled {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .p-button-outlined:disabled {
+    background: var(--color-disabled);
+  }
+
+  .p-button:not(
+      .p-button-text,
+      .p-button-outlined,
+      .p-button-secondary,
+      .p-button-danger,
+      :disabled
+    ) {
+    box-shadow:
+      0 10px 15px -3px color-mix(in srgb, var(--color-accent) 25%, transparent),
+      0 4px 6px -4px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  }
+
+  .p-button {
+    transition-property: color, background-color, border-color, transform;
+    cursor: pointer;
+  }
+
+  .p-button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .p-button {
+      transition: none;
+    }
+
+    .p-button:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
 @layer base {
   body {
     margin: 0;
