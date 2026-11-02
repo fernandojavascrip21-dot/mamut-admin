@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import {
   Component,
   DestroyRef,
@@ -42,7 +43,7 @@ import type { DeliveryFormGroup, FieldWithError, HoldingStatus } from './deliver
 // espera son de la página. Los errores de cada campo aparecen al enviar; solo «el precio es menor
 // que el costo» se muestra en vivo, y avisa sin bloquear.
 @Component({
-  imports: [ReactiveFormsModule, CurrencyPipe, DeliveryProductPickerComponent],
+  imports: [ButtonDirective, ReactiveFormsModule, CurrencyPipe, DeliveryProductPickerComponent],
   selector: 'app-delivery-form',
   templateUrl: './delivery-form.component.html',
 })

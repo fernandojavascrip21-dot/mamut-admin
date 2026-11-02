@@ -86,12 +86,12 @@
   </dl>
 
   <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
-    <a
+    <a pButton severity="secondary"
       [routerLink]="anotherLink()"
-      class="another btn-secondary"
+      class="h-[52px] text-[15px] another"
     >
       Dejar otro producto
     </a>
-    <a [routerLink]="doneUrl()" class="done btn-primary">Listo</a>
+    <a pButton [routerLink]="doneUrl()" class="h-[52px] text-[17px] done">Listo</a>
   </div>
 </section>

@@ -25,11 +25,11 @@
       </p>
       @if (state() === 'error') {
         <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-        <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retry()">
+        <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry()">
           Reintentar
         </button>
       } @else {
-        <a [routerLink]="productsUrl" class="btn-secondary mt-2 h-11 px-4 text-sm"
+        <a pButton severity="secondary" [routerLink]="productsUrl" class="mt-2 h-11 px-4 text-sm"
           >Volver a Productos</a
         >
       }
