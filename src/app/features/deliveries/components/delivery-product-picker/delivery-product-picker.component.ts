@@ -5,7 +5,7 @@ import { initialsOf } from '@shared/utils/initials';
 import { normalizeText } from '@shared/utils/normalize-text';
 import type { DeliveryProductSummary } from '../../interfaces/delivery.models';
 import { filterDeliverableProducts } from '../../rules/delivery.rules';
-import { PRODUCT_SELECT_MOTION_OPTIONS } from './delivery-product-picker.constants';
+import { PRODUCT_SELECT_MOTION_OPTIONS, PRODUCT_SELECT_PANEL_STYLE } from './delivery-product-picker.constants';
 import type { ProductOption } from './delivery-product-picker.models';
 
 // Selector de producto de la ventana «Dejar a vendedor» (HU-11). Presentacional: recibe los
@@ -31,6 +31,7 @@ export class DeliveryProductPickerComponent {
   );
   readonly hasDeliverable = computed(() => this.options().length > 0);
   readonly motionOptions = PRODUCT_SELECT_MOTION_OPTIONS;
+  readonly panelStyle = PRODUCT_SELECT_PANEL_STYLE;
 
   private readonly brokenImages = signal<ReadonlySet<number>>(new Set());
 

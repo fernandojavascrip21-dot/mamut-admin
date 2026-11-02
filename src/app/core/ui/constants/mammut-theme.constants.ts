@@ -115,6 +115,13 @@ export const MAMMUT_THEME = definePreset({
         color: 'var(--color-muted)',
       },
     },
+    // Fondo que oscurece la página tras un diálogo de PrimeNG: el mismo 55 % de negro que el
+    // pop-up propio (`modal-panel`), para que ambos se vean igual.
+    mask: {
+      transitionDuration: '{transition.duration}',
+      background: 'rgb(0 0 0 / 0.55)',
+      color: 'var(--color-white)',
+    },
     overlay: {
       select: {
         background: 'var(--color-white)',

@@ -20,12 +20,14 @@
       placeholder="Buscar por nombre"
       [invalid]="invalid()"
       [showClear]="false"
+      appendTo="body"
+      [panelStyle]="panelStyle"
       [motionOptions]="motionOptions"
       (onChange)="onProductChange($event)"
       class="h-[52px] min-w-0 w-full"
     >
       <ng-template #item let-product>
-        <div class="option flex w-full items-center gap-3 py-1">
+        <div class="option flex w-full items-center gap-3 py-1 whitespace-normal">
           @if (showPhoto(product)) {
             <img
               [src]="product.image"

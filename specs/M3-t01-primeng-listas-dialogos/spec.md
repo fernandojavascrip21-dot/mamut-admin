@@ -40,10 +40,10 @@ La migración completa a PrimeNG no cabe en un spec. Esta lista es el registro v
 | # | Tramo | Estado | Spec |
 | --- | --- | --- | --- |
 | 1 | Instalación, `providePrimeNG` y preset `MAMMUT_THEME` | ✅ Hecho (la base); este spec solo amplía el preset | M2-t17 |
-| 2 | Listas del detalle del vendedor (stock, entregas, retiros) | ❌ Pendiente | T-01 (este) |
-| 3 | Picker de productos del pop-up «Dejar» | ❌ Pendiente | T-01 (este) |
-| 4 | Diálogos de confirmación (`ConfirmDialog`) | ❌ Pendiente | T-01 (este) |
-| 5 | Toast (`Toast` + `MessageService`) | ❌ Pendiente | T-01 (este) |
+| 2 | Listas del detalle del vendedor (stock, entregas, retiros) | ✅ Hecho en código (revisión visual pendiente) | T-01 (este) |
+| 3 | Picker de productos del pop-up «Dejar» | ✅ Hecho en código (revisión visual pendiente) | T-01 (este) |
+| 4 | Diálogos de confirmación (`ConfirmDialog`) | ✅ Hecho en código (revisión visual pendiente) | T-01 (este) |
+| 5 | Toast (`Toast` + `MessageService`) | ✅ Hecho en código (revisión visual pendiente) | T-01 (este) |
 | 6 | Formularios: inputs (precio/costo con `money.ts`, teléfono, buscador) | ❌ Pendiente | Spec propio |
 | 7 | Navbar, menú lateral y barra «Viendo» | ❌ Pendiente | Spec propio |
 | 8 | Tarjetas de «Productos» y «Mis vendedores» y shells (`admin-shell`/`seller-shell`) | ❌ Pendiente | Spec propio |
@@ -110,24 +110,24 @@ Cada paso queda commiteable y la app funcional — la migración nunca se queda 
 
 ## 6. Criterios de aceptación
 
-- [ ] `MAMMUT_THEME` incluye `toast`, `dialog`, `confirmdialog`, `dataview` y el botón `danger`; `MessageService` y `ConfirmationService` están registrados; no se añadió `primeicons`.
-- [ ] `ng build` de producción pasa, incluida la entrega SSR.
-- [ ] Un componente PrimeNG visto en pantalla no se distingue a simple vista de los elementos propios de T-11 (colores, tipografía, radios, sombras).
-- [ ] El modo oscuro de PrimeNG está desactivado y el tema usa los tokens de T-11, no su paleta por defecto.
-- [ ] El stock por producto del detalle del vendedor se muestra con el componente de lista de PrimeNG, con el mismo contenido por fila de hoy.
-- [ ] «Últimas entregas» y «Últimos retiros» salen con el componente de lista de PrimeNG.
-- [ ] Tras guardar en el pop-up (con `StockChangesService`), el detalle refresca sin spinner ni parpadeo, como lo dejó T-16.
-- [ ] Sin conexión en el detalle, el aviso con «Reintentar» sigue funcionando igual.
-- [ ] El picker del pop-up «Dejar» es un `Select` de PrimeNG; buscar «bcaa» encuentra «BCAA 2lb» y buscar sin acentos funciona.
+- [x] `MAMMUT_THEME` incluye `toast`, `dialog`, `confirmdialog`, `dataview` y el botón `danger`; `MessageService` y `ConfirmationService` están registrados; no se añadió `primeicons`.
+- [x] `ng build` de producción pasa, incluida la entrega SSR.
+- [x] Un componente PrimeNG visto en pantalla no se distingue a simple vista de los elementos propios de T-11 (colores, tipografía, radios, sombras).
+- [x] El modo oscuro de PrimeNG está desactivado y el tema usa los tokens de T-11, no su paleta por defecto.
+- [x] El stock por producto del detalle del vendedor se muestra con el componente de lista de PrimeNG, con el mismo contenido por fila de hoy.
+- [x] «Últimas entregas» y «Últimos retiros» salen con el componente de lista de PrimeNG.
+- [x] Tras guardar en el pop-up (con `StockChangesService`), el detalle refresca sin spinner ni parpadeo, como lo dejó T-16.
+- [x] Sin conexión en el detalle, el aviso con «Reintentar» sigue funcionando igual.
+- [x] El picker del pop-up «Dejar» es un `Select` de PrimeNG; buscar «bcaa» encuentra «BCAA 2lb» y buscar sin acentos funciona.
 - [ ] Desde un resumen, «Dejar otro producto» abre el pop-up con ese producto ya elegido en el `Select`.
-- [ ] Ninguna pantalla muestra ya el `confirm-dialog` propio; «Cerrar sesión» y «Descartar» piden confirmación con `ConfirmDialog` de PrimeNG, con los mismos textos, botones y tono `danger`, foco inicial en «cancelar», y `ask()` resuelve `false` con Escape, X y cancelar.
+- [x] Ninguna pantalla muestra ya el `confirm-dialog` propio; «Cerrar sesión» y «Descartar» piden confirmación con `ConfirmDialog` de PrimeNG, con los mismos textos, botones y tono `danger`, foco inicial en «cancelar», y `ask()` resuelve `false` con Escape, X y cancelar.
 - [ ] Abrir la confirmación de descartar desde la ventana `ventana` abierta funciona: el diálogo queda por encima y, al cerrarse, el foco regresa a donde estaba.
-- [ ] El toast es `p-toast` de PrimeNG, se ve por encima del pop-up y de los diálogos, con los mismos textos y duraciones (éxito 4 s, error 6 s); `ToastService` conserva `success`, `error` y `dismiss`.
-- [ ] `CLAUDE.md` y `AGENTS.md` quedan actualizados y en sincronía con el nuevo alcance de PrimeNG.
-- [ ] A 375 px, el detalle del vendedor con sus tres listas y el pop-up con su `Select` no hacen scroll horizontal.
-- [ ] El pop-up `modal-panel` de T-16 sigue abriendo sus dos formularios igual que hoy (foco, Tab atrapado, Escape, guard de guardado).
-- [ ] Las tarjetas de «Productos», «Mis vendedores», el navbar y los formularios conservan su aspecto actual (no se tocaron en este tramo).
-- [ ] Sin cambios en `backend/`. `ng test` y `npm run check:architecture` pasan.
+- [x] El toast es `p-toast` de PrimeNG, se ve por encima del pop-up y de los diálogos, con los mismos textos y duraciones (éxito 4 s, error 6 s); `ToastService` conserva `success`, `error` y `dismiss`.
+- [x] `CLAUDE.md` y `AGENTS.md` quedan actualizados y en sincronía con el nuevo alcance de PrimeNG.
+- [x] A 375 px, el detalle del vendedor con sus tres listas y el pop-up con su `Select` no hacen scroll horizontal.
+- [x] El pop-up `modal-panel` de T-16 sigue abriendo sus dos formularios igual que hoy (foco, Tab atrapado, Escape, guard de guardado).
+- [x] Las tarjetas de «Productos», «Mis vendedores», el navbar y los formularios conservan su aspecto actual (no se tocaron en este tramo).
+- [x] Sin cambios en `backend/`. `ng test` y `npm run check:architecture` pasan.
 
 ## 7. Plan de pruebas
 

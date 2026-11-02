@@ -64,6 +64,14 @@ describe('DeliveryProductPickerComponent', () => {
     expect(options()[0].textContent).toContain('en bodega');
   });
 
+  it('la lista no se ensancha más que la pantalla (sin scroll horizontal en celular)', async () => {
+    await render(PRODUCTS);
+    await open();
+    const overlay = document.querySelector<HTMLElement>('.p-select-overlay');
+    expect(overlay).not.toBeNull();
+    expect(overlay!.style.maxWidth).toBe('calc(100vw - 2rem)');
+  });
+
   it('buscar «bcaa» encuentra «BCAA 2lb»', async () => {
     await render(PRODUCTS);
     await open();
