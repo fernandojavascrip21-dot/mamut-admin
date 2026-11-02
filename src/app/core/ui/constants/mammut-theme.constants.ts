@@ -184,6 +184,20 @@ export const MAMMUT_THEME = definePreset({
           activeColor: 'var(--color-ink)',
           focusRing: { color: 'var(--color-accent)', shadow: 'none' },
         },
+        // Acciones destructivas de los diálogos («Cerrar sesión», «Descartar»): mismos
+        // colores que el botón peligroso de hoy (bg-danger, hover bg-danger-text).
+        danger: {
+          background: 'var(--color-danger)',
+          hoverBackground: 'var(--color-danger-text)',
+          activeBackground: 'var(--color-danger-text)',
+          borderColor: 'var(--color-danger)',
+          hoverBorderColor: 'var(--color-danger-text)',
+          activeBorderColor: 'var(--color-danger-text)',
+          color: 'var(--color-white)',
+          hoverColor: 'var(--color-white)',
+          activeColor: 'var(--color-white)',
+          focusRing: { color: 'var(--color-danger)', shadow: 'none' },
+        },
       },
     },
     // Solo existen los avisos de éxito y de error (ToastService); se omiten los demás tonos de Aura.
