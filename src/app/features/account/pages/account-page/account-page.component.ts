@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, DestroyRef, computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -11,7 +12,7 @@ import { LOGOUT_CONFIRMATION } from '../../constants/account-page.constants';
 // "Último acceso" del mockup se omiten en M0: AuthContext no trae ni correo ni fecha de
 // acceso (ver specs/M0-base/spec.md §8, pregunta 3).
 @Component({
-  imports: [],
+  imports: [ButtonDirective],
   selector: 'app-account-page',
   templateUrl: './account-page.component.html',
 })

@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { DOCUMENT } from '@angular/common';
 import {
   Component,
@@ -17,7 +18,7 @@ import { FOCUSABLE_SELECTOR } from './modal-panel.constants';
 // cerrar, el foco regresa a donde estaba. Un clic en el fondo no cierra, para no perder lo escrito.
 // A pantalla completa en celular y centrado desde `sm`; el contenido hace scroll dentro.
 @Component({
-  imports: [],
+  imports: [ButtonDirective],
   selector: 'app-modal-panel',
   templateUrl: './modal-panel.component.html',
   host: { '(document:keydown)': 'onOutsideKeydown($event)' },
