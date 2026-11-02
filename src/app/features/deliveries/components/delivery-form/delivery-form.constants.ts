@@ -1,3 +1,4 @@
+import type { MotionOptions } from '@primeuix/motion';
 import type { FieldWithError } from './delivery-form.models';
 
 // Mensajes de cada campo al enviar (spec HU-11 §2).
@@ -22,3 +23,9 @@ export const MONEY_MESSAGES = {
     maxMoney: 'El precio es demasiado grande',
   },
 };
+
+// `safe` respeta prefers-reduced-motion, igual que el selector de categoría del formulario de producto.
+export const SELLER_SELECT_MOTION_OPTIONS = { safe: true } satisfies MotionOptions;
+
+// La lista no puede ser más ancha que la pantalla menos el margen de 1rem por lado (375 px sin scroll).
+export const SELLER_SELECT_PANEL_STYLE = { maxWidth: 'calc(100vw - 2rem)' };

@@ -1,7 +1,7 @@
 <form [formGroup]="form" class="flex flex-col gap-5" (ngSubmit)="onSubmit()" novalidate>
   <!-- Vendedor -->
   <div class="flex flex-col gap-1.5">
-    <label for="seller" class="field-label">Vendedor</label>
+    <label id="seller-label" for="seller" class="field-label" (click)="focusSeller()">Vendedor</label>
     @if (fixedSellerId()) {
       <p
         id="seller"
@@ -10,22 +10,24 @@
         {{ sellerName() }}
       </p>
     } @else {
-      <select
-        id="seller"
+      <p-select
+        inputId="seller"
+        ariaLabelledBy="seller-label"
         name="seller"
         #sellerSelect
         formControlName="sellerId"
-        [attr.aria-invalid]="sellerError() ? 'true' : null"
-        [attr.aria-describedby]="sellerError() ? 'seller-error' : null"
-        [class]="
-          'field-input ' + (sellerError() ? 'border-2 border-danger' : 'border border-line-strong')
-        "
-      >
-        <option value="">Elige un vendedor</option>
-        @for (seller of sellers(); track seller.id) {
-          <option [value]="seller.id">{{ seller.fullName }}</option>
-        }
-      </select>
+        [options]="sellers()"
+        optionLabel="fullName"
+        optionValue="id"
+        placeholder="Elige un vendedor"
+        [showClear]="false"
+        [invalid]="!!sellerError()"
+        [pt]="sellerPassThrough()"
+        appendTo="body"
+        [panelStyle]="sellerPanelStyle"
+        [motionOptions]="sellerMotionOptions"
+        class="h-[52px] min-w-0 w-full"
+      />
       @if (sellerError()) {
         <p
           id="seller-error"
@@ -121,6 +123,7 @@
     <div class="flex flex-col gap-1.5">
       <label for="qty" class="field-label">Piezas</label>
       <input
+        pInputText
         id="qty"
         name="qty"
         type="text"
@@ -130,10 +133,8 @@
         formControlName="qty"
         [attr.aria-invalid]="qtyError() ? 'true' : null"
         [attr.aria-describedby]="qtyError() ? 'qty-error' : null"
-        [class]="
-          'field-input font-mono ' +
-          (qtyError() ? 'border-2 border-danger' : 'border border-line-strong')
-        "
+        [invalid]="!!qtyError()"
+        class="h-[52px] min-w-0 font-mono"
       />
       @if (qtyError()) {
         <p
@@ -188,6 +189,7 @@
       <div class="flex flex-col gap-1.5">
         <label for="unit-cost" class="field-label">Otro costo para el vendedor (con envío)</label>
         <input
+          pInputText
           id="unit-cost"
           name="unit-cost"
           type="text"
@@ -197,10 +199,8 @@
           formControlName="unitCostWithShipping"
           [attr.aria-invalid]="unitCostError() ? 'true' : null"
           [attr.aria-describedby]="unitCostError() ? 'unit-cost-error' : null"
-          [class]="
-            'field-input font-mono ' +
-            (unitCostError() ? 'border-2 border-danger' : 'border border-line-strong')
-          "
+          [invalid]="!!unitCostError()"
+          class="h-[52px] min-w-0 font-mono"
         />
         @if (unitCostError()) {
           <p
@@ -216,6 +216,7 @@
       <div class="flex flex-col gap-1.5">
         <label for="unit-price" class="field-label">Otro precio de venta para el vendedor</label>
         <input
+          pInputText
           id="unit-price"
           name="unit-price"
           type="text"
@@ -227,10 +228,8 @@
           [attr.aria-describedby]="
             unitPriceError() ? 'unit-price-error' : belowCost() ? 'below-cost' : null
           "
-          [class]="
-            'field-input font-mono ' +
-            (unitPriceError() ? 'border-2 border-danger' : 'border border-line-strong')
-          "
+          [invalid]="!!unitPriceError()"
+          class="h-[52px] min-w-0 font-mono"
         />
         @if (unitPriceError()) {
           <p
