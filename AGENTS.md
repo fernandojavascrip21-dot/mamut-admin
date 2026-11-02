@@ -92,7 +92,7 @@ npm run db:stop
 
 **Styling:**
 
-Use the shared utilities in `src/styles.css` (`btn-*`, `field-*`, `surface-*`, `page-title`, `alert-*`, `skeleton-block`) before repeating visual utilities in templates. Keep test-hook classes alongside them; local Tailwind utilities may override size, spacing or semantic states.
+Use the shared utilities in `src/styles.css` (`field-*`, `surface-*`, `page-title`, `alert-*`, `skeleton-block`) before repeating visual utilities in templates. Keep test-hook classes alongside them; local Tailwind utilities may override size, spacing or semantic states.
 
 - Tailwind utility classes in templates only — no per-component `.css` files, no `styleUrl`.
 - Brand colors and fonts are Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`); use them as utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`). Never hard-code hex values or font stacks.
@@ -102,10 +102,10 @@ Use the shared utilities in `src/styles.css` (`btn-*`, `field-*`, `surface-*`, `
 
 **PrimeNG (T-17 y M3-t01):**
 
-- PrimeNG se usa en el formulario de producto, las listas del detalle del vendedor (`DataView`), el selector de producto de «Dejar» (`Select` con filtro), el toast (`Toast` + `MessageService`) y las confirmaciones (`ConfirmDialog`, siempre vía `ConfirmService`); el resto sigue con Tailwind y controles nativos hasta su tramo (cuadro «Camino de migración» en `specs/M3-t01-primeng-listas-dialogos/spec.md`). Importar cada control desde `primeng/*`; sin módulo agregador, PrimeFlex, `primeicons` ni `tailwindcss-primeui`. `MessageService` y `ConfirmationService` se registran una vez en `app.config.ts`. Sin CSS por componente en los tramos nuevos.
+- PrimeNG se usa en todos los botones y enlaces con aspecto de botón (`pButton` sobre `<button>` y `<a routerLink>`: primario sin `severity`, `secondary`, `[text]` para el «fantasma», `danger` con `[outlined]`; tamaños como utilidades locales y clases de enganche conservadas), en el formulario de producto, las listas del detalle del vendedor (`DataView`), el selector de producto de «Dejar» (`Select` con filtro), el toast (`Toast` + `MessageService`) y las confirmaciones (`ConfirmDialog`, siempre vía `ConfirmService`); el resto sigue con Tailwind y controles nativos hasta su tramo (cuadro «Camino de migración» en `specs/M3-t01-primeng-listas-dialogos/spec.md`). Importar cada control desde `primeng/*`; sin módulo agregador, PrimeFlex, `primeicons` ni `tailwindcss-primeui`. `MessageService` y `ConfirmationService` se registran una vez en `app.config.ts`. Sin CSS por componente en los tramos nuevos.
 - Configuración única en `app.config.ts` con `providePrimeNG(PRIMENG_CONFIG)`; opciones/traducciones en `core/ui/constants/primeng.constants.ts` y tema en `mammut-theme.constants.ts` (Aura limitado a los subpresets usados —`inputtext`, `select`, `checkbox`, `toast` solo con `success`/`error`, `dialog`, `confirmdialog`, `dataview`; `button` con `primary`/`secondary`/`danger` a mano—, referenciando variables CSS de `styles.css`, sin hexadecimales en TS).
 - Licencia: `PRIMENG_LICENSE_KEY` en `.env`/entorno; `scripts/prepare-primeng-license.mjs` genera `primeng-license.generated.ts`. Ambos están ignorados por Git y la clave nunca se imprime ni se versiona.
-- `styles.css` declara `theme, base, primeng, components, utilities` antes de Tailwind; `@theme static` conserva los tokens que consume el preset. No aplicar `field-input`/`btn-*` a controles de PrimeNG.
+- `styles.css` declara `theme, base, primeng, components, utilities` antes de Tailwind; `@theme static` conserva los tokens que consume el preset. No aplicar `field-input` a controles de PrimeNG; las utilidades `btn-*` ya no existen (estados en la sección «PrimeNG: botones» de `styles.css`).
 - Precio y costo siguen como `string` con `type="text" inputmode="decimal"` y `pInputText`; nunca `InputNumber`, formateo ni redondeo al escribir. `Select` usa valores de texto y la opción `''` «Sin categoría».
 
 **Comments:** every non-trivial function (auth flows, guards, interceptors, non-obvious rules) gets a short comment explaining what it does and *why*, not a restatement of the code.
