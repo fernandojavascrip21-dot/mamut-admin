@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { MessageService } from 'primeng/api';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -36,6 +37,7 @@ describe('EditProductPageComponent', () => {
     await TestBed.configureTestingModule({
       imports: [EditProductPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id }) } } },
       ],

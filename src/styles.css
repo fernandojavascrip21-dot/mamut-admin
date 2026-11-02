@@ -152,7 +152,7 @@
 }
 
 /* PrimeNG: lo que el preset no expone por componente (tipografía del título, alineación del
-   mensaje de confirmación y ancho del toast en móvil). */
+   mensaje de confirmación). */
 .p-dialog-title {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
@@ -160,13 +160,6 @@
 
 .p-confirmdialog .p-dialog-content {
   align-items: flex-start;
-}
-
-@media (max-width: 639px) {
-  .p-toast {
-    left: 1rem;
-    width: auto;
-  }
 }
 
 @layer base {

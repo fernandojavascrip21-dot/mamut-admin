@@ -1,47 +1,38 @@
-import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
+import { vi } from 'vitest';
 import { ToastService } from './toast.service';
 
 describe('ToastService', () => {
   let service: ToastService;
+  let messages: { add: ReturnType<typeof vi.fn>; clear: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    messages = { add: vi.fn(), clear: vi.fn() };
+    TestBed.configureTestingModule({ providers: [{ provide: MessageService, useValue: messages }] });
     service = TestBed.inject(ToastService);
   });
 
-  afterEach(() => vi.useRealTimers());
-
-  it('muestra un aviso de éxito y se cierra solo a los 4 s', () => {
+  it('un aviso de éxito se muestra con su texto y dura 4 s', () => {
     service.success('Producto guardado');
-    expect(service.current()).toEqual(expect.objectContaining({ tone: 'success', message: 'Producto guardado' }));
-    vi.advanceTimersByTime(3999);
-    expect(service.current()).not.toBeNull();
-    vi.advanceTimersByTime(1);
-    expect(service.current()).toBeNull();
+    expect(messages.add).toHaveBeenCalledWith({ severity: 'success', summary: 'Producto guardado', life: 4000 });
   });
 
   it('el error dura 6 s', () => {
     service.error('No se pudo guardar');
-    vi.advanceTimersByTime(5999);
-    expect(service.current()?.tone).toBe('error');
-    vi.advanceTimersByTime(1);
-    expect(service.current()).toBeNull();
+    expect(messages.add).toHaveBeenCalledWith({ severity: 'error', summary: 'No se pudo guardar', life: 6000 });
   });
 
-  it('un aviso nuevo reemplaza al anterior y el temporizador viejo no lo cierra', () => {
+  it('un aviso nuevo limpia el anterior antes de mostrarse', () => {
     service.success('Primero');
-    vi.advanceTimersByTime(3000);
     service.error('Segundo');
-    vi.advanceTimersByTime(1000);
-    expect(service.current()?.message).toBe('Segundo');
-    vi.advanceTimersByTime(5000);
-    expect(service.current()).toBeNull();
+    expect(messages.clear).toHaveBeenCalledTimes(2);
+    expect(messages.clear.mock.invocationCallOrder[1]).toBeLessThan(messages.add.mock.invocationCallOrder[1]);
   });
 
   it('dismiss() lo cierra de inmediato', () => {
-    service.success('Producto guardado');
     service.dismiss();
-    expect(service.current()).toBeNull();
+    expect(messages.clear).toHaveBeenCalledTimes(1);
+    expect(messages.add).not.toHaveBeenCalled();
   });
 });

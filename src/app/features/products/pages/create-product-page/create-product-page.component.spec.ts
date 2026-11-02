@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { MessageService } from 'primeng/api';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -32,7 +33,7 @@ describe('CreateProductPageComponent', () => {
     };
     await TestBed.configureTestingModule({
       imports: [CreateProductPageComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [MessageService, provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     })
       .overrideComponent(CreateProductPageComponent, {
         set: { providers: [{ provide: ProductSaveService, useValue: saveService }] },

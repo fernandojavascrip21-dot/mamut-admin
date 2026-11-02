@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { MessageService } from 'primeng/api';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -21,7 +22,7 @@ describe('CreateSellerPageComponent', () => {
     saveService = { create: vi.fn(() => (pending = new Subject<CreateSellerResult>())) };
     await TestBed.configureTestingModule({
       imports: [CreateSellerPageComponent],
-      providers: [provideRouter([])],
+      providers: [MessageService, provideRouter([])],
     })
       .overrideComponent(CreateSellerPageComponent, {
         set: { providers: [{ provide: SellerSaveService, useValue: saveService }] },
