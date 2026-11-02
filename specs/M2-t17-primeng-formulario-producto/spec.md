@@ -1,6 +1,6 @@
 # Spec técnico — T-17 · PrimeNG y formulario piloto de producto
 
-> **Estado:** aPROVADO
+> **Estado:** Implementado
 > **Depende de:** M2-t11-rediseno-visual (`specs/M2-t11-rediseno-visual/spec.md`) — tokens y reglas visuales; M2-t12-rediseno-productos (`specs/M2-t12-rediseno-productos/spec.md`) — formulario con el diseño actual; M1-hu06-editar-producto (`specs/M1-hu06-editar-producto/spec.md`) — alta y edición; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — contrato de dinero ya presente en el código
 > **Fecha:** 2026-11-01
 > **Objetivo:** incorporar PrimeNG con un tema adaptado a Mammut y usarlo en el formulario compartido de alta y edición de producto, conservando sus reglas y flujos.
@@ -8,6 +8,7 @@
 Fuentes:
 
 - Pedido y respuestas del usuario del 2026-11-01: configuración y formulario piloto; tema adaptado al diseño actual; licencia Community disponible.
+- Prioridad indicada durante la verificación del 2026-11-01: validar el responsive en computadoras; la revisión de pantallas móviles queda pendiente y no bloquea esta entrega.
 - Código actual: `src/app/app.config.ts`, `src/styles.css`, `features/products/components/product-form` y sus páginas de alta y edición.
 - [Instalación oficial](https://primeng.dev/installation): configuración global, tema, licencia e imports por componente.
 - [PrimeNG 22.1](https://blog.primeui.dev/blog/primeng-22-1-0/): compatibilidad declarada con Angular 22.1 o superior.
@@ -35,6 +36,7 @@ Fuentes:
 - Agregar componentes Pro, PrimeBlocks, PrimeFlex o una pantalla de demostración.
 - Modo oscuro, cambio de tema por el usuario o una paleta nueva.
 - Cambiar a Signal Forms o crear wrappers propios para cada componente de PrimeNG.
+- Verificación visual de pantallas móviles en esta entrega; se difiere por prioridad del usuario.
 
 ## 2. Configuración y arquitectura
 
@@ -98,7 +100,7 @@ Fuentes:
 - Evitar aplicar `field-input` o `btn-*` junto con un control PrimeNG si ambas piezas compiten por su aspecto. Conservar las utilidades compartidas en los controles que siguen siendo nativos y las clases de distribución o de pruebas donde correspondan.
 - No cambiar la definición global de las utilidades existentes para acomodar el piloto.
 - Controles con objetivos táctiles de al menos 44 px, foco visible y contraste según T-11. La casilla puede ser menor si su etiqueta completa cumple el objetivo táctil.
-- A 375 px y en escritorio, el formulario y el panel de categorías no producen scroll horizontal.
+- En computadoras, comprobar el formulario y el panel de categorías en una ventana de portátil y en un monitor de escritorio, sin scroll horizontal. La revisión móvil queda pendiente.
 - Respetar `prefers-reduced-motion` también en la apertura del selector, usando los mecanismos admitidos por PrimeNG.
 
 ## 4. Formulario piloto y contrato de datos
@@ -143,7 +145,7 @@ Este spec no agrega datos persistentes ni modifica `Product`, `ProductFormValue`
 3. **Campos y botones.** Incorporar InputText y Button al formulario. Conservar los inputs monetarios y sus mensajes, las referencias de foco y la selección de foto. Ejecutar las pruebas del formulario y de ambas páginas.
 4. **Selector de categoría.** Incorporar Select con opciones de texto y «Sin categoría». Adaptar el foco accesible y las pruebas que esperaban un `HTMLSelectElement`; probar selección mediante la interfaz del control. Comprobar carga inicial, limpieza a «Sin categoría», error del servidor y estado ocupado.
 5. **Casilla de fraccionamiento.** Incorporar Checkbox booleano con etiqueta asociada. Adaptar las pruebas de interacción para comprobar aparición de porción, conservación de lo escrito, emisión de cambios y bloqueo durante guardado.
-6. **Verificación del piloto.** Recorrer alta y edición contra la base local, comprobar SSR/hidratación y capturar móvil y escritorio. Ejecutar las comprobaciones del §7. Corregir únicamente regresiones de esta integración antes de cerrar el paso.
+6. **Verificación del piloto.** Recorrer alta y edición contra la base local, comprobar SSR/hidratación y capturar una ventana de portátil y un monitor de escritorio. Ejecutar las comprobaciones del §7. Corregir únicamente regresiones de esta integración antes de cerrar el paso.
 7. **Documentación y cierre.** Documentar en `CLAUDE.md` y `AGENTS.md` la configuración de licencia, imports por componente, tema y contrato de dinero. Actualizar el estado del spec y `specs/README.md` solo cuando sus criterios estén verificados.
 
 Cada paso conserva el proyecto ejecutable. No se crean commits ni se hace push automáticamente.
@@ -151,26 +153,26 @@ Cada paso conserva el proyecto ejecutable. No se crean commits ni se hace push a
 ## 6. Criterios de aceptación
 
 - [x] La instalación resuelve los peers sin forzarlos y Angular permanece en su línea actual.
-- [ ] Los comandos npm de inicio, desarrollo, watch, build y tests preparan la licencia antes de compilar; la preparación directa para `ng` está documentada.
-- [ ] Sin clave la preparación informa cómo configurarla; con la licencia del usuario los controles funcionan sin avisos de licencia inválida o ausente.
+- [x] Los comandos npm de inicio, desarrollo, watch, build y tests preparan la licencia antes de compilar; la preparación directa para `ng` está documentada.
+- [x] Sin clave la preparación informa cómo configurarla; con la licencia del usuario los controles funcionan sin avisos de licencia inválida o ausente.
 - [x] La clave y los archivos locales que la contienen están excluidos de Git y no aparecen en logs ni ejemplos.
 - [x] PrimeNG se registra una sola vez y utiliza el tema de Mammut tanto al arrancar como al recargar.
-- [ ] El contenido permanece claro aunque el sistema tenga tema oscuro; no cambia el aspecto de login, navegación, tarjetas, vendedores, toast o ventanas existentes.
-- [ ] Nombre, precio, costo, porción y botones del piloto usan PrimeNG; categoría y fraccionamiento usan Select y Checkbox.
-- [ ] Alta envía el mismo contrato de datos con categoría y sin ella; edición carga la categoría y permite volver a «Sin categoría».
-- [ ] Precio y costo conservan su texto decimal; los excesos de decimales o rango muestran error y no emiten un payload válido.
-- [ ] Precio menor que costo sigue mostrando el aviso en vivo y bloqueando Guardar.
-- [ ] Los demás errores aparecen al enviar; nombre duplicado y categoría inexistente enfocan el campo correcto.
+- [x] El contenido permanece claro aunque el sistema tenga tema oscuro; no cambia el aspecto de login, navegación, tarjetas, vendedores, toast o ventanas existentes.
+- [x] Nombre, precio, costo, porción y botones del piloto usan PrimeNG; categoría y fraccionamiento usan Select y Checkbox.
+- [x] Alta envía el mismo contrato de datos con categoría y sin ella; edición carga la categoría y permite volver a «Sin categoría».
+- [x] Precio y costo conservan su texto decimal; los excesos de decimales o rango muestran error y no emiten un payload válido.
+- [x] Precio menor que costo sigue mostrando el aviso en vivo y bloqueando Guardar.
+- [x] Los demás errores aparecen al enviar; nombre duplicado y categoría inexistente enfocan el campo correcto.
 - [x] Marcar y desmarcar fraccionamiento conserva la porción escrita y mantiene sus reglas de validación.
-- [ ] El estado ocupado bloquea todos los controles y acciones; «Guardando…» y la prevención de envíos repetidos siguen funcionando.
-- [ ] Foto opcional, cambio y eliminación de foto mantienen su flujo; edición no permite modificar piezas.
-- [ ] La guarda de cambios sin guardar y los estados sin conexión de ambas páginas conservan su comportamiento.
-- [ ] El selector funciona con teclado; todos los controles tienen nombre accesible y los mensajes se asocian al elemento interactivo real.
-- [ ] Hay foco visible, objetivos táctiles de 44 px y capturas a 375 px y escritorio sin scroll horizontal, con el selector abierto y cerrado.
-- [ ] Con movimiento reducido no se ejecutan animaciones prescindibles del piloto.
-- [ ] SSR y la navegación cliente no muestran errores de acceso al DOM ni discrepancias de hidratación; las URLs auxiliares de T-16 siguen abriendo sus ventanas al recargar.
-- [ ] Build de producción, tests afectados y comprobación de arquitectura pasan. Se conserva el presupuesto de bundle configurado y se registra el tamaño inicial antes y después.
-- [ ] `CLAUDE.md`, `AGENTS.md` y el índice de specs reflejan la integración. No hay cambios en `backend/` ni en migraciones.
+- [x] El estado ocupado bloquea todos los controles y acciones; «Guardando…» y la prevención de envíos repetidos siguen funcionando.
+- [x] Foto opcional, cambio y eliminación de foto mantienen su flujo; edición no permite modificar piezas.
+- [x] La guarda de cambios sin guardar y los estados sin conexión de ambas páginas conservan su comportamiento.
+- [x] El selector funciona con teclado; todos los controles tienen nombre accesible y los mensajes se asocian al elemento interactivo real.
+- [x] Hay foco visible, objetivos de interacción de 44 px y capturas en una ventana de portátil y en un monitor de escritorio sin scroll horizontal, con el selector abierto y cerrado.
+- [x] Con movimiento reducido no se ejecutan animaciones prescindibles del piloto.
+- [x] SSR y la navegación cliente no muestran errores de acceso al DOM ni discrepancias de hidratación; las URLs auxiliares de T-16 siguen abriendo sus ventanas al recargar.
+- [x] Build de producción, tests afectados y comprobación de arquitectura pasan. Se conserva el presupuesto de bundle configurado y se registra el tamaño inicial antes y después.
+- [x] `CLAUDE.md`, `AGENTS.md` y el índice de specs reflejan la integración. No hay cambios en `backend/` ni en migraciones.
 
 ## 7. Plan de pruebas y verificación
 
@@ -180,7 +182,7 @@ Cada paso conserva el proyecto ejecutable. No se crean commits ni se hace push a
 - Ejecutar `npm test -- --watch=false --include 'src/app/features/products/**/*.spec.ts'`, `npm run build` y `npm run check:architecture`.
 - Como se cambia la configuración y el CSS global, ejecutar también una vez la suite completa con `npm test -- --watch=false`.
 - Los comandos directos `ng build` y `ng test` requieren `npm run ui:prepare` previo desde un checkout nuevo.
-- La verificación manual usa el entorno local existente: alta con y sin categoría, edición, fraccionamiento, foto, estados de guardado, teclado y vista móvil. No se ejecutan pruebas de backend por esta integración de frontend.
+- La verificación manual usa el entorno local existente: alta con y sin categoría, edición, fraccionamiento, foto, estados de guardado, teclado y ventanas de computadora. No se ejecutan pruebas de backend por esta integración de frontend.
 - Comparar el bundle inicial y los chunks del formulario antes y después. No elevar los límites de `angular.json` para ocultar un aumento ni importar un módulo agregador de PrimeNG.
 
 **Línea base al redactar (2026-11-01):** `npm run build` y `npm run check:architecture` pasan antes de instalar PrimeNG. El bundle inicial del navegador mide 397.57 kB, con transferencia estimada de 103.41 kB. Esta comprobación no acredita los criterios de implementación; los cambios de esta fase son solo documentación.
@@ -190,6 +192,7 @@ Cada paso conserva el proyecto ejecutable. No se crean commits ni se hace push a
 - **Usuario:** configuración y formulario piloto, en lugar de migración completa.
 - **Usuario:** aceptación del formulario compartido de producto propuesto, cubriendo alta y edición.
 - **Usuario:** tema PrimeNG adaptado al diseño de Mammut y licencia Community ya disponible.
+- **Usuario, durante el paso 6:** priorizar el responsive de computadoras. La revisión visual móvil queda pendiente y no es un requisito de cierre de esta entrega.
 - **Diseño técnico del borrador:** Aura como base; permite aprovechar los controles y ajustar los tokens sin reemplazar la identidad visual.
 - **Sí:** mantener formularios reactivos tipados y la API presentacional del componente. Cambiar la librería visual no requiere cambiar el modelo de formulario.
 - **Sí:** imports directos y específicos; no crear wrappers sin una necesidad de reutilización concreta.
@@ -252,3 +255,21 @@ Las siguientes migraciones se definen en sus propios specs después de evaluar e
 - Las pruebas de fraccionamiento ahora realizan clics reales sobre el input de Checkbox. Se agregaron casos de etiqueta y valor booleano, conservación de porción y payload, y bloqueo y posterior habilitación; la validación de porción obligatoria y su foco siguen pasando.
 - Validación del paso 5: **144 pruebas de Productos en 11 archivos**, `npm run build` y `npm run check:architecture` pasan. Bundle inicial: **513.12 kB**, transferencia estimada **136.84 kB**; se mantiene la advertencia de presupuesto (**13.12 kB** sobre el umbral de 500 kB), sin modificar sus límites.
 - Los pasos 6 y 7 siguen pendientes: verificación manual del piloto, revisión de tamaño y documentación de cierre. La comprobación de licencia en navegador con los controles del piloto sigue pendiente de esa verificación.
+
+### Paso 6 — verificación en curso
+
+- Se limita la detección de clases de Tailwind a `src/`, excluyendo las pruebas. Los catálogos y referencias HTML/Vue ya no generan utilidades para la aplicación. `@theme static` conserva las variables de marca consumidas por el preset desde TypeScript; se comprobó que sus 19 referencias a variables CSS siguen declaradas en el CSS compilado.
+- Se retiró la escala primaria que no utiliza ningún control del piloto. Se mantienen los colores semánticos de selección, contraste, hover y estado activo y la comprobación de referencias de tokens.
+- Bundle inicial: **502.82 kB**, transferencia estimada **135.61 kB**. El CSS pasa de 62.97 a **53.26 kB**. Sigue una advertencia de **2.82 kB** sobre el umbral de 500 kB; no se modifican los presupuestos ni se declara eliminado ese aviso.
+- Build de producción y servidor local en `localhost:4200`, con `NG_ALLOWED_HOSTS=localhost`, consumiendo la API local en `localhost:3000`. Se confirmó que `backend/.env` apunta al Supabase de Docker, no a producción. Next requirió el segundo arranque previsto en las instrucciones del repositorio.
+- En el navegador: alta vacía muestra los errores y enfoca Nombre; el precio `450.555` muestra su error de precisión sin redondearlo; un precio menor que el costo bloquea Guardar; categoría se selecciona con teclado; la porción es obligatoria al fraccionar y conserva `30 g` al desmarcar y volver a marcar con Espacio. El alta muestra su resumen y el toast.
+- Se capturaron alta y edición en escritorio. La edición carga categoría, precio, costo y porción, y muestra piezas de solo lectura. La guarda ofrece «Seguir editando» y conserva lo escrito. Se comprobó la selección local de foto, su previsualización y las acciones Cambiar/Quitar foto.
+- Consulta de solo lectura posterior a la interacción: el producto local **341**, con prefijo `test-ui-primeng-20261101`, tiene nombre editado, `category_id = null`, costo `83.3333`, precio `450.50`, stock `2`, fraccionamiento activo, porción `30 g` y foto guardada. Su único movimiento es `initial +2` en bodega. Permanece activo para revisión; no se tocaron productos de negocio ni se sobrescribió inventario.
+- Validación automatizada tras optimizar: **541 pruebas en 75 archivos**, las cuatro pruebas del script de licencia, arquitectura y build pasan.
+- El usuario priorizó computadoras durante este paso. La revisión visual móvil queda diferida y no se presenta como verificada. No se completó una captura válida a 375 px.
+- **Cierre de la verificación (2026-11-02):** con Chrome headless sobre `localhost:4200` y la API local se completaron 14 comprobaciones, todas correctas. Se capturó el alta en una ventana de portátil (1440×900) y en un monitor de escritorio (1920×1080), con el selector abierto y cerrado, sin scroll horizontal en ninguno de los dos casos; las capturas son temporales y no se versionan.
+- Con preferencia del sistema por tema oscuro, `color-scheme` sigue en `light` y el campo conserva fondo blanco. Con movimiento reducido, las transiciones de campo, selector y botón resuelven a `0s`. Los controles miden al menos 44 px de alto (el checkbox de 20 px forma parte de una etiqueta de 44 px) y el foco por teclado en Nombre muestra el anillo de 3 px.
+- La ruta auxiliar `/(ventana:dejar;producto=…)` de T-16 abre su ventana al cargar la URL completa, y la navegación cliente posterior no registra excepciones. La consola no muestra avisos de licencia ni errores de la aplicación.
+- Los estados sin conexión, la guarda de cambios y los flujos de foto siguen cubiertos por las pruebas de las páginas; no se repitieron manualmente.
+- **Paso 7 completado:** `CLAUDE.md` y `AGENTS.md` documentan la licencia y los hooks, la configuración global, el tema basado en tokens, los imports por componente y el contrato de dinero con PrimeNG. El índice de specs y este documento quedan en estado **Implementado**. No hay cambios en `backend/` ni en migraciones.
+- Validación final: **144 pruebas de Productos en 11 archivos** y **541 pruebas en 75 archivos** pasan; `npm run build` y `npm run check:architecture` pasan. Bundle inicial: **502.82 kB**, transferencia estimada **135.61 kB**; se conserva la advertencia de **2.82 kB** sobre el umbral de 500 kB con los límites de `angular.json` sin modificar.

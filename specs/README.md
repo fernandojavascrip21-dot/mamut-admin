@@ -33,11 +33,12 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M2-t14-rediseno-cuenta-login`](M2-t14-rediseno-cuenta-login/spec.md) | Tarea | `SCRUM-41` · T-14 | Implementado | 2026-10-30 | `M2-t11` | Mi cuenta con la base visual de T-11, y login alineado sin cambiar su aspecto. |
 | [`M2-t15-rediseno-navbar`](M2-t15-rediseno-navbar/spec.md) | Tarea | — | Implementado | 2026-10-30 | `M2-t11` | Navbar con menú tipo medidor de inventario, íconos en componente propio y estilo alineado al login. |
 | [`M2-t16-ventanas-dejar-retirar`](M2-t16-ventanas-dejar-retirar/spec.md) | Tarea | — | Implementado | 2026-10-31 | `M2-hu11`, `M2-hu12`, `M2-t11` | «Dejar producto» y «Retirar producto» abren su formulario en un pop-up sobre la página actual. |
-| [`M2-t17-primeng-formulario-producto`](M2-t17-primeng-formulario-producto/spec.md) | Tarea | — | Aprobado | 2026-11-01 | `M2-t11`, `M2-t12`, `M1-hu06`, `M1-t08` | Configurar PrimeNG con el tema de Mammut y migrar el formulario compartido de alta y edición de producto. |
+| [`M2-t17-primeng-formulario-producto`](M2-t17-primeng-formulario-producto/spec.md) | Tarea | — | Implementado | 2026-11-01 | `M2-t11`, `M2-t12`, `M1-hu06`, `M1-t08` | Configurar PrimeNG con el tema de Mammut y migrar el formulario compartido de alta y edición de producto. |
 
 ## Relaciones que «Depende de» no muestra
 
 - **`M2-t17` ↔ `M2-t11`, `M2-t12`:** propone sustituir los controles propios del formulario de producto por PrimeNG, adaptado a los mismos tokens; las utilidades y el resto de las pantallas conservan su diseño. Mantiene el contrato de dinero de `M1-t08`, los flujos de alta y edición y los diálogos existentes, incluidas las ventanas de `M2-t16`.
+- **Verificación de `M2-t17`:** por prioridad del usuario, la entrega valida el responsive de computadoras; la revisión visual móvil queda pendiente y no se declara verificada por este spec.
 - **`M0-base` → `M0-hu03`:** HU-03 cierra el único criterio de esa historia que M0 dejó pendiente (redirigir a la home del rol con sesión activa).
 - **`M0-base` → `M1-t03`:** T-03 reusa `profiles.role = 'vendedor'` y responde la pregunta abierta de M0 §8 (vendedor vs. `client`).
 - **`M1-t03` → `M1-hu04`, `M1-hu05`, `M1-hu06`:** las tres usan `products` y `stock_movements` tal como los dejó T-03; también HU-07 (fraccionar) cuando exista.
