@@ -1,7 +1,11 @@
 import { definePreset } from '@primeuix/themes';
 import AuraCheckbox from '@primeuix/themes/aura/checkbox';
+import AuraConfirmDialog from '@primeuix/themes/aura/confirmdialog';
+import AuraDataView from '@primeuix/themes/aura/dataview';
+import AuraDialog from '@primeuix/themes/aura/dialog';
 import AuraInputText from '@primeuix/themes/aura/inputtext';
 import AuraSelect from '@primeuix/themes/aura/select';
+import AuraToast from '@primeuix/themes/aura/toast';
 import type { Preset } from '@primeuix/themes/types';
 
 // Solo los tokens que usan los controles de Aura del piloto, sin sus paletas ajenas a Mammut.
@@ -119,6 +123,22 @@ export const MAMMUT_THEME = definePreset({
         borderRadius: 'var(--radius-xl)',
         shadow: 'var(--shadow-raised)',
       },
+      popover: {
+        background: 'var(--color-white)',
+        borderColor: 'var(--color-line-strong)',
+        color: 'var(--color-ink)',
+        borderRadius: 'var(--radius-xl)',
+        shadow: 'var(--shadow-raised)',
+        padding: '1rem',
+      },
+      modal: {
+        background: 'var(--color-white)',
+        borderColor: 'var(--color-line)',
+        color: 'var(--color-ink)',
+        borderRadius: 'var(--radius-card)',
+        shadow: 'var(--shadow-raised)',
+        padding: '1.5rem',
+      },
     },
   },
   components: {
@@ -165,6 +185,52 @@ export const MAMMUT_THEME = definePreset({
           focusRing: { color: 'var(--color-accent)', shadow: 'none' },
         },
       },
+    },
+    toast: {
+      ...AuraToast,
+      root: { ...AuraToast.root, width: '22rem' },
+      content: { ...AuraToast.content, padding: '0.875rem 1rem', gap: '0.75rem' },
+      summary: { ...AuraToast.summary, fontWeight: '700' },
+      success: {
+        ...AuraToast.success,
+        background: 'var(--color-success-bg)',
+        borderColor: 'var(--color-success-border)',
+        color: 'var(--color-success-text)',
+        detailColor: 'var(--color-success-text)',
+        shadow: 'var(--shadow-raised)',
+      },
+      error: {
+        ...AuraToast.error,
+        background: 'var(--color-danger-bg)',
+        borderColor: 'var(--color-danger-border)',
+        color: 'var(--color-danger-text)',
+        detailColor: 'var(--color-danger-text)',
+        shadow: 'var(--shadow-raised)',
+      },
+      info: {
+        ...AuraToast.info,
+        background: 'var(--color-accent-2-bg)',
+        borderColor: 'var(--color-accent-2)',
+        color: 'var(--color-accent-2-text)',
+        detailColor: 'var(--color-accent-2-text)',
+        shadow: 'var(--shadow-raised)',
+      },
+    },
+    dialog: {
+      ...AuraDialog,
+      header: { ...AuraDialog.header, padding: '1.5rem 1.5rem 0.5rem' },
+      title: { ...AuraDialog.title, fontWeight: '800' },
+      content: { ...AuraDialog.content, padding: '0 1.5rem 1rem' },
+      footer: { ...AuraDialog.footer, padding: '0 1.5rem 1.5rem', gap: '0.625rem' },
+    },
+    confirmdialog: {
+      ...AuraConfirmDialog,
+      icon: { ...AuraConfirmDialog.icon, color: 'var(--color-danger)' },
+      message: { ...AuraConfirmDialog.message, color: 'var(--color-muted)' },
+    },
+    dataview: {
+      ...AuraDataView,
+      content: { ...AuraDataView.content, background: 'transparent' },
     },
   },
 } satisfies Preset);
