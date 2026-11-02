@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -30,7 +31,7 @@ import { SellersService } from '../../services/sellers.service';
 // que tiene y guarda el retiro con ReturnSaveService. Al guardar avisa con un toast, le dice a las
 // páginas de atrás que el inventario cambió y se cierra; el resumen se abre desde «Últimos retiros».
 @Component({
-  imports: [RouterLink, ModalPanelComponent, ReturnFormComponent],
+  imports: [ButtonDirective, RouterLink, ModalPanelComponent, ReturnFormComponent],
   providers: [ReturnSaveService],
   selector: 'app-return-units-page',
   templateUrl: './return-units-page.component.html',

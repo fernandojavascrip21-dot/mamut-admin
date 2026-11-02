@@ -21,14 +21,14 @@
     <div class="flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
       <p class="m-0 text-[15px] font-bold">No pudimos cargar al vendedor</p>
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retryLoad()">
+      <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retryLoad()">
         Reintentar
       </button>
     </div>
   } @else if (state() === 'not-found') {
     <div class="flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
       <p class="m-0 text-[15px] font-bold">No encontramos a este vendedor</p>
-      <a [routerLink]="sellersListUrl" class="btn-secondary mt-2 h-11 px-4 text-sm"
+      <a pButton severity="secondary" [routerLink]="sellersListUrl" class="mt-2 h-11 px-4 text-sm"
         >Volver a Mis vendedores</a
       >
     </div>
@@ -37,7 +37,7 @@
       class="empty flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-5 text-center"
     >
       <p class="m-0 text-[15px] font-bold">Este vendedor no tiene piezas para retirar</p>
-      <button type="button" class="close-empty btn-secondary mt-2 h-11 px-4 text-sm" (click)="close()">
+      <button pButton severity="secondary" type="button" class="close-empty mt-2 h-11 px-4 text-sm" (click)="close()">
         Cerrar
       </button>
     </div>
@@ -48,7 +48,7 @@
         <p class="m-0 text-sm leading-snug">
           Revisa tu conexión. Si ya se había registrado, reintentar no lo duplica.
         </p>
-        <button type="button" class="retry btn-secondary mt-1 h-11 px-4 text-sm" (click)="retrySave()">
+        <button pButton severity="secondary" type="button" class="retry mt-1 h-11 px-4 text-sm" (click)="retrySave()">
           Reintentar
         </button>
       </div>

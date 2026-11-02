@@ -1,5 +1,5 @@
 <div class="flex w-full flex-col px-5 py-6">
-  <a routerLink="/admin/vendedores" class="btn-ghost w-fit px-0">‹ Vendedores</a>
+  <a pButton [text]="true" routerLink="/admin/vendedores" class="h-[52px] text-sm w-fit px-0">‹ Vendedores</a>
   @if (state() !== 'created') {
     <h1 class="page-title">Nuevo vendedor</h1>
     <p class="mt-1 mb-0 text-sm leading-snug text-muted">
@@ -11,9 +11,9 @@
         <div>
           <p class="m-0 text-[15px] font-bold">No se pudo guardar</p>
           <p class="mt-0.5 mb-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-          <button
+          <button pButton severity="danger" [outlined]="true"
             type="button"
-            class="retry btn-secondary mt-2.5 h-11 border-danger px-3.5 text-sm text-danger hover:bg-danger-bg"
+            class="retry mt-2.5 h-11 px-3.5 text-sm"
             (click)="retry()"
           >
             Reintentar
@@ -135,9 +135,9 @@
               (fieldErrors().password ? 'border-2 border-danger' : 'border border-line-strong')
             "
           />
-          <button
+          <button pButton severity="secondary"
             type="button"
-            class="toggle-password btn-secondary shrink-0 px-3.5 text-sm"
+            class="h-[52px] toggle-password shrink-0 px-3.5 text-sm"
             [disabled]="state() === 'saving' || state() === 'offline'"
             [attr.aria-pressed]="showPassword()"
             (click)="togglePassword()"
@@ -159,10 +159,10 @@
         }
       </div>
 
-      <button
+      <button pButton
         type="submit"
         [disabled]="state() === 'saving' || state() === 'offline'"
-        class="btn-primary mt-1"
+        class="h-[52px] text-[17px] mt-1"
       >
         {{ state() === 'saving' ? 'Guardando…' : 'Dar de alta vendedor' }}
       </button>
@@ -185,12 +185,12 @@
     </div>
 
     <div class="mt-5 flex gap-3">
-      <a routerLink="/admin/vendedores" class="btn-primary min-w-0 flex-1 px-3 text-sm">
+      <a pButton routerLink="/admin/vendedores" class="h-[52px] min-w-0 flex-1 px-3 text-sm">
         Ver mis vendedores
       </a>
-      <button
+      <button pButton severity="secondary"
         type="button"
-        class="btn-secondary min-w-0 flex-1 px-3 text-sm"
+        class="h-[52px] min-w-0 flex-1 px-3 text-sm"
         (click)="startNewSeller()"
       >
         Dar de alta otro vendedor

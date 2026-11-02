@@ -2,7 +2,7 @@
   <div class="flex items-center justify-between gap-3">
     <h1 class="page-title">Mis vendedores</h1>
     @if (state() !== 'ready' || sellers().length > 0) {
-      <a routerLink="/admin/vendedores/nuevo" class="new-seller btn-primary shrink-0 px-4 text-sm">
+      <a pButton routerLink="/admin/vendedores/nuevo" class="h-[52px] new-seller shrink-0 px-4 text-sm">
         Nuevo vendedor
       </a>
     }
@@ -52,7 +52,7 @@
       </svg>
       <p class="m-0 text-[15px] font-bold">No pudimos cargar a tus vendedores</p>
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retry()">
+      <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry()">
         Reintentar
       </button>
     </div>
@@ -77,7 +77,7 @@
       </svg>
       <p class="m-0 text-[17px] font-bold">Aún no tienes vendedores</p>
       <p class="m-0 text-sm text-muted">Da de alta a tu primer vendedor para dejarle producto.</p>
-      <a routerLink="/admin/vendedores/nuevo" class="new-seller btn-primary mt-2 text-sm">
+      <a pButton routerLink="/admin/vendedores/nuevo" class="h-[52px] new-seller mt-2 text-sm">
         Nuevo vendedor
       </a>
     </div>

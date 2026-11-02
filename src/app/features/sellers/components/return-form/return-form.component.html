@@ -121,10 +121,10 @@
   }
 
   <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-    <button type="button" class="cancel btn-secondary" [disabled]="saving()" (click)="cancelled.emit()">
+    <button pButton severity="secondary" type="button" class="h-[52px] text-[15px] cancel" [disabled]="saving()" (click)="cancelled.emit()">
       Cancelar
     </button>
-    <button type="submit" class="btn-primary" [disabled]="saving()">
+    <button pButton type="submit" class="h-[52px] text-[17px]" [disabled]="saving()">
       @if (saving()) {
         Retirando…
       } @else {

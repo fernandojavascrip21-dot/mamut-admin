@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -16,7 +17,7 @@ import { SellerReturnsService } from '../../services/seller-returns.service';
 // saldos de cada lado. Sale del backend y no de un estado de navegación, así que se ve igual al
 // recargar. Sigue a la barra «Viendo» (HU-10), como el detalle del vendedor.
 @Component({
-  imports: [RouterLink],
+  imports: [ButtonDirective, RouterLink],
   selector: 'app-return-summary-page',
   templateUrl: './return-summary-page.component.html',
 })
