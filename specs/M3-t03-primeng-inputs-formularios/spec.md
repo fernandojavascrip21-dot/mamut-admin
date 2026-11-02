@@ -1,6 +1,6 @@
 # Spec técnico — T-03 · PrimeNG: inputs de formularios
 
-> **Estado:** Borrador
+> **Estado:** Aprovado
 > **Depende de:** M3-t02-primeng-botones (`specs/M3-t02-primeng-botones/spec.md`) — patrón de «una sola sección en `styles.css`» y retiro de utilidades al terminar; M3-t01-primeng-listas-dialogos (`specs/M3-t01-primeng-listas-dialogos/spec.md`) — cuadro «Camino de migración» (tramo 6) y el `Select` con filtro normalizado del picker de «Dejar»; M2-t17-primeng-formulario-producto (`specs/M2-t17-primeng-formulario-producto/spec.md`) — primer uso de `pInputText` y `p-select` con `[invalid]`; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — reglas de los campos de dinero.
 > **Fecha:** 2026-11-02
 > **Objetivo:** pasar todos los campos de texto que usan `field-input` a `pInputText` y los dos `<select>` nativos de «Dejar» y «Retirar» a `p-select`, con el borde de error en una sola regla de `styles.css`, y retirar la utilidad `field-input`.
