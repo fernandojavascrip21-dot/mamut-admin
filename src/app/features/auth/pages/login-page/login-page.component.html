@@ -100,6 +100,7 @@
               <path d="M4 21a8 8 0 0 1 16 0"></path>
             </svg>
             <input
+              pInputText
               id="email"
               name="email"
               type="text"
@@ -108,10 +109,8 @@
               formControlName="email"
               [attr.aria-invalid]="emailError() ? 'true' : null"
               [attr.aria-describedby]="emailError() ? 'email-error' : null"
-              [class]="
-                'field-input w-full pr-4 pl-12 transition-shadow duration-150 motion-reduce:transition-none ' +
-                (emailError() ? 'border-2 border-danger' : 'border border-line-strong')
-              "
+              [invalid]="!!emailError()"
+              class="h-[52px] min-w-0 w-full pr-4 pl-12"
             />
           </div>
           @if (emailError()) {
@@ -144,6 +143,7 @@
               <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
             </svg>
             <input
+              pInputText
               id="password"
               name="password"
               [type]="passwordVisible() ? 'text' : 'password'"
@@ -154,10 +154,8 @@
               (keyup)="onPasswordKey($event)"
               [attr.aria-invalid]="passwordError() ? 'true' : null"
               [attr.aria-describedby]="passwordError() ? 'password-error' : null"
-              [class]="
-                'field-input w-full pr-14 pl-12 transition-shadow duration-150 motion-reduce:transition-none ' +
-                (passwordError() ? 'border-2 border-danger' : 'border border-line-strong')
-              "
+              [invalid]="!!passwordError()"
+              class="h-[52px] min-w-0 w-full pr-14 pl-12"
             />
             <button
               type="button"

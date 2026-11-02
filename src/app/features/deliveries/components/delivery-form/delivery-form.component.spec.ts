@@ -58,10 +58,16 @@ describe('DeliveryFormComponent', () => {
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   }
-  function pickSeller(id: string) {
-    const select = el().querySelector('#seller') as HTMLSelectElement;
-    select.value = id;
-    select.dispatchEvent(new Event('change'));
+  // El selector de vendedor es un Select de PrimeNG: se abre con un clic y se elige una opción.
+  async function pickSeller(name: string) {
+    (el().querySelector('p-select') as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const option = Array.from(document.querySelectorAll<HTMLElement>('li.p-select-option')).find((o) =>
+      o.textContent!.includes(name),
+    )!;
+    option.click();
     fixture.detectChanges();
   }
   const submit = () => {
@@ -88,15 +94,24 @@ describe('DeliveryFormComponent', () => {
   it('con vendedor fijo muestra su nombre y no hay selector', () => {
     render({ fixedSellerId: 'v-1' });
     expect(el().querySelector('.seller-fixed')!.textContent!.trim()).toBe('Luis Pérez');
-    expect(el().querySelector('select#seller')).toBeNull();
+    expect(el().querySelector('p-select')).toBeNull();
   });
 
-  it('sin vendedor fijo lo elige en el selector y avisa a la página', () => {
+  it('sin vendedor fijo lo elige en el selector y avisa a la página', async () => {
     render();
     const picked: string[] = [];
     fixture.componentInstance.sellerPicked.subscribe((id) => picked.push(id));
-    pickSeller('v-2');
+    await pickSeller('Valeria');
     expect(picked).toEqual(['v-2']);
+  });
+
+  it('enviar sin vendedor deja el foco en el selector de vendedor', () => {
+    render();
+    const select = fixture.debugElement.query((d) => d.name === 'p-select').componentInstance;
+    const focus = vi.spyOn(select, 'focus');
+    type('#qty', '2');
+    submit();
+    expect(focus).toHaveBeenCalled();
   });
 
   it('sin producto muestra el buscador; con «fixedProduct» no ofrece «Cambiar»', () => {
@@ -116,7 +131,7 @@ describe('DeliveryFormComponent', () => {
     const picked: number[] = [];
     fixture.componentInstance.productPicked.subscribe((id) => picked.push(id));
     // El selector es un Select de PrimeNG: se abre con un clic y se elige una opción de la lista.
-    (el().querySelector('.p-select') as HTMLElement).click();
+    (el().querySelector('app-delivery-product-picker .p-select') as HTMLElement).click();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();

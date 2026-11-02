@@ -1,4 +1,7 @@
 import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import type { SelectPassThrough } from 'primeng/types/select';
 import {
   Component,
   DestroyRef,
@@ -34,7 +37,13 @@ import {
 } from '../../rules/delivery.rules';
 import { optionalMoney, positiveInteger } from '../../validators/delivery-form.validators';
 import { DeliveryProductPickerComponent } from '../delivery-product-picker/delivery-product-picker.component';
-import { FIELD_MESSAGES, MONEY_MESSAGES, NOT_ENOUGH_UNITS_ERROR } from './delivery-form.constants';
+import {
+  FIELD_MESSAGES,
+  MONEY_MESSAGES,
+  NOT_ENOUGH_UNITS_ERROR,
+  SELLER_SELECT_MOTION_OPTIONS,
+  SELLER_SELECT_PANEL_STYLE,
+} from './delivery-form.constants';
 import type { DeliveryFormGroup, FieldWithError, HoldingStatus } from './delivery-form.models';
 
 // Formulario de la ventana «Dejar a vendedor» (pantalla 03a, HU-11). Es presentacional: el
@@ -43,7 +52,7 @@ import type { DeliveryFormGroup, FieldWithError, HoldingStatus } from './deliver
 // espera son de la página. Los errores de cada campo aparecen al enviar; solo «el precio es menor
 // que el costo» se muestra en vivo, y avisa sin bloquear.
 @Component({
-  imports: [ButtonDirective, ReactiveFormsModule, CurrencyPipe, DeliveryProductPickerComponent],
+  imports: [ButtonDirective, InputText, Select, ReactiveFormsModule, CurrencyPipe, DeliveryProductPickerComponent],
   selector: 'app-delivery-form',
   templateUrl: './delivery-form.component.html',
 })
@@ -123,6 +132,15 @@ export class DeliveryFormComponent implements OnInit {
   });
 
   readonly sellerError = computed(() => this.fieldErrors().sellerId ?? null);
+  // El error y su estado llegan al combobox de Select, que es un span y no el contenedor.
+  readonly sellerPassThrough = computed<SelectPassThrough>(() => ({
+    label: {
+      'aria-describedby': this.sellerError() ? 'seller-error' : undefined,
+      'aria-invalid': this.sellerError() ? 'true' : undefined,
+    },
+  }));
+  readonly sellerMotionOptions = SELLER_SELECT_MOTION_OPTIONS;
+  readonly sellerPanelStyle = SELLER_SELECT_PANEL_STYLE;
   readonly productError = computed(() => this.fieldErrors().productId ?? null);
   readonly qtyError = computed(
     () =>
@@ -147,7 +165,7 @@ export class DeliveryFormComponent implements OnInit {
       this.holdingStatus() !== 'error',
   );
 
-  private readonly sellerSelect = viewChild<ElementRef<HTMLSelectElement>>('sellerSelect');
+  private readonly sellerSelect = viewChild<Select>('sellerSelect');
   private readonly qtyInput = viewChild<ElementRef<HTMLInputElement>>('qtyInput');
   private readonly unitCostInput = viewChild<ElementRef<HTMLInputElement>>('unitCostInput');
   private readonly unitPriceInput = viewChild<ElementRef<HTMLInputElement>>('unitPriceInput');
@@ -301,14 +319,21 @@ export class DeliveryFormComponent implements OnInit {
   }
 
   private focusFirstError(errors: Partial<Record<FieldWithError, string>>): void {
-    const first = errors.sellerId
-      ? this.sellerSelect()
-      : errors.qty
-        ? this.qtyInput()
-        : errors.unitCostWithShipping
-          ? this.unitCostInput()
-          : this.unitPriceInput();
+    if (errors.sellerId) {
+      this.sellerSelect()?.focus();
+      return;
+    }
+    const first = errors.qty
+      ? this.qtyInput()
+      : errors.unitCostWithShipping
+        ? this.unitCostInput()
+        : this.unitPriceInput();
     first?.nativeElement.focus();
+  }
+
+  // Select usa un span como combobox: la etiqueta necesita esta acción para conservar el foco al pulsarla.
+  focusSeller(): void {
+    if (!this.saving()) this.sellerSelect()?.focus();
   }
 
   // Mensaje del campo de dinero: primero el más específico (decimales, monto grande), después

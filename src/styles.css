@@ -102,12 +102,8 @@
 
 }
 
-/* Base visual compartida (T-11): las utilidades de cada plantilla pueden ajustar tamaños,
-   separación o estados de error sin volver a definir el aspecto de todos los controles. */
-@utility field-input {
-  @apply h-[52px] min-w-0 rounded-xl border border-line-strong bg-white px-3.5 text-base text-ink placeholder:text-muted transition-colors duration-200 focus:shadow-[0_0_0_4px] focus:shadow-accent/15 focus:outline-3 focus:outline-offset-2 focus:outline-accent disabled:cursor-not-allowed disabled:bg-disabled-input disabled:text-faint motion-reduce:transition-none;
-}
-
+/* Las etiquetas de campo siguen siendo una utilidad; los controles son `pInputText` y `p-select`
+   (M3-t03) y su borde de error está en la sección «PrimeNG: campos». */
 @utility field-label {
   @apply text-sm font-semibold text-ink;
 }
@@ -147,6 +143,15 @@
 
 .p-confirmdialog .p-dialog-content {
   align-items: flex-start;
+}
+
+/* PrimeNG: campos (M3-t03). Borde de error de 2 px para todo campo con `[invalid]`; ninguna
+   plantilla lo repite. Capa `primeng`: las utilidades locales de Tailwind siguen ganando. */
+@layer primeng {
+  .p-inputtext.p-invalid,
+  .p-select.p-invalid {
+    border-width: 2px;
+  }
 }
 
 /* PrimeNG: botones (M3-t02). Lo que el preset de Aura no expone como tokens: estado

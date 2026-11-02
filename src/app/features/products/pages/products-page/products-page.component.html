@@ -108,12 +108,13 @@
         <path d="m21 21-4.3-4.3"></path>
       </svg>
       <input
+        pInputText
         id="product-search"
         type="search"
         placeholder="Buscar por nombre"
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
-        class="field-input w-full pl-11"
+        class="h-[52px] min-w-0 w-full pl-11"
       />
     </div>
 

@@ -1,16 +1,17 @@
 import { ButtonDirective } from 'primeng/button';
 import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { DataView } from 'primeng/dataview';
-import { map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { PhonePipe } from '@shared/pipes/phone.pipe';
+import { MODAL_RETURN_PATH } from '@shared/constants/modal.constants';
 import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
-import { deliveryModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, openModalPath, returnModalLink } from '@shared/utils/modal-links';
 import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
 import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
@@ -79,6 +80,21 @@ export class SellerDetailPageComponent {
   );
   readonly deliveryLink = computed(() => deliveryModalLink({ sellerId: this.sellerId() }));
   readonly returnLink = computed(() => returnModalLink(this.sellerId()));
+
+  // El botón naranja (principal) es el de la ventana abierta: «Retirar» mientras su ventana está
+  // abierta y «Dejar» en cualquier otro caso (sin ventana o con la de «Dejar»).
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+  readonly returnActive = computed(
+    () => openModalPath(this.router.parseUrl(this.currentUrl())) === MODAL_RETURN_PATH,
+  );
+  readonly deliverySeverity = computed(() => (this.returnActive() ? 'secondary' : null));
+  readonly returnSeverity = computed(() => (this.returnActive() ? null : 'secondary'));
 
   // «Últimos retiros» (HU-12) se carga igual que las entregas, aparte y sin esconder el detalle.
   readonly returnsResource = rxResource({

@@ -1,4 +1,7 @@
 import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import type { SelectPassThrough } from 'primeng/types/select';
 import {
   Component,
   DestroyRef,
@@ -15,11 +18,13 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { initialsOf } from '@shared/utils/initials';
+import { normalizeText } from '@shared/utils/normalize-text';
 import { unitsLabel } from '@shared/utils/units-label';
 import { RETURN_FIELD_MESSAGES } from '../../constants/sellers.constants';
 import type { ReturnFormValue, SellerStockLine } from '../../interfaces/seller.models';
 import { previewReturnBalances } from '../../rules/return.rules';
 import { maxUnits, wholePositiveUnits } from '../../validators/return-form.validators';
+import { PRODUCT_SELECT_MOTION_OPTIONS, PRODUCT_SELECT_PANEL_STYLE } from './return-form.constants';
 import type {
   ReturnFieldWithError,
   ReturnFormGroup,
@@ -31,7 +36,7 @@ import type {
 // página. Los errores de cada campo aparecen al enviar, no al tocar el campo, y el botón solo se
 // bloquea mientras guarda para que esos errores se puedan ver.
 @Component({
-  imports: [ButtonDirective, ReactiveFormsModule],
+  imports: [ButtonDirective, InputText, Select, ReactiveFormsModule],
   selector: 'app-return-form',
   templateUrl: './return-form.component.html',
 })
@@ -58,7 +63,11 @@ export class ReturnFormComponent implements OnInit {
   private readonly serverQtyDismissed = signal(false);
 
   readonly options = computed<ReturnProductOption[]>(() =>
-    this.stock().map((line) => ({ id: line.productId, label: `${line.name} · ${unitsLabel(line.units)}` })),
+    this.stock().map((line) => ({
+      id: line.productId,
+      label: `${line.name} · ${unitsLabel(line.units)}`,
+      searchText: normalizeText(line.name),
+    })),
   );
   readonly line = computed(
     () => this.stock().find((line) => line.productId === this.selectedProductId()) ?? null,
@@ -81,13 +90,22 @@ export class ReturnFormComponent implements OnInit {
   });
 
   readonly productError = computed(() => this.fieldErrors().productId ?? null);
+  // El error y su estado llegan al combobox de Select, que es un span y no el contenedor.
+  readonly productPassThrough = computed<SelectPassThrough>(() => ({
+    label: {
+      'aria-describedby': this.productError() ? 'product-error' : undefined,
+      'aria-invalid': this.productError() ? 'true' : undefined,
+    },
+  }));
+  readonly productMotionOptions = PRODUCT_SELECT_MOTION_OPTIONS;
+  readonly productPanelStyle = PRODUCT_SELECT_PANEL_STYLE;
   readonly qtyError = computed(
     () =>
       this.fieldErrors().qty ??
       (this.notEnoughUnits() && !this.serverQtyDismissed() ? RETURN_FIELD_MESSAGES.maxUnits : null),
   );
 
-  private readonly productSelect = viewChild<ElementRef<HTMLSelectElement>>('productSelect');
+  private readonly productSelect = viewChild<Select>('productSelect');
   private readonly qtyInput = viewChild<ElementRef<HTMLInputElement>>('qtyInput');
 
   // --- Ciclo de vida ---
@@ -156,10 +174,16 @@ export class ReturnFormComponent implements OnInit {
     const errors = this.collectErrors();
     this.fieldErrors.set(errors);
     if (Object.keys(errors).length > 0) {
-      (errors.productId ? this.productSelect() : this.qtyInput())?.nativeElement.focus();
+      if (errors.productId) this.productSelect()?.focus();
+      else this.qtyInput()?.nativeElement.focus();
       return;
     }
     this.submitted.emit(this.prepareSavePayload());
+  }
+
+  // Select usa un span como combobox: la etiqueta necesita esta acción para conservar el foco al pulsarla.
+  focusProduct(): void {
+    if (!this.saving()) this.productSelect()?.focus();
   }
 
   // Payload con los nombres que espera ReturnSaveService: producto y piezas como números.

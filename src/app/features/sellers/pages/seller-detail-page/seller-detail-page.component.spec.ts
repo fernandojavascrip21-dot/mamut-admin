@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -42,6 +43,9 @@ const RETURNS: ReturnHistoryItem[] = [
   { requestId: 'rt-1', createdAt: '2026-10-31T10:00:00.000Z', productId: 2, name: 'Proteína Whey 2 lb', image: null, qty: 2 },
   { requestId: null, createdAt: '2026-10-30T10:00:00.000Z', productId: 1, name: 'Creatina Monohidratada', image: null, qty: 1 },
 ];
+
+@Component({ template: '' })
+class ProbeComponent {}
 
 describe('SellerDetailPageComponent', () => {
   let fixture: ComponentFixture<SellerDetailPageComponent>;
@@ -223,6 +227,36 @@ describe('SellerDetailPageComponent', () => {
       expect(link.textContent?.trim()).toBe('Retirar producto');
       expect(link.getAttribute('href')).toBe(`/admin/(ventana:retirar/${ID})`);
       expect(fixture.nativeElement.querySelector('a.deliver')).not.toBeNull();
+    });
+
+    it('el naranja es «Dejar» sin ventana y pasa a «Retirar» mientras su ventana está abierta', async () => {
+      await load(SELLER);
+      // Navegación real con rutas mínimas: el spy de beforeEach no cambia la URL.
+      vi.mocked(router.navigateByUrl).mockRestore();
+      router.resetConfig([
+        {
+          path: 'admin',
+          component: ProbeComponent,
+          children: [
+            { path: 'dejar', outlet: 'ventana', component: ProbeComponent },
+            { path: 'retirar/:id', outlet: 'ventana', component: ProbeComponent },
+          ],
+        },
+      ]);
+      const isPrimary = (selector: string) =>
+        !(fixture.nativeElement.querySelector(selector) as HTMLElement).classList.contains('p-button-secondary');
+      expect(isPrimary('a.deliver')).toBe(true);
+      expect(isPrimary('a.return')).toBe(false);
+
+      await router.navigateByUrl(`/admin/(ventana:retirar/${ID})`);
+      await settle();
+      expect(isPrimary('a.deliver')).toBe(false);
+      expect(isPrimary('a.return')).toBe(true);
+
+      await router.navigateByUrl(`/admin/(ventana:dejar;vendedor=${ID})`);
+      await settle();
+      expect(isPrimary('a.deliver')).toBe(true);
+      expect(isPrimary('a.return')).toBe(false);
     });
 
     it('sin piezas no muestra «Retirar producto» y «Dejar producto» sigue disponible', async () => {

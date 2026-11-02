@@ -7,7 +7,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { filter, firstValueFrom, take } from 'rxjs';
 import { ModalPanelComponent } from '../components/modal-panel/modal-panel.component';
 import { modalSavingGuard } from '../guards/modal-saving.guard';
-import { closeModalLink, deliveryModalLink, returnModalLink } from './modal-links';
+import { closeModalLink, deliveryModalLink, openModalPath, returnModalLink } from './modal-links';
 
 @Component({ template: '<input aria-label="Búsqueda" />' })
 class ProbeComponent {}
@@ -110,5 +110,18 @@ describe('Enlaces de ventanas', () => {
     modal.saving.set(false);
     expect(await router.navigate(closeModalLink())).toBe(true);
     expect(router.url).toBe('/admin/vendedores/v-1');
+  });
+});
+
+describe('openModalPath', () => {
+  const tree = (url: string) => TestBed.inject(Router).parseUrl(url);
+
+  it('devuelve el nombre de la ventana abierta', () => {
+    expect(openModalPath(tree('/admin/(productos//ventana:dejar;vendedor=v-1)'))).toBe('dejar');
+    expect(openModalPath(tree('/admin/(vendedores/v-1//ventana:retirar/v-1)'))).toBe('retirar');
+  });
+
+  it('devuelve null si no hay ventana', () => {
+    expect(openModalPath(tree('/admin/vendedores/v-1'))).toBeNull();
   });
 });

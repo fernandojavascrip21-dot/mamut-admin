@@ -122,7 +122,9 @@ describe('ReturnUnitsPageComponent', () => {
     await load();
     expect(root().querySelector('[role="dialog"] h2')!.textContent).toContain('Retirar producto');
     expect(root().querySelector('.seller-fixed')!.textContent).toContain('Luis Prueba');
-    expect(root().querySelectorAll('#product option')).toHaveLength(2);
+    root().querySelector<HTMLElement>('p-select')!.click();
+    await settle();
+    expect(root().querySelectorAll('li.p-select-option')).toHaveLength(1);
     expect(viewing.select).toHaveBeenCalledWith(ID);
   });
 

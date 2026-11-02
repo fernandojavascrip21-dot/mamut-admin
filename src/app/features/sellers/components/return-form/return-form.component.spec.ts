@@ -46,10 +46,46 @@ describe('ReturnFormComponent', () => {
     fixture.detectChanges();
   };
 
-  it('el vendedor va fijo y la lista solo ofrece lo que tiene, con sus piezas', () => {
+  // El selector es un Select de PrimeNG: se abre con un clic y las opciones salen de su lista.
+  const settle = async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+  const openSelect = async () => {
+    root().querySelector<HTMLElement>('p-select')!.click();
+    await settle();
+  };
+  const optionLabels = () =>
+    Array.from(root().querySelectorAll('li.p-select-option')).map((o) => o.textContent!.trim());
+
+  it('el vendedor va fijo y la lista solo ofrece lo que tiene, con sus piezas', async () => {
     expect(root().querySelector('.seller-fixed')!.textContent).toContain('Luis');
-    const options = Array.from(root().querySelectorAll('#product option')).map((o) => o.textContent!.trim());
-    expect(options).toEqual(['Elige un producto', 'Proteína Whey 2 lb · 6 piezas', 'Creatina 300 g · 1 pieza']);
+    await openSelect();
+    expect(optionLabels()).toEqual(['Proteína Whey 2 lb · 6 piezas', 'Creatina 300 g · 1 pieza']);
+  });
+
+  it('el filtro del selector encuentra «Proteína» escribiendo «proteina»', async () => {
+    await openSelect();
+    const input = root().querySelector<HTMLInputElement>('input.p-select-filter')!;
+    input.value = 'proteina';
+    input.dispatchEvent(new Event('input'));
+    await settle();
+    expect(optionLabels()).toEqual(['Proteína Whey 2 lb · 6 piezas']);
+  });
+
+  it('elegir un producto de la lista muestra su tarjeta', async () => {
+    await openSelect();
+    root().querySelector<HTMLElement>('li.p-select-option')!.click();
+    await settle();
+    expect(root().querySelector('.product-card')!.textContent).toContain('Proteína Whey 2 lb');
+  });
+
+  it('enviar sin producto deja el foco en el selector', () => {
+    const select = fixture.debugElement.query((d) => d.name === 'p-select').componentInstance;
+    const focus = vi.spyOn(select, 'focus');
+    submit();
+    expect(focus).toHaveBeenCalled();
   });
 
   it('sin producto no hay tarjeta ni vista previa', () => {

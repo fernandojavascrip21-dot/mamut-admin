@@ -1,4 +1,5 @@
 import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { Component, DestroyRef, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -24,7 +25,7 @@ import { LoginBrandPanelComponent } from './ui/login-brand-panel/login-brand-pan
 // Pantalla dividida: el panel de la marca (ui/login-brand-panel) es decorativo; aquí vive el
 // formulario con su lógica.
 @Component({
-  imports: [ButtonDirective, ReactiveFormsModule, LoginBrandPanelComponent],
+  imports: [ButtonDirective, InputText, ReactiveFormsModule, LoginBrandPanelComponent],
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
 })
