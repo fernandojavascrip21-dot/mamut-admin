@@ -14,4 +14,5 @@ export type ReturnFieldWithError = 'productId' | 'qty';
 export interface ReturnProductOption {
   id: number;
   label: string;
+  searchText: string; // nombre normalizado (sin mayúsculas ni acentos) para el filtro del p-select
 }

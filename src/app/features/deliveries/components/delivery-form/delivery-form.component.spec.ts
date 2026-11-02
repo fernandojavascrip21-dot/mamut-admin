@@ -105,6 +105,15 @@ describe('DeliveryFormComponent', () => {
     expect(picked).toEqual(['v-2']);
   });
 
+  it('enviar sin vendedor deja el foco en el selector de vendedor', () => {
+    render();
+    const select = fixture.debugElement.query((d) => d.name === 'p-select').componentInstance;
+    const focus = vi.spyOn(select, 'focus');
+    type('#qty', '2');
+    submit();
+    expect(focus).toHaveBeenCalled();
+  });
+
   it('sin producto muestra el buscador; con «fixedProduct» no ofrece «Cambiar»', () => {
     render({ product: null, holding: null, holdingStatus: 'idle' });
     expect(el().querySelector('app-delivery-product-picker')).not.toBeNull();

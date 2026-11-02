@@ -12,23 +12,32 @@
 
   <!-- Producto: solo lo que el vendedor tiene -->
   <div class="flex flex-col gap-1.5">
-    <label for="product" class="field-label">Producto</label>
-    <select
-      id="product"
+    <label id="product-label" for="product" class="field-label" (click)="focusProduct()">Producto</label>
+    <p-select
+      inputId="product"
+      ariaLabelledBy="product-label"
       name="product"
       #productSelect
       formControlName="productId"
-      [attr.aria-invalid]="productError() ? 'true' : null"
-      [attr.aria-describedby]="productError() ? 'product-error' : null"
-      [class]="
-        'field-input ' + (productError() ? 'border-2 border-danger' : 'border border-line-strong')
-      "
+      [options]="options()"
+      optionLabel="label"
+      optionValue="id"
+      [filter]="true"
+      filterBy="searchText"
+      filterPlaceholder="Buscar por nombre"
+      placeholder="Elige un producto"
+      [showClear]="false"
+      [invalid]="!!productError()"
+      [pt]="productPassThrough()"
+      appendTo="body"
+      [panelStyle]="productPanelStyle"
+      [motionOptions]="productMotionOptions"
+      class="h-[52px] min-w-0 w-full"
     >
-      <option [ngValue]="null">Elige un producto</option>
-      @for (option of options(); track option.id) {
-        <option [ngValue]="option.id">{{ option.label }}</option>
-      }
-    </select>
+      <ng-template #emptyfilter>
+        <span class="empty text-sm text-muted">No hay productos con ese nombre.</span>
+      </ng-template>
+    </p-select>
     @if (productError()) {
       <p id="product-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
         {{ productError() }}
@@ -66,6 +75,7 @@
   <div class="flex flex-col gap-1.5">
     <label for="qty" class="field-label">Piezas a retirar</label>
     <input
+      pInputText
       id="qty"
       name="qty"
       type="text"
@@ -75,9 +85,8 @@
       formControlName="qty"
       [attr.aria-invalid]="qtyError() ? 'true' : null"
       [attr.aria-describedby]="qtyError() ? 'qty-error' : null"
-      [class]="
-        'field-input font-mono ' + (qtyError() ? 'border-2 border-danger' : 'border border-line-strong')
-      "
+      [invalid]="!!qtyError()"
+      class="h-[52px] min-w-0 font-mono"
     />
     @if (qtyError()) {
       <p id="qty-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">

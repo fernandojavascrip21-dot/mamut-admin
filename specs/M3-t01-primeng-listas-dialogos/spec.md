@@ -45,7 +45,7 @@ La migración completa a PrimeNG no cabe en un spec. Esta lista es el registro v
 | 4 | Diálogos de confirmación (`ConfirmDialog`) | ✅ Hecho en código (revisión visual pendiente) | T-01 (este) |
 | 5 | Toast (`Toast` + `MessageService`) | ✅ Hecho en código (revisión visual pendiente) | T-01 (este) |
 | 5b | Botones y enlaces `btn-*` a `pButton` (17 plantillas) | ✅ Hecho | M3-t02 |
-| 6 | Formularios: inputs (precio/costo con `money.ts`, teléfono, buscador) y los `<select>` de «Dejar»/«Retirar» | ❌ Pendiente | M3-t03 |
+| 6 | Formularios: inputs (precio/costo con `money.ts`, teléfono, buscador) y los `<select>` de «Dejar»/«Retirar» | ✅ Hecho en código (revisión visual pendiente) | M3-t03 |
 | 7 | Navbar, menú lateral y barra «Viendo» | ❌ Pendiente | Spec propio |
 | 8 | Tarjetas de «Productos» y «Mis vendedores» y shells (`admin-shell`/`seller-shell`) | ❌ Pendiente | Spec propio |
 | 9 | Pop-up `ventana` a `Dialog` (solo si tramo 8 deja el pop-up propio insostenible) | ❌ Pendiente | Spec propio |
