@@ -1,4 +1,5 @@
 import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -15,7 +16,7 @@ import type { ProductsState } from '../../models/products-page.models';
 // y catálogo vacío. La lista completa se pide una sola vez al entrar (o con «Reintentar»): ver
 // specs/M1-hu05-ver-y-buscar-productos/spec.md §2 y §5.
 @Component({
-  imports: [RouterLink, ButtonDirective, ProductCardComponent, ProductCardSkeletonComponent],
+  imports: [RouterLink, ButtonDirective, InputText, ProductCardComponent, ProductCardSkeletonComponent],
   selector: 'app-products-page',
   templateUrl: './products-page.component.html',
 })
