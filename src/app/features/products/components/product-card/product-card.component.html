@@ -50,9 +50,11 @@
   @if (canDeliver()) {
     <div class="border-t border-line px-2 py-1">
       <a
+        pButton
+        [text]="true"
         [routerLink]="deliveryLink()"
         [attr.aria-label]="'Dejar ' + product().name + ' a un vendedor'"
-        class="deliver btn-ghost h-11 w-full justify-start text-sm"
+        class="deliver h-11 w-full justify-start text-sm"
       >
         Dejar a vendedor
       </a>

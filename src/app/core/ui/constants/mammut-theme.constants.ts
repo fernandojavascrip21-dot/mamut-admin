@@ -152,7 +152,7 @@ export const MAMMUT_THEME = definePreset({
     inputtext: AuraInputText,
     select: AuraSelect,
     checkbox: AuraCheckbox,
-    // El piloto solo usa botones primarios y secundarios; omitir las otras severidades de Aura.
+    // Solo se usan las severidades primaria, secundaria y de peligro (más `text` y `outlined.danger`); se omiten las demás de Aura.
     button: {
       root: {
         borderRadius: '{form.field.border.radius}',
@@ -204,6 +204,24 @@ export const MAMMUT_THEME = definePreset({
           hoverColor: 'var(--color-white)',
           activeColor: 'var(--color-white)',
           focusRing: { color: 'var(--color-danger)', shadow: 'none' },
+        },
+      },
+      // Botón «fantasma» (sustituye a btn-ghost): el óxido conserva contraste sobre crema;
+      // accent solo llega a 4.20:1.
+      text: {
+        primary: {
+          color: 'var(--color-accent-hover)',
+          hoverBackground: 'var(--color-page)',
+          activeBackground: 'var(--color-page)',
+        },
+      },
+      // Peligro con borde («Cerrar sesión», «Reintentar» de los avisos de error).
+      outlined: {
+        danger: {
+          color: 'var(--color-danger)',
+          borderColor: 'var(--color-danger)',
+          hoverBackground: 'var(--color-danger-bg)',
+          activeBackground: 'var(--color-danger-bg)',
         },
       },
     },

@@ -104,19 +104,6 @@
 
 /* Base visual compartida (T-11): las utilidades de cada plantilla pueden ajustar tamaños,
    separación o estados de error sin volver a definir el aspecto de todos los controles. */
-@utility btn-primary {
-  @apply inline-flex h-[52px] min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-accent px-5 text-[17px] font-bold text-white shadow-lg shadow-accent/25 transition-[color,background-color,transform,scale] duration-200 hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:shadow-none disabled:active:scale-100 motion-reduce:scale-none motion-reduce:transition-none motion-reduce:active:scale-none;
-}
-
-@utility btn-secondary {
-  @apply inline-flex h-[52px] min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-line-strong bg-white px-5 text-[15px] font-bold text-ink transition-[color,background-color,border-color,transform,scale] duration-200 hover:bg-page active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:active:scale-100 motion-reduce:scale-none motion-reduce:transition-none motion-reduce:active:scale-none;
-}
-
-/* El óxido conserva contraste en blanco y crema; accent sobre crema solo llega a 4.20:1. */
-@utility btn-ghost {
-  @apply inline-flex h-[52px] min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border-0 bg-transparent px-4 text-sm font-bold text-accent-hover transition-[color,background-color,transform,scale] duration-200 hover:bg-page active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-muted disabled:active:scale-100 motion-reduce:scale-none motion-reduce:transition-none motion-reduce:active:scale-none;
-}
-
 @utility field-input {
   @apply h-[52px] min-w-0 rounded-xl border border-line-strong bg-white px-3.5 text-base text-ink placeholder:text-muted transition-colors duration-200 focus:shadow-[0_0_0_4px] focus:shadow-accent/15 focus:outline-3 focus:outline-offset-2 focus:outline-accent disabled:cursor-not-allowed disabled:bg-disabled-input disabled:text-faint motion-reduce:transition-none;
 }
@@ -160,6 +147,65 @@
 
 .p-confirmdialog .p-dialog-content {
   align-items: flex-start;
+}
+
+/* PrimeNG: botones (M3-t02). Lo que el preset de Aura no expone como tokens: estado
+   deshabilitado, brillo del botón primario y pulsación. Está en la capa `primeng`, así que las
+   utilidades locales de Tailwind (h-11, px-4…) siguen ganando. */
+@layer primeng {
+  /* PrimeNG trae `.p-button:disabled { cursor: default }` en esta misma capa y gana por orden;
+     con el tipo de elemento delante esta regla tiene más especificidad. */
+  button.p-button:disabled {
+    cursor: not-allowed;
+  }
+
+  .p-button:disabled {
+    opacity: 1;
+    border-color: var(--color-disabled);
+    background: var(--color-disabled);
+    color: var(--color-muted);
+    box-shadow: none;
+  }
+
+  .p-button-text:disabled {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .p-button-outlined:disabled {
+    background: var(--color-disabled);
+  }
+
+  .p-button:not(
+      .p-button-text,
+      .p-button-outlined,
+      .p-button-secondary,
+      .p-button-danger,
+      :disabled
+    ) {
+    box-shadow:
+      0 10px 15px -3px color-mix(in srgb, var(--color-accent) 25%, transparent),
+      0 4px 6px -4px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  }
+
+  .p-button {
+    transition-property: color, background-color, border-color, transform;
+    cursor: pointer;
+  }
+
+  .p-button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .p-button {
+      transition: none;
+    }
+
+    .p-button:active:not(:disabled) {
+      transform: none;
+    }
+  }
 }
 
 @layer base {

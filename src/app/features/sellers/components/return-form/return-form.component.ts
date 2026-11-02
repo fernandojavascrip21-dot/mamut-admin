@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import {
   Component,
   DestroyRef,
@@ -30,7 +31,7 @@ import type {
 // página. Los errores de cada campo aparecen al enviar, no al tocar el campo, y el botón solo se
 // bloquea mientras guarda para que esos errores se puedan ver.
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ButtonDirective, ReactiveFormsModule],
   selector: 'app-return-form',
   templateUrl: './return-form.component.html',
 })

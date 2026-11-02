@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ import { DeliveriesService } from '../../services/deliveries.service';
 // y no de un estado de navegación, para que sobreviva a una recarga y se pueda abrir desde
 // «Últimas entregas» del detalle del vendedor.
 @Component({
-  imports: [RouterLink, DeliverySummaryComponent],
+  imports: [ButtonDirective, RouterLink, DeliverySummaryComponent],
   selector: 'app-delivery-summary-page',
   templateUrl: './delivery-summary-page.component.html',
 })

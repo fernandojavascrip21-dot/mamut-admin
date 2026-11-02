@@ -22,9 +22,9 @@
     <div class="flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
       <p class="m-0 text-[15px] font-bold">No pudimos cargar los datos de la entrega</p>
       <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-      <button
+      <button pButton severity="secondary"
         type="button"
-        class="retry btn-secondary mt-2 h-11 px-4 text-sm"
+        class="retry mt-2 h-11 px-4 text-sm"
         (click)="retryLoad()"
       >
         Reintentar
@@ -34,7 +34,7 @@
     <div class="flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
       <p class="m-0 text-[15px] font-bold">No encontramos el producto o al vendedor</p>
       <p class="m-0 text-sm leading-snug">Puede que ya no esté disponible.</p>
-      <button type="button" class="close-notfound btn-secondary mt-2 h-11 px-4 text-sm" (click)="close()">
+      <button pButton severity="secondary" type="button" class="close-notfound mt-2 h-11 px-4 text-sm" (click)="close()">
         Cerrar
       </button>
     </div>
@@ -45,9 +45,9 @@
         <p class="m-0 text-sm leading-snug">
           Revisa tu conexión. Si ya se había registrado, reintentar no la duplica.
         </p>
-        <button
+        <button pButton severity="secondary"
           type="button"
-          class="retry btn-secondary mt-1 h-11 px-4 text-sm"
+          class="retry mt-1 h-11 px-4 text-sm"
           (click)="retrySave()"
         >
           Reintentar

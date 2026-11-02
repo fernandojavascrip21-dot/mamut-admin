@@ -1,5 +1,5 @@
 <div class="flex w-full flex-col px-5 py-6">
-  <a routerLink="/admin/vendedores" class="btn-ghost w-fit px-0">‹ Vendedores</a>
+  <a pButton [text]="true" routerLink="/admin/vendedores" class="h-[52px] text-sm w-fit px-0">‹ Vendedores</a>
   @if (state() === 'loading') {
     <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
       <svg
@@ -28,11 +28,11 @@
       </p>
       @if (state() === 'error') {
         <p class="m-0 text-sm leading-snug">Revisa tu conexión e inténtalo de nuevo.</p>
-        <button type="button" class="retry btn-secondary mt-2 h-11 px-4 text-sm" (click)="retry()">
+        <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry()">
           Reintentar
         </button>
       } @else {
-        <a routerLink="/admin/vendedores" class="btn-secondary mt-2 h-11 px-4 text-sm"
+        <a pButton severity="secondary" routerLink="/admin/vendedores" class="mt-2 h-11 px-4 text-sm"
           >Volver a Mis vendedores</a
         >
       }
@@ -56,14 +56,14 @@
     </section>
 
     <div class="mt-4 grid gap-3" [class.grid-cols-2]="canReturn()">
-      <a
+      <a pButton
         [routerLink]="deliveryLink()"
-        class="deliver btn-primary"
+        class="h-[52px] text-[17px] deliver"
       >
         Dejar producto
       </a>
       @if (canReturn()) {
-        <a [routerLink]="returnLink()" class="return btn-secondary">
+        <a pButton severity="secondary" [routerLink]="returnLink()" class="h-[52px] text-[15px] return">
           Retirar producto
         </a>
       }
@@ -97,9 +97,9 @@
     } @else if (historyState() === 'error') {
       <div class="history-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
         <p class="m-0 text-sm font-bold">No pudimos cargar las entregas</p>
-        <button
+        <button pButton severity="secondary"
           type="button"
-          class="retry-history btn-secondary h-11 px-4 text-sm"
+          class="retry-history h-11 px-4 text-sm"
           (click)="retryHistory()"
         >
           Reintentar
@@ -130,9 +130,9 @@
     } @else if (returnsState() === 'error') {
       <div class="returns-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
         <p class="m-0 text-sm font-bold">No pudimos cargar los retiros</p>
-        <button
+        <button pButton severity="secondary"
           type="button"
-          class="retry-returns btn-secondary h-11 px-4 text-sm"
+          class="retry-returns h-11 px-4 text-sm"
           (click)="retryReturns()"
         >
           Reintentar

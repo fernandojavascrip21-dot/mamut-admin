@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -33,7 +34,7 @@ import { DeliverySaveService } from '../../services/delivery-save.service';
 // producto (`producto`) y el vendedor (`vendedor`). Al guardar avisa con un toast, le dice a las
 // páginas de atrás que el inventario cambió y se cierra; el resumen se abre desde «Últimas entregas».
 @Component({
-  imports: [ModalPanelComponent, DeliveryFormComponent],
+  imports: [ButtonDirective, ModalPanelComponent, DeliveryFormComponent],
   providers: [DeliverySaveService],
   selector: 'app-create-delivery-page',
   templateUrl: './create-delivery-page.component.html',

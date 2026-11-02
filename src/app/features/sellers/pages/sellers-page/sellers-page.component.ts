@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, computed, effect, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -15,7 +16,7 @@ import { SellersService } from '../../services/sellers.service';
 // specs/M2-hu09-ver-mis-vendedores/spec.md §2 y §5. Con un vendedor en la barra «Viendo» se abre
 // su detalle (HU-10, como el mockup 04): la lista se ve con «Yo · bodega».
 @Component({
-  imports: [RouterLink, SellerRowComponent, SellerRowSkeletonComponent],
+  imports: [ButtonDirective, RouterLink, SellerRowComponent, SellerRowSkeletonComponent],
   selector: 'app-sellers-page',
   templateUrl: './sellers-page.component.html',
 })

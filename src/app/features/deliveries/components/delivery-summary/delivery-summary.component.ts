@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -16,7 +17,7 @@ import {
 // bodega y el vendedor, y con qué precio y costo. Presentacional: los enlaces de «Listo» y «Dejar
 // otro producto» los arma la página.
 @Component({
-  imports: [CurrencyPipe, RouterLink],
+  imports: [ButtonDirective, CurrencyPipe, RouterLink],
   selector: 'app-delivery-summary',
   templateUrl: './delivery-summary.component.html',
 })

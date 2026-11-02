@@ -5,11 +5,11 @@
     class="surface-card flex w-full flex-1 flex-col overflow-hidden sm:max-w-[420px] sm:flex-none"
   >
     <header class="flex items-center gap-3 border-b border-page/10 bg-ink p-3 text-page">
-      <button
+      <button pButton [text]="true"
         type="button"
         (click)="goBack()"
         aria-label="Volver"
-        class="btn-ghost h-11 w-11 px-0 text-page hover:bg-page/10 focus-visible:outline-page"
+        class="text-sm h-11 w-11 px-0 text-page hover:bg-page/10 focus-visible:outline-page"
       >
         <svg
           aria-hidden="true"
@@ -51,10 +51,10 @@
 
       <div class="flex-1"></div>
 
-      <button
+      <button pButton severity="danger" [outlined]="true"
         type="button"
         (click)="askLogout()"
-        class="btn-secondary h-[54px] gap-2 border-danger text-[17px] text-danger hover:bg-danger-bg"
+        class="h-[54px] gap-2 text-[17px]"
       >
         <svg
           aria-hidden="true"

@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import {
   Component, DestroyRef, ElementRef, OnInit, Signal, afterRenderEffect, effect, inject, signal, viewChild,
 } from '@angular/core';
@@ -20,7 +21,7 @@ import type { CreateSellerState, SellerField } from '../../models/create-seller-
 // para entrar (el «usuario», spec T-10) y contraseña temporal. Termina en «Vendedor dado de
 // alta», desde donde se puede dar de alta otro sin recargar.
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, PhonePipe],
+  imports: [ButtonDirective, ReactiveFormsModule, RouterLink, PhonePipe],
   providers: [SellerSaveService],
   selector: 'app-create-seller-page',
   templateUrl: './create-seller-page.component.html',

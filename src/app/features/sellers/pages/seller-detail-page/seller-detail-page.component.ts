@@ -1,3 +1,4 @@
+import { ButtonDirective } from 'primeng/button';
 import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -25,7 +26,7 @@ import { SellersService } from '../../services/sellers.service';
 // abrir el detalle elige a ese vendedor, y elegir a otro en la barra abre el suyo (o la lista, con
 // «Yo · bodega»).
 @Component({
-  imports: [
+  imports: [ButtonDirective, 
     RouterLink,
     DataView,
     PhonePipe,
