@@ -5,8 +5,9 @@ import { ProductFormComponent } from '../../components/product-form/product-form
 import { hasProductChanges, saveFailureMessage } from '../../rules/product.rules';
 import { ProductSaveService } from '../../services/product-save.service';
 import { ProductsService } from '../../services/products.service';
+import { DISCARD_CONFIRMATION } from '../../constants/edit-product-page.constants';
 import { ToastService } from '@core/toast/toast.service';
-import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmService } from '@core/confirm/confirm.service';
 import { isNotFound } from '@shared/utils/http-errors';
 import type { HasUnsavedChanges } from '../../interfaces/unsaved-changes.models';
 import type { Category, Product, ProductFormValue, SaveResult } from '../../interfaces/product.models';
@@ -17,7 +18,7 @@ import type { EditProductState, SaveState } from '../../models/edit-product-page
 // cambios regresa sin llamar al backend, y salir con cambios pregunta «¿Descartar los cambios?»
 // (unsavedChangesGuard y beforeunload).
 @Component({
-  imports: [RouterLink, ProductFormComponent, ConfirmDialogComponent],
+  imports: [RouterLink, ProductFormComponent],
   providers: [ProductSaveService],
   selector: 'app-edit-product-page',
   templateUrl: './edit-product-page.component.html',
@@ -27,6 +28,7 @@ export class EditProductPageComponent implements HasUnsavedChanges {
   private readonly productsService = inject(ProductsService);
   private readonly saveService = inject(ProductSaveService);
   private readonly toastService = inject(ToastService);
+  private readonly confirm = inject(ConfirmService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -61,13 +63,11 @@ export class EditProductPageComponent implements HasUnsavedChanges {
 
   readonly nameTaken = signal(false);
   readonly categoryMissing = signal(false);
-  readonly confirmingDiscard = signal(false);
   private readonly formDirty = signal(false);
   private readonly saved = signal(false);
   private readonly productForm = viewChild(ProductFormComponent);
 
   private lastValue: ProductFormValue | null = null;
-  private discardResolver: ((discard: boolean) => void) | null = null;
   private discardPromise: Promise<boolean> | null = null;
 
   // Botón «Reintentar» del error de carga: vuelve a pedir el producto.
@@ -112,19 +112,11 @@ export class EditProductPageComponent implements HasUnsavedChanges {
     return hasProductChanges(original, form.prepareSavePayload());
   }
 
-  // El guard espera esta promesa; el diálogo conserva lo escrito si se cancela la salida.
+  // El guard espera esta promesa; cancelar conserva lo escrito. Mientras el diálogo sigue
+  // abierto, una segunda salida comparte la misma promesa en vez de abrir otra confirmación.
   confirmDiscard(): Promise<boolean> {
-    if (this.discardPromise) return this.discardPromise;
-    this.discardPromise = new Promise<boolean>((resolve) => (this.discardResolver = resolve));
-    this.confirmingDiscard.set(true);
+    this.discardPromise ??= this.confirm.ask(DISCARD_CONFIRMATION).finally(() => (this.discardPromise = null));
     return this.discardPromise;
-  }
-
-  closeDialog(discard: boolean): void {
-    this.confirmingDiscard.set(false);
-    this.discardResolver?.(discard);
-    this.discardResolver = null;
-    this.discardPromise = null;
   }
 
   onBeforeUnload(event: BeforeUnloadEvent): void {

@@ -72,15 +72,4 @@
       (dirtyChange)="onDirtyChange($event)"
     />
   }
-  @if (confirmingDiscard()) {
-    <app-confirm-dialog
-      title="¿Descartar los cambios?"
-      message="Lo que cambiaste no se va a guardar."
-      confirmLabel="Descartar"
-      cancelLabel="Seguir editando"
-      tone="danger"
-      (confirmed)="closeDialog(true)"
-      (cancelled)="closeDialog(false)"
-    />
-  }
 </div>

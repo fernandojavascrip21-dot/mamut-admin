@@ -128,6 +128,16 @@ describe('SellerDetailPageComponent', () => {
     expect(lines[1].textContent).toContain('4 piezas');
   });
 
+  it('el stock, las entregas y los retiros se muestran con la lista de PrimeNG (DataView)', async () => {
+    await load(SELLER, HISTORY, RETURNS);
+
+    const views = Array.from(fixture.nativeElement.querySelectorAll('p-dataview')) as HTMLElement[];
+    expect(views).toHaveLength(3);
+    expect(views[0].querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+    expect(views[1].querySelectorAll('app-delivery-history-line')).toHaveLength(2);
+    expect(views[2].querySelectorAll('app-return-history-line').length).toBeGreaterThan(0);
+  });
+
   it('sin productos muestra «Todavía no tiene producto.»', async () => {
     await load({ ...SELLER, units: 0, stock: [] });
 

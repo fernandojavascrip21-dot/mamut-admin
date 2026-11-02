@@ -8,9 +8,11 @@ import { Subject } from 'rxjs';
 import { EditProductPageComponent } from './edit-product-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
 import { ProductSaveService } from '../../services/product-save.service';
+import { ConfirmService } from '@core/confirm/confirm.service';
 import { ToastService } from '@core/toast/toast.service';
 import type { Product, SaveResult } from '../../interfaces/product.models';
 
+const confirm = { ask: vi.fn<ConfirmService['ask']>() };
 const CATEGORIES_URL = `${API_BASE_URL}/api/categories`;
 const PRODUCT_URL = `${API_BASE_URL}/api/products/1`;
 const CATEGORIES = [{ id: 7, name: 'Proteína', slug: 'proteina' }];
@@ -30,6 +32,7 @@ describe('EditProductPageComponent', () => {
   let toast: ToastService;
 
   async function setup(id = '1') {
+    confirm.ask.mockReset();
     saveService = {
       update: vi.fn(() => (pending = new Subject<SaveResult>())),
       reset: vi.fn(),
@@ -38,6 +41,7 @@ describe('EditProductPageComponent', () => {
       imports: [EditProductPageComponent],
       providers: [
         MessageService,
+        { provide: ConfirmService, useValue: confirm },
         provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id }) } } },
       ],
@@ -221,33 +225,37 @@ describe('EditProductPageComponent', () => {
       respond({ ok: true, product: PRODUCT });
     });
 
-    it('el diálogo de descartar resuelve cancelar (conserva lo escrito) o descartar', async () => {
+    it('confirmDiscard() pregunta «¿Descartar los cambios?» y devuelve lo que responda el usuario', async () => {
       await load();
       change('#name', 'Creatina nueva');
 
-      const cancel = fixture.componentInstance.confirmDiscard();
-      fixture.detectChanges();
-      const dialog = el<HTMLElement>('[role="alertdialog"]');
-      expect(dialog.textContent).toContain('¿Descartar los cambios?');
-      const [keepEditing] = Array.from(dialog.querySelectorAll('button')) as HTMLButtonElement[];
-      expect(keepEditing.textContent?.trim()).toBe('Seguir editando');
-      keepEditing.click();
-      fixture.detectChanges();
-      expect(await cancel).toBe(false);
-      expect(el('[role="alertdialog"]')).toBeNull();
+      confirm.ask.mockResolvedValueOnce(false);
+      expect(await fixture.componentInstance.confirmDiscard()).toBe(false);
+      expect(confirm.ask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: '¿Descartar los cambios?',
+          confirmLabel: 'Descartar',
+          cancelLabel: 'Seguir editando',
+          tone: 'danger',
+        }),
+      );
       expect(el<HTMLInputElement>('#name').value).toBe('Creatina nueva');
 
-      const discard = fixture.componentInstance.confirmDiscard();
-      fixture.detectChanges();
-      el<HTMLElement>('[role="alertdialog"]').dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
-      );
-      expect(await discard).toBe(false);
+      confirm.ask.mockResolvedValueOnce(true);
+      expect(await fixture.componentInstance.confirmDiscard()).toBe(true);
+    });
 
-      const confirm = fixture.componentInstance.confirmDiscard();
-      fixture.detectChanges();
-      (el<HTMLButtonElement>('[role="alertdialog"] button:last-child')).click();
-      expect(await confirm).toBe(true);
+    it('mientras el diálogo sigue abierto, una segunda salida comparte la misma confirmación', async () => {
+      await load();
+      let answer: (discard: boolean) => void = () => undefined;
+      confirm.ask.mockReturnValue(new Promise<boolean>((resolve) => (answer = resolve)));
+
+      const first = fixture.componentInstance.confirmDiscard();
+      const second = fixture.componentInstance.confirmDiscard();
+      expect(confirm.ask).toHaveBeenCalledTimes(1);
+      answer(true);
+      expect(await first).toBe(true);
+      expect(await second).toBe(true);
     });
   });
 

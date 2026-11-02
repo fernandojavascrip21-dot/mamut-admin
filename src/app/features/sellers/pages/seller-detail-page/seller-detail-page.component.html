@@ -74,19 +74,22 @@
       <p class="total m-0 font-mono text-lg font-bold">{{ units() }}</p>
     </div>
 
-    @if (seller.stock.length === 0) {
-      <p
-        class="empty mt-3 mb-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-      >
-        Todavía no tiene producto.
-      </p>
-    } @else {
-      <ul class="mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
-        @for (line of seller.stock; track line.productId) {
-          <li><app-seller-stock-line [line]="line" /></li>
-        }
-      </ul>
-    }
+    <p-dataview [value]="seller.stock" layout="list" class="mt-3 block">
+      <ng-template #list>
+        <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+          @for (line of seller.stock; track line.productId) {
+            <li><app-seller-stock-line [line]="line" /></li>
+          }
+        </ul>
+      </ng-template>
+      <ng-template #emptymessage>
+        <p
+          class="empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
+        >
+          Todavía no tiene producto.
+        </p>
+      </ng-template>
+    </p-dataview>
 
     <h2 class="mt-8 mb-0 text-base font-bold">Últimas entregas</h2>
     @if (historyState() === 'loading') {
@@ -102,18 +105,23 @@
           Reintentar
         </button>
       </div>
-    } @else if (history().length === 0) {
-      <p
-        class="history-empty mt-3 mb-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-      >
-        Todavía no le has dejado producto.
-      </p>
     } @else {
-      <ul class="history mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
-        @for (item of history(); track $index) {
-          <li><app-delivery-history-line [item]="item" /></li>
-        }
-      </ul>
+      <p-dataview [value]="history()" layout="list" class="mt-3 block">
+        <ng-template #list>
+          <ul class="history m-0 flex list-none flex-col gap-2.5 p-0">
+            @for (item of history(); track $index) {
+              <li><app-delivery-history-line [item]="item" /></li>
+            }
+          </ul>
+        </ng-template>
+        <ng-template #emptymessage>
+          <p
+            class="history-empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
+          >
+            Todavía no le has dejado producto.
+          </p>
+        </ng-template>
+      </p-dataview>
     }
 
     <h2 class="mt-8 mb-0 text-base font-bold">Últimos retiros</h2>
@@ -130,18 +138,23 @@
           Reintentar
         </button>
       </div>
-    } @else if (returns().length === 0) {
-      <p
-        class="returns-empty mt-3 mb-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-      >
-        Todavía no le has retirado producto.
-      </p>
     } @else {
-      <ul class="returns mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
-        @for (item of returns(); track $index) {
-          <li><app-return-history-line [item]="item" [sellerId]="seller.id" /></li>
-        }
-      </ul>
+      <p-dataview [value]="returns()" layout="list" class="mt-3 block">
+        <ng-template #list>
+          <ul class="returns m-0 flex list-none flex-col gap-2.5 p-0">
+            @for (item of returns(); track $index) {
+              <li><app-return-history-line [item]="item" [sellerId]="seller.id" /></li>
+            }
+          </ul>
+        </ng-template>
+        <ng-template #emptymessage>
+          <p
+            class="returns-empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
+          >
+            Todavía no le has retirado producto.
+          </p>
+        </ng-template>
+      </p-dataview>
     }
   }
 </div>
