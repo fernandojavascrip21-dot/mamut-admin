@@ -1,9 +1,27 @@
-@import 'tailwindcss';
+/* Fijar el orden antes de importar Tailwind evita que los estilos inyectados ganen a utilities. */
+@layer theme, base, primeng, components, utilities;
+/* Las referencias HTML/Vue del repositorio no forman parte de la interfaz de Angular. */
+@import 'tailwindcss' source('./');
+@source not './**/*.spec.ts';
+@source not './test-setup.ts';
+
+@layer primeng {
+  :root {
+    --mammut-ui-transition-duration: 200ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --mammut-ui-transition-duration: 0s;
+    }
+  }
+}
 
 /* Tokens de marca (ver mockups 01 y 14 en specs/M0-base/spec.md): se definen una vez aquí y se
    usan en todos los componentes como utilidades normales de Tailwind (bg-page, text-ink, etc.),
    en vez de repetir los valores hex o escribir CSS propio por componente. */
-@theme {
+/* PrimeNG también consume estas variables desde TypeScript, aunque no tengan una utilidad en uso. */
+@theme static {
   --color-page: #f5efe4;
   --color-ink: #231a14;
   --color-ink-raised: #2c211a;

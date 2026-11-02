@@ -27,7 +27,10 @@ npm run build           # ng build (production by default)
 npm run watch           # ng build --watch --configuration development
 npm test                # ng test — unit tests via @angular/build:unit-test (vitest runner, jsdom)
 npm run check:architecture # layer boundaries of src/app (core/shared/features), see «Architecture»
+npm run ui:prepare     # genera la clave de PrimeNG desde .env/entorno (ya lo hacen los hooks previos)
 ```
+
+`prestart`, `predev`, `prewatch`, `prebuild` and `pretest` run `ui:prepare` automatically. Direct `ng serve` / `ng build` / `ng test` invocations need `npm run ui:prepare` first from a fresh checkout, and CI must provide `PRIMENG_LICENSE_KEY` before any npm command.
 
 Running a single test or filtering by name (the test runner is Vitest-based, not Karma/Jasmine):
 
@@ -111,6 +114,14 @@ Standalone-component Angular app with SSR (`provideClientHydration`, `src/server
 **Styling:** all styles are Tailwind utility classes in the template — no per-component `.css` files (the component schematic in `angular.json` already uses `style: "none"`). Brand colors and fonts are defined once as Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`), used as plain utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`, …) instead of repeating hex values or font stacks per component. One-off sizes that don't need a token (e.g. a specific `h-[50px]`) stay as Tailwind arbitrary values. A non-visual class used only as a test hook (e.g. `field-error` to query it in a spec) is fine alongside the utility classes — it carries no styling of its own. New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — never copy mockup colors or Vue code verbatim.
 
 Use the shared utilities in `src/styles.css` (`btn-*`, `field-*`, `surface-*`, `page-title`, `alert-*`, `skeleton-block`) before repeating visual utilities in templates. Keep test-hook classes alongside them; local Tailwind utilities may override size, spacing or semantic states.
+
+**PrimeNG (piloto de producto, T-17):** PrimeNG se usa solo en el formulario compartido de alta y edición (`features/products/components/product-form`); el resto de la interfaz sigue con controles nativos y utilidades de Tailwind. Los controles se importan uno a uno desde `primeng/*` (`InputText`, `ButtonDirective`, `Select`, `Checkbox`), nunca con un módulo agregador, y el piloto no añade PrimeFlex, `primeicons` ni `tailwindcss-primeui`.
+
+- Configuración global: `providePrimeNG(PRIMENG_CONFIG)` en `app.config.ts` (una sola vez; el servidor hereda la misma). Las opciones y los textos en español viven en `core/ui/constants/primeng.constants.ts`; el preset `MAMMUT_THEME` en `core/ui/constants/mammut-theme.constants.ts` parte de Aura, importa solo los subpresets de los controles usados (`aura/inputtext`, `aura/select`, `aura/checkbox`) y referencia las variables CSS de `styles.css` (`--color-*`, `--font-sans`, `--radius-*`), sin copiar hex a TypeScript. El modo oscuro automático, el ripple y el preflight de PrimeNG están desactivados.
+- Licencia: `PRIMENG_LICENSE_KEY` se define en el `.env` raíz o en el entorno (la variable de proceso gana). `scripts/prepare-primeng-license.mjs` genera `core/ui/constants/primeng-license.generated.ts`; tanto el `.env` como el archivo generado están en `.gitignore`. Sin clave la preparación falla con la instrucción de configurarla. La clave nunca se imprime ni se versiona; como viaja al navegador, no es un secreto del servidor.
+- Capas y tema: `styles.css` declara `theme, base, primeng, components, utilities` antes de importar Tailwind; `@source` limita la detección a `src/` (sin specs), y `@theme static` conserva las variables de marca que consume el preset desde TypeScript.
+- Dinero: precio y costo siguen siendo `string`, con `type="text" inputmode="decimal"` y la directiva `pInputText`. No se usa `InputNumber`, ni se formatea o redondea mientras se escribe; se conservan las reglas y utilidades de dinero.
+- Controles y accesibilidad: `Select` usa valores de texto y la opción explícita `''` («Sin categoría»); las etiquetas se asocian con `inputId`/`ariaLabelledBy` y los errores con el pass-through `label` (`aria-describedby`, `aria-invalid`). No se aplican `field-input` ni `btn-*` a un control de PrimeNG. Al guardar se cierra el panel del selector y se deshabilitan sus opciones; `motionOptions` respeta `prefers-reduced-motion`.
 
 **Components:**
 

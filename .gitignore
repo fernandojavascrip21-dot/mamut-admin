@@ -45,3 +45,7 @@ Thumbs.db
 
 # Usuarios de prueba locales (contraseñas y correos reales): no van al repo público
 /usuarios-prueba.md
+
+# Licencia de PrimeNG: configuración local y exportación generada antes de compilar
+/.env
+/src/app/core/ui/constants/primeng-license.generated.ts

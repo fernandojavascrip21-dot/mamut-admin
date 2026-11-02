@@ -29,11 +29,12 @@ npm run build            # production build
 npm run watch            # dev build in watch mode
 npm test                 # unit tests (Vitest runner, jsdom) — not Karma/Jasmine
 npm run check:architecture # layer boundaries of src/app (core/shared/features), see «Architecture»
+npm run ui:prepare       # generates the PrimeNG license file from .env/env (hooks already do it)
 ng test --include src/app/core/auth/services/auth.service.spec.ts   # single file
 ng test --filter "AuthService"                                  # by name
 ```
 
-No lint script is configured (no ESLint at root or in `backend/`).
+`prestart`/`predev`/`prewatch`/`prebuild`/`pretest` run `ui:prepare`; direct `ng` commands need `npm run ui:prepare` first, and CI must define `PRIMENG_LICENSE_KEY`. No lint script is configured (no ESLint at root or in `backend/`).
 
 ### Backend (`cd backend`)
 
@@ -98,6 +99,14 @@ Use the shared utilities in `src/styles.css` (`btn-*`, `field-*`, `surface-*`, `
 - One-off sizes can use arbitrary values (`h-[50px]`).
 - Non-styling test-hook classes (e.g. `field-error`) are fine.
 - New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — don't copy mockup colors or Vue code verbatim.
+
+**PrimeNG (piloto de producto, T-17):**
+
+- Solo el formulario compartido de producto (`features/products/components/product-form`) usa PrimeNG; el resto sigue con Tailwind y controles nativos. Importar cada control desde `primeng/*` (`InputText`, `ButtonDirective`, `Select`, `Checkbox`); sin módulo agregador, PrimeFlex, `primeicons` ni `tailwindcss-primeui`.
+- Configuración única en `app.config.ts` con `providePrimeNG(PRIMENG_CONFIG)`; opciones/traducciones en `core/ui/constants/primeng.constants.ts` y tema en `mammut-theme.constants.ts` (Aura limitado a los subpresets usados, referenciando variables CSS de `styles.css`, sin hexadecimales en TS).
+- Licencia: `PRIMENG_LICENSE_KEY` en `.env`/entorno; `scripts/prepare-primeng-license.mjs` genera `primeng-license.generated.ts`. Ambos están ignorados por Git y la clave nunca se imprime ni se versiona.
+- `styles.css` declara `theme, base, primeng, components, utilities` antes de Tailwind; `@theme static` conserva los tokens que consume el preset. No aplicar `field-input`/`btn-*` a controles de PrimeNG.
+- Precio y costo siguen como `string` con `type="text" inputmode="decimal"` y `pInputText`; nunca `InputNumber`, formateo ni redondeo al escribir. `Select` usa valores de texto y la opción `''` «Sin categoría».
 
 **Comments:** every non-trivial function (auth flows, guards, interceptors, non-obvious rules) gets a short comment explaining what it does and *why*, not a restatement of the code.
 
