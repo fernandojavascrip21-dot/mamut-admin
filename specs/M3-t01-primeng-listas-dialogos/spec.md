@@ -49,6 +49,7 @@ La migración completa a PrimeNG no cabe en un spec. Esta lista es el registro v
 | 7 | Navbar, menú lateral y barra «Viendo» | ✅ Hecho en código (revisión visual en celular pendiente) | M3-t04 |
 | 8 | Tarjetas de «Productos» y «Mis vendedores» y shells (`admin-shell`/`seller-shell`) | ✅ Hecho en código (los shells conservan su estructura) | M3-t04 |
 | 9 | Pop-up `ventana` a `Dialog` | ✅ Hecho en código | M3-t04 |
+| — | Diferir `<p-toast>` y `<p-confirmdialog>` (`@defer`, `toast-host`/`confirm-host`) para bajar el bundle inicial | ✅ Hecho (resuelve la decisión abierta de diferir el diálogo) | M3-t05 |
 
 Actualizar la casilla de Estado de un tramo aquí (y en `specs/README.md`) es parte del paso de cierre de cada spec.
 

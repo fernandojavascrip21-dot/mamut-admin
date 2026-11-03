@@ -1,3 +1,5 @@
 <router-outlet />
-<p-toast position="top-right" [breakpoints]="toastBreakpoints" />
-<p-confirmdialog [style]="confirmStyle" [breakpoints]="confirmBreakpoints" />
+@defer (on idle) {
+  <app-toast-host />
+  <app-confirm-host />
+}

@@ -42,6 +42,26 @@ Fuentes:
 
 Las rutas de `app.routes.ts` ya usan `loadComponent`/`loadChildren`; el inicial no arrastra pantallas. La ganancia posible está en lo que `app.html` y `app.config.ts` cargan siempre.
 
+### Resultados de la implementación (build de producción, misma máquina)
+
+**Contribuyentes (paso 1, `ng build --stats-json`, bruto):** `chunk-DIT4hJpB` (347,8 kB) = Angular core 223,5 + router 106,5 + common 61,4 + rxjs 19,9 + platform-browser 17,2; `chunk-DbcIXHap` (167,0 kB) = PrimeNG 77,8 + `@primeuix/styles` 38,4 + `styled` 27,4 + `utils` 26,5 + license-manager 20,5; `main` (143,6 kB) = PrimeNG 83,6 (toast y confirmdialog incluidos) + `styles` 18,6 + iconos 18,1 + `@primeuix/themes` (preset) 14,9 + código propio de `core/` 14,6; `styles.css` 47,2 kB.
+
+| Paso | Inicial bruto | Transferido | Cambio |
+| --- | --- | --- | --- |
+| 1. Línea base | 705,61 kB | 173,11 kB | — |
+| 2. `<p-confirmdialog>` diferido | 622,77 kB | 159,90 kB | −82,84 kB |
+| 3. `<p-toast>` diferido | 524,79 kB | 141,25 kB | −97,98 kB |
+| 4. Preset `MAMMUT_THEME` | 524,79 kB | 141,25 kB | sin cambio (descartado) |
+| 5. `ViewingService` y logo | 524,79 kB | 141,25 kB | sin cambio en el presupuesto; el logo pasó de 208 a 34 kB |
+| **Final** | **524,79 kB** | **141,25 kB** | **−180,82 kB (−25,6 %)** |
+
+- **Confirmaciones:** `app.html` carga `<app-confirm-host>` con `@defer (on idle)`; el host avisa con `ConfirmService.markDialogReady()` tras su primer render y `ask()` espera ese aviso. Si otra petición reemplaza a una en espera, la primera se resuelve en `false` y no se muestra.
+- **Toast:** se difirió (−98 kB). `ToastService` guarda el último aviso pedido antes de que exista el toast (cada aviso reemplaza al anterior) y lo muestra en `markToastReady()`, así que ninguno se pierde.
+- **Preset (paso 4), descartado:** pesa 14,9 kB en el inicial y es necesario para el tema; recortarlo arriesga cambiar colores por poco ahorro.
+- **`ViewingService` (paso 5), descartado:** su código es pequeño y depende de `AuthService`, que el inicial ya trae; diferirlo no ahorra de forma medible.
+- **Logo:** `logo-mammoth.png` pasó a paleta de 256 colores (mismo nombre y dimensiones, 335×321); la diferencia media es de 2,9/255 y no se aprecia.
+- **Por qué no se llega a 500 kB:** quedan 24,8 kB por encima. Lo que resta es Angular (core, router, common, rxjs: ~260 kB), el núcleo de PrimeNG y el preset (~120 kB) y Tailwind (47 kB), indispensable para arrancar. El aviso del presupuesto se queda y `angular.json` no se tocó.
+
 ## 3. Reglas de comportamiento
 
 - **Mismo resultado visible:** ninguna pantalla cambia de aspecto, texto ni comportamiento, en escritorio y a 375 px. Nada de lo que el usuario ve en el primer render se retrasa por un `@defer`.
@@ -92,14 +112,14 @@ Cada paso queda commiteable y la app funcional.
 
 ## 7. Criterios de aceptación
 
-- [ ] Hay una medición base (705,6 kB) y una final, con la tabla de contribuyentes y el antes/después de cada paso.
-- [ ] El bundle inicial final es menor que 705,6 kB; si queda por encima de 500 kB, el spec explica por qué y cuánto se ganó. `angular.json` conserva el presupuesto de 500 kB / 1 MB.
-- [ ] `<p-confirmdialog>` se carga diferido y `ConfirmService.ask()` conserva su contrato, incluida una confirmación pedida justo al arrancar.
-- [ ] El toast muestra el primer aviso sin retraso (se difirió o no, según la medición, y el spec lo explica).
+- [x] Hay una medición base (705,6 kB) y una final, con la tabla de contribuyentes y el antes/después de cada paso.
+- [x] El bundle inicial final es menor que 705,6 kB; si queda por encima de 500 kB, el spec explica por qué y cuánto se ganó. `angular.json` conserva el presupuesto de 500 kB / 1 MB.
+- [x] `<p-confirmdialog>` se carga diferido y `ConfirmService.ask()` conserva su contrato, incluida una confirmación pedida justo al arrancar.
+- [x] El toast muestra el primer aviso sin retraso (se difirió o no, según la medición, y el spec lo explica).
 - [ ] Ninguna pantalla cambia de aspecto ni de texto en escritorio ni a 375 px; sin cambios en rutas.
-- [ ] No se sustituye ni se quita ningún control de PrimeNG; no se añaden librerías.
-- [ ] `CLAUDE.md`, `AGENTS.md`, `specs/README.md` y el cuadro de M3-t01 quedan en sincronía si cambió alguna regla.
-- [ ] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] No se sustituye ni se quita ningún control de PrimeNG; no se añaden librerías.
+- [x] `CLAUDE.md`, `AGENTS.md`, `specs/README.md` y el cuadro de M3-t01 quedan en sincronía si cambió alguna regla.
+- [x] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 ## 8. Decisiones
 

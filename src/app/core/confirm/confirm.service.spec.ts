@@ -1,12 +1,8 @@
-import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ConfirmationService } from 'primeng/api';
-import { ConfirmDialog } from 'primeng/confirmdialog';
+import { ConfirmHostComponent } from './confirm-host/confirm-host.component';
 import { ConfirmService } from './confirm.service';
 import type { ConfirmOptions } from './confirm.models';
-
-@Component({ imports: [ConfirmDialog], template: '<p-confirmdialog />' })
-class HostComponent {}
 
 const OPTIONS: ConfirmOptions = {
   title: '¿Descartar los cambios?',
@@ -18,7 +14,7 @@ const OPTIONS: ConfirmOptions = {
 
 describe('ConfirmService', () => {
   let service: ConfirmService;
-  let fixture: ComponentFixture<HostComponent>;
+  let fixture: ComponentFixture<ConfirmHostComponent>;
 
   const query = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector);
 
@@ -34,7 +30,7 @@ describe('ConfirmService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [ConfirmationService] });
-    fixture = TestBed.createComponent(HostComponent);
+    fixture = TestBed.createComponent(ConfirmHostComponent);
     service = TestBed.inject(ConfirmService);
     fixture.detectChanges();
   });
@@ -93,5 +89,37 @@ describe('ConfirmService', () => {
     expect(await first).toBe(false);
     query<HTMLButtonElement>('.p-confirmdialog-accept-button')?.click();
     expect(await second).toBe(true);
+  });
+
+  it('una confirmación pedida antes de que exista el diálogo no se pierde', async () => {
+    // Un fixture nuevo sin detectChanges: el diálogo todavía no está montado ni escucha.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [ConfirmationService] });
+    const lateFixture = TestBed.createComponent(ConfirmHostComponent);
+    const lateService = TestBed.inject(ConfirmService);
+    const answer = lateService.ask(OPTIONS);
+    lateFixture.detectChanges();
+    await lateFixture.whenStable();
+    lateFixture.detectChanges();
+    query<HTMLButtonElement>('.p-confirmdialog-accept-button')?.click();
+    expect(await answer).toBe(true);
+    lateFixture.destroy();
+  });
+
+  it('una segunda petición antes de que exista el diálogo resuelve la primera en false', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [ConfirmationService] });
+    const lateFixture = TestBed.createComponent(ConfirmHostComponent);
+    const lateService = TestBed.inject(ConfirmService);
+    const first = lateService.ask(OPTIONS);
+    const second = lateService.ask({ ...OPTIONS, title: 'Otra pregunta' });
+    lateFixture.detectChanges();
+    await lateFixture.whenStable();
+    lateFixture.detectChanges();
+    expect(await first).toBe(false);
+    expect(query('.p-confirmdialog')?.textContent).toContain('Otra pregunta');
+    query<HTMLButtonElement>('.p-confirmdialog-reject-button')?.click();
+    expect(await second).toBe(false);
+    lateFixture.destroy();
   });
 });
