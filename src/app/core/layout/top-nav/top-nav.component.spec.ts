@@ -6,6 +6,7 @@ import { provideRouter, Router } from '@angular/router';
 import { TopNavComponent } from './top-nav.component';
 import type { CartLink, NavMenuItem } from './top-nav.models';
 import type { AuthContext } from '@core/auth/interfaces/auth.models';
+import { CartService } from '@core/cart/cart.service';
 
 @Component({ template: '' })
 class DummyRouteComponent {}
@@ -112,6 +113,58 @@ describe('TopNavComponent', () => {
 
     expect(cartLink.getAttribute('aria-current')).toBe('page');
     expect(cartLink.closest('nav')).toBeNull();
+  });
+
+  describe('contador del carrito (HU-15)', () => {
+    const cartLink = () => fixture.nativeElement.querySelector('a[href="/carrito"]') as HTMLAnchorElement;
+    const badge = () => fixture.nativeElement.querySelector('.cart-badge') as HTMLElement | null;
+
+    // Con el carrito de la sesión ya guardado, para que CartService lo cargue al crearse.
+    async function renderWithCart(user: AuthContext, lines: { productId: number; units: number }[]) {
+      localStorage.setItem(`mamut.cart.${user.userId}`, JSON.stringify({ version: 1, lines }));
+      await render(user, ADMIN_MENU, 'Menú');
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('con el carrito vacío no muestra el globo y el nombre accesible es solo «Carrito»', async () => {
+      await render(SELLER, ADMIN_MENU, 'Menú del vendedor');
+      expect(badge()).toBeNull();
+      expect(cartLink().getAttribute('aria-label')).toBe('Carrito');
+    });
+
+    it('con piezas muestra el total y lo dice en el nombre accesible', async () => {
+      await renderWithCart(SELLER, [{ productId: 10, units: 2 }, { productId: 12, units: 1 }]);
+      expect(badge()?.textContent?.trim()).toBe('3');
+      expect(badge()?.getAttribute('aria-hidden')).toBe('true');
+      expect(cartLink().getAttribute('aria-label')).toBe('Carrito, 3 piezas');
+    });
+
+    it('con una pieza el nombre accesible dice «1 pieza»', async () => {
+      await renderWithCart(SELLER, [{ productId: 10, units: 1 }]);
+      expect(badge()?.textContent?.trim()).toBe('1');
+      expect(cartLink().getAttribute('aria-label')).toBe('Carrito, 1 pieza');
+    });
+
+    it('con más de 99 piezas muestra «99+» y el nombre accesible conserva el número real', async () => {
+      await renderWithCart(SELLER, [{ productId: 10, units: 120 }]);
+      expect(badge()?.textContent?.trim()).toBe('99+');
+      expect(cartLink().getAttribute('aria-label')).toBe('Carrito, 120 piezas');
+    });
+
+    it('se actualiza al cambiar el carrito y desaparece al vaciarlo', async () => {
+      await renderWithCart(SELLER, [{ productId: 10, units: 2 }]);
+      const cart = TestBed.inject(CartService);
+
+      cart.setUnits(10, 5);
+      fixture.detectChanges();
+      expect(badge()?.textContent?.trim()).toBe('5');
+
+      cart.remove(10);
+      fixture.detectChanges();
+      expect(badge()).toBeNull();
+      expect(cartLink().getAttribute('aria-label')).toBe('Carrito');
+    });
   });
 
   it('el menú es un p-menu con una opción por item y el botón de ocultar es pButton', async () => {

@@ -21,3 +21,6 @@ export const MENU_LIST_BASE_CLASS =
   'm-0 grid list-none divide-x divide-page/10 p-0 outline-none lg:flex lg:flex-col lg:gap-1 lg:divide-x-0';
 export const MENU_ITEM_CLASS = 'min-w-0';
 export const MENU_GRID_CLASS_BY_COLUMNS = { 4: 'grid-cols-4', 3: 'grid-cols-3' } as const;
+
+// Tope del número en el globo del carrito: con más piezas se ve «99+» para que no desborde el botón.
+export const CART_BADGE_MAX = 99;
