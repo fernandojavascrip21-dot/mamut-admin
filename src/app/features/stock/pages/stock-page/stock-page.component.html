@@ -1,0 +1,162 @@
+<div class="flex w-full flex-col px-5 py-6">
+  <h1 class="page-title">
+    @if (seller(); as current) {
+      {{ texts.sellerTitlePrefix }} {{ current.fullName }}
+    } @else {
+      {{ texts.title }}
+    }
+  </h1>
+
+  @if (state() === 'loading') {
+    <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
+      <svg
+        aria-hidden="true"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="animate-spin stroke-accent motion-reduce:animate-none"
+      >
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+      </svg>
+      <p class="m-0 text-sm font-semibold">{{ texts.loadingTitle }}</p>
+      <p class="m-0 text-sm text-muted">{{ texts.loadingHint }}</p>
+    </div>
+    <div class="mt-5 flex flex-col gap-3">
+      <app-stock-product-row-skeleton />
+      <app-stock-product-row-skeleton />
+      <app-stock-product-row-skeleton />
+    </div>
+  } @else if (state() === 'error') {
+    <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+      <svg
+        aria-hidden="true"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="shrink-0 stroke-danger"
+      >
+        <path
+          d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+        ></path>
+        <path d="M12 9v4"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
+      <p class="m-0 text-[15px] font-bold">{{ texts.errorTitle }}</p>
+      <p class="m-0 text-sm leading-snug">{{ texts.errorHint }}</p>
+      <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry()">
+        {{ texts.retry }}
+      </button>
+    </div>
+  } @else if (isEmpty()) {
+    <div
+      class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+    >
+      <svg
+        aria-hidden="true"
+        width="26"
+        height="26"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="shrink-0 stroke-accent-2"
+      >
+        <path d="m21 8-9-5-9 5v8l9 5 9-5z"></path>
+        <path d="m3 8 9 5 9-5"></path>
+        <path d="M12 13v8"></path>
+      </svg>
+      <p class="m-0 text-[17px] font-bold">{{ texts.emptyTitle }}</p>
+      <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
+      <a pButton [routerLink]="newProductUrl" class="mt-2 h-[52px] text-sm">{{ texts.emptyAction }}</a>
+    </div>
+  } @else {
+    @if (seller(); as current) {
+      <section class="seller-card mt-5 surface-card p-5">
+        <p class="m-0 text-sm font-semibold text-muted">{{ texts.sellerStockPrefix }} {{ current.fullName }}</p>
+        <p class="total m-0 mt-1 font-display text-[40px] leading-none font-extrabold tracking-[-0.02em]">
+          {{ sellerTotalLabel() }}
+        </p>
+      </section>
+    } @else {
+      <section class="business-card mt-5 surface-card p-5">
+        <p class="m-0 text-sm font-semibold text-muted">{{ texts.businessTotal }}</p>
+        <p class="total m-0 mt-1 mb-4 font-display text-[40px] leading-none font-extrabold tracking-[-0.02em]">
+          {{ totalLabel() }}
+        </p>
+        <app-stock-split-bar [parts]="splitParts()" />
+      </section>
+    }
+
+    <div class="mt-4">
+      <app-stock-quick-actions [actions]="quickActions()" />
+    </div>
+
+    @if (!hasRows()) {
+      <p class="seller-empty mt-5 mb-0 text-center text-sm text-muted">{{ texts.sellerEmpty }}</p>
+    } @else {
+      <div class="relative mt-5">
+        <label for="stock-search" class="sr-only">{{ texts.searchLabel }}</label>
+        <svg
+          aria-hidden="true"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input
+          pInputText
+          id="stock-search"
+          type="search"
+          [placeholder]="texts.searchPlaceholder"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          class="h-[52px] min-w-0 w-full pl-11"
+        />
+      </div>
+
+      @if (visibleRows().length === 0) {
+        <div
+          class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+        >
+          <p class="m-0 text-[17px] font-bold">{{ texts.noMatchTitle }}</p>
+          <p class="m-0 text-sm text-muted">{{ texts.noMatchHint }}</p>
+          <button pButton severity="secondary" type="button" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+            {{ texts.clearSearch }}
+          </button>
+        </div>
+      } @else {
+        <ul class="rows mt-5 mb-0 flex list-none flex-col gap-3 p-0">
+          @for (row of visibleRows(); track row.productId; let index = $index) {
+            <li
+              class="min-w-0 animate-rise-in motion-reduce:animate-none"
+              [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+            >
+              <app-stock-product-row
+                [name]="row.name"
+                [image]="row.image"
+                [units]="row.units"
+                [breakdown]="row.breakdown"
+              />
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</div>

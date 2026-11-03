@@ -10,7 +10,12 @@ const comingSoon = () =>
 // Cada feature declara sus propias rutas; aquí solo se montan en su URL.
 export const ADMIN_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'stock' },
-  { path: 'stock', loadComponent: comingSoon, data: { title: 'Stock' } },
+  {
+    path: 'stock',
+    loadChildren: () => import('@features/stock/stock.routes').then((m) => m.STOCK_ROUTES),
+  },
+  // «Entrada a bodega» (movimiento rápido de «Stock general», HU-13): su pantalla va en otra historia.
+  { path: 'entrada', loadComponent: comingSoon, data: { title: 'Entrada a bodega' } },
   {
     path: 'productos',
     loadChildren: () => import('@features/products/products.routes').then((m) => m.PRODUCT_ROUTES),
