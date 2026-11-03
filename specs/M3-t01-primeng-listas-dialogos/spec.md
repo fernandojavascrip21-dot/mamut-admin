@@ -1,6 +1,6 @@
 # Spec técnico — T-01 · PrimeNG: instalación, tema y primer tramo (listas y diálogos)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M2-t17-primeng-formulario-producto (`specs/M2-t17-primeng-formulario-producto/spec.md`) — ya instaló PrimeNG, `providePrimeNG`, la licencia y el preset base `MAMMUT_THEME`, que este spec amplía; M2-t11-rediseno-visual (`specs/M2-t11-rediseno-visual/spec.md`) — tokens y clases de la base visual; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — el pop-up `ventana` donde vive el picker; M2-hu09-ver-mis-vendedores, M2-hu11-dejar-a-vendedor y M2-hu12-retirar-a-vendedor — las listas que se migran.
 > **Fecha:** 2026-11-02
 > **Objetivo:** adoptar PrimeNG 22 tematizado al diseño de T-11 y migrar el primer tramo: las listas del detalle del vendedor, el picker de productos del pop-up, `confirm-dialog` y el toast.
