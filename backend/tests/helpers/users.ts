@@ -1,6 +1,6 @@
-import { eq, like } from 'drizzle-orm'
+import { desc, eq, inArray, like } from 'drizzle-orm'
 import { db } from '@db/client'
-import { clients, debtors, profiles } from '@db/schema'
+import { clients, debtors, directSales, profiles, stockMovements } from '@db/schema'
 import { supabaseAdmin, supabaseAuth } from '@lib/supabase'
 
 // Todo lo que crean las pruebas lleva este prefijo para poder limpiarlo.
@@ -59,9 +59,28 @@ export async function createTestClient(label: string) {
   return row!
 }
 
+// Borra las ventas hechas por cuentas de prueba (T-18): primero sus movimientos `direct_sale`, del
+// más nuevo al más viejo (el trigger revierte cada uno), y luego las ventas; los renglones se van en
+// cascada. Debe correr antes de borrar productos y perfiles: ambos están ligados con FK `restrict`.
+export async function cleanupSales() {
+  const { data } = await supabaseAdmin().auth.admin.listUsers({ perPage: 200 })
+  const ids = (data?.users ?? []).filter((user) => user.email?.startsWith(TEST_PREFIX)).map((user) => user.id)
+  if (ids.length === 0) return
+  const sales = await db.select({ id: directSales.id }).from(directSales).where(inArray(directSales.soldBy, ids))
+  if (sales.length === 0) return
+  const saleIds = sales.map((sale) => sale.id)
+  const movements = await db.select({ id: stockMovements.id }).from(stockMovements)
+    .where(inArray(stockMovements.directSaleId, saleIds)).orderBy(desc(stockMovements.id))
+  for (const movement of movements) {
+    await db.delete(stockMovements).where(eq(stockMovements.id, movement.id))
+  }
+  await db.delete(directSales).where(inArray(directSales.id, saleIds))
+}
+
 // Borra perfiles, cuentas de Auth y clientes creados por las pruebas.
 export async function cleanupTestData() {
   const admin = supabaseAdmin()
+  await cleanupSales()
   await db.delete(debtors).where(like(debtors.name, `${TEST_PREFIX}%`))
   const { data } = await admin.auth.admin.listUsers({ perPage: 200 })
   for (const user of data?.users ?? []) {

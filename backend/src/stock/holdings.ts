@@ -256,3 +256,24 @@ export async function movementsOfRequest(
     sellerStock: { before: sellerAfter - sellerRow.qty, after: sellerAfter },
   }
 }
+
+// Un renglón de venta con el stock del titular antes → después (T-18). `qty` va en positivo.
+export interface SaleMovement {
+  productId: number
+  qty: number
+  stock: { before: number; after: number }
+}
+
+// Movimientos `direct_sale` de una venta, con los saldos del titular leídos de los movimientos
+// (no de la caché actual) para que un GET posterior dé lo mismo que el POST. Por orden de inserción.
+export async function movementsOfSale(directSaleId: number): Promise<SaleMovement[]> {
+  const rows = await db
+    .select()
+    .from(stockMovements)
+    .where(and(eq(stockMovements.directSaleId, directSaleId), eq(stockMovements.type, 'direct_sale')))
+    .orderBy(asc(stockMovements.id))
+  return Promise.all(rows.map(async (row) => {
+    const after = await balanceUpTo(row.productId, row.holderProfileId, row.id)
+    return { productId: row.productId, qty: -row.qty, stock: { before: after - row.qty, after } }
+  }))
+}
