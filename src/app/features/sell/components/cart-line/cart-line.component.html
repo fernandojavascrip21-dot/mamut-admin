@@ -1,0 +1,87 @@
+<div class="flex min-w-0 flex-col gap-3 surface-card p-4">
+  <div class="flex min-w-0 gap-3">
+    @if (showPhoto()) {
+      <img
+        [src]="product().image"
+        [alt]="product().name"
+        loading="lazy"
+        (error)="onPhotoError()"
+        class="h-16 w-16 flex-shrink-0 rounded-md object-cover"
+      />
+    } @else {
+      <div
+        class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
+        aria-hidden="true"
+      >
+        {{ initials() }}
+      </div>
+    }
+
+    <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+      <p class="name m-0 text-sm leading-tight font-bold break-words">{{ product().name }}</p>
+      @if (!soldOut()) {
+        <p class="unit-price m-0 font-mono text-xs text-muted">
+          {{ unitPrice() | currency: 'MXN' : 'symbol-narrow' }} {{ texts.each }}
+        </p>
+      }
+    </div>
+
+    @if (row().status === 'ok') {
+      <p class="subtotal m-0 self-center font-mono text-base font-bold whitespace-nowrap">
+        {{ subtotal() | currency: 'MXN' : 'symbol-narrow' }}
+      </p>
+    }
+  </div>
+
+  @if (over()) {
+    <p class="warning alert-danger m-0 text-sm font-semibold" role="alert">{{ overText() }}</p>
+  } @else if (soldOut()) {
+    <p class="warning alert-danger m-0 text-sm font-semibold" role="alert">
+      {{ texts.soldOut }}. {{ texts.soldOutHint }}
+    </p>
+  }
+
+  <div class="flex items-center justify-between gap-2">
+    @if (soldOut()) {
+      <span></span>
+    } @else {
+      <div class="stepper flex items-center gap-2">
+        <button
+          pButton
+          severity="secondary"
+          type="button"
+          class="decrement h-11 w-11 px-0 text-xl"
+          [attr.aria-label]="texts.decrementPrefix + ' ' + product().name"
+          (click)="decrement.emit()"
+        >
+          −
+        </button>
+        <p class="m-0 min-w-14 text-center">
+          <span class="units font-mono text-xl font-bold">{{ row().units }}</span>
+          <span class="available ml-1 text-xs text-muted">{{ texts.ofStock }} {{ row().available }}</span>
+        </p>
+        <button
+          pButton
+          severity="secondary"
+          type="button"
+          class="increment h-11 w-11 px-0 text-xl"
+          [disabled]="!canIncrement()"
+          [attr.aria-label]="texts.incrementPrefix + ' ' + product().name"
+          (click)="increment.emit()"
+        >
+          +
+        </button>
+      </div>
+    }
+    <button
+      pButton
+      [text]="true"
+      type="button"
+      class="remove h-11 px-3 text-sm"
+      [attr.aria-label]="texts.removePrefix + ' ' + product().name"
+      (click)="remove.emit()"
+    >
+      {{ texts.remove }}
+    </button>
+  </div>
+</div>

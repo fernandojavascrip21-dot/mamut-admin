@@ -1,0 +1,79 @@
+<p-card class="block h-full min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+  <div class="flex min-w-0 flex-col gap-3 p-4">
+    <div class="flex min-w-0 gap-4">
+      @if (showPhoto()) {
+        <img
+          [src]="product().image"
+          [alt]="product().name"
+          loading="lazy"
+          (error)="onPhotoError()"
+          class="h-24 w-24 flex-shrink-0 rounded-md object-cover"
+          [class.opacity-55]="soldOut()"
+        />
+      } @else {
+        <div
+          class="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-md bg-line text-lg font-bold text-ink"
+          [class.opacity-55]="soldOut()"
+          aria-hidden="true"
+        >
+          {{ initials() }}
+        </div>
+      }
+
+      <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
+        <p class="name m-0 text-sm leading-tight font-bold break-words">{{ product().name }}</p>
+        <p class="price m-0 font-mono text-sm font-bold">
+          {{ price() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+        <p class="left m-0 text-xs font-semibold" [class]="soldOut() ? 'text-muted' : left() <= 2 ? 'text-accent-2-text' : 'text-success-text'">
+          {{ leftText() }}
+        </p>
+      </div>
+    </div>
+
+    @if (soldOut()) {
+      <button pButton severity="secondary" type="button" disabled class="sold-out h-11 w-full text-sm">
+        {{ texts.soldOut }}
+      </button>
+    } @else if (!inCart()) {
+      <button
+        pButton
+        [outlined]="true"
+        type="button"
+        class="add h-11 w-full text-sm"
+        [attr.aria-label]="texts.add + ' ' + product().name"
+        (click)="add.emit()"
+      >
+        {{ texts.add }}
+      </button>
+    } @else {
+      <div class="stepper flex items-center justify-between gap-2">
+        <button
+          pButton
+          severity="secondary"
+          type="button"
+          class="decrement h-11 w-11 px-0 text-xl"
+          [attr.aria-label]="texts.decrementPrefix + ' ' + product().name"
+          (click)="decrement.emit()"
+        >
+          −
+        </button>
+        <p class="m-0 text-center">
+          <span class="units font-mono text-xl font-bold">{{ unitsInCart() }}</span>
+          <span class="sr-only"> {{ texts.unitsInCartSuffix }}</span>
+        </p>
+        <button
+          pButton
+          severity="secondary"
+          type="button"
+          class="increment h-11 w-11 px-0 text-xl"
+          [disabled]="!canIncrement()"
+          [attr.aria-label]="texts.incrementPrefix + ' ' + product().name"
+          (click)="increment.emit()"
+        >
+          +
+        </button>
+      </div>
+    }
+  </div>
+</p-card>
