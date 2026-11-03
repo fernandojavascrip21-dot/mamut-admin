@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { products, stockMovements, vendorStock } from '@db/schema'
 import type { Tx } from '@db/transaction'
@@ -34,8 +34,14 @@ export async function unitsByHolder(profileIds: string[]): Promise<Map<string, n
 }
 
 // Stock de un vendedor por producto (HU-09): solo lo que tiene en mano (qty > 0), por nombre.
-// Incluye productos archivados, porque esas piezas siguen con el vendedor.
-export async function stockOfHolder(profileId: string): Promise<HolderStockLine[]> {
+// Incluye productos archivados, porque esas piezas siguen con el vendedor. Con `includeSoldOut`
+// (HU-15) entran también las filas con qty = 0: lo que tuvo y se le acabó, sea por una venta o por
+// un retiro. Un producto que nunca le dejaron no tiene fila, así que no sale. Por defecto es false:
+// HU-09, HU-12 y HU-14 no cambian.
+export async function stockOfHolder(
+  profileId: string,
+  options: { includeSoldOut?: boolean } = {},
+): Promise<HolderStockLine[]> {
   const rows = await db
     .select({
       productId: products.id,
@@ -50,7 +56,7 @@ export async function stockOfHolder(profileId: string): Promise<HolderStockLine[
     })
     .from(vendorStock)
     .innerJoin(products, eq(products.id, vendorStock.productId))
-    .where(and(eq(vendorStock.profileId, profileId), gt(vendorStock.qty, 0)))
+    .where(and(eq(vendorStock.profileId, profileId), (options.includeSoldOut ? gte : gt)(vendorStock.qty, 0)))
     .orderBy(asc(products.name))
   return rows.map((row) => ({ ...row, image: row.image || null }))
 }

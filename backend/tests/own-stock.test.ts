@@ -11,8 +11,8 @@ import { cleanupTestData, createTestClient, createTestUser, hasServiceKey, type 
 const PREFIX = 'test-own-stock-'
 const productName = (label: string) => `${PREFIX}${label}-${Date.now()}-${Math.floor(Math.random() * 1e5)}`
 
-const req = (token?: string) =>
-  new Request('http://api.test/api/me/stock', { method: 'GET', headers: token ? { authorization: `Bearer ${token}` } : {} })
+const req = (token?: string, query = '') =>
+  new Request(`http://api.test/api/me/stock${query}`, { method: 'GET', headers: token ? { authorization: `Bearer ${token}` } : {} })
 
 interface OwnStockBody {
   total: number
@@ -72,8 +72,8 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
     return product!.id
   }
 
-  const stockOf = async (user: TestUser): Promise<OwnStockBody> => {
-    const res = await ownStockRoute(req(user.token), undefined)
+  const stockOf = async (user: TestUser, query = ''): Promise<OwnStockBody> => {
+    const res = await ownStockRoute(req(user.token, query), undefined)
     expect(res.status).toBe(200)
     return res.json()
   }
@@ -172,6 +172,58 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
 
   it('un vendedor sin piezas responde total 0 y lista vacía', async () => {
     expect(await stockOf(emptySeller)).toEqual({ total: 0, products: [] })
+  })
+
+  describe('con includeSoldOut (HU-15)', () => {
+    it('el producto retirado por completo sale con units 0 y su precio propio', async () => {
+      const body = await stockOf(seller, '?includeSoldOut=true')
+      expect(body.products.find((p) => p.productId === withdrawn)).toEqual({
+        productId: withdrawn,
+        name: expect.stringContaining('retirado'),
+        image: null,
+        units: 0,
+        price: '999.00',
+      })
+    })
+
+    it('lo que tiene sigue saliendo igual y el total no cambia, porque los agotados suman 0', async () => {
+      const plain = await stockOf(seller)
+      const body = await stockOf(seller, '?includeSoldOut=true')
+      expect(body.total).toBe(plain.total)
+      expect(body.total).toBe(body.products.reduce((sum, p) => sum + p.units, 0))
+      expect(body.products.filter((p) => p.units > 0)).toEqual(plain.products)
+    })
+
+    it('un producto que el vendedor nunca tuvo no sale', async () => {
+      const body = await stockOf(seller, '?includeSoldOut=true')
+      expect(body.products.some((p) => p.productId === others)).toBe(false)
+      expect((await stockOf(emptySeller, '?includeSoldOut=true'))).toEqual({ total: 0, products: [] })
+    })
+
+    it('las llaves de cada producto siguen siendo las cinco, también en los agotados', async () => {
+      const res = await ownStockRoute(req(seller.token, '?includeSoldOut=true'), undefined)
+      const text = await res.clone().text()
+      const body: OwnStockBody = await res.json()
+      for (const product of body.products) {
+        expect(Object.keys(product).sort()).toEqual(['image', 'name', 'price', 'productId', 'units'])
+      }
+      for (const forbidden of ['unitCost', 'unitCostWithShipping', 'unit_cost', 'profit', 'unitPrice']) {
+        expect(text).not.toContain(forbidden)
+      }
+    })
+
+    it('sin el parámetro, o con otro valor, responde como en HU-14 (sin agotados)', async () => {
+      for (const query of ['', '?includeSoldOut=false', '?includeSoldOut=1', '?includeSoldOut=']) {
+        const body = await stockOf(seller, query)
+        expect(body.products.some((p) => p.productId === withdrawn), query).toBe(false)
+      }
+    })
+
+    it('los permisos no cambian: 403 a un administrador y a un client, 401 sin sesión', async () => {
+      expect((await ownStockRoute(req(admin.token, '?includeSoldOut=true'), undefined)).status).toBe(403)
+      expect((await ownStockRoute(req(clientUser.token, '?includeSoldOut=true'), undefined)).status).toBe(403)
+      expect((await ownStockRoute(req(undefined, '?includeSoldOut=true'), undefined)).status).toBe(401)
+    })
   })
 
   it('responde 403 a un administrador y a un client, y 401 sin sesión', async () => {
