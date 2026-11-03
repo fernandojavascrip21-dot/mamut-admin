@@ -77,7 +77,7 @@ describe('Enlaces de ventanas', () => {
     input.value = 'creatina';
     await router.navigate(deliveryModalLink());
     harness.detectChanges();
-    expect(harness.routeNativeElement!.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
     expect(harness.routeNativeElement!.querySelector('input')).toBe(input);
     await router.navigate(closeModalLink());
     harness.detectChanges();
@@ -90,13 +90,13 @@ describe('Enlaces de ventanas', () => {
     await router.navigateByUrl(url);
     harness.detectChanges();
     expect(harness.routeNativeElement!.querySelector('input')).not.toBeNull();
-    expect(harness.routeNativeElement!.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
     const navigation = firstValueFrom(router.events.pipe(filter((event) => event instanceof NavigationEnd), take(1)));
     TestBed.inject(Location).back();
     await navigation;
     harness.detectChanges();
     expect(router.url).toBe('/admin/vendedores/v-1');
-    expect(harness.routeNativeElement!.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
   });
 
   it('mientras guarda bloquea salir por navegación y permite cerrar al terminar', async () => {

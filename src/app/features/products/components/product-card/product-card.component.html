@@ -1,4 +1,4 @@
-<div class="surface-card flex h-full min-w-0 flex-col overflow-hidden">
+<p-card class="block h-full min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
   <a
     [routerLink]="['/admin/productos', product().id, 'editar']"
     [attr.aria-label]="'Editar ' + product().name"
@@ -24,14 +24,10 @@
 
       <div class="absolute top-1 left-1 flex flex-col gap-1">
         @if (outOfStock()) {
-          <span class="rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-white">Agotado</span>
+          <p-tag value="Agotado" severity="contrast" />
         }
         @if (product().fractionable) {
-          <span
-            class="rounded bg-accent-2-bg px-1.5 py-0.5 text-[11px] font-bold text-accent-2-text"
-          >
-            Fraccionado
-          </span>
+          <p-tag value="Fraccionado" severity="secondary" />
         }
       </div>
     </div>
@@ -60,4 +56,4 @@
       </a>
     </div>
   }
-</div>
+</p-card>

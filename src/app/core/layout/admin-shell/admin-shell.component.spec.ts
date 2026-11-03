@@ -48,14 +48,22 @@ describe('AdminShellComponent', () => {
     expect(cart.getAttribute('href')).toBe('/carrito');
   });
 
-  it('muestra la barra «Viendo» y pide la lista de vendedores una vez', () => {
+  it('muestra la barra «Viendo» y pide la lista de vendedores una vez', async () => {
     const httpMock = TestBed.inject(HttpTestingController);
     httpMock.expectOne(`${API_BASE_URL}/api/sellers`).flush([{ id: 'v-1', fullName: 'Víctor Vendedor', units: 6 }]);
     fixture.detectChanges();
 
     const bar = fixture.nativeElement.querySelector('app-viewing-bar') as HTMLElement;
     expect(bar).not.toBeNull();
-    const options = Array.from(bar.querySelectorAll('option')).map((o) => o.textContent?.trim());
+    await fixture.whenStable(); // ngModel quita el estado deshabilitado en un microtask
+    fixture.detectChanges();
+    bar.querySelector<HTMLElement>('p-select')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const options = Array.from(document.querySelectorAll('li.p-select-option')).map((o) =>
+      o.textContent?.trim(),
+    );
     expect(options).toEqual(['Yo · bodega', 'Víctor Vendedor']);
     httpMock.verify();
   });

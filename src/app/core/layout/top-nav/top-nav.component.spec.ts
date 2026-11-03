@@ -113,4 +113,15 @@ describe('TopNavComponent', () => {
     expect(cartLink.getAttribute('aria-current')).toBe('page');
     expect(cartLink.closest('nav')).toBeNull();
   });
+
+  it('el menú es un p-menu con una opción por item y el botón de ocultar es pButton', async () => {
+    await render(ADMIN, ADMIN_MENU, 'Menú del administrador');
+    const menu = fixture.nativeElement.querySelector('nav p-menu') as HTMLElement;
+    expect(menu).not.toBeNull();
+    expect(menu.querySelectorAll('li[role="menuitem"]').length).toBe(4);
+
+    const hide = fixture.nativeElement.querySelector('button[aria-controls]') as HTMLButtonElement;
+    expect(hide.classList.contains('p-button')).toBe(true);
+    expect(hide.getAttribute('aria-expanded')).toBe('true');
+  });
 });

@@ -25,12 +25,14 @@
       </div>
       <!-- Solo escritorio: en celular el menú va arriba y no hay barra lateral que ocultar. -->
       <button
+        pButton
+        [text]="true"
         type="button"
         (click)="sidebar.toggle()"
         [attr.aria-label]="hideSidebarLabel"
         [attr.aria-controls]="sidebarId"
         aria-expanded="true"
-        class="ml-auto hidden h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-page/70 transition-colors duration-200 hover:bg-page/10 hover:text-page focus-visible:outline-page motion-reduce:transition-none lg:flex"
+        class="ml-auto hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl px-0 text-page/70 hover:bg-page/10 hover:text-page active:bg-page/10 focus-visible:outline-page lg:flex"
       >
         <app-nav-icon name="panel-close" />
       </button>
@@ -39,16 +41,18 @@
     <div class="order-2 ml-auto flex shrink-0 items-center gap-2 px-4 py-3 lg:order-4 lg:mt-auto lg:ml-0 lg:w-full lg:justify-between lg:p-0 lg:pt-4">
       <!-- El contador de items del carrito (M2/M3) va aquí cuando exista; hoy no tiene datos reales. -->
       <a
+        pButton
+        [text]="true"
         [routerLink]="cart().path"
         routerLinkActive
         #cartRla="routerLinkActive"
         [attr.aria-current]="cartRla.isActive ? 'page' : null"
         [attr.aria-label]="cart().label"
-        class="flex h-11 w-11 items-center justify-center rounded-xl border transition-[background-color,color,border-color] duration-200 focus-visible:outline-page motion-reduce:transition-none"
+        class="flex h-11 w-11 items-center justify-center rounded-xl border px-0 focus-visible:outline-page"
         [class]="
           cartRla.isActive
-            ? 'border-accent bg-accent text-white'
-            : 'border-page/20 text-page/85 hover:border-page/40 hover:text-page'
+            ? 'border-accent bg-accent text-white hover:bg-accent hover:text-white active:bg-accent'
+            : 'border-page/20 bg-transparent text-page/85 hover:border-page/40 hover:bg-transparent hover:text-page active:bg-transparent'
         "
       >
         <app-nav-icon name="cart" />
@@ -70,18 +74,21 @@
       class="order-3 w-full border-y border-page/10 bg-ink-raised lg:order-3 lg:w-full lg:flex-none lg:border-0 lg:bg-transparent"
       [attr.aria-label]="ariaLabel()"
     >
-      <div
-        class="grid divide-x divide-page/10 lg:flex lg:flex-col lg:gap-1 lg:divide-x-0"
-        [class]="gridColsClass()"
-      >
-        @for (item of menu(); track item.path) {
+      <p-menu [model]="menuEntries()" [pt]="menuPassThrough()">
+        <ng-template #item let-item>
           <a
-            [routerLink]="item.path"
+            [routerLink]="item.routerLink"
             routerLinkActive
             #rla="routerLinkActive"
+            data-pc-section="itemlink"
+            tabindex="-1"
             [attr.aria-current]="rla.isActive ? 'page' : null"
-            class="relative isolate flex min-h-17 flex-col items-center justify-center gap-1 px-1 py-2.5 font-display text-[12px] leading-tight font-bold tracking-wide transition-colors duration-200 focus-visible:-outline-offset-4 focus-visible:outline-page motion-reduce:transition-none lg:min-h-11 lg:flex-row lg:justify-start lg:gap-2 lg:rounded-xl lg:px-4 lg:py-0 lg:text-sm"
-            [class]="rla.isActive ? 'text-white' : 'text-page/60 hover:text-page lg:hover:bg-page/5'"
+            class="relative isolate flex h-full min-h-17 w-full flex-col items-center justify-center gap-1 px-1 py-2.5 font-display text-[12px] leading-tight font-bold tracking-wide no-underline transition-colors duration-200 motion-reduce:transition-none lg:min-h-11 lg:flex-row lg:justify-start lg:gap-2 lg:rounded-xl lg:px-4 lg:py-0 lg:text-sm"
+            [class]="
+              rla.isActive
+                ? 'text-white hover:text-white'
+                : 'text-page/60 hover:text-page lg:hover:bg-page/5'
+            "
           >
             @if (rla.isActive) {
               <span
@@ -89,11 +96,11 @@
                 class="absolute inset-1.5 -z-10 origin-bottom animate-stock-grow rounded-xl bg-accent shadow-lg shadow-accent/30 motion-reduce:animate-none lg:inset-0"
               ></span>
             }
-            <app-nav-icon [name]="item.icon" />
+            <app-nav-icon [name]="item.data.icon" />
             {{ item.label }}
           </a>
-        }
-      </div>
+        </ng-template>
+      </p-menu>
     </nav>
   </div>
 
@@ -105,12 +112,14 @@
 
 @if (sidebar.collapsed()) {
   <button
+    pButton
+    [text]="true"
     type="button"
     (click)="sidebar.toggle()"
     [attr.aria-label]="showSidebarLabel"
     [attr.aria-controls]="sidebarId"
     aria-expanded="false"
-    class="fixed top-3 left-3 z-20 hidden animate-rise-in [animation-delay:150ms] motion-reduce:animate-none h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-ink text-page shadow-raised ring-1 ring-page/20 transition-colors duration-200 hover:bg-ink-raised focus-visible:outline-accent motion-reduce:transition-none lg:flex"
+    class="fixed top-3 left-3 z-20 hidden animate-rise-in [animation-delay:150ms] motion-reduce:animate-none h-11 w-11 items-center justify-center rounded-xl bg-ink px-0 text-page shadow-raised ring-1 ring-page/20 hover:bg-ink-raised hover:text-page active:bg-ink-raised focus-visible:outline-accent lg:flex"
   >
     <app-nav-icon name="panel-open" />
   </button>
