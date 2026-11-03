@@ -16,3 +16,6 @@ export const MONEY_MAX: Record<MoneyScale, string> = { 2: '99999999.99', 4: '999
 
 // Texto decimal sin signo, comas ni notación científica: «450», «450.50».
 export const DECIMAL = /^(\d+)(?:\.(\d+))?$/
+
+// UUID en texto (requestId, holderId): 8-4-4-4-12 dígitos hexadecimales.
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

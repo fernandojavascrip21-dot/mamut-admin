@@ -20,6 +20,7 @@ const ALIASES: Record<string, string> = {
   '@deliveries': 'src/deliveries',
   '@returns': 'src/returns',
   '@inventory': 'src/inventory',
+  '@sales': 'src/sales',
 }
 
 const walk = (dir: string): string[] =>
@@ -85,6 +86,19 @@ describe('arquitectura del backend', () => {
     const allowed = ['src/stock', 'src/accounts']
     const violations = allImports.filter(
       (imp) => areaOf(imp.file) === 'src/inventory' && !imp.relative && !allowed.includes(areaOf(imp.target)),
+    )
+    expect(violations.map(describeImport)).toEqual([])
+  })
+
+  // sales registra ventas sobre el stock y lee productos y vendedores (spec T-18 §5).
+  it('sales solo importa @stock, @accounts y @products', () => {
+    const allowed = ['src/stock', 'src/accounts', 'src/products']
+    const violations = allImports.filter(
+      (imp) =>
+        areaOf(imp.file) === 'src/sales' &&
+        !imp.relative &&
+        !INFRASTRUCTURE.some((infra) => areaOf(imp.target) === `src/${infra}`) &&
+        !allowed.includes(areaOf(imp.target)),
     )
     expect(violations.map(describeImport)).toEqual([])
   })
