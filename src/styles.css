@@ -45,6 +45,19 @@
   --color-disabled: #e3dacb;
   --color-disabled-input: #f7f1e7;
 
+  /* «Stock general» (HU-13): barra dividida. Bodega usa la tinta; cada vendedor activo toma un
+     color de la paleta en orden alfabético y rota a partir del sexto (índice % 5 + 1).
+     «Vendedores inactivos» usa --color-faint. Contraste de cada color contra la tarjeta blanca:
+     warehouse 17.1, 1 4.8, 2 5.1, 3 6.6, 4 5.7, 5 4.0 (todos ≥ 3:1). La barra es decorativa
+     (aria-hidden): el nombre y el número de cada lugar van en la leyenda, así que el color nunca
+     es lo único que distingue a un vendedor. */
+  --color-split-warehouse: #231a14;
+  --color-split-1: #ac5e1c;
+  --color-split-2: #2f7a73;
+  --color-split-3: #8a4478;
+  --color-split-4: #3d68a3;
+  --color-split-5: #9a7b14;
+
   --font-sans: 'Public Sans', system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;

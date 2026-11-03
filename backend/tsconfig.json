@@ -28,6 +28,7 @@
       "@stock": ["./src/stock"],
       "@deliveries": ["./src/deliveries"],
       "@returns": ["./src/returns"],
+      "@inventory": ["./src/inventory"],
       "@api/*": ["./app/api/*"]
     }
   },

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { products, stockMovements, vendorStock } from '@db/schema'
 import type { Tx } from '@db/transaction'
@@ -53,6 +53,52 @@ export async function stockOfHolder(profileId: string): Promise<HolderStockLine[
     .where(and(eq(vendorStock.profileId, profileId), gt(vendorStock.qty, 0)))
     .orderBy(asc(products.name))
   return rows.map((row) => ({ ...row, image: row.image || null }))
+}
+
+// Un producto con piezas en algún lugar (HU-13): las de la bodega (products.stock) y las de cada
+// vendedor con qty > 0. `image` es null cuando el producto no tiene foto ('' en la base).
+export interface ProductHoldings {
+  productId: number
+  name: string
+  image: string | null
+  warehouse: number
+  holders: { profileId: string; units: number }[]
+}
+
+// Productos con alguna pieza en la bodega o con algún vendedor, por nombre. Incluye archivados y
+// bolsitas, porque esas piezas siguen existiendo. Solo lee: products.stock y vendor_stock.qty son
+// una caché que mantienen los movimientos (T-07). Un producto con 0 piezas en todas partes no sale.
+export async function holdingsByProduct(): Promise<ProductHoldings[]> {
+  const heldByVendor = db
+    .select({ productId: vendorStock.productId })
+    .from(vendorStock)
+    .where(gt(vendorStock.qty, 0))
+
+  const productRows = await db
+    .select({ productId: products.id, name: products.name, image: products.image, warehouse: products.stock })
+    .from(products)
+    .where(or(gt(products.stock, 0), inArray(products.id, heldByVendor)))
+    .orderBy(asc(products.name), asc(products.id))
+
+  if (productRows.length === 0) return []
+
+  const holderRows = await db
+    .select({ productId: vendorStock.productId, profileId: vendorStock.profileId, units: vendorStock.qty })
+    .from(vendorStock)
+    .where(and(gt(vendorStock.qty, 0), inArray(vendorStock.productId, productRows.map((row) => row.productId))))
+
+  const holdersByProduct = new Map<number, { profileId: string; units: number }[]>()
+  for (const { productId, profileId, units } of holderRows) {
+    const holders = holdersByProduct.get(productId) ?? []
+    holders.push({ profileId, units })
+    holdersByProduct.set(productId, holders)
+  }
+
+  return productRows.map((row) => ({
+    ...row,
+    image: row.image || null,
+    holders: holdersByProduct.get(row.productId) ?? [],
+  }))
 }
 
 // Lo que un vendedor ya tiene de un producto, aunque sean 0 piezas (HU-11): la ventana de «Dejar»
