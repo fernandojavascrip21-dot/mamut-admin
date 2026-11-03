@@ -1,0 +1,28 @@
+<p-card class="block h-full min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+  <div class="flex min-w-0 gap-4 p-4">
+    @if (showPhoto()) {
+      <img
+        [src]="product().image"
+        [alt]="product().name"
+        loading="lazy"
+        (error)="onPhotoError()"
+        class="h-24 w-24 flex-shrink-0 rounded-md object-cover"
+      />
+    } @else {
+      <div
+        class="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-md bg-line text-lg font-bold text-ink"
+        aria-hidden="true"
+      >
+        {{ initials() }}
+      </div>
+    }
+
+    <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
+      <p class="name m-0 text-sm leading-tight font-bold break-words">{{ product().name }}</p>
+      <p class="units m-0 font-mono text-[22px] leading-tight font-bold">{{ unitsText() }}</p>
+      <p class="price m-0 font-mono text-sm font-bold">
+        {{ price() | currency: 'MXN' : 'symbol-narrow' }}
+      </p>
+    </div>
+  </div>
+</p-card>
