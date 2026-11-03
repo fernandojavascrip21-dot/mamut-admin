@@ -1,6 +1,6 @@
 import type { StockOverview, StockProduct, StockSellerTotal } from '../interfaces/stock-overview.models';
 import {
-  filterStockByName, productBreakdown, sellerProducts, sellerTotal, splitParts, unitsLabel,
+  filterStockByName, productBreakdown, sellerProducts, sellerTotal, splitParts,
 } from './stock.rules';
 
 const seller = (fullName: string, units = 0): StockSellerTotal => ({ id: fullName, fullName, units });
@@ -112,11 +112,5 @@ describe('filterStockByName', () => {
 
   it('sin coincidencias devuelve una lista vacía', () => {
     expect(filterStockByName(items, 'xyz')).toEqual([]);
-  });
-});
-
-describe('unitsLabel', () => {
-  it.each([[0, '0 piezas'], [1, '1 pieza'], [6, '6 piezas']])('%i → «%s»', (units, label) => {
-    expect(unitsLabel(units)).toBe(label);
   });
 });

@@ -69,8 +69,3 @@ export function filterStockByName<T extends { name: string }>(items: T[], query:
   if (normalizedQuery === '') return items;
   return items.filter((item) => normalizeText(item.name).includes(normalizedQuery));
 }
-
-// «1 pieza» / «N piezas» en totales y filas.
-export function unitsLabel(units: number): string {
-  return units === 1 ? '1 pieza' : `${units} piezas`;
-}
