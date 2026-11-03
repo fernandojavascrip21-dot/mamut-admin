@@ -1,6 +1,6 @@
 # Spec técnico — HU-13 · Ver el stock general: bodega, cada vendedor y total
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — `ViewingService` y la selección «Yo · bodega» / vendedor; M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) y M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — los pop-ups «Dejar» y «Retirar» que abren los movimientos rápidos; M2-hu09-ver-mis-vendedores (`specs/M2-hu09-ver-mis-vendedores/spec.md`) — `unitsByHolder`/`stockOfHolder` en el módulo `stock` y `listSellers` en `accounts`; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — `modal-links.ts` y `StockChangesService`; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `products.stock` y `vendor_stock.qty` los mantienen los movimientos
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el administrador vea en `/admin/stock` el total del negocio repartido entre bodega y vendedores, y por producto cuánto hay en cada lugar, o solo el stock del vendedor elegido en «Viendo».
