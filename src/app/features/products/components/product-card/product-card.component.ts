@@ -1,21 +1,26 @@
 import { ButtonDirective } from 'primeng/button';
+import { Card } from 'primeng/card';
+import { Tag } from 'primeng/tag';
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
 import { deliveryModalLink } from '@shared/utils/modal-links';
 import { initialsOf } from '@shared/utils/initials';
+import { PRODUCT_CARD_PASS_THROUGH } from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
 // "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
 // dos enlaces hermanos porque un enlace no puede ir dentro de otro. Vender llegará en M3.
 @Component({
-  imports: [CurrencyPipe, RouterLink, ButtonDirective],
+  imports: [CurrencyPipe, RouterLink, ButtonDirective, Card, Tag],
   selector: 'app-product-card',
   templateUrl: './product-card.component.html',
 })
 export class ProductCardComponent {
+  readonly cardPassThrough = PRODUCT_CARD_PASS_THROUGH;
+
   readonly product = input.required<ProductSummary>();
   readonly sellerId = input<string | null>(null); // vendedor en «Viendo»: la ventana lo deja fijo
 

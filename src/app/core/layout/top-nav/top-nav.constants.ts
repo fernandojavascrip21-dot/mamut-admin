@@ -13,3 +13,11 @@ export const ROLE_LABEL_BY_ROLE = {
   admin: 'Administrador',
   vendedor: 'Vendedor',
 } as const;
+
+// Clases del `p-menu`: celdas con divisores en celular y lista vertical en la barra lateral. Van
+// escritas completas (no interpoladas) para que el escaneo estático de Tailwind v4 las conserve.
+export const MENU_ROOT_CLASS = 'w-full min-w-0 border-0 bg-transparent p-0';
+export const MENU_LIST_BASE_CLASS =
+  'm-0 grid list-none divide-x divide-page/10 p-0 outline-none lg:flex lg:flex-col lg:gap-1 lg:divide-x-0';
+export const MENU_ITEM_CLASS = 'min-w-0';
+export const MENU_GRID_CLASS_BY_COLUMNS = { 4: 'grid-cols-4', 3: 'grid-cols-3' } as const;

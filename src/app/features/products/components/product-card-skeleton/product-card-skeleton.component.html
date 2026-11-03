@@ -1,9 +1,11 @@
-<div class="surface-card flex gap-4 p-4" aria-hidden="true">
-  <div class="h-24 w-24 flex-shrink-0 skeleton-block"></div>
+<p-card class="block border border-line" [pt]="cardPassThrough" aria-hidden="true">
+  <div class="flex gap-4 p-4">
+    <p-skeleton size="6rem" borderRadius="0.375rem" class="shrink-0" />
 
-  <div class="flex flex-1 flex-col justify-center gap-2">
-    <div class="h-4 w-3/4 skeleton-block"></div>
-    <div class="h-6 w-1/2 skeleton-block"></div>
-    <div class="h-4 w-1/3 skeleton-block"></div>
+    <div class="flex flex-1 flex-col justify-center gap-2">
+      <p-skeleton width="75%" height="1rem" />
+      <p-skeleton width="50%" height="1.5rem" />
+      <p-skeleton width="33%" height="1rem" />
+    </div>
   </div>
-</div>
+</p-card>

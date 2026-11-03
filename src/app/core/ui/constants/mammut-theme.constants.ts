@@ -1,10 +1,13 @@
 import { definePreset } from '@primeuix/themes';
 import AuraCheckbox from '@primeuix/themes/aura/checkbox';
+import AuraCard from '@primeuix/themes/aura/card';
 import AuraConfirmDialog from '@primeuix/themes/aura/confirmdialog';
 import AuraDataView from '@primeuix/themes/aura/dataview';
 import AuraDialog from '@primeuix/themes/aura/dialog';
 import AuraInputText from '@primeuix/themes/aura/inputtext';
 import AuraSelect from '@primeuix/themes/aura/select';
+import AuraSkeleton from '@primeuix/themes/aura/skeleton';
+import AuraTag from '@primeuix/themes/aura/tag';
 import AuraToast from '@primeuix/themes/aura/toast';
 import type { Preset } from '@primeuix/themes/types';
 
@@ -272,6 +275,71 @@ export const MAMMUT_THEME = definePreset({
     confirmdialog: {
       ...AuraConfirmDialog,
       icon: { ...AuraConfirmDialog.icon, color: 'var(--color-danger)' },
+    },
+    // Menú lateral (M3-t04): la plantilla `#item` propia pinta cada opción, así que el marco, la lista
+    // y los elementos se neutralizan (sin fondo, borde, relleno ni sombra). Aura no se importa: sus
+    // valores dependen de los tokens `navigation.*` que este preset no define.
+    menu: {
+      root: {
+        background: 'transparent',
+        borderColor: 'transparent',
+        color: 'inherit',
+        borderRadius: '0',
+        shadow: 'none',
+        transitionDuration: '{transition.duration}',
+      },
+      list: { padding: '0', gap: '0' },
+      item: {
+        focusBackground: 'transparent',
+        color: 'inherit',
+        focusColor: 'inherit',
+        padding: '0',
+        borderRadius: '0',
+        gap: '0',
+        icon: { color: 'inherit', focusColor: 'inherit' },
+      },
+      submenuLabel: {
+        padding: '0',
+        fontWeight: '700',
+        background: 'transparent',
+        color: 'inherit',
+      },
+      separator: { borderColor: 'var(--color-line)' },
+    },
+    // Tarjetas de «Productos» y «Mis vendedores»: mismo marco que `surface-card` (radio, borde y
+    // sombra de marca); el contenido de cada tarjeta pone su propio relleno.
+    card: {
+      ...AuraCard,
+      root: {
+        ...AuraCard.root,
+        background: 'var(--color-white)',
+        borderRadius: 'var(--radius-card)',
+        color: 'var(--color-ink)',
+        shadow: 'var(--shadow-card)',
+      },
+      body: { padding: '0', gap: '0' },
+    },
+    // Solo «Agotado» (contraste, tinta) y «Fraccionado» (secundaria, dorado); se omiten los demás tonos de Aura.
+    tag: {
+      root: {
+        fontSize: '0.6875rem',
+        fontWeight: '700',
+        padding: '0.125rem 0.375rem',
+        gap: '0.25rem',
+        borderRadius: '0.25rem',
+        roundedBorderRadius: 'var(--radius-xl)',
+      },
+      icon: AuraTag.icon,
+      secondary: { background: 'var(--color-accent-2-bg)', color: 'var(--color-accent-2-text)' },
+      contrast: { background: 'var(--color-ink)', color: 'var(--color-white)' },
+    },
+    skeleton: {
+      root: {
+        ...AuraSkeleton.root,
+        borderRadius: '0.5rem',
+        background: 'var(--color-line)',
+        animationBackground: 'rgb(255 255 255 / 0.45)',
+      },
     },
     dataview: {
       ...AuraDataView,

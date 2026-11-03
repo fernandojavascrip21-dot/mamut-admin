@@ -1,18 +1,31 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ButtonDirective } from 'primeng/button';
+import { Menu } from 'primeng/menu';
+import type { MenuPassThrough } from 'primeng/types/menu';
 import { AuthService } from '@core/auth/services/auth.service';
 import { initialsOf } from '@shared/utils/initials';
 import { SidebarService } from '../services/sidebar.service';
 import { NavIconComponent } from '../nav-icon/nav-icon.component';
 import { HIDE_SIDEBAR_LABEL, SHOW_SIDEBAR_LABEL, SIDEBAR_ID } from '../constants/sidebar.constants';
-import { ACCOUNT_LABEL, AVATAR_BG_BY_ROLE, BRAND_NAME, ROLE_LABEL_BY_ROLE } from './top-nav.constants';
+import {
+  ACCOUNT_LABEL,
+  AVATAR_BG_BY_ROLE,
+  BRAND_NAME,
+  MENU_GRID_CLASS_BY_COLUMNS,
+  MENU_ITEM_CLASS,
+  MENU_LIST_BASE_CLASS,
+  MENU_ROOT_CLASS,
+  ROLE_LABEL_BY_ROLE,
+} from './top-nav.constants';
 import type { CartLink, NavMenuItem } from './top-nav.models';
+import { toNavMenuEntries } from './top-nav.utils';
 
 // Navbar superior compartido entre admin-shell y seller-shell (reemplaza la cabecera + el
 // menú inferior que antes se duplicaban en cada shell). Lee el usuario actual directamente de
 // AuthService para no depender de que cada página le pase iniciales/color del avatar.
 @Component({
-  imports: [RouterLink, RouterLinkActive, NavIconComponent],
+  imports: [RouterLink, RouterLinkActive, NavIconComponent, ButtonDirective, Menu],
   selector: 'app-top-nav',
   templateUrl: './top-nav.component.html',
 })
@@ -42,7 +55,17 @@ export class TopNavComponent {
     this.auth.currentUser()?.role === 'admin' ? AVATAR_BG_BY_ROLE.admin : AVATAR_BG_BY_ROLE.vendedor,
   );
 
-  // Las dos cadenas deben quedar escritas tal cual (no construidas por interpolación) para que
-  // el escaneo estático de Tailwind v4 las detecte y no las purgue del CSS final.
-  readonly gridColsClass = computed(() => (this.menu().length === 4 ? 'grid-cols-4' : 'grid-cols-3'));
+  readonly menuEntries = computed(() => toNavMenuEntries(this.menu()));
+
+  // Celdas en celular (3 o 4 columnas según cuántas opciones haya) y lista vertical en escritorio.
+  // Las clases salen de constantes con el texto completo para que Tailwind v4 las detecte.
+  readonly menuPassThrough = computed<MenuPassThrough>(() => ({
+    root: { class: MENU_ROOT_CLASS },
+    list: {
+      class: `${MENU_LIST_BASE_CLASS} ${
+        this.menu().length === 4 ? MENU_GRID_CLASS_BY_COLUMNS[4] : MENU_GRID_CLASS_BY_COLUMNS[3]
+      }`,
+    },
+    item: { class: MENU_ITEM_CLASS },
+  }));
 }

@@ -78,7 +78,8 @@ describe('CreateDeliveryPageComponent', () => {
     fixture = TestBed.createComponent(CreateDeliveryPageComponent);
   }
 
-  const el = () => fixture.nativeElement as HTMLElement;
+  // El diálogo de PrimeNG se monta en body: el contenido ya no cuelga del fixture.
+  const el = () => document.body;
   const text = () => el().textContent!.replace(/\s+/g, ' ');
   async function settle() {
     await fixture.whenStable();
@@ -146,11 +147,14 @@ describe('CreateDeliveryPageComponent', () => {
     httpMock.expectNone(DELIVERIES_URL);
   });
 
-  it('la X y Escape cierran la ventana', async () => {
+  it('la X cierra la ventana', async () => {
     await openFixed();
-    el().querySelector<HTMLButtonElement>('.close')!.click();
+    el().querySelector<HTMLButtonElement>('.p-dialog-close-button')!.click();
     expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
-    vi.mocked(router.navigate).mockClear();
+  });
+
+  it('Escape cierra la ventana', async () => {
+    await openFixed();
     el().querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
   });
@@ -211,7 +215,7 @@ describe('CreateDeliveryPageComponent', () => {
     await openFixed();
     type('#qty', '2');
     submit();
-    expect(el().querySelector('.close')).toBeNull();
+    expect(el().querySelector('.p-dialog-close-button')).toBeNull();
     expect(el().querySelector<HTMLButtonElement>('.cancel')!.disabled).toBe(true);
     fixture.componentInstance.close();
     el().querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

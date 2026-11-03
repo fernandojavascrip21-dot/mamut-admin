@@ -10,73 +10,110 @@ const SELLERS: ViewingSeller[] = [
 describe('ViewingBarComponent', () => {
   let fixture: ComponentFixture<ViewingBarComponent>;
 
-  function render(sellers: ViewingSeller[], status: ViewingListStatus, selectedSellerId: string | null = null) {
+  // ngModel escribe el valor y el estado deshabilitado en un microtask: hay que esperar a que se asiente.
+  async function render(sellers: ViewingSeller[], status: ViewingListStatus, selectedSellerId: string | null = null) {
     fixture = TestBed.createComponent(ViewingBarComponent);
     fixture.componentRef.setInput('sellers', sellers);
     fixture.componentRef.setInput('status', status);
     fixture.componentRef.setInput('selectedSellerId', selectedSellerId);
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
   }
 
-  const select = () => fixture.nativeElement.querySelector('select') as HTMLSelectElement;
-  const optionLabels = () => Array.from(select().options).map((o) => o.textContent?.trim());
+  const el = () => fixture.nativeElement as HTMLElement;
+  const combobox = () => el().querySelector('[role="combobox"]') as HTMLElement;
+  const optionLabels = () =>
+    Array.from(document.querySelectorAll<HTMLElement>('li.p-select-option')).map((o) =>
+      o.textContent?.trim(),
+    );
+
+  // El selector es un Select de PrimeNG: se abre con un clic y la lista se monta en body.
+  async function open() {
+    el().querySelector<HTMLElement>('p-select')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+  const pick = (name: string) => {
+    Array.from(document.querySelectorAll<HTMLElement>('li.p-select-option'))
+      .find((o) => o.textContent!.includes(name))!
+      .click();
+    fixture.detectChanges();
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [ViewingBarComponent] });
   });
 
-  it('muestra la etiqueta «Viendo» unida al select', () => {
-    render(SELLERS, 'ready');
-    const label = fixture.nativeElement.querySelector('label') as HTMLLabelElement;
+  afterEach(() => {
+    fixture.destroy();
+    document.querySelectorAll('.p-select-overlay').forEach((node) => node.remove());
+  });
+
+  it('muestra la etiqueta «Viendo» unida al selector', async () => {
+    await render(SELLERS, 'ready');
+    const label = el().querySelector('label') as HTMLLabelElement;
     expect(label.textContent?.trim()).toBe('Viendo');
-    expect(label.htmlFor).toBe(select().id);
+    expect(label.htmlFor).toBe('viewing-select');
+    expect(combobox().getAttribute('aria-labelledby')).toBe('viewing-label');
+    expect(el().querySelector('select')).toBeNull();
   });
 
-  it('lista «Yo · bodega» primero y después cada vendedor, en el orden recibido', () => {
-    render(SELLERS, 'ready');
+  it('lista «Yo · bodega» primero y después cada vendedor, en el orden recibido', async () => {
+    await render(SELLERS, 'ready');
+    expect(el().textContent).toContain('Yo · bodega');
+    await open();
     expect(optionLabels()).toEqual(['Yo · bodega', 'Valeria Vendedora', 'Víctor Vendedor']);
-    expect(select().value).toBe('');
   });
 
-  it('marca al vendedor elegido y muestra sus iniciales', () => {
-    render(SELLERS, 'ready', 'v-1');
-    expect(select().value).toBe('v-1');
-    expect(fixture.nativeElement.textContent).toContain('VV');
+  it('marca al vendedor elegido y muestra sus iniciales', async () => {
+    await render(SELLERS, 'ready', 'v-1');
+    expect(el().textContent).toContain('Víctor Vendedor');
+    expect(el().textContent).toContain('VV');
   });
 
-  it('cambiar el select emite el id, y «Yo · bodega» emite null', () => {
-    render(SELLERS, 'ready');
+  it('en «Yo · bodega» no muestra iniciales', async () => {
+    await render(SELLERS, 'ready');
+    expect(el().querySelector('.initials')).toBeNull();
+  });
+
+  it('elegir un vendedor emite su id, y «Yo · bodega» emite null', async () => {
+    await render(SELLERS, 'ready');
     const emitted: (string | null)[] = [];
     fixture.componentInstance.selectionChange.subscribe((id) => emitted.push(id));
 
-    select().value = 'v-2';
-    select().dispatchEvent(new Event('change'));
-    select().value = '';
-    select().dispatchEvent(new Event('change'));
+    await open();
+    pick('Valeria');
+    fixture.componentRef.setInput('selectedSellerId', 'v-2');
+    fixture.detectChanges();
+    await open();
+    pick('Yo · bodega');
 
     expect(emitted).toEqual(['v-2', null]);
   });
 
-  it('mientras carga el select está deshabilitado en «Yo · bodega»', () => {
-    render([], 'loading');
-    expect(select().disabled).toBe(true);
-    expect(select().getAttribute('aria-busy')).toBe('true');
-    expect(optionLabels()).toEqual(['Yo · bodega']);
+  it('mientras carga el selector está deshabilitado y con aria-busy', async () => {
+    await render([], 'loading');
+    expect(el().querySelector('p-select')!.classList.contains('p-disabled')).toBe(true);
+    expect(combobox().getAttribute('aria-busy')).toBe('true');
+    expect(el().textContent).toContain('Yo · bodega');
   });
 
-  it('con error solo ofrece «Yo · bodega», y «Reintentar» emite retry', () => {
-    render([], 'error');
-    expect(select().disabled).toBe(false);
+  it('con error solo ofrece «Yo · bodega», y «Reintentar» emite retry', async () => {
+    await render([], 'error');
+    expect(el().querySelector('p-select')!.classList.contains('p-disabled')).toBe(false);
+    await open();
     expect(optionLabels()).toEqual(['Yo · bodega']);
 
     let retried = 0;
     fixture.componentInstance.retry.subscribe(() => retried++);
-    (fixture.nativeElement.querySelector('.retry') as HTMLButtonElement).click();
+    (el().querySelector('.retry') as HTMLButtonElement).click();
     expect(retried).toBe(1);
   });
 
-  it('sin error no muestra «Reintentar»', () => {
-    render(SELLERS, 'ready');
-    expect(fixture.nativeElement.querySelector('.retry')).toBeNull();
+  it('sin error no muestra «Reintentar»', async () => {
+    await render(SELLERS, 'ready');
+    expect(el().querySelector('.retry')).toBeNull();
   });
 });

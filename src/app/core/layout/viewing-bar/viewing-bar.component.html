@@ -3,58 +3,44 @@
   [class]="selectedSeller() ? 'border-accent bg-accent/15' : 'border-page/10 bg-ink-raised'"
 >
   <div class="flex w-full items-center gap-3 lg:flex-col lg:items-start lg:gap-1.5">
-    <label for="viewing-select" class="font-display text-sm font-semibold tracking-wide">{{
-      label
-    }}</label>
+    <label
+      id="viewing-label"
+      for="viewing-select"
+      class="font-display text-sm font-semibold tracking-wide"
+      >{{ label }}</label
+    >
 
-    <div class="relative min-w-0 flex-1 sm:w-72 sm:flex-none lg:w-full">
-      @if (selectedSeller()) {
-        <span
-          aria-hidden="true"
-          class="pointer-events-none absolute top-1/2 left-1.5 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white text-xs font-bold text-accent-hover"
-        >
-          {{ initials() }}
-        </span>
-      }
-      <select
-        id="viewing-select"
+    <div class="min-w-0 flex-1 sm:w-72 sm:flex-none lg:w-full">
+      <p-select
+        inputId="viewing-select"
+        ariaLabelledBy="viewing-label"
+        [options]="options()"
+        optionLabel="label"
+        optionValue="id"
+        [ngModel]="value()"
+        (onChange)="onChange($event)"
         [disabled]="status() === 'loading'"
-        [attr.aria-busy]="status() === 'loading' ? 'true' : null"
-        (change)="onChange($event)"
-        class="h-10 w-full cursor-pointer appearance-none truncate rounded-lg border border-page/40 bg-white/10 pr-10 text-[15px] font-bold text-page focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-page disabled:cursor-wait disabled:opacity-70"
-        [class]="selectedSeller() ? 'pl-11' : 'pl-3'"
+        [pt]="{ label: { 'aria-busy': status() === 'loading' ? 'true' : null } }"
+        [showClear]="false"
+        appendTo="body"
+        [panelStyle]="panelStyle"
+        [motionOptions]="motionOptions"
+        class="viewing-select flex min-w-0 w-full"
       >
-        <option
-          class="bg-white text-ink"
-          [value]="warehouseValue"
-          [selected]="selectedSellerId() === null"
-        >
-          {{ warehouseLabel }}
-        </option>
-        @for (seller of sellers(); track seller.id) {
-          <option
-            class="bg-white text-ink"
-            [value]="seller.id"
-            [selected]="seller.id === selectedSellerId()"
-          >
-            {{ seller.fullName }}
-          </option>
-        }
-      </select>
-      <svg
-        aria-hidden="true"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
-      >
-        <path d="m6 9 6 6 6-6"></path>
-      </svg>
+        <ng-template #selectedItem let-option>
+          <span class="flex min-w-0 items-center gap-2">
+            @if (selectedSeller()) {
+              <span
+                aria-hidden="true"
+                class="initials flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-accent-hover"
+              >
+                {{ initials() }}
+              </span>
+            }
+            <span class="truncate">{{ option.label }}</span>
+          </span>
+        </ng-template>
+      </p-select>
     </div>
 
     @if (status() === 'error') {

@@ -77,7 +77,8 @@ describe('ReturnUnitsPageComponent', () => {
 
   afterEach(() => httpMock.verify());
 
-  const root = () => fixture.nativeElement as HTMLElement;
+  // El diálogo de PrimeNG se monta en body: el contenido ya no cuelga del fixture.
+  const root = () => document.body;
   const text = () => (root().textContent ?? '').replace(/\s+/g, ' ');
 
   async function settle() {
@@ -236,7 +237,7 @@ describe('ReturnUnitsPageComponent', () => {
 
   it('la X cierra el pop-up', async () => {
     await load();
-    root().querySelector<HTMLButtonElement>('.close')!.click();
+    root().querySelector<HTMLButtonElement>('.p-dialog-close-button')!.click();
     expect(router.navigate).toHaveBeenCalledWith(closeModalLink());
   });
 
@@ -244,7 +245,7 @@ describe('ReturnUnitsPageComponent', () => {
     await load();
     await fillAndSubmit('2');
     fixture.detectChanges();
-    expect(root().querySelector('.close')).toBeNull();
+    expect(root().querySelector('.p-dialog-close-button')).toBeNull();
     expect(root().querySelector<HTMLButtonElement>('.cancel')!.disabled).toBe(true);
     fixture.componentInstance.close();
     root().querySelector('[role="dialog"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
