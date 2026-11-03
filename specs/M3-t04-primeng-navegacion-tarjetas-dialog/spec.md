@@ -130,20 +130,20 @@ Cada paso queda commiteable y la app funcional.
 
 ## 7. Criterios de aceptación
 
-- [ ] El menú de los dos shells es un `p-menu`; la opción activa tiene `aria-current="page"` y la animación de stock, en celular (rejilla) y en escritorio (barra lateral).
-- [ ] Ocultar barra, mostrar barra y carrito son `pButton` y conservan `aria-label`, `aria-controls` y `aria-expanded`.
-- [ ] «Viendo» es un `p-select` sin filtro con «Yo · bodega» primero, las iniciales del vendedor elegido, deshabilitado mientras carga y «Reintentar» si falla; `grep -rn '<select' src/app` no devuelve resultados.
-- [ ] `product-card` y `seller-row` usan `p-card`; «Agotado» y «Fraccionado» son `p-tag`; los dos esqueletos usan `p-skeleton`.
-- [ ] Las tarjetas conservan sus enlaces, sus `aria-label` y la acción «Dejar a vendedor».
-- [ ] `app-modal-panel` usa `p-dialog` y conserva su API; las páginas de «Dejar» y «Retirar» no cambian.
-- [ ] En el pop-up: Escape y la X cierran solo si se puede, el fondo no cierra, el scroll se bloquea, Tab queda dentro y al cerrar el foco vuelve al botón que lo abrió.
-- [ ] La lista de un `p-select` dentro del pop-up queda encima del diálogo.
-- [ ] `@utility skeleton-block` no existe y `grep -rn 'skeleton-block' src` no devuelve resultados; `surface-card` y `surface-interactive` siguen definidas.
-- [ ] A 375 px ninguna pantalla migrada hace scroll horizontal, y la lista de «Viendo» no desborda.
-- [ ] Cada pantalla migrada se ve igual que antes en escritorio y a 375 px (colores, tamaños, animaciones) y respeta `prefers-reduced-motion`.
-- [ ] No se añaden `primeicons`, `Drawer`, `Menubar` ni CSS por componente; los controles se importan uno a uno.
-- [ ] `CLAUDE.md`, `AGENTS.md`, `specs/README.md` y el cuadro de M3-t01 quedan actualizados y en sincronía.
-- [ ] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] El menú de los dos shells es un `p-menu`; la opción activa tiene `aria-current="page"` y la animación de stock, en celular (rejilla) y en escritorio (barra lateral).
+- [x] Ocultar barra, mostrar barra y carrito son `pButton` y conservan `aria-label`, `aria-controls` y `aria-expanded`.
+- [x] «Viendo» es un `p-select` sin filtro con «Yo · bodega» primero, las iniciales del vendedor elegido, deshabilitado mientras carga y «Reintentar» si falla; `grep -rn '<select' src/app` no devuelve resultados.
+- [x] `product-card` y `seller-row` usan `p-card`; «Agotado» y «Fraccionado» son `p-tag`; los dos esqueletos usan `p-skeleton`.
+- [x] Las tarjetas conservan sus enlaces, sus `aria-label` y la acción «Dejar a vendedor».
+- [x] `app-modal-panel` usa `p-dialog` y conserva su API; las páginas de «Dejar» y «Retirar» no cambian.
+- [x] En el pop-up: Escape y la X cierran solo si se puede, el fondo no cierra, el scroll se bloquea, Tab queda dentro y al cerrar el foco vuelve al botón que lo abrió.
+- [x] La lista de un `p-select` dentro del pop-up queda encima del diálogo.
+- [x] `@utility skeleton-block` no existe y `grep -rn 'skeleton-block' src` no devuelve resultados; `surface-card` y `surface-interactive` siguen definidas.
+- [x] A 375 px ninguna pantalla migrada hace scroll horizontal, y la lista de «Viendo» no desborda.
+- [x] Cada pantalla migrada se ve igual que antes en escritorio y a 375 px (colores, tamaños, animaciones) y respeta `prefers-reduced-motion`.
+- [x] No se añaden `primeicons`, `Drawer`, `Menubar` ni CSS por componente; los controles se importan uno a uno.
+- [x] `CLAUDE.md`, `AGENTS.md`, `specs/README.md` y el cuadro de M3-t01 quedan actualizados y en sincronía.
+- [x] Sin cambios en `backend/`. `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 ## 8. Decisiones
 
