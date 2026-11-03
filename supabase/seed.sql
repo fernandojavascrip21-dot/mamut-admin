@@ -4,7 +4,7 @@
 --
 -- Cuentas (todas con email confirmado):
 --   admin@mammut.local        Admin-123456!     admin
---   vendedor1@mammut.local    Vendedor-123456!  vendedor (tel. 5510000001; 6 piezas entregadas, ver §3)
+--   vendedor1@mammut.local    Vendedor-123456!  vendedor (tel. 5510000001; 6 piezas entregadas, una con precio propio, ver §3)
 --   vendedor2@mammut.local    Vendedor-123456!  vendedor (tel. 5510000002)
 --   inactivo@mammut.local     Vendedor-123456!  vendedor (tel. 5510000003; desactivado: el login debe rechazarlo)
 
@@ -119,3 +119,11 @@ union all
 select product_id, 'delivery', qty, 'Entrega de prueba (seed local)', 'a0000000-0000-4000-8000-000000000001'::uuid,
   'a0000000-0000-4000-8000-000000000002'::uuid
 from deliveries;
+
+-- Precio propio de Víctor para la proteína (HU-14): «Mi stock» muestra 920.00 en ese producto y el
+-- precio general (499.00) en la creatina, que queda con unit_price en null. Es un precio, no una
+-- cantidad: vendor_stock.qty no se toca.
+update public.vendor_stock
+set unit_price = 920.00
+where profile_id = 'a0000000-0000-4000-8000-000000000002'
+  and product_id = (select id from public.products where name = 'Proteína Demo Whey 2 lb');
