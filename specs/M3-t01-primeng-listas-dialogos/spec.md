@@ -1,6 +1,6 @@
 # Spec técnico — T-01 · PrimeNG: instalación, tema y primer tramo (listas y diálogos)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M2-t17-primeng-formulario-producto (`specs/M2-t17-primeng-formulario-producto/spec.md`) — ya instaló PrimeNG, `providePrimeNG`, la licencia y el preset base `MAMMUT_THEME`, que este spec amplía; M2-t11-rediseno-visual (`specs/M2-t11-rediseno-visual/spec.md`) — tokens y clases de la base visual; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — el pop-up `ventana` donde vive el picker; M2-hu09-ver-mis-vendedores, M2-hu11-dejar-a-vendedor y M2-hu12-retirar-a-vendedor — las listas que se migran.
 > **Fecha:** 2026-11-02
 > **Objetivo:** adoptar PrimeNG 22 tematizado al diseño de T-11 y migrar el primer tramo: las listas del detalle del vendedor, el picker de productos del pop-up, `confirm-dialog` y el toast.
@@ -49,6 +49,7 @@ La migración completa a PrimeNG no cabe en un spec. Esta lista es el registro v
 | 7 | Navbar, menú lateral y barra «Viendo» | ✅ Hecho en código (revisión visual en celular pendiente) | M3-t04 |
 | 8 | Tarjetas de «Productos» y «Mis vendedores» y shells (`admin-shell`/`seller-shell`) | ✅ Hecho en código (los shells conservan su estructura) | M3-t04 |
 | 9 | Pop-up `ventana` a `Dialog` | ✅ Hecho en código | M3-t04 |
+| — | Diferir `<p-toast>` y `<p-confirmdialog>` (`@defer`, `toast-host`/`confirm-host`) para bajar el bundle inicial | ✅ Hecho (resuelve la decisión abierta de diferir el diálogo) | M3-t05 |
 
 Actualizar la casilla de Estado de un tramo aquí (y en `specs/README.md`) es parte del paso de cierre de cada spec.
 

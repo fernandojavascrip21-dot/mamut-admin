@@ -11,6 +11,7 @@ describe('ToastService', () => {
     messages = { add: vi.fn(), clear: vi.fn() };
     TestBed.configureTestingModule({ providers: [{ provide: MessageService, useValue: messages }] });
     service = TestBed.inject(ToastService);
+    service.markToastReady();
   });
 
   it('un aviso de éxito se muestra con su texto y dura 4 s', () => {
@@ -34,5 +35,37 @@ describe('ToastService', () => {
     service.dismiss();
     expect(messages.clear).toHaveBeenCalledTimes(1);
     expect(messages.add).not.toHaveBeenCalled();
+  });
+
+  describe('antes de que exista el toast diferido', () => {
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ providers: [{ provide: MessageService, useValue: messages }] });
+      service = TestBed.inject(ToastService);
+      messages.add.mockClear();
+      messages.clear.mockClear();
+    });
+
+    it('el aviso queda en espera y se muestra en cuanto el toast está listo', () => {
+      service.error('Credenciales inválidas');
+      expect(messages.add).not.toHaveBeenCalled();
+      service.markToastReady();
+      expect(messages.add).toHaveBeenCalledWith({ severity: 'error', summary: 'Credenciales inválidas', life: 6000 });
+    });
+
+    it('si llegan varios, solo se muestra el último', () => {
+      service.success('Primero');
+      service.error('Segundo');
+      service.markToastReady();
+      expect(messages.add).toHaveBeenCalledTimes(1);
+      expect(messages.add).toHaveBeenCalledWith({ severity: 'error', summary: 'Segundo', life: 6000 });
+    });
+
+    it('dismiss() descarta el aviso en espera', () => {
+      service.success('Pendiente');
+      service.dismiss();
+      service.markToastReady();
+      expect(messages.add).not.toHaveBeenCalled();
+    });
   });
 });
