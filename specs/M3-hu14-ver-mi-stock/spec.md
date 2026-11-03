@@ -1,6 +1,6 @@
 # Spec técnico — HU-14 · Ver mi stock como vendedor
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M0-hu03-rutas-por-rol (`specs/M0-hu03-rutas-por-rol/spec.md`) — el vendedor entra a `/vendedor/mi-stock`; M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — `vendor_stock.unit_price` propio; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — un retiro deja `qty` en 0 y conserva el precio propio; M2-hu09-ver-mis-vendedores (`specs/M2-hu09-ver-mis-vendedores/spec.md`) — `stockOfHolder`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — módulo `inventory` y patrón de pantalla de stock; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `vendor_stock.qty` lo mantienen los movimientos
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el vendedor vea en `/vendedor/mi-stock`, desde el celular, una card por producto que tiene, con su foto, su precio y cuántas piezas le quedan, sin ningún costo ni ganancia.
@@ -160,24 +160,24 @@ unitsLeftLabel(units: number): string   // «Me queda 1» / «Me quedan N»
 
 Por criterio de `SCRUM-48`:
 
-- [ ] **1.** Un vendedor que entra a «Mi stock» ve una card por cada producto con piezas, con foto (o iniciales), nombre, su precio y «Me quedan N».
-- [ ] **2.** Con 6 piezas dejadas y un precio propio, la card dice «Me quedan 6» y muestra el precio propio, no el general (prueba de backend y de la card).
-- [ ] **3.** Sin precio propio (`vendor_stock.unit_price` en `null`), la card muestra el precio general.
-- [ ] **4.** Ni la pantalla ni la respuesta de `GET /api/me/stock` contienen costo, costo con envío ni ganancia: cada producto trae solo `productId`, `name`, `image`, `units` y `price`.
-- [ ] **5.** «Vender» lleva a `/vendedor/vender`.
-- [ ] **6.** Tras un «Dejar», un «Retirar» o una venta, al regresar a «Mi stock» los números son los nuevos.
-- [ ] **7.** Cargando, vacío y error se ven con los textos confirmados contra el canvas, y «Reintentar» vuelve a pedir el stock.
+- [x] **1.** Un vendedor que entra a «Mi stock» ve una card por cada producto con piezas, con foto (o iniciales), nombre, su precio y «Me quedan N».
+- [x] **2.** Con 6 piezas dejadas y un precio propio, la card dice «Me quedan 6» y muestra el precio propio, no el general (prueba de backend y de la card).
+- [x] **3.** Sin precio propio (`vendor_stock.unit_price` en `null`), la card muestra el precio general.
+- [x] **4.** Ni la pantalla ni la respuesta de `GET /api/me/stock` contienen costo, costo con envío ni ganancia: cada producto trae solo `productId`, `name`, `image`, `units` y `price`.
+- [x] **5.** «Vender» lleva a `/vendedor/vender`.
+- [x] **6.** Tras un «Dejar», un «Retirar» o una venta, al regresar a «Mi stock» los números son los nuevos.
+- [x] **7.** Cargando, vacío y error se ven con los textos confirmados contra el canvas, y «Reintentar» vuelve a pedir el stock.
 
 Además:
 
-- [ ] `GET /api/me/stock` responde `403` a un administrador y a un `client`, y `401` sin sesión.
-- [ ] Un producto con `qty` 0 no sale en la lista ni suma al total. Uno archivado con piezas sí.
-- [ ] El vendedor solo ve su stock: el id sale de la sesión y no hay parámetro que lo cambie.
-- [ ] El `total` es la suma de las piezas de la lista y el buscador no lo cambia.
-- [ ] El buscador filtra sin mayúsculas ni acentos.
-- [ ] A 375 px no hay scroll horizontal ni zoom.
-- [ ] `features/my-stock` no importa otras features, e `inventory` sigue usando solo `@stock` y `@accounts`.
-- [ ] Backend: `npm run type-check` y `npm test` pasan, con `SUPABASE_SERVICE_ROLE_KEY` puesta. Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] `GET /api/me/stock` responde `403` a un administrador y a un `client`, y `401` sin sesión.
+- [x] Un producto con `qty` 0 no sale en la lista ni suma al total. Uno archivado con piezas sí.
+- [x] El vendedor solo ve su stock: el id sale de la sesión y no hay parámetro que lo cambie.
+- [x] El `total` es la suma de las piezas de la lista y el buscador no lo cambia.
+- [x] El buscador filtra sin mayúsculas ni acentos.
+- [x] A 375 px no hay scroll horizontal ni zoom.
+- [x] `features/my-stock` no importa otras features, e `inventory` sigue usando solo `@stock` y `@accounts`.
+- [x] Backend: `npm run type-check` y `npm test` pasan, con `SUPABASE_SERVICE_ROLE_KEY` puesta. Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 ## 7. Plan de pruebas
 
