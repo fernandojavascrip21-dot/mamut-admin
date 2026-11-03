@@ -19,6 +19,7 @@ const ALIASES: Record<string, string> = {
   '@stock': 'src/stock',
   '@deliveries': 'src/deliveries',
   '@returns': 'src/returns',
+  '@inventory': 'src/inventory',
 }
 
 const walk = (dir: string): string[] =>
@@ -76,6 +77,15 @@ describe('arquitectura del backend', () => {
 
   it('src/ no importa rutas de app/api', () => {
     const violations = allImports.filter((imp) => imp.file.startsWith('src/') && imp.target.startsWith('app/'))
+    expect(violations.map(describeImport)).toEqual([])
+  })
+
+  // inventory junta lecturas de stock y accounts (spec HU-13 §4) y no depende de nada más.
+  it('inventory solo importa @stock y @accounts', () => {
+    const allowed = ['src/stock', 'src/accounts']
+    const violations = allImports.filter(
+      (imp) => areaOf(imp.file) === 'src/inventory' && !imp.relative && !allowed.includes(areaOf(imp.target)),
+    )
     expect(violations.map(describeImport)).toEqual([])
   })
 })
