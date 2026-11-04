@@ -96,6 +96,12 @@
       </section>
     }
 
+    @if (lowStockItems().length > 0) {
+      <div class="low-stock mt-4">
+        <app-low-stock-alert [title]="lowStockCardTitle()" [items]="lowStockItems()" />
+      </div>
+    }
+
     <div class="mt-4">
       <app-stock-quick-actions [actions]="quickActions()" />
     </div>

@@ -14,6 +14,12 @@ import { StockPageComponent } from './stock-page.component';
 const STOCK_URL = `${API_BASE_URL}/api/stock`;
 const LUIS = 'luis-id';
 
+const LOW_ALERTS: StockOverview['lowStock'] = [
+  { productId: 2, name: 'Proteína Whey', image: null, holder: { id: LUIS, fullName: 'Luis' }, units: 0, stockLevel: 'out' },
+  { productId: 1, name: 'Creatina', image: null, holder: null, units: 1, stockLevel: 'low' },
+  { productId: 1, name: 'Creatina', image: null, holder: { id: 'valeria-id', fullName: 'Valeria' }, units: 2, stockLevel: 'low' },
+];
+
 const OVERVIEW: StockOverview = {
   warehouse: 12,
   sellers: [
@@ -23,12 +29,13 @@ const OVERVIEW: StockOverview = {
   inactiveSellers: 0,
   total: 18,
   products: [
-    { productId: 1, name: 'Creatina', image: null, warehouse: 8, sellers: [], inactiveSellers: 0, total: 8 },
+    { productId: 1, name: 'Creatina', image: null, warehouse: 8, warehouseLevel: 'ok', sellers: [], inactiveSellers: 0, total: 8 },
     {
-      productId: 2, name: 'Proteína Whey', image: null, warehouse: 4,
-      sellers: [{ sellerId: LUIS, units: 6 }], inactiveSellers: 0, total: 10,
+      productId: 2, name: 'Proteína Whey', image: null, warehouse: 4, warehouseLevel: 'ok',
+      sellers: [{ sellerId: LUIS, units: 6, stockLevel: 'ok' }], inactiveSellers: 0, total: 10,
     },
   ],
+  lowStock: [],
 };
 
 describe('StockPageComponent', () => {
@@ -94,7 +101,7 @@ describe('StockPageComponent', () => {
     });
 
     it('vacío muestra el texto y el botón «Nuevo producto»', async () => {
-      await load({ warehouse: 0, sellers: [], inactiveSellers: 0, total: 0, products: [] });
+      await load({ warehouse: 0, sellers: [], inactiveSellers: 0, total: 0, products: [], lowStock: [] });
       expect(text('.empty')).toContain('Aún no hay productos');
       expect(text('.empty')).toContain('Agrega tu primer producto para ver aquí el stock.');
       const button = el().querySelector('.empty a') as HTMLAnchorElement;
@@ -160,6 +167,48 @@ describe('StockPageComponent', () => {
       (el().querySelector('.no-match button') as HTMLButtonElement).click();
       fixture.detectChanges();
       expect(rowNames()).toHaveLength(2);
+    });
+  });
+
+  describe('avisos de baja existencia (HU-18)', () => {
+    const alertRows = () => Array.from(el().querySelectorAll('.low-stock .item')).map((row) =>
+      ['.name', '.holder', '.units', '.out']
+        .map((part) => row.querySelector(part)?.textContent?.replace(/^\s*·\s*/, '').trim())
+        .filter(Boolean)
+        .join(' | '),
+    );
+
+    it('con «Yo · bodega» la tarjeta lista todos los avisos con su titular', async () => {
+      await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
+      expect(text('.low-stock .title')).toBe('3 productos con baja existencia');
+      expect(alertRows()).toEqual([
+        'Proteína Whey | Luis | 0 | Agotado',
+        'Creatina | Bodega | 1',
+        'Creatina | Valeria | 2',
+      ]);
+    });
+
+    it('con un solo aviso el título va en singular', async () => {
+      await load({ ...OVERVIEW, lowStock: [LOW_ALERTS[1]] });
+      expect(text('.low-stock .title')).toBe('1 producto con baja existencia');
+    });
+
+    it('con un vendedor en «Viendo» solo salen los suyos, como «por terminarse»', async () => {
+      selected.set({ id: LUIS, fullName: 'Luis' });
+      await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
+      expect(text('.low-stock .title')).toBe('1 producto por terminarse');
+      expect(alertRows()).toEqual(['Proteína Whey | Luis | 0 | Agotado']);
+    });
+
+    it('sin avisos la tarjeta no sale, también con un vendedor que no tiene', async () => {
+      await load();
+      expect(el().querySelector('.low-stock')).toBeNull();
+    });
+
+    it('un vendedor sin avisos propios no ve la tarjeta aunque haya avisos de otros', async () => {
+      selected.set({ id: 'otro-id', fullName: 'Otro' });
+      await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
+      expect(el().querySelector('.low-stock')).toBeNull();
     });
   });
 

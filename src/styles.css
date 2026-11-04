@@ -42,6 +42,10 @@
   --color-success-bg: #eef3e6;
   --color-success-border: #b9cfa5;
   --color-success-text: #2f4a22;
+  --color-warning: #9a6a0c;
+  --color-warning-bg: #fbf1d9;
+  --color-warning-border: #e6c97a;
+  --color-warning-text: #6b4a06;
   --color-disabled: #e3dacb;
   --color-disabled-input: #f7f1e7;
 
@@ -137,6 +141,10 @@
 
 @utility alert-danger {
   @apply rounded-xl border border-danger-border bg-danger-bg p-3.5 text-danger-text;
+}
+
+@utility alert-warning {
+  @apply rounded-xl border border-warning-border bg-warning-bg p-3.5 text-warning-text;
 }
 
 @utility alert-success {

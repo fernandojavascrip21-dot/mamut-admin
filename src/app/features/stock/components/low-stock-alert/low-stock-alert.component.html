@@ -1,0 +1,36 @@
+<section class="alert-warning" role="status">
+  <h2 class="title m-0 flex items-center gap-2 text-[15px] leading-tight font-bold">
+    <svg
+      aria-hidden="true"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="shrink-0 stroke-warning"
+    >
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+      <path d="M12 9v4"></path>
+      <path d="M12 17h.01"></path>
+    </svg>
+    {{ title() }}
+  </h2>
+  <ul class="items m-0 mt-2.5 flex max-h-60 list-none flex-col gap-1.5 overflow-y-auto p-0">
+    @for (item of items(); track item.key) {
+      <li class="item flex min-w-0 items-baseline justify-between gap-3 text-sm leading-snug">
+        <span class="min-w-0 break-words">
+          <span class="name font-semibold">{{ item.name }}</span>
+          <span class="holder"> · {{ item.holder }}</span>
+        </span>
+        <span class="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap">
+          <span class="units font-mono font-bold">{{ item.units }}</span>
+          @if (item.stockLevel === 'out') {
+            <span class="out text-xs font-bold uppercase tracking-wide text-danger">{{ outLabel }}</span>
+          }
+        </span>
+      </li>
+    }
+  </ul>
+</section>

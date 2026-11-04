@@ -53,3 +53,14 @@ export const STOCK_PAGE_TEXTS = {
   clearSearch: 'Limpiar búsqueda',
   sellerEmpty: 'Todavía no tiene producto.',
 } as const;
+
+// Piezas del título de la tarjeta de avisos (HU-18).
+export const LOW_STOCK_TITLES = {
+  singular: 'producto',
+  plural: 'productos',
+  businessSuffix: 'con baja existencia',
+  sellerSuffix: 'por terminarse',
+} as const;
+
+// Titular de la bodega en un aviso.
+export const LOW_STOCK_WAREHOUSE_HOLDER = WAREHOUSE_LABEL;

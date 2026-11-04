@@ -7,18 +7,20 @@ import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { deliveryModalLink, returnModalLink } from '@shared/utils/modal-links';
 import { unitsLabel } from '@shared/utils/units-label';
+import { LowStockAlertComponent } from '../../components/low-stock-alert/low-stock-alert.component';
+import type { LowStockAlertItem } from '../../components/low-stock-alert/low-stock-alert.models';
 import { StockProductRowSkeletonComponent } from '../../components/stock-product-row-skeleton/stock-product-row-skeleton.component';
 import { StockProductRowComponent } from '../../components/stock-product-row/stock-product-row.component';
 import { StockQuickActionsComponent } from '../../components/stock-quick-actions/stock-quick-actions.component';
 import type { StockQuickAction } from '../../components/stock-quick-actions/stock-quick-actions.models';
 import { StockSplitBarComponent } from '../../components/stock-split-bar/stock-split-bar.component';
 import {
-  NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
+  LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
 } from '../../constants/stock-page.constants';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import type { StockPageState, StockRow } from '../../models/stock-page.models';
 import {
-  filterStockByName, productBreakdown, sellerProducts, sellerTotal, splitParts,
+  filterStockByName, lowStockFor, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
 } from '../../rules/stock.rules';
 import { StockService } from '../../services/stock.service';
 
@@ -31,6 +33,7 @@ import { StockService } from '../../services/stock.service';
     ButtonDirective,
     InputText,
     StockSplitBarComponent,
+    LowStockAlertComponent,
     StockProductRowComponent,
     StockProductRowSkeletonComponent,
     StockQuickActionsComponent,
@@ -92,6 +95,20 @@ export class StockPageComponent {
   });
   readonly hasRows = computed(() => this.allRows().length > 0);
   readonly visibleRows = computed(() => filterStockByName(this.allRows(), this.searchQuery()));
+
+  // Avisos de baja existencia (HU-18) de la vista activa. Sin avisos la tarjeta no sale.
+  readonly lowStockItems = computed<LowStockAlertItem[]>(() => {
+    const overview = this.overview();
+    if (!overview) return [];
+    return lowStockFor(overview, this.seller()?.id ?? null).map((alert) => ({
+      key: `${alert.productId}-${alert.holder?.id ?? 'warehouse'}`,
+      name: alert.name,
+      holder: alert.holder?.fullName ?? LOW_STOCK_WAREHOUSE_HOLDER,
+      units: alert.units,
+      stockLevel: alert.stockLevel,
+    }));
+  });
+  readonly lowStockCardTitle = computed(() => lowStockTitle(this.lowStockItems().length, this.seller() !== null));
 
   // 4) Vista de un vendedor
   readonly sellerTotalLabel = computed(() => {

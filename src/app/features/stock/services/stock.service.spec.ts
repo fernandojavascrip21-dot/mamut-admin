@@ -22,7 +22,7 @@ describe('StockService', () => {
   });
 
   it('overview() pide GET /api/stock', async () => {
-    const body = { warehouse: 4, sellers: [], inactiveSellers: 0, total: 4, products: [] };
+    const body = { warehouse: 4, sellers: [], inactiveSellers: 0, total: 4, products: [], lowStock: [] };
     const promise = firstValueFrom(service.overview());
     const req = httpMock.expectOne(`${API_BASE_URL}/api/stock`);
     expect(req.request.method).toBe('GET');

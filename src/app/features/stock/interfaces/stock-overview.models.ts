@@ -1,3 +1,5 @@
+import type { StockLevel } from '@shared/constants/stock-level.constants';
+
 // Respuesta de GET /api/stock (HU-13): todo el inventario del negocio en una sola lectura.
 
 // Un vendedor activo con sus piezas en total (también con 0).
@@ -11,6 +13,7 @@ export interface StockSellerTotal {
 export interface StockProductSellerUnits {
   sellerId: string;
   units: number;
+  stockLevel: StockLevel;
 }
 
 // Un producto con piezas en algún lugar. `inactiveSellers` suma las de los vendedores
@@ -20,9 +23,21 @@ export interface StockProduct {
   name: string;
   image: string | null;
   warehouse: number;
+  warehouseLevel: StockLevel;
   sellers: StockProductSellerUnits[];
   inactiveSellers: number;
   total: number;
+}
+
+// Aviso de baja o nula existencia (HU-18): un producto con pocas piezas en un titular. `holder` null
+// es la bodega; los vendedores desactivados no generan avisos.
+export interface StockLowAlert {
+  productId: number;
+  name: string;
+  image: string | null;
+  holder: { id: string; fullName: string } | null;
+  units: number;
+  stockLevel: 'low' | 'out';
 }
 
 export interface StockOverview {
@@ -31,6 +46,7 @@ export interface StockOverview {
   inactiveSellers: number;
   total: number;
   products: StockProduct[];
+  lowStock: StockLowAlert[];
 }
 
 // Segmento de la barra y entrada de la leyenda, ya resuelto (nombre y color). `colorIndex` es la
