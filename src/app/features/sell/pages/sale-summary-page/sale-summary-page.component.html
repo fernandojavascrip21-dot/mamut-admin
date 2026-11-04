@@ -25,6 +25,17 @@
         </p>
       }
 
+      @if (lowStockNotice(); as notice) {
+        <p class="low-stock-notice m-0 mt-4 flex items-start gap-2 alert-warning text-sm leading-snug" role="status">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-px shrink-0 stroke-warning">
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <span class="min-w-0 break-words">{{ notice }}</span>
+        </p>
+      }
+
       <ul class="lines mt-5 mb-0 flex list-none flex-col gap-3 p-0">
         @for (line of sale()?.lines; track line.productId; let index = $index) {
           <li

@@ -9,7 +9,7 @@ const LINE: SaleLine = {
   qty: 2,
   unitPrice: '920.00',
   subtotal: '1840.00',
-  stock: { before: 6, after: 4 },
+  stock: { before: 6, after: 4 }, stockLevel: 'ok',
 };
 
 describe('SaleLineComponent', () => {

@@ -1,19 +1,22 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
+import { Tag } from 'primeng/tag';
+import { STOCK_LEVEL_LABELS } from '@shared/constants/stock-level.constants';
 import { initialsOf } from '@shared/utils/initials';
 import type { AdminSaleLine } from '../../interfaces/sale.models';
 import { ADMIN_SALE_LINE_TEXTS } from './admin-sale-line.constants';
 
 // Un renglón de «Venta confirmada» del administrador (HU-17): foto (o iniciales), nombre, piezas × precio
 // c/u, subtotal, la ganancia del renglón y el stock del titular antes y después («Bodega: 4 → 2»,
-// «Luis: 6 → 4»). Solo presentación: el nombre del titular lo pone la página.
+// «Luis: 6 → 4») con «Baja existencia» o «Agotado» si el titular quedó así (HU-18). Solo presentación: el nombre del titular lo pone la página.
 @Component({
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, Tag],
   selector: 'app-admin-sale-line',
   templateUrl: './admin-sale-line.component.html',
 })
 export class AdminSaleLineComponent {
   readonly texts = ADMIN_SALE_LINE_TEXTS;
+  readonly levelLabels = STOCK_LEVEL_LABELS;
 
   readonly line = input.required<AdminSaleLine>();
   // «Bodega» o el primer nombre del vendedor: de quién es el stock que bajó.

@@ -24,7 +24,7 @@ const SALE: AdminSale = {
       subtotal: '1840.00',
       unitCost: '610.5000',
       profit: '619.00',
-      stock: { before: 4, after: 2 },
+      stock: { before: 4, after: 2 }, stockLevel: 'low',
     },
   ],
   total: '1840.00',
@@ -105,7 +105,7 @@ describe('AdminSaleSummaryPageComponent', () => {
     await loaded({
       ...SALE,
       holder: { id: 'v-1', fullName: 'Luis Vendedor' },
-      lines: [{ ...SALE.lines[0]!, stock: { before: 6, after: 4 } }],
+      lines: [{ ...SALE.lines[0]!, stock: { before: 6, after: 4 }, stockLevel: 'ok' }],
     });
     expect(text('.holder')).toBe('Vendido de: Luis Vendedor');
     expect(text('.stock-change')).toBe('Luis: 6 → 4');

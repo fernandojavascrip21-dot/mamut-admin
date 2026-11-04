@@ -8,6 +8,7 @@ import { SellProductCardSkeletonComponent } from '../../components/sell-product-
 import { SaleLineComponent } from '../../components/sale-line/sale-line.component';
 import { SALE_SUMMARY_LINKS, SALE_SUMMARY_TEXTS } from '../../constants/sale-summary-page.constants';
 import { REPLAYED_QUERY_PARAM } from '../../constants/sales.constants';
+import { lowStockLines } from '../../rules/sell.rules';
 import type { Sale } from '../../interfaces/sale.models';
 import type { SaleSummaryState } from '../../models/sale-summary-page.models';
 import { SalesService } from '../../services/sales.service';
@@ -45,6 +46,13 @@ export class SaleSummaryPageComponent {
   );
   // Único `Number()` sobre un monto: solo para pasarlo al pipe `currency` al mostrarlo.
   readonly totalAmount = computed(() => Number(this.sale()?.total ?? 0));
+
+  // «Se avisó al administrador que te quedan pocas piezas de: …» con los productos que quedaron
+  // bajos o agotados (HU-18); null si ninguno. El administrador lo ve en «Stock general» al abrirlo.
+  readonly lowStockNotice = computed(() => {
+    const names = lowStockLines(this.sale()?.lines ?? []).map((line) => line.name);
+    return names.length === 0 ? null : `${this.texts.lowStockPrefix} ${names.join(', ')}.`;
+  });
 
   retry(): void {
     this.saleResource.reload();

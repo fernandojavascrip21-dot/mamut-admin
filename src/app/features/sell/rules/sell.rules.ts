@@ -1,4 +1,5 @@
 import type { CartLine } from '@core/cart/cart.models';
+import type { StockLevel } from '@shared/constants/stock-level.constants';
 import { fromMinorUnits, toMinorUnits } from '@shared/utils/money';
 import { normalizeText } from '@shared/utils/normalize-text';
 import { UNAVAILABLE_PRODUCT_NAME } from '../constants/cart-page.constants';
@@ -100,4 +101,9 @@ export function cartProfit(rows: CartRow[], costOf: (productId: number) => strin
   // Mitad hacia arriba a centavos; un negativo (vender bajo costo) redondea hacia el mismo lado.
   const cents = Math.floor((tenThousandths + 50) / 100);
   return fromMinorUnits(cents, 2);
+}
+
+// Renglones de la venta que dejaron al titular con baja o nula existencia (HU-18), con el orden de la venta.
+export function lowStockLines<L extends { stockLevel: StockLevel }>(lines: L[]): L[] {
+  return lines.filter((line) => line.stockLevel === 'low' || line.stockLevel === 'out');
 }
