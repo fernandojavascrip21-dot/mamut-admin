@@ -116,6 +116,7 @@ describe.skipIf(!hasServiceKey)('Catálogo de venta por titular (HU-17, con cuen
         units: 4,
         price: '471.00',
         unitCost: '205.5000',
+        stockLevel: 'ok',
       })
       expect(body.products.find((p) => p.productId === warehouseOnly)).toMatchObject({ units: 7, image: null })
     })

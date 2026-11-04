@@ -113,11 +113,11 @@ describe.skipIf(!hasServiceKey)('Mis vendedores (HU-09, con cuentas reales)', ()
     expect(body.stock).toEqual(expect.arrayContaining([
       {
         productId: whey, name: expect.stringContaining('whey'), image: 'https://example.com/whey.jpg', units: 4, warehouseUnits: expect.any(Number),
-        price: '100.00', unitCost: '50.0000', unitPrice: null, unitCostWithShipping: null,
+        price: '100.00', unitCost: '50.0000', unitPrice: null, unitCostWithShipping: null, stockLevel: 'ok',
       },
       {
         productId: creatine, name: expect.stringContaining('creatina'), image: null, units: 2, warehouseUnits: expect.any(Number),
-        price: '100.00', unitCost: '50.0000', unitPrice: null, unitCostWithShipping: null,
+        price: '100.00', unitCost: '50.0000', unitPrice: null, unitCostWithShipping: null, stockLevel: 'low',
       },
     ]))
   })
