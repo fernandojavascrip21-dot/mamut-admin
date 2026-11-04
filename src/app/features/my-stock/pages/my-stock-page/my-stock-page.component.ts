@@ -7,7 +7,7 @@ import { MyStockCardComponent } from '../../components/my-stock-card/my-stock-ca
 import { MY_STOCK_PAGE_TEXTS } from '../../constants/my-stock-page.constants';
 import type { MyStock } from '../../interfaces/my-stock.models';
 import type { MyStockPageState } from '../../models/my-stock-page.models';
-import { filterMyStockByName } from '../../rules/my-stock.rules';
+import { filterMyStockByName, lowStockNotice } from '../../rules/my-stock.rules';
 import { MyStockService } from '../../services/my-stock.service';
 
 // «Mi stock» (/vendedor/mi-stock, HU-14): lo que el vendedor tiene en mano, con su precio y sin
@@ -41,6 +41,9 @@ export class MyStockPageComponent {
   readonly visibleProducts = computed(() =>
     filterMyStockByName(this.stock()?.products ?? [], this.searchQuery()),
   );
+
+  // Aviso de baja existencia (HU-18) calculado por el backend sobre lo del propio vendedor.
+  readonly alertNotice = computed(() => lowStockNotice(this.stock()?.alerts ?? []));
 
   // 4) Acciones del usuario
   retry(): void {

@@ -8,6 +8,7 @@ const PRODUCT: MyStockProduct = {
   image: null,
   units: 6,
   price: '480.00',
+  stockLevel: 'ok',
 };
 
 describe('MyStockCardComponent', () => {
@@ -71,5 +72,22 @@ describe('MyStockCardComponent', () => {
   it('no muestra costos ni ganancia', async () => {
     await render(PRODUCT);
     expect(text().toLowerCase()).not.toMatch(/costo|ganancia/);
+  });
+
+  describe('existencia (HU-18)', () => {
+    it('«low» muestra «Quedan pocas»', async () => {
+      await render({ ...PRODUCT, units: 2, stockLevel: 'low' });
+      expect(fixture.nativeElement.querySelector('.level')?.textContent?.trim()).toBe('Quedan pocas');
+    });
+
+    it('«out» muestra «Agotado»', async () => {
+      await render({ ...PRODUCT, units: 0, stockLevel: 'out' });
+      expect(fixture.nativeElement.querySelector('.level')?.textContent?.trim()).toBe('Agotado');
+    });
+
+    it('«ok» no muestra etiqueta, tampoco con 0 por un retiro', async () => {
+      await render({ ...PRODUCT, units: 0, stockLevel: 'ok' });
+      expect(fixture.nativeElement.querySelector('.level')).toBeNull();
+    });
   });
 });
