@@ -1,4 +1,6 @@
-import { compareMoney } from '@shared/utils/money';
+import type { CartLine } from '@core/cart/cart.models';
+import type { SaleCatalogProduct } from '@core/sale-catalog/sale-catalog.models';
+import { compareMoney, fromMinorUnits, toMinorUnits } from '@shared/utils/money';
 import { normalizeText } from '@shared/utils/normalize-text';
 import type { Product, ProductFormValue, ProductSummary, SaveFailureReason } from '../interfaces/product.models';
 
@@ -35,4 +37,19 @@ export function saveFailureMessage(reason: SaveFailureReason): string {
     case 'not-found': return 'Este producto ya no está disponible.';
     case 'offline': return 'No se pudo guardar. Revisa tu conexión.';
   }
+}
+
+// Total de lo que hay en el carrito, con el precio del catálogo del titular (HU-17): piezas × precio
+// en centavos enteros (T-08), como texto con 2 decimales. Solo cuentan los renglones que alcanzan; uno
+// de más (un carrito viejo) o de un producto que ya no viene no suma, como en el carrito. Se escribe
+// aquí y no se importa de `features/sell`, porque una feature no importa otra.
+export function cartTotalOf(products: SaleCatalogProduct[], lines: CartLine[]): string {
+  const byId = new Map(products.map((product) => [product.productId, product]));
+  let cents = 0;
+  for (const line of lines) {
+    const product = byId.get(line.productId);
+    if (!product || product.units <= 0 || line.units > product.units) continue;
+    cents += line.units * (toMinorUnits(product.price, 2) ?? 0);
+  }
+  return fromMinorUnits(cents, 2);
 }

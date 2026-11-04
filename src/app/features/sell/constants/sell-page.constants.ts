@@ -33,10 +33,3 @@ export const SELL_CARD_TEXTS = {
   incrementPrefix: 'Agregar una pieza de',
   unitsInCartSuffix: 'en el carrito',
 } as const;
-
-// Barra fija del catálogo: «Carrito · N piezas · $total» y «Ver carrito».
-export const CART_BAR_TEXTS = {
-  label: 'Carrito',
-  viewCart: 'Ver carrito',
-  separator: ' · ',
-} as const;

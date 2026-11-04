@@ -3,5 +3,5 @@
     <p class="summary m-0 text-sm font-semibold">{{ summary() }}</p>
     <p class="total m-0 font-mono text-lg font-bold">{{ totalAmount() | currency: 'MXN' : 'symbol-narrow' }}</p>
   </div>
-  <a pButton [routerLink]="cartUrl" class="view-cart h-12 shrink-0 px-5 text-sm">{{ texts.viewCart }} →</a>
+  <a pButton [routerLink]="cartUrl()" class="view-cart h-12 shrink-0 px-5 text-sm">{{ texts.viewCart }} →</a>
 </div>

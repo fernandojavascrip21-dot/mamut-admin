@@ -6,10 +6,11 @@ describe('CartBarComponent', () => {
   let fixture: ComponentFixture<CartBarComponent>;
   const el = () => fixture.nativeElement as HTMLElement;
 
-  async function render(units: number, total: string) {
+  async function render(units: number, total: string, cartUrl = '/vendedor/carrito') {
     fixture = TestBed.createComponent(CartBarComponent);
     fixture.componentRef.setInput('units', units);
     fixture.componentRef.setInput('total', total);
+    fixture.componentRef.setInput('cartUrl', cartUrl);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -33,10 +34,15 @@ describe('CartBarComponent', () => {
     expect(el().querySelector('.summary')!.textContent!.trim()).toBe('Carrito · 1 pieza');
   });
 
-  it('«Ver carrito» enlaza a /vendedor/carrito', async () => {
-    await render(2, '10.00');
+  it('«Ver carrito» enlaza a la URL del input() cartUrl', async () => {
+    await render(2, '10.00', '/admin/carrito');
     const link = el().querySelector('a.view-cart') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe('/vendedor/carrito');
+    expect(link.getAttribute('href')).toBe('/admin/carrito');
     expect(link.textContent).toContain('Ver carrito');
+  });
+
+  it('con /vendedor/carrito enlaza al carrito del vendedor', async () => {
+    await render(2, '10.00', '/vendedor/carrito');
+    expect(el().querySelector('a.view-cart')!.getAttribute('href')).toBe('/vendedor/carrito');
   });
 });

@@ -1,4 +1,4 @@
-import { filterProductsByName, hasProductChanges, saveFailureMessage } from './product.rules';
+import { cartTotalOf, filterProductsByName, hasProductChanges, saveFailureMessage } from './product.rules';
 import type { Product, ProductFormValue, ProductSummary } from '../interfaces/product.models';
 
 const ORIGINAL: Product = {
@@ -86,5 +86,32 @@ describe('saveFailureMessage', () => {
     ['offline', 'No se pudo guardar. Revisa tu conexión.'],
   ] as const)('«%s» da un texto para el aviso', (reason, message) => {
     expect(saveFailureMessage(reason)).toBe(message);
+  });
+});
+
+describe('cartTotalOf (HU-17)', () => {
+  const catalog = [
+    { productId: 1, name: 'A', image: null, units: 3, price: '450.50', unitCost: '200.0000' },
+    { productId: 2, name: 'B', image: null, units: 0, price: '300.00', unitCost: '100.0000' },
+    { productId: 3, name: 'C', image: null, units: 5, price: '99.99', unitCost: '50.0000' },
+  ];
+
+  it('suma piezas × precio en enteros, con 2 decimales', () => {
+    expect(cartTotalOf(catalog, [{ productId: 1, units: 2 }, { productId: 3, units: 3 }])).toBe('1200.97');
+  });
+
+  it('no suma un renglón agotado, de más o de un producto que ya no viene', () => {
+    expect(
+      cartTotalOf(catalog, [
+        { productId: 2, units: 1 },
+        { productId: 1, units: 4 },
+        { productId: 9, units: 1 },
+        { productId: 3, units: 1 },
+      ]),
+    ).toBe('99.99');
+  });
+
+  it('un carrito vacío vale 0.00', () => {
+    expect(cartTotalOf(catalog, [])).toBe('0.00');
   });
 });

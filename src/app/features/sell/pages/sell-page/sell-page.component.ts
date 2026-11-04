@@ -3,10 +3,10 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { CartService } from '@core/cart/cart.service';
-import { CartBarComponent } from '../../components/cart-bar/cart-bar.component';
+import { CartBarComponent } from '@shared/components/cart-bar/cart-bar.component';
 import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
 import { SellProductCardComponent } from '../../components/sell-product-card/sell-product-card.component';
-import { SELL_PAGE_TEXTS } from '../../constants/sell-page.constants';
+import { CART_URL, SELL_PAGE_TEXTS } from '../../constants/sell-page.constants';
 import type { SellProduct, SellStock } from '../../interfaces/sell-stock.models';
 import type { SellPageState } from '../../models/sell-page.models';
 import { buildCartRows, canIncrement, cartTotal, filterSellProductsByName } from '../../rules/sell.rules';
@@ -45,6 +45,7 @@ export class SellPageComponent {
 
   readonly searchQuery = signal('');
   readonly texts = SELL_PAGE_TEXTS;
+  readonly cartUrl = CART_URL;
 
   // 3) Lista y barra del carrito. El buscador solo filtra la lista: la barra sale del carrito entero.
   readonly visibleProducts = computed(() =>

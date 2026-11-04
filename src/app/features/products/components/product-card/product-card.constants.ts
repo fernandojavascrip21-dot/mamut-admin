@@ -6,3 +6,13 @@ export const PRODUCT_CARD_PASS_THROUGH = {
   body: { class: 'flex min-h-0 flex-1 flex-col' },
   content: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
 } satisfies CardPassThrough;
+
+// Textos de «Vender» en la tarjeta (HU-17): botón, −/+ con nombre accesible por producto y la
+// leyenda de piezas dentro del carrito para lectores de pantalla.
+export const PRODUCT_CARD_SELL_TEXTS = {
+  sell: 'Vender',
+  sellPrefix: 'Vender',
+  decrementPrefix: 'Quitar una pieza de',
+  incrementPrefix: 'Agregar una pieza de',
+  unitsInCartSuffix: 'en el carrito',
+} as const;

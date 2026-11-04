@@ -2,17 +2,19 @@ import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
 import { deliveryModalLink } from '@shared/utils/modal-links';
 import { initialsOf } from '@shared/utils/initials';
-import { PRODUCT_CARD_PASS_THROUGH } from './product-card.constants';
+import { PRODUCT_CARD_PASS_THROUGH, PRODUCT_CARD_SELL_TEXTS } from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
 // "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
-// dos enlaces hermanos porque un enlace no puede ir dentro de otro. Vender llegará en M3.
+// dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Vender» (HU-17) agrega 1 pieza
+// al carrito del titular de «Viendo» y se vuelve − N + con tope en las piezas de ese titular; la
+// tarjeta solo presenta y emite, la página decide qué cambio pedirle al carrito.
 @Component({
   imports: [CurrencyPipe, RouterLink, ButtonDirective, Card, Tag],
   selector: 'app-product-card',
@@ -23,6 +25,19 @@ export class ProductCardComponent {
 
   readonly product = input.required<ProductSummary>();
   readonly sellerId = input<string | null>(null); // vendedor en «Viendo»: la ventana lo deja fijo
+  readonly texts = PRODUCT_CARD_SELL_TEXTS;
+
+  // Piezas que el titular de «Viendo» puede vender de este producto; null si no hay catálogo
+  // (cargando, error o un vendedor que nunca lo tuvo). Con 0 y fuera del carrito no se ofrece «Vender».
+  readonly sellUnits = input<number | null>(null);
+  // Piezas de este producto en el carrito de ese mismo titular.
+  readonly unitsInCart = input(0);
+  // Primer nombre del vendedor en «Viendo» («Luis»); null con «Yo · bodega».
+  readonly holderLabel = input<string | null>(null);
+
+  readonly sellAdd = output<void>();
+  readonly sellIncrement = output<void>();
+  readonly sellDecrement = output<void>();
 
 
   // Si la URL de la foto no carga, cae a la inicial en vez de dejar una imagen rota (§2).
@@ -35,6 +50,11 @@ export class ProductCardComponent {
 
   // Solo se puede dejar lo que hay en la bodega.
   readonly canDeliver = computed(() => this.product().stock > 0);
+  readonly inCart = computed(() => this.unitsInCart() > 0);
+  readonly canSell = computed(() => this.inCart() || (this.sellUnits() ?? 0) > 0);
+  // El «+» se deshabilita en el tope: las piezas del titular.
+  readonly canIncrement = computed(() => this.unitsInCart() < (this.sellUnits() ?? 0));
+  readonly showFooter = computed(() => this.canDeliver() || this.canSell());
   readonly deliveryLink = computed(() => deliveryModalLink({
     productId: this.product().id,
     sellerId: this.sellerId() ?? undefined,

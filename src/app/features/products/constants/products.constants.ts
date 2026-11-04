@@ -5,3 +5,6 @@ export const UPLOAD_FAILED = Symbol('upload-failed');
 
 // Ventana «Dejar a vendedor» de la feature entregas (HU-11). Productos solo enlaza a su URL, porque
 // una feature no importa a otra; los parámetros son `producto`, `vendedor` y `volver`.
+
+// Destino de «Ver carrito» en la barra de «Productos» (HU-17).
+export const ADMIN_CART_URL = '/admin/carrito';

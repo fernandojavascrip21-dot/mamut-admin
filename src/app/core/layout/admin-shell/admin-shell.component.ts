@@ -1,12 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { UNKNOWN_HOLDER_NAME, WAREHOUSE_HOLDER_NAME } from '@core/cart/cart.constants';
 import { CartService } from '@core/cart/cart.service';
+import { clearCartConfirmOptions } from '@core/cart/clear-cart-confirm';
 import { ConfirmService } from '@core/confirm/confirm.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SidebarService } from '../services/sidebar.service';
 import { TopNavComponent } from '../top-nav/top-nav.component';
 import { ViewingBarComponent } from '../viewing-bar/viewing-bar.component';
-import { CART, CLEAR_CART_CONFIRM, MENU, WAREHOUSE_HOLDER_NAME } from '../constants/admin-shell.constants';
+import { CART, MENU } from '../constants/admin-shell.constants';
 
 // Shell del administrador: navbar superior + barra «Viendo» + contenido de la ruta activa
 // Stock · Productos · Carrito · Corte · Vendedores (RF-01, mockup pantalla 02 y siguientes).
@@ -42,10 +44,9 @@ export class AdminShellComponent {
       this.viewing.pick(sellerId);
       return;
     }
-    const accepted = await this.confirm.ask({
-      ...CLEAR_CART_CONFIRM,
-      message: `Tu carrito es de ${this.holderName(cart.holderId())}. Si cambias a ${this.holderName(sellerId)}, se vacía.`,
-    });
+    const accepted = await this.confirm.ask(
+      clearCartConfirmOptions(this.holderName(cart.holderId()), this.holderName(sellerId)),
+    );
     if (!accepted) {
       this.barResetKey.update((key) => key + 1);
       return;
@@ -56,6 +57,6 @@ export class AdminShellComponent {
 
   private holderName(sellerId: string | null): string {
     if (sellerId === null) return WAREHOUSE_HOLDER_NAME;
-    return this.viewing.sellers().find((seller) => seller.id === sellerId)?.fullName ?? 'otro vendedor';
+    return this.viewing.sellers().find((seller) => seller.id === sellerId)?.fullName ?? UNKNOWN_HOLDER_NAME;
   }
 }

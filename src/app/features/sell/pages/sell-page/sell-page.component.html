@@ -131,5 +131,5 @@
 </div>
 
 @if (state() === 'ready' && cartUnits() > 0) {
-  <app-cart-bar class="sticky bottom-0 z-10 mt-2 block" [units]="cartUnits()" [total]="cartTotal()" />
+  <app-cart-bar class="sticky bottom-0 z-10 mt-2 block" [units]="cartUnits()" [total]="cartTotal()" [cartUrl]="cartUrl" />
 }
