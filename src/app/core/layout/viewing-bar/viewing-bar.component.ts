@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { initialsOf } from '@shared/utils/initials';
@@ -26,6 +26,9 @@ export class ViewingBarComponent {
   readonly sellers = input.required<ViewingSeller[]>();
   readonly selectedSellerId = input<string | null>(null);
   readonly status = input.required<ViewingListStatus>();
+  // Cambia cuando quien usa la barra rechaza una elección (HU-17): el selector vuelve a mostrar la
+  // selección vigente, porque PrimeNG ya había pintado la opción que el usuario tocó.
+  readonly resetKey = input(0);
 
   readonly selectionChange = output<string | null>();
   readonly retry = output<void>();
@@ -46,11 +49,17 @@ export class ViewingBarComponent {
     { id: WAREHOUSE_OPTION_VALUE, label: WAREHOUSE_OPTION_LABEL },
     ...this.sellers().map((seller) => ({ id: seller.id, label: seller.fullName })),
   ]);
-  readonly value = computed(() => this.selectedSellerId() ?? WAREHOUSE_OPTION_VALUE);
+  // Lo que muestra el selector: la selección vigente, o lo que el usuario acaba de tocar hasta que
+  // la selección o `resetKey` cambien.
+  readonly value = linkedSignal({
+    source: () => ({ id: this.selectedSellerId(), key: this.resetKey() }),
+    computation: ({ id }) => id ?? WAREHOUSE_OPTION_VALUE,
+  });
 
   // El valor vacío es «Yo · bodega» (null).
   onChange(event: ViewingSelectChange): void {
     const value = event.value as string;
+    this.value.set(value);
     this.selectionChange.emit(value === WAREHOUSE_OPTION_VALUE ? null : value);
   }
 }

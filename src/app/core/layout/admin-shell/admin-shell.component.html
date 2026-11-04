@@ -4,7 +4,8 @@
       [sellers]="viewing.sellers()"
       [selectedSellerId]="viewing.selectedSellerId()"
       [status]="viewing.listStatus()"
-      (selectionChange)="viewing.pick($event)"
+      [resetKey]="barResetKey()"
+      (selectionChange)="onViewingChange($event)"
       (retry)="viewing.reload()"
     />
   </app-top-nav>

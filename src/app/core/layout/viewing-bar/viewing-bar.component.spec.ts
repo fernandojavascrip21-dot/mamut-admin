@@ -93,6 +93,21 @@ describe('ViewingBarComponent', () => {
     expect(emitted).toEqual(['v-2', null]);
   });
 
+  it('si quien usa la barra rechaza la elección (resetKey), vuelve a mostrar la selección vigente', async () => {
+    await render(SELLERS, 'ready');
+    await open();
+    pick('Valeria');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(combobox().textContent).toContain('Valeria');
+
+    fixture.componentRef.setInput('resetKey', 1);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(combobox().textContent).toContain('Yo · bodega');
+  });
+
   it('mientras carga el selector está deshabilitado y con aria-busy', async () => {
     await render([], 'loading');
     expect(el().querySelector('p-select')!.classList.contains('p-disabled')).toBe(true);
