@@ -1,6 +1,6 @@
 import type { Route } from '@angular/router';
 import { MY_STOCK_ROUTES } from '@features/my-stock/my-stock.routes';
-import { CART_ROUTES, SELL_ROUTES } from '@features/sell/sell.routes';
+import { CART_ROUTES, SALE_ROUTES, SELL_ROUTES } from '@features/sell/sell.routes';
 import { ComingSoonPageComponent } from '@shared/pages/coming-soon-page/coming-soon-page.component';
 import { SELLER_ROUTES } from './seller.routes';
 
@@ -20,6 +20,11 @@ describe('SELLER_ROUTES', () => {
   it('«carrito» carga las rutas del carrito de la feature sell', async () => {
     const loaded = await (routeOf('carrito').loadChildren as () => Promise<unknown>)();
     expect(loaded).toBe(CART_ROUTES);
+  });
+
+  it('«venta» carga las rutas de «Venta confirmada» de la feature sell', async () => {
+    const loaded = await (routeOf('venta').loadChildren as () => Promise<unknown>)();
+    expect(loaded).toBe(SALE_ROUTES);
   });
 
   it('«mi-corte» sigue siendo «Próximamente» hasta M4a', async () => {

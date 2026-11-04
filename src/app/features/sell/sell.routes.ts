@@ -16,3 +16,13 @@ export const CART_ROUTES: Routes = [
     data: { title: 'Carrito' },
   },
 ];
+
+// «Venta confirmada», montada en /vendedor/venta por seller.routes.ts (HU-16).
+export const SALE_ROUTES: Routes = [
+  {
+    path: ':requestId',
+    loadComponent: () =>
+      import('./pages/sale-summary-page/sale-summary-page.component').then((m) => m.SaleSummaryPageComponent),
+    data: { title: 'Venta confirmada' },
+  },
+];

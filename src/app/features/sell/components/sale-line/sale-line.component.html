@@ -1,0 +1,30 @@
+<div class="flex min-w-0 gap-3 surface-card p-4">
+  @if (showPhoto()) {
+    <img
+      [src]="line().image"
+      [alt]="line().name"
+      loading="lazy"
+      (error)="onPhotoError()"
+      class="h-16 w-16 flex-shrink-0 rounded-md object-cover"
+    />
+  } @else {
+    <div
+      class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
+      aria-hidden="true"
+    >
+      {{ initials() }}
+    </div>
+  }
+
+  <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+    <p class="name m-0 text-sm leading-tight font-bold break-words">{{ line().name }}</p>
+    <p class="detail m-0 font-mono text-xs text-muted">
+      {{ line().qty }} × {{ unitPrice() | currency: 'MXN' : 'symbol-narrow' }} {{ texts.each }}
+    </p>
+    <p class="stock-left m-0 text-xs text-muted">{{ texts.stockLeft }} {{ line().stock.after }}</p>
+  </div>
+
+  <p class="subtotal m-0 self-center font-mono text-base font-bold whitespace-nowrap">
+    {{ subtotal() | currency: 'MXN' : 'symbol-narrow' }}
+  </p>
+</div>
