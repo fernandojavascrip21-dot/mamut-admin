@@ -154,15 +154,15 @@ describe('ProductsPageComponent', () => {
     const WAREHOUSE_CATALOG: SaleCatalog = {
       holder: null,
       products: [
-        { productId: 1, name: 'CBUM Thavage', image: null, units: 3, price: '450.00', unitCost: '200.0000' },
-        { productId: 2, name: 'Creatina', image: null, units: 0, price: '300.00', unitCost: '120.0000' },
+        { productId: 1, name: 'CBUM Thavage', image: null, units: 3, price: '450.00', unitCost: '200.0000', stockLevel: 'ok' },
+        { productId: 2, name: 'Creatina', image: null, units: 0, price: '300.00', unitCost: '120.0000', stockLevel: 'out' },
       ],
     };
     const LUIS_CATALOG: SaleCatalog = {
       holder: { id: LUIS_ID, fullName: 'Luis Vendedor' },
       products: [
-        { productId: 1, name: 'CBUM Thavage', image: null, units: 6, price: '500.00', unitCost: '310.1234' },
-        { productId: 2, name: 'Creatina', image: null, units: 0, price: '350.00', unitCost: '120.0000' },
+        { productId: 1, name: 'CBUM Thavage', image: null, units: 6, price: '500.00', unitCost: '310.1234', stockLevel: 'ok' },
+        { productId: 2, name: 'Creatina', image: null, units: 0, price: '350.00', unitCost: '120.0000', stockLevel: 'low' },
       ],
     };
     let cart: CartService;
@@ -209,6 +209,38 @@ describe('ProductsPageComponent', () => {
       expect(card(0).querySelector('button.sell')).not.toBeNull();
       expect(card(1).querySelector('button.sell')).toBeNull();
       expect(card(0).querySelector('.holder-units')).toBeNull();
+    });
+
+    const tags = (index: number) =>
+      Array.from(card(index).querySelectorAll('.absolute span')).map((el) => (el as HTMLElement).textContent?.trim());
+
+    it('las etiquetas de existencia salen del catálogo del titular en «Viendo» (HU-18)', async () => {
+      await loadWith(WAREHOUSE_CATALOG);
+      expect(tags(0)).toEqual([]);
+      expect(tags(1)).toEqual(['Agotado', 'Fraccionado']);
+    });
+
+    it('con un vendedor en «Viendo» la etiqueta es la de sus piezas, no la de la bodega', async () => {
+      await loadWith(LUIS_CATALOG, LUIS_ID);
+      expect(tags(0)).toEqual([]);
+      expect(tags(1)).toEqual(['Baja existencia', 'Fraccionado']);
+    });
+
+    it('un producto que el vendedor nunca tuvo no lleva etiqueta', async () => {
+      await loadWith({ holder: LUIS_CATALOG.holder, products: [LUIS_CATALOG.products[0]!] }, LUIS_ID);
+      expect(tags(1)).toEqual(['Fraccionado']);
+    });
+
+    it('si el catálogo falla, con «Yo · bodega» se conserva el «Agotado» de HU-05 y no sale «Baja existencia»', async () => {
+      viewing.load();
+      httpMock.expectOne(SELLERS_URL).flush([]);
+      fixture.detectChanges();
+      httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
+      httpMock.expectOne((r) => r.url === CATALOG_URL).flush({}, { status: 500, statusText: 'Server Error' });
+      await settle();
+      expect(tags(0)).toEqual([]);
+      expect(tags(1)).toEqual(['Agotado', 'Fraccionado']);
+      expect(fixture.nativeElement.textContent).not.toContain('Baja existencia');
     });
 
     it('el primer «Agregar» agrega 1 pieza y el botón se vuelve − N + con tope en las piezas', async () => {

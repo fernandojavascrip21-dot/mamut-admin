@@ -20,14 +20,14 @@ const REQUEST_ID = '6f1c2a4e-1b3d-4c5e-8f70-123456789abc';
 const WAREHOUSE: SaleCatalog = {
   holder: null,
   products: [
-    { productId: 1, name: 'Creatina', image: null, units: 4, price: '450.50', unitCost: '200.2500' },
-    { productId: 2, name: 'Proteína Whey', image: null, units: 6, price: '750.00', unitCost: '500.1234' },
-    { productId: 3, name: 'Isolate', image: null, units: 0, price: '1650.00', unitCost: '900.0000' },
+    { productId: 1, name: 'Creatina', image: null, units: 4, price: '450.50', unitCost: '200.2500', stockLevel: 'ok' },
+    { productId: 2, name: 'Proteína Whey', image: null, units: 6, price: '750.00', unitCost: '500.1234', stockLevel: 'ok' },
+    { productId: 3, name: 'Isolate', image: null, units: 0, price: '1650.00', unitCost: '900.0000', stockLevel: 'out' },
   ],
 };
 const LUIS: SaleCatalog = {
   holder: { id: LUIS_ID, fullName: 'Luis Vendedor' },
-  products: [{ productId: 1, name: 'Creatina', image: null, units: 2, price: '500.00', unitCost: '310.1234' }],
+  products: [{ productId: 1, name: 'Creatina', image: null, units: 2, price: '500.00', unitCost: '310.1234', stockLevel: 'low' }],
 };
 
 describe('AdminCartPageComponent', () => {

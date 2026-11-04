@@ -156,6 +156,7 @@
             [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
             [product]="item"
             [sellerId]="viewing.selectedSellerId()"
+            [stockLevel]="stockLevelOf(item.id)"
             [sellUnits]="sellUnitsOf(item.id)"
             [unitsInCart]="unitsInCartOf(item.id)"
             [holderLabel]="holderLabel()"

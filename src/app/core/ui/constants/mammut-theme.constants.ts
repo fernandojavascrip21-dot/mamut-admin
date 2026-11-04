@@ -319,7 +319,8 @@ export const MAMMUT_THEME = definePreset({
       },
       body: { padding: '0', gap: '0' },
     },
-    // Solo «Agotado» (contraste, tinta) y «Fraccionado» (secundaria, dorado); se omiten los demás tonos de Aura.
+    // «Agotado» (contraste, tinta), «Fraccionado» (secundaria, dorado) y «Baja existencia» (advertencia,
+    // ámbar); se omiten los demás tonos de Aura.
     tag: {
       root: {
         fontSize: '0.6875rem',
@@ -332,6 +333,7 @@ export const MAMMUT_THEME = definePreset({
       icon: AuraTag.icon,
       secondary: { background: 'var(--color-accent-2-bg)', color: 'var(--color-accent-2-text)' },
       contrast: { background: 'var(--color-ink)', color: 'var(--color-white)' },
+      warn: { background: 'var(--color-warning-bg)', color: 'var(--color-warning-text)' },
     },
     skeleton: {
       root: {

@@ -57,6 +57,47 @@ describe('ProductCardComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Agotado');
   });
 
+  describe('existencia del titular (HU-18)', () => {
+    const labels = () =>
+      Array.from(fixture.nativeElement.querySelectorAll('.absolute span')).map((el) => (el as HTMLElement).textContent?.trim());
+
+    async function renderLevel(product: ProductSummary, stockLevel: 'ok' | 'low' | 'out' | null) {
+      fixture = TestBed.createComponent(ProductCardComponent);
+      fixture.componentRef.setInput('product', product);
+      fixture.componentRef.setInput('stockLevel', stockLevel);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('«low» muestra «Baja existencia»', async () => {
+      await renderLevel({ ...PRODUCT, stock: 2 }, 'low');
+      expect(labels()).toEqual(['Baja existencia']);
+    });
+
+    it('«out» muestra «Agotado» aunque la bodega tenga piezas (el titular es un vendedor)', async () => {
+      await renderLevel({ ...PRODUCT, stock: 9 }, 'out');
+      expect(labels()).toEqual(['Agotado']);
+    });
+
+    it('«ok» no muestra etiqueta aunque la bodega esté en 0 (el titular es un vendedor)', async () => {
+      await renderLevel({ ...PRODUCT, stock: 0 }, 'ok');
+      expect(labels()).toEqual([]);
+    });
+
+    it('sin stockLevel conserva la regla de HU-05: stock 0 → «Agotado», y nunca «Baja existencia»', async () => {
+      await renderLevel({ ...PRODUCT, stock: 0 }, null);
+      expect(labels()).toEqual(['Agotado']);
+      await renderLevel({ ...PRODUCT, stock: 1 }, null);
+      expect(labels()).toEqual([]);
+    });
+
+    it('«Baja existencia» va antes de «Fraccionado»', async () => {
+      await renderLevel({ ...PRODUCT, stock: 1, fractionable: true }, 'low');
+      expect(labels()).toEqual(['Baja existencia', 'Fraccionado']);
+    });
+  });
+
   it('muestra "Fraccionado" solo cuando fractionable es true', async () => {
     await render({ ...PRODUCT, fractionable: true });
     expect(fixture.nativeElement.textContent).toContain('Fraccionado');

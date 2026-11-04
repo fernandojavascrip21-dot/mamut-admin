@@ -8,7 +8,7 @@ import type { SaleCatalog } from './sale-catalog.models';
 
 const CATALOG: SaleCatalog = {
   holder: null,
-  products: [{ productId: 3, name: 'Proteína', image: null, units: 4, price: '920.00', unitCost: '610.5000' }],
+  products: [{ productId: 3, name: 'Proteína', image: null, units: 4, price: '920.00', unitCost: '610.5000', stockLevel: 'ok' }],
 };
 
 describe('SaleCatalogService', () => {
