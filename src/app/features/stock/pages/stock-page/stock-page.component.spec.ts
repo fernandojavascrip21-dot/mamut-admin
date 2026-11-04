@@ -136,9 +136,14 @@ describe('StockPageComponent', () => {
       expect(whey.querySelector('.breakdown')?.textContent?.trim()).toBe('Bodega 4 · Luis 6');
     });
 
-    it('ofrece los tres movimientos rápidos con sus destinos', () => {
-      expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Nuevo producto']);
-      expect(actionHrefs()).toEqual(['/admin/entrada', hrefOf(deliveryModalLink()), '/admin/productos/nuevo']);
+    it('ofrece los cuatro movimientos rápidos con sus destinos', () => {
+      expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Vender', 'Nuevo producto']);
+      expect(actionHrefs()).toEqual([
+        '/admin/entrada',
+        hrefOf(deliveryModalLink()),
+        '/admin/productos',
+        '/admin/productos/nuevo',
+      ]);
     });
 
     it('el buscador filtra la lista sin acentos y no cambia el total ni la barra', () => {

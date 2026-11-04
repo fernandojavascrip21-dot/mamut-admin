@@ -44,8 +44,8 @@ export interface CreateSaleRequest {
 }
 
 // `replayed` es true cuando la llave ya existía y el backend respondió la venta hecha (200).
-export interface SaleResponse {
-  sale: Sale;
+export interface SaleResponse<S = Sale> {
+  sale: S;
   replayed: boolean;
 }
 
