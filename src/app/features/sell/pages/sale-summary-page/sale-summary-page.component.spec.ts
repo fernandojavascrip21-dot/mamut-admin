@@ -77,6 +77,9 @@ describe('SaleSummaryPageComponent', () => {
     expect(el().querySelector('a.new-sale')?.getAttribute('href')).toBe('/vendedor/vender');
     expect(el().querySelector('a.view-stock')?.getAttribute('href')).toBe('/vendedor/mi-stock');
     expect(el().querySelector('.replayed')).toBeNull();
+    expect(el().querySelector('.seal')).not.toBeNull();
+    expect(text('.sold-at')).toMatch(/\d{1,2}:\d{2}/);
+    expect(el().querySelectorAll('a.new-sale, a.view-stock').length).toBe(2);
     expect(el().textContent!.toLowerCase()).not.toMatch(/costo|ganancia|anular/);
   });
 
