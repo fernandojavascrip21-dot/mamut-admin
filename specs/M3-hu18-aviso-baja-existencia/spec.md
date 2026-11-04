@@ -253,6 +253,24 @@ Además:
 - **Sí:** «Venta confirmada» avisa al vendedor y marca el renglón al administrador (decisión del usuario).
 - **No:** solo al vendedor.
 
+## 10. Diseño (paso 7)
+
+Tableros leídos: `AdminInicio`, `VendedorStock` y `Venta`. Los textos de §2 coinciden con los del canvas. Los colores del canvas no se copian: se traducen a los tokens `warning-*` de `styles.css`.
+
+| Elemento del canvas | En la app |
+| --- | --- |
+| Tarjeta `#FDEFD9` con borde `#F3C98B`, icono de triángulo y título en negrita | `alert-warning` (`warning-bg`, `warning-border`, `warning-text`) con el triángulo en `stroke-warning` |
+| Lista de nombres separados por comas dentro de la tarjeta | Un renglón por aviso (nombre · titular · piezas), decisión del usuario del 2026-11-04 (§9) |
+| «Quedan pocas» sobre la foto, fondo `#FDEFD9` | `p-tag` con severidad `warn` (mismo ámbar), sobre el nombre en «Mi stock» y sobre la foto en «Productos» |
+| Piezas en ámbar cuando quedan 2 o menos | `text-warning` (4.7:1 sobre blanco) en «Me quedan N»; `text-warning-text` en la tarjeta |
+| Aviso arriba de la lista en «Mi stock» y «Venta confirmada» | `alert-warning` con `role="status"`, sin enlace |
+
+Decisiones:
+
+- **Recorte de la tarjeta (§2 «Celular»):** hace scroll dentro (`max-h-60`) y no se corta con «y N más», para que ningún aviso quede escondido. La lista es enfocable con teclado y lleva el título como nombre accesible.
+- **El color nunca es lo único que informa:** «Agotado» lleva texto; «Baja existencia» y «Quedan pocas» son etiquetas con texto.
+- **La tarjeta no es un enlace:** el canvas la enlaza a «Productos», pero la spec no lo pide; queda para una historia aparte si se quiere.
+
 ## Lo que **no** entra en este spec
 
 - Notificaciones fuera de la app.

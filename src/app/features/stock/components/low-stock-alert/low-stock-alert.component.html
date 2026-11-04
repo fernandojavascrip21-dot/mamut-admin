@@ -17,7 +17,11 @@
     </svg>
     {{ title() }}
   </h2>
-  <ul class="items m-0 mt-2.5 flex max-h-60 list-none flex-col gap-1.5 overflow-y-auto p-0">
+  <ul
+    class="items m-0 mt-2.5 flex max-h-60 list-none flex-col gap-1.5 overflow-y-auto p-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    tabindex="0"
+    [attr.aria-label]="title()"
+  >
     @for (item of items(); track item.key) {
       <li class="item flex min-w-0 items-baseline justify-between gap-3 text-sm leading-snug">
         <span class="min-w-0 break-words">
@@ -25,7 +29,7 @@
           <span class="holder"> · {{ item.holder }}</span>
         </span>
         <span class="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap">
-          <span class="units font-mono font-bold">{{ item.units }}</span>
+          <span class="units font-mono font-bold text-warning-text">{{ item.units }}</span>
           @if (item.stockLevel === 'out') {
             <span class="out text-xs font-bold uppercase tracking-wide text-danger">{{ outLabel }}</span>
           }
