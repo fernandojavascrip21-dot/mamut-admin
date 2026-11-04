@@ -21,6 +21,36 @@ export interface HolderStockLine {
   unitCostWithShipping: string | null
 }
 
+// Una línea de la bodega para vender (HU-17): un producto activo con las piezas de la bodega
+// (products.stock, que mantiene el trigger), su precio general y su costo de fábrica.
+// Solo la lee el administrador (RNF-04): lleva costo.
+export interface WarehouseStockLine {
+  productId: number
+  name: string
+  image: string | null
+  units: number
+  price: string
+  unitCost: string
+}
+
+// Productos activos de la bodega, por nombre, también con 0 piezas: el catálogo de venta decide
+// qué mostrar. Los archivados no salen, porque no se pueden vender desde la bodega.
+export async function stockOfWarehouse(): Promise<WarehouseStockLine[]> {
+  const rows = await db
+    .select({
+      productId: products.id,
+      name: products.name,
+      image: products.image,
+      units: products.stock,
+      price: products.price,
+      unitCost: products.unitCost,
+    })
+    .from(products)
+    .where(eq(products.active, true))
+    .orderBy(asc(products.name))
+  return rows.map((row) => ({ ...row, image: row.image || null }))
+}
+
 // Total de piezas de cada vendedor: suma de vendor_stock.qty, que mantiene el trigger a partir de
 // los movimientos (T-07); aquí solo se lee. Un vendedor sin filas no aparece en el mapa: vale 0.
 export async function unitsByHolder(profileIds: string[]): Promise<Map<string, number>> {
