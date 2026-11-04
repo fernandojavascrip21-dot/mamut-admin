@@ -1,6 +1,6 @@
 # Spec técnico — HU-16 · Confirmar mi venta y ver que mi stock baja
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M3-hu15-vender-catalogo-carrito (`specs/M3-hu15-vender-catalogo-carrito/spec.md`) — `CartService`, «Carrito», `buildCartRows`/`cartNeedsFix` y los avisos de carrito viejo; M3-t18-base-ventas (`specs/M3-t18-base-ventas/spec.md`) — `POST /api/sales`, `GET /api/sales/:requestId` e idempotencia por `requestId`; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — «Mi stock»; M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — patrón de guardado con resultado tipado y «Reintentar» con la misma llave; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — `money.ts`
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el vendedor confirme la venta de su carrito con `POST /api/sales`, sin duplicarla al reintentar, y vea «Venta confirmada» con el desglose mientras su stock baja.
@@ -241,26 +241,26 @@ export type SaleSummaryState = 'loading' | 'ready' | 'not-found' | 'error';
 
 Por criterio de `SCRUM-50`:
 
-- [ ] **1.** Con 2 piezas en el carrito de un producto del que quedan 6, «Confirmar venta» (y aceptar el diálogo) abre «Venta confirmada» con foto o iniciales, producto, piezas, mi precio, subtotal y total, y el stock de ese producto queda en 4.
-- [ ] **2.** Después de la venta, «Mi stock» muestra 4 piezas de ese producto, «Stock general» muestra 4 para ese vendedor y el total del negocio 2 menos, y la bodega no cambia.
-- [ ] **3.** Tras confirmar, «Vender» y «Carrito» muestran el carrito vacío y el contador de `top-nav` desaparece.
-- [ ] **4.** Si el administrador le retiró piezas y ya no alcanzan, confirmar muestra «No hay piezas suficientes», el renglón afectado sale con su aviso de HU-15, no queda ninguna venta nueva y el vendedor puede corregir el carrito y confirmar.
-- [ ] **5.** Sin conexión o sin respuesta, «Reintentar» manda el mismo `requestId` y la venta queda registrada una sola vez, también si el vendedor recargó la página entre los dos intentos.
-- [ ] **6.** Dos toques seguidos en «Confirmar venta» dan un solo diálogo y una sola petición, y el botón queda deshabilitado mientras guarda.
-- [ ] **7.** Ni «Venta confirmada», ni el carrito, ni las respuestas de `POST /api/sales` y `GET /api/sales/:requestId` al vendedor contienen costo ni ganancia.
+- [x] **1.** Con 2 piezas en el carrito de un producto del que quedan 6, «Confirmar venta» (y aceptar el diálogo) abre «Venta confirmada» con foto o iniciales, producto, piezas, mi precio, subtotal y total, y el stock de ese producto queda en 4.
+- [x] **2.** Después de la venta, «Mi stock» muestra 4 piezas de ese producto, «Stock general» muestra 4 para ese vendedor y el total del negocio 2 menos, y la bodega no cambia.
+- [x] **3.** Tras confirmar, «Vender» y «Carrito» muestran el carrito vacío y el contador de `top-nav` desaparece.
+- [x] **4.** Si el administrador le retiró piezas y ya no alcanzan, confirmar muestra «No hay piezas suficientes», el renglón afectado sale con su aviso de HU-15, no queda ninguna venta nueva y el vendedor puede corregir el carrito y confirmar.
+- [x] **5.** Sin conexión o sin respuesta, «Reintentar» manda el mismo `requestId` y la venta queda registrada una sola vez, también si el vendedor recargó la página entre los dos intentos.
+- [x] **6.** Dos toques seguidos en «Confirmar venta» dan un solo diálogo y una sola petición, y el botón queda deshabilitado mientras guarda.
+- [x] **7.** Ni «Venta confirmada», ni el carrito, ni las respuestas de `POST /api/sales` y `GET /api/sales/:requestId` al vendedor contienen costo ni ganancia.
 
 Además:
 
-- [ ] Con un renglón de más o agotado, «Confirmar venta» está deshabilitado con «Corrige los productos marcados para confirmar».
-- [ ] Cancelar el diálogo, `Escape` o la X no envían nada y el botón vuelve a estar disponible.
-- [ ] Un `409` «Esta venta ya se registró con otros datos.» vacía el carrito y abre esa venta con el aviso de venta repetida.
-- [ ] Recargar `/vendedor/venta/:requestId` muestra la misma venta; un `requestId` que no existe o no es UUID muestra «No encontramos esta venta» con «Ir a vender»; un error de red muestra «Reintentar».
-- [ ] «Nueva venta» lleva a `/vendedor/vender` y «Ver mi stock» a `/vendedor/mi-stock`.
-- [ ] Un carrito guardado en versión 1 se conserva al actualizar; vaciar el carrito o cerrar sesión descarta su `requestId`.
-- [ ] No hay ninguna opción para anular la venta.
-- [ ] A 375 px no hay scroll horizontal ni zoom, y los botones de las dos pantallas miden al menos 52 px de alto.
-- [ ] `features/sell` no importa otras features; `core/cart` no importa `features/`.
-- [ ] `ng build`, `ng test` y `npm run check:architecture` pasan. El backend no cambia: `npm test` de `backend/` sigue pasando.
+- [x] Con un renglón de más o agotado, «Confirmar venta» está deshabilitado con «Corrige los productos marcados para confirmar».
+- [x] Cancelar el diálogo, `Escape` o la X no envían nada y el botón vuelve a estar disponible.
+- [x] Un `409` «Esta venta ya se registró con otros datos.» vacía el carrito y abre esa venta con el aviso de venta repetida.
+- [x] Recargar `/vendedor/venta/:requestId` muestra la misma venta; un `requestId` que no existe o no es UUID muestra «No encontramos esta venta» con «Ir a vender»; un error de red muestra «Reintentar».
+- [x] «Nueva venta» lleva a `/vendedor/vender` y «Ver mi stock» a `/vendedor/mi-stock`.
+- [x] Un carrito guardado en versión 1 se conserva al actualizar; vaciar el carrito o cerrar sesión descarta su `requestId`.
+- [x] No hay ninguna opción para anular la venta.
+- [x] A 375 px no hay scroll horizontal ni zoom, y los botones de las dos pantallas miden al menos 52 px de alto.
+- [x] `features/sell` no importa otras features; `core/cart` no importa `features/`.
+- [x] `ng build`, `ng test` y `npm run check:architecture` pasan. El backend no cambia: `npm test` de `backend/` sigue pasando.
 
 ## 7. Plan de pruebas
 
