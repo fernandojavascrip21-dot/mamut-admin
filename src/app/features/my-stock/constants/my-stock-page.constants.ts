@@ -1,12 +1,8 @@
-// Destino del botón «Vender» (HU-14, criterio 5): «Próximamente» hasta que HU-15 ponga la pantalla.
-export const SELL_URL = '/vendedor/vender';
-
 // Textos de la pantalla. Los de los estados cargando, vacío y error son los del canvas
 // (tablero `EstadosMiStock`, pantalla 09) y los de «sin resultados» son los de Stock general.
 export const MY_STOCK_PAGE_TEXTS = {
   title: 'Mi stock',
-  totalPrefix: 'Tengo',
-  sell: 'Vender',
+  totalLabel: 'Piezas en total',
   searchLabel: 'Buscar producto',
   searchPlaceholder: 'Buscar por nombre',
   loadingTitle: 'Cargando tu stock…',

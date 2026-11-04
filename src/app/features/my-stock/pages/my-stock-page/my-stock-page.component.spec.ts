@@ -63,28 +63,34 @@ describe('MyStockPageComponent', () => {
 
   it('con productos muestra el total y una card por producto', async () => {
     await load();
-    expect(text('.total')).toBe('Tengo 8 piezas');
+    expect(text('.total')).toBe('8');
     expect(el().querySelectorAll('app-my-stock-card')).toHaveLength(2);
     expect(el().querySelector('.products')?.textContent).toContain('Me quedan 6');
   });
 
-  it('con una sola pieza el total dice «1 pieza»', async () => {
-    await load({ total: 1, products: [{ productId: 1, name: 'Creatina', image: null, units: 1, price: '350.00' }] });
-    expect(text('.total')).toBe('Tengo 1 pieza');
-  });
-
-  it('«Vender» enlaza a /vendedor/vender', async () => {
+  it('el recuadro rotula el total como «Piezas en total»', async () => {
     await load();
-    expect(el().querySelector('a.sell')?.getAttribute('href')).toBe('/vendedor/vender');
+    expect(text('.summary')).toContain('Piezas en total');
   });
 
-  it('sin productos muestra el estado vacío, sin buscador, y «Vender» sigue ahí', async () => {
+  it('con una sola pieza el total dice 1', async () => {
+    await load({ total: 1, products: [{ productId: 1, name: 'Creatina', image: null, units: 1, price: '350.00' }] });
+    expect(text('.total')).toBe('1');
+  });
+
+  it('solo muestra el recuadro con el total, sin botón «Vender»', async () => {
+    await load();
+    expect(el().querySelector('.summary')).not.toBeNull();
+    expect(el().querySelector('.summary a, .summary button')).toBeNull();
+    expect(el().querySelector('a.sell')).toBeNull();
+  });
+
+  it('sin productos muestra el estado vacío, sin buscador', async () => {
     await load({ total: 0, products: [] });
     expect(text('.empty')).toContain('Aún no te han dejado producto');
     expect(text('.empty')).toContain('Cuando el administrador te deje piezas, las verás aquí.');
-    expect(text('.total')).toBe('Tengo 0 piezas');
+    expect(text('.total')).toBe('0');
     expect(el().querySelector('#my-stock-search')).toBeNull();
-    expect(el().querySelector('a.sell')).not.toBeNull();
   });
 
   it('con error muestra el aviso y «Reintentar» vuelve a pedir el stock', async () => {
@@ -107,7 +113,7 @@ describe('MyStockPageComponent', () => {
       search('PROTEINA');
       expect(el().querySelectorAll('app-my-stock-card')).toHaveLength(1);
       expect(el().querySelector('.products')?.textContent).toContain('Proteína Whey');
-      expect(text('.total')).toBe('Tengo 8 piezas');
+      expect(text('.total')).toBe('8');
     });
 
     it('sin resultados muestra «No hay productos con ese nombre» y «Limpiar búsqueda» la vacía', async () => {

@@ -5,6 +5,8 @@
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el vendedor vea en `/vendedor/mi-stock`, desde el celular, una card por producto que tiene, con su foto, su precio y cuántas piezas le quedan, sin ningún costo ni ganancia.
 
+> **Cambio posterior (2026-11-04, a petición del usuario, junto con HU-16):** «Mi stock» ya no tiene el botón «Vender» (criterio 5) y el total ya no dice «Tengo N piezas»: es un recuadro con la etiqueta «Piezas en total» y el número, en la misma fila que el buscador (en celular, una franja sobre el buscador). El vendedor llega a «Vender» por el menú. Donde este spec describe el botón o el texto «Tengo N piezas» rige esta nota.
+
 Fuentes:
 
 - **Jira:** historia `SCRUM-48 · HU-14`, épica `SCRUM-8 · M3 · Ventas`. Requerimientos RF-21, RF-02, RNF-03, RNF-04. Talla S.
@@ -164,7 +166,7 @@ Por criterio de `SCRUM-48`:
 - [x] **2.** Con 6 piezas dejadas y un precio propio, la card dice «Me quedan 6» y muestra el precio propio, no el general (prueba de backend y de la card).
 - [x] **3.** Sin precio propio (`vendor_stock.unit_price` en `null`), la card muestra el precio general.
 - [x] **4.** Ni la pantalla ni la respuesta de `GET /api/me/stock` contienen costo, costo con envío ni ganancia: cada producto trae solo `productId`, `name`, `image`, `units` y `price`.
-- [x] **5.** «Vender» lleva a `/vendedor/vender`.
+- [x] **5.** «Vender» lleva a `/vendedor/vender`. *(Retirado el 2026-11-04: el botón ya no existe, ver la nota del inicio.)*
 - [x] **6.** Tras un «Dejar», un «Retirar» o una venta, al regresar a «Mi stock» los números son los nuevos.
 - [x] **7.** Cargando, vacío y error se ven con los textos confirmados contra el canvas, y «Reintentar» vuelve a pedir el stock.
 

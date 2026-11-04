@@ -50,12 +50,45 @@
       </button>
     </div>
   } @else {
-    <section class="summary mt-5 surface-card p-5">
-      <p class="total m-0 font-display text-[32px] leading-none font-extrabold tracking-[-0.02em]">
-        {{ totalLabel() }}
-      </p>
-      <a pButton [routerLink]="sellUrl" class="sell mt-4 h-[52px] w-full text-sm">{{ texts.sell }}</a>
-    </section>
+    <div class="toolbar mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <section
+        class="summary flex items-baseline justify-between gap-3 surface-card px-5 py-4 sm:min-w-44 sm:shrink-0 sm:flex-col sm:items-start sm:justify-center sm:gap-1"
+      >
+        <p class="m-0 text-sm font-semibold text-muted">{{ texts.totalLabel }}</p>
+        <p class="total m-0 font-display text-[32px] leading-none font-extrabold tracking-[-0.02em]">
+          {{ totalUnits() }}
+        </p>
+      </section>
+
+      @if (!isEmpty()) {
+        <div class="relative min-w-0 flex-1">
+          <label for="my-stock-search" class="sr-only">{{ texts.searchLabel }}</label>
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input
+            pInputText
+            id="my-stock-search"
+            type="search"
+            [placeholder]="texts.searchPlaceholder"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+            class="h-[52px] min-w-0 w-full pl-11"
+          />
+        </div>
+      }
+    </div>
 
     @if (isEmpty()) {
       <div
@@ -80,33 +113,6 @@
         <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
       </div>
     } @else {
-      <div class="relative mt-5">
-        <label for="my-stock-search" class="sr-only">{{ texts.searchLabel }}</label>
-        <svg
-          aria-hidden="true"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
-        >
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
-        </svg>
-        <input
-          pInputText
-          id="my-stock-search"
-          type="search"
-          [placeholder]="texts.searchPlaceholder"
-          [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)"
-          class="h-[52px] min-w-0 w-full pl-11"
-        />
-      </div>
-
       @if (visibleProducts().length === 0) {
         <div
           class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
