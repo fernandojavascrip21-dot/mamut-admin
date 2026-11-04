@@ -4,6 +4,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { httpStatus } from '@shared/utils/http-errors';
+import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
 import { SaleLineComponent } from '../../components/sale-line/sale-line.component';
 import { SALE_SUMMARY_LINKS, SALE_SUMMARY_TEXTS } from '../../constants/sale-summary-page.constants';
 import { REPLAYED_QUERY_PARAM } from '../../constants/sales.constants';
@@ -15,7 +16,7 @@ import { SalesService } from '../../services/sales.service';
 // también justo después de confirmar, para que recargar o volver atrás muestre la misma venta.
 // `?repetida=1` avisa que la venta ya estaba registrada con otros renglones.
 @Component({
-  imports: [CurrencyPipe, DatePipe, RouterLink, ButtonDirective, SaleLineComponent],
+  imports: [CurrencyPipe, DatePipe, RouterLink, ButtonDirective, SaleLineComponent, SellProductCardSkeletonComponent],
   selector: 'app-sale-summary-page',
   templateUrl: './sale-summary-page.component.html',
 })

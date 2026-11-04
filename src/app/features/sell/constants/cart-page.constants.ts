@@ -33,7 +33,6 @@ export const CART_PAGE_TEXTS = {
   onlySingular: 'Solo te queda',
   onlyPlural: 'Solo te quedan',
   onlySuffix: 'de este producto',
-  fixHint: 'Baja las piezas o quita lo que ya no tengas para poder vender.',
   confirm: 'Confirmar venta',
   confirming: 'Confirmando…',
   confirmDisabledHint: 'Corrige los productos marcados para confirmar',

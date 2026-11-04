@@ -12,6 +12,7 @@ export const SALE_SUMMARY_TEXTS = {
   newSale: 'Nueva venta',
   viewStock: 'Ver mi stock',
   loadingTitle: 'Cargando tu venta…',
+  notFoundHint: 'Revisa el enlace o empieza una venta nueva.',
   notFoundTitle: 'No encontramos esta venta',
   notFoundAction: 'Ir a vender',
   errorTitle: 'No pudimos cargar tu venta',

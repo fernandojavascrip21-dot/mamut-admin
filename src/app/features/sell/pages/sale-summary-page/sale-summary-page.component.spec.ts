@@ -91,7 +91,7 @@ describe('SaleSummaryPageComponent', () => {
     create();
     httpMock.expectOne(URL).flush({ error: { code: 'x', message: 'x' } }, { status, statusText: 'Error' });
     await settle();
-    expect(text('h1')).toBe('No encontramos esta venta');
+    expect(text('.not-found h1')).toBe('No encontramos esta venta');
     expect(el().querySelector('a.go-sell')?.getAttribute('href')).toBe('/vendedor/vender');
   });
 

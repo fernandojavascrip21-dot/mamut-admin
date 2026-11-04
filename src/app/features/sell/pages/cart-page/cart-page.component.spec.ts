@@ -126,7 +126,7 @@ describe('CartPageComponent', () => {
     expect(lines()[1].querySelector('.unit-price')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('$750.00 c/u');
     expect(text('.pieces')).toBe('3 piezas');
     expect(text('.total')).toBe('$1,651.00');
-    expect(el().querySelector('.fix-hint')).toBeNull();
+    expect(el().querySelector('.confirm-hint')).toBeNull();
   });
 
   it('no muestra costos ni ganancia', async () => {
@@ -178,7 +178,7 @@ describe('CartPageComponent', () => {
       expect(lines()[0].querySelector('.warning')?.textContent?.trim()).toBe('Solo te quedan 2 de este producto');
       expect(cart.unitsOf(1)).toBe(5);
       expect(text('.total')).toBe('$750.00');
-      expect(el().querySelector('.fix-hint')).not.toBeNull();
+      expect(el().querySelector('.confirm-hint')).not.toBeNull();
     });
 
     it('bajar con el − corrige el aviso paso a paso', async () => {
@@ -187,7 +187,7 @@ describe('CartPageComponent', () => {
       expect(lines()[0].querySelector('.warning')).not.toBeNull();
       click(lines()[0], '.decrement');
       expect(lines()[0].querySelector('.warning')).toBeNull();
-      expect(el().querySelector('.fix-hint')).toBeNull();
+      expect(el().querySelector('.confirm-hint')).toBeNull();
       expect(text('.total')).toBe('$901.00');
     });
 
