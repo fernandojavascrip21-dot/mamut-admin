@@ -17,3 +17,7 @@ export interface CartRow {
 // Estado de la pantalla «Carrito». «vacío» es un carrito sin renglones: no necesita el stock, así que
 // se muestra sin pedirlo; con renglones, el estado sigue a la carga del stock.
 export type CartPageState = 'empty' | 'loading' | 'error' | 'ready';
+
+// Por qué no se pudo confirmar la venta, para elegir la alerta de «Carrito»: sin conexión (con
+// «Reintentar»), piezas que ya no alcanzan, o un dato que el backend rechazó (con su mensaje).
+export type CartConfirmError = 'offline' | 'not-enough-units' | 'invalid';

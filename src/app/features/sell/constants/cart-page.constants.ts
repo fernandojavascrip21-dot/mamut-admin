@@ -8,7 +8,8 @@ export const UNAVAILABLE_PRODUCT_NAME = 'Producto no disponible';
 // Textos de «Carrito». Los de carrito vacío («Tu carrito está vacío», «Agrega productos desde
 // Vender.», «Ir a vender»), «c/u», «de N», «Quitar», «Total» y «Solo te quedan N de este producto» salen
 // del canvas (tableros `Venta` vista carrito y `EstadosCarritoVendedor`, pantalla 06b). Cargando y
-// error de carga son los de «Vender». «Confirmar venta» no está: llega con HU-16.
+// error de carga son los de «Vender». Los de «Confirmar venta» (HU-16) son de partida y se confirman
+// contra el canvas en el paso de diseño de su spec.
 export const CART_PAGE_TEXTS = {
   title: 'Carrito',
   loadingTitle: 'Cargando tu stock…',
@@ -33,4 +34,14 @@ export const CART_PAGE_TEXTS = {
   onlyPlural: 'Solo te quedan',
   onlySuffix: 'de este producto',
   fixHint: 'Baja las piezas o quita lo que ya no tengas para poder vender.',
+  confirm: 'Confirmar venta',
+  confirming: 'Confirmando…',
+  confirmDisabledHint: 'Corrige los productos marcados para confirmar',
+  confirmDialogTitle: '¿Confirmar venta?',
+  confirmDialogCancel: 'Cancelar',
+  offlineTitle: 'No hay conexión',
+  offlineHint: 'Tu venta todavía no se registró.',
+  notEnoughTitle: 'No hay piezas suficientes',
+  notEnoughHint: 'Revisa los productos marcados y corrige tu carrito.',
+  invalidTitle: 'No se pudo registrar la venta',
 } as const;
