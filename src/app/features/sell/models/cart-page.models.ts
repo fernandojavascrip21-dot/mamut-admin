@@ -13,3 +13,7 @@ export interface CartRow {
   subtotal: string;
   status: CartRowStatus;
 }
+
+// Estado de la pantalla «Carrito». «vacío» es un carrito sin renglones: no necesita el stock, así que
+// se muestra sin pedirlo; con renglones, el estado sigue a la carga del stock.
+export type CartPageState = 'empty' | 'loading' | 'error' | 'ready';
