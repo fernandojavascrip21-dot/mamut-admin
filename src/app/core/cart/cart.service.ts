@@ -5,7 +5,7 @@ import { newUuid } from '@shared/utils/uuid';
 import {
   CART_STORAGE_PREFIX,
   CART_STORAGE_VERSION,
-  LEGACY_CART_STORAGE_VERSION,
+  LEGACY_CART_STORAGE_VERSIONS,
   REQUEST_ID_PATTERN,
 } from './cart.constants';
 import type { CartLine, ReadCart, StoredCart } from './cart.models';
@@ -25,10 +25,14 @@ export class CartService {
   // Llave de idempotencia de la venta en curso: se crea al confirmar por primera vez y vive con los
   // renglones, así un reintento tras recargar no duplica la venta. Se descarta al vaciar el carrito.
   private requestId: string | null = null;
+  // Titular del stock del que se vende (HU-17): null = bodega. Solo el administrador lo asigna; el del
+  // vendedor siempre es null. Vive con los renglones: con el carrito vacío se descarta.
+  private readonly holderSignal = signal<string | null>(null);
   // Llave del usuario cuyo carrito está cargado; sirve para borrarla cuando esa sesión se cierra.
   private storageKey: string | null = null;
 
   readonly lines = this.linesSignal.asReadonly();
+  readonly holderId = this.holderSignal.asReadonly();
   readonly totalUnits = computed(() => this.linesSignal().reduce((sum, line) => sum + line.units, 0));
 
   constructor() {
@@ -40,8 +44,9 @@ export class CartService {
       if (nextKey === this.storageKey) return;
       if (this.storageKey !== null && nextKey === null) this.removeStored(this.storageKey);
       this.storageKey = nextKey;
-      const cart = nextKey ? this.readStored(nextKey) : { lines: [], requestId: null };
+      const cart = nextKey ? this.readStored(nextKey) : { lines: [], requestId: null, holderId: null };
       this.requestId = cart.requestId;
+      this.holderSignal.set(cart.holderId);
       this.linesSignal.set(cart.lines);
     });
   }
@@ -59,6 +64,14 @@ export class CartService {
       this.persist();
     }
     return this.requestId;
+  }
+
+  // Fija el titular de la venta (HU-17). Solo con el carrito vacío: con renglones el titular no cambia,
+  // porque las piezas elegidas son de su stock; para cambiarlo primero se vacía. Se guarda con los
+  // renglones, así que sobrevive a recargar en cuanto se agrega el primero.
+  assignHolder(holderId: string | null): void {
+    if (this.linesSignal().length > 0) return;
+    this.holderSignal.set(holderId);
   }
 
   // Pone las piezas de un producto. 0 o menos lo quita; un valor que no sea entero, o un producto que
@@ -90,10 +103,13 @@ export class CartService {
   }
 
   // Punto único donde los renglones cambian: se reflejan en el signal y se guardan. Un carrito vacío
-  // descarta también el `requestId`: la siguiente venta es otra y necesita otra llave.
+  // descarta también el `requestId` y el titular: la siguiente venta es otra y necesita otra llave.
   private commit(lines: CartLine[]): void {
     this.linesSignal.set(lines);
-    if (lines.length === 0) this.requestId = null;
+    if (lines.length === 0) {
+      this.requestId = null;
+      this.holderSignal.set(null);
+    }
     this.persist();
   }
 
@@ -109,24 +125,31 @@ export class CartService {
       version: CART_STORAGE_VERSION,
       lines,
       ...(this.requestId === null ? {} : { requestId: this.requestId }),
+      holderId: this.holderSignal(),
     };
     this.writeStored(this.storageKey, JSON.stringify(stored));
   }
 
-  // Lee y valida lo guardado. Otra versión (la 1 sí se acepta, sin llave), JSON inválido, un
-  // `requestId` que no es UUID o cualquier renglón mal formado descartan el carrito entero: es
+  // Lee y valida lo guardado. Otra versión (la 1 y la 2 sí se aceptan, con titular bodega), JSON
+  // inválido, un `requestId` o un `holderId` que no son UUID (el titular puede ser null) o cualquier
+  // renglón mal formado descartan el carrito entero: es
   // preferible empezar vacío que mostrar piezas que el usuario no eligió.
   private readStored(key: string): ReadCart {
-    const empty: ReadCart = { lines: [], requestId: null };
+    const empty: ReadCart = { lines: [], requestId: null, holderId: null };
     const raw = this.read(key);
     if (raw === null) return empty;
     try {
       const data: unknown = JSON.parse(raw);
       if (typeof data !== 'object' || data === null) return empty;
-      const { version, lines, requestId } = data as Partial<StoredCart>;
-      if (version !== CART_STORAGE_VERSION && version !== LEGACY_CART_STORAGE_VERSION) return empty;
+      const { version, lines, requestId, holderId } = data as Partial<StoredCart>;
+      if (version !== CART_STORAGE_VERSION && !LEGACY_CART_STORAGE_VERSIONS.includes(version as number)) {
+        return empty;
+      }
       if (!Array.isArray(lines)) return empty;
       if (requestId !== undefined && (typeof requestId !== 'string' || !REQUEST_ID_PATTERN.test(requestId))) {
+        return empty;
+      }
+      if (holderId !== undefined && holderId !== null && (typeof holderId !== 'string' || !REQUEST_ID_PATTERN.test(holderId))) {
         return empty;
       }
       const seen = new Set<number>();
@@ -139,8 +162,13 @@ export class CartService {
         seen.add(productId as number);
         valid.push({ productId: productId as number, units: units as number });
       }
-      // Un carrito sin renglones no tiene venta en curso, aunque traiga llave.
-      return { lines: valid, requestId: valid.length > 0 ? (requestId ?? null) : null };
+      // Un carrito sin renglones no tiene venta en curso ni titular, aunque traiga llave.
+      const hasLines = valid.length > 0;
+      return {
+        lines: valid,
+        requestId: hasLines ? (requestId ?? null) : null,
+        holderId: hasLines ? (holderId ?? null) : null,
+      };
     } catch {
       return empty;
     }

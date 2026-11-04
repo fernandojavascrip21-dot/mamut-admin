@@ -38,22 +38,68 @@
         <span class="font-mono text-[22px] font-bold">{{ product().stock }}</span>
         <span class="ml-1 text-xs font-medium text-muted">en bodega</span>
       </p>
+      @if (holderLabel() !== null && sellUnits() !== null) {
+        <p class="holder-units m-0 text-xs font-semibold text-muted">{{ holderLabel() }}: {{ sellUnits() }}</p>
+      }
       <p class="m-0 font-mono text-sm font-bold">
         {{ price() | currency: 'MXN' : 'symbol-narrow' }}
       </p>
     </div>
   </a>
-  @if (canDeliver()) {
-    <div class="border-t border-line px-2 py-1">
-      <a
-        pButton
-        [text]="true"
-        [routerLink]="deliveryLink()"
-        [attr.aria-label]="'Dejar ' + product().name + ' a un vendedor'"
-        class="deliver h-11 w-full justify-start text-sm"
-      >
-        Dejar a vendedor
-      </a>
+  @if (showFooter()) {
+    <div class="flex flex-wrap items-center justify-between gap-2 border-t border-line px-2 py-1">
+      @if (canDeliver()) {
+        <a
+          pButton
+          [text]="true"
+          [routerLink]="deliveryLink()"
+          [attr.aria-label]="'Dejar ' + product().name + ' a un vendedor'"
+          class="deliver h-11 justify-start text-sm"
+        >
+          Dejar a vendedor
+        </a>
+      }
+      @if (canSell()) {
+        @if (!inCart()) {
+          <button
+            pButton
+            type="button"
+            class="sell h-11 px-4 text-sm"
+            [attr.aria-label]="texts.sellPrefix + ' ' + product().name + ' ' + texts.sellSuffix"
+            (click)="sellAdd.emit()"
+          >
+            {{ texts.sell }}
+          </button>
+        } @else {
+          <div class="stepper flex items-center gap-2">
+            <button
+              pButton
+              severity="secondary"
+              type="button"
+              class="decrement h-11 w-11 px-0 text-xl"
+              [attr.aria-label]="texts.decrementPrefix + ' ' + product().name"
+              (click)="sellDecrement.emit()"
+            >
+              −
+            </button>
+            <p class="m-0 min-w-6 text-center">
+              <span class="units font-mono text-xl font-bold">{{ unitsInCart() }}</span>
+              <span class="sr-only"> {{ texts.unitsInCartSuffix }}</span>
+            </p>
+            <button
+              pButton
+              severity="secondary"
+              type="button"
+              class="increment h-11 w-11 px-0 text-xl"
+              [disabled]="!canIncrement()"
+              [attr.aria-label]="texts.incrementPrefix + ' ' + product().name"
+              (click)="sellIncrement.emit()"
+            >
+              +
+            </button>
+          </div>
+        }
+      }
     </div>
   }
 </p-card>

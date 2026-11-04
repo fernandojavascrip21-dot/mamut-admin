@@ -19,10 +19,12 @@ export const BREAKDOWN_SEPARATOR = ' · ';
 // hasta que tenga su propia historia; «Dejar» abre la ventana sin vendedor fijo.
 export const WAREHOUSE_ENTRY_URL = '/admin/entrada';
 export const NEW_PRODUCT_URL = '/admin/productos/nuevo';
+export const SELL_URL = '/admin/productos'; // «Vender» (HU-17): se arma la venta desde «Productos»
 
 export const YO_QUICK_ACTIONS: StockQuickAction[] = [
   { label: 'Entrada a bodega', link: WAREHOUSE_ENTRY_URL, icon: 'entry' },
   { label: 'Dejar a vendedor', link: deliveryModalLink(), icon: 'deliver' },
+  { label: 'Vender', link: SELL_URL, icon: 'sell' },
   { label: 'Nuevo producto', link: NEW_PRODUCT_URL, icon: 'new' },
 ];
 

@@ -74,9 +74,30 @@ export function cartNeedsFix(rows: CartRow[]): boolean {
 // Petición de POST /api/sales: solo los renglones que alcanzan, con las piezas del carrito. Sin
 // precios: los resuelve el backend al confirmar. La página no llama a esto con renglones por corregir
 // (el botón está deshabilitado), pero ignorarlos evita mandar piezas que el stock no cubre.
-export function buildSaleRequest(requestId: string, rows: CartRow[]): CreateSaleRequest {
+// El administrador pasa `holderId` (null = bodega); el vendedor no lo pasa y la petición no lo lleva.
+export function buildSaleRequest(requestId: string, rows: CartRow[], holderId?: string | null): CreateSaleRequest {
   return {
     requestId,
+    ...(holderId === undefined ? {} : { holderId }),
     lines: rows.filter((row) => row.status === 'ok').map((row) => ({ productId: row.product.productId, qty: row.units })),
   };
+}
+
+// Ganancia de la venta del administrador (HU-17): Σ (precio − costo) × piezas de los renglones que
+// alcanzan, como texto con 2 decimales. El costo trae hasta 4 decimales, así que todo se lleva a
+// diezmilésimas y se redondea a centavos una sola vez, al final, mitad hacia arriba (T-08), igual que
+// createSale. `costOf` da el costo de un producto; si falta, el renglón no suma.
+export function cartProfit(rows: CartRow[], costOf: (productId: number) => string | undefined): string {
+  let tenThousandths = 0;
+  for (const row of rows) {
+    if (row.status !== 'ok') continue;
+    const cost = costOf(row.product.productId);
+    const costUnits = cost === undefined ? null : toMinorUnits(cost, 4);
+    const priceUnits = toMinorUnits(row.product.price, 4);
+    if (costUnits === null || priceUnits === null) continue;
+    tenThousandths += row.units * (priceUnits - costUnits);
+  }
+  // Mitad hacia arriba a centavos; un negativo (vender bajo costo) redondea hacia el mismo lado.
+  const cents = Math.floor((tenThousandths + 50) / 100);
+  return fromMinorUnits(cents, 2);
 }

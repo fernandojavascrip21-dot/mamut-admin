@@ -20,7 +20,14 @@ export const ADMIN_ROUTES: Routes = [
     path: 'productos',
     loadChildren: () => import('@features/products/products.routes').then((m) => m.PRODUCT_ROUTES),
   },
-  { path: 'carrito', loadComponent: comingSoon, data: { title: 'Carrito' } },
+  {
+    path: 'carrito',
+    loadChildren: () => import('@features/sell/sell.routes').then((m) => m.ADMIN_CART_ROUTES),
+  },
+  {
+    path: 'venta',
+    loadChildren: () => import('@features/sell/sell.routes').then((m) => m.ADMIN_SALE_ROUTES),
+  },
   { path: 'corte', loadComponent: comingSoon, data: { title: 'Corte' } },
   {
     path: 'entregas',

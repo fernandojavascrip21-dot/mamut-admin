@@ -7,6 +7,9 @@ export const SALE_MISMATCH_MESSAGE = 'Esta venta ya se registró con otros datos
 // Pantalla «Venta confirmada»: `${SALE_SUMMARY_URL}/<requestId>`.
 export const SALE_SUMMARY_URL = '/vendedor/venta';
 
+// «Venta confirmada» del administrador: `${ADMIN_SALE_SUMMARY_URL}/<requestId>` (HU-17).
+export const ADMIN_SALE_SUMMARY_URL = '/admin/venta';
+
 // Parámetro de consulta con el que se abre una venta que ya estaba registrada.
 export const REPLAYED_QUERY_PARAM = 'repetida';
 

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
-import type { CreateSaleRequest, SaleResponse } from '../interfaces/sale.models';
+import type { CreateSaleRequest, Sale, SaleResponse } from '../interfaces/sale.models';
 
 // Cliente HTTP de las ventas (HU-16). El Bearer token lo agrega authInterceptor.
 @Injectable({
@@ -18,7 +18,8 @@ export class SalesService {
   }
 
   // Lee una venta por su llave; una que no existe (o no es del vendedor) responde 404.
-  get(requestId: string): Observable<SaleResponse> {
-    return this.http.get<SaleResponse>(`${API_BASE_URL}/api/sales/${encodeURIComponent(requestId)}`);
+  // El administrador la lee como `AdminSale` (con costo y ganancia, HU-17): el tipo lo elige quien llama.
+  get<S = Sale>(requestId: string): Observable<SaleResponse<S>> {
+    return this.http.get<SaleResponse<S>>(`${API_BASE_URL}/api/sales/${encodeURIComponent(requestId)}`);
   }
 }

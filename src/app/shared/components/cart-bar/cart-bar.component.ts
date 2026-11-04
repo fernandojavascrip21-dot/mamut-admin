@@ -3,10 +3,11 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { unitsLabel } from '@shared/utils/units-label';
-import { CART_BAR_TEXTS, CART_URL } from '../../constants/sell-page.constants';
+import { CART_BAR_TEXTS } from './cart-bar.constants';
 
-// Barra del catálogo «Vender» (HU-15): «Carrito · N piezas», el total y «Ver carrito». Solo
-// presentación: la página decide cuándo se muestra (con piezas en el carrito) y la deja fija abajo.
+// Barra del carrito (HU-15, movida a shared en HU-17): «Carrito · N piezas», el total y «Ver carrito».
+// Solo presentación: la página decide cuándo se muestra (con piezas en el carrito), la deja fija
+// abajo y le pasa a dónde lleva el enlace (`/vendedor/carrito` o `/admin/carrito`).
 @Component({
   imports: [CurrencyPipe, RouterLink, ButtonDirective],
   selector: 'app-cart-bar',
@@ -14,7 +15,7 @@ import { CART_BAR_TEXTS, CART_URL } from '../../constants/sell-page.constants';
 })
 export class CartBarComponent {
   readonly texts = CART_BAR_TEXTS;
-  readonly cartUrl = CART_URL;
+  readonly cartUrl = input.required<string>();
 
   readonly units = input.required<number>();
   // Monto con 2 decimales como texto (T-08).

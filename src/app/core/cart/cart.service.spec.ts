@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '@core/auth/services/auth.service';
 import type { AuthContext } from '@core/auth/interfaces/auth.models';
-import { CART_STORAGE_PREFIX, CART_STORAGE_VERSION, LEGACY_CART_STORAGE_VERSION } from './cart.constants';
+import { CART_STORAGE_PREFIX, CART_STORAGE_VERSION, LEGACY_CART_STORAGE_VERSIONS } from './cart.constants';
 import { CartService } from './cart.service';
 
 const LUIS: AuthContext = { userId: 'v-luis', role: 'vendedor', clientId: null, fullName: 'Luis' };
@@ -97,7 +97,11 @@ describe('CartService', () => {
     it('guarda en mamut.cart.<userId> con versión y solo productId y piezas', () => {
       const cart = create();
       cart.setUnits(10, 2);
-      expect(JSON.parse(stored(LUIS)!)).toEqual({ version: CART_STORAGE_VERSION, lines: [{ productId: 10, units: 2 }] });
+      expect(JSON.parse(stored(LUIS)!)).toEqual({
+        version: CART_STORAGE_VERSION,
+        lines: [{ productId: 10, units: 2 }],
+        holderId: null,
+      });
     });
 
     it('un servicio nuevo recupera el carrito guardado (recarga)', () => {
@@ -167,6 +171,7 @@ describe('CartService', () => {
         version: CART_STORAGE_VERSION,
         lines: [{ productId: 10, units: 2 }],
         requestId: id,
+        holderId: null,
       });
     });
 
@@ -227,15 +232,17 @@ describe('CartService', () => {
       expect(stored(LUIS)).toBeNull();
     });
 
-    it('un carrito en versión 1 se lee con sus renglones y se reescribe en versión 2 al cambiar', () => {
-      localStorage.setItem(
-        keyOf(LUIS),
-        JSON.stringify({ version: LEGACY_CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }] }),
-      );
+    it.each(LEGACY_CART_STORAGE_VERSIONS)('un carrito en versión %i se lee con sus renglones y se reescribe en la actual al cambiar', (version) => {
+      localStorage.setItem(keyOf(LUIS), JSON.stringify({ version, lines: [{ productId: 1, units: 2 }] }));
       const cart = create();
       expect(cart.lines()).toEqual([{ productId: 1, units: 2 }]);
+      expect(cart.holderId()).toBeNull();
       cart.setUnits(1, 3);
-      expect(JSON.parse(stored(LUIS)!)).toEqual({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 3 }] });
+      expect(JSON.parse(stored(LUIS)!)).toEqual({
+        version: CART_STORAGE_VERSION,
+        lines: [{ productId: 1, units: 3 }],
+        holderId: null,
+      });
     });
 
     it('lee un requestId válido guardado', () => {
@@ -252,6 +259,81 @@ describe('CartService', () => {
         JSON.stringify({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }], requestId }),
       );
       expect(create().lines()).toEqual([]);
+    });
+  });
+
+  describe('titular de la venta (HU-17)', () => {
+    const SELLER_ID = '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b';
+
+    it('arranca en bodega (null) y assignHolder lo fija con el carrito vacío', () => {
+      const cart = create();
+      expect(cart.holderId()).toBeNull();
+      cart.assignHolder(SELLER_ID);
+      expect(cart.holderId()).toBe(SELLER_ID);
+    });
+
+    it('assignHolder no cambia el titular si el carrito ya tiene renglones', () => {
+      const cart = create();
+      cart.assignHolder(SELLER_ID);
+      cart.setUnits(10, 2);
+      cart.assignHolder(null);
+      expect(cart.holderId()).toBe(SELLER_ID);
+    });
+
+    it('el titular se guarda con los renglones y sobrevive a recargar', () => {
+      const first = create();
+      first.assignHolder(SELLER_ID);
+      first.setUnits(10, 2);
+      expect(JSON.parse(stored(LUIS)!).holderId).toBe(SELLER_ID);
+      TestBed.resetTestingModule();
+      const reloaded = create();
+      expect(reloaded.holderId()).toBe(SELLER_ID);
+      expect(reloaded.lines()).toEqual([{ productId: 10, units: 2 }]);
+    });
+
+    it('clear() descarta el titular y la llave', () => {
+      const cart = create();
+      cart.assignHolder(SELLER_ID);
+      cart.setUnits(10, 2);
+      cart.clear();
+      expect(cart.holderId()).toBeNull();
+      expect(stored(LUIS)).toBeNull();
+    });
+
+    it('quitar el último renglón descarta el titular', () => {
+      const cart = create();
+      cart.assignHolder(SELLER_ID);
+      cart.setUnits(10, 2);
+      cart.remove(10);
+      expect(cart.holderId()).toBeNull();
+    });
+
+    it('cerrar sesión descarta el titular y lo guardado', () => {
+      const cart = create();
+      cart.assignHolder(SELLER_ID);
+      cart.setUnits(10, 2);
+      user.set(null);
+      TestBed.tick();
+      expect(cart.holderId()).toBeNull();
+      expect(stored(LUIS)).toBeNull();
+    });
+
+    it.each([['un texto que no es UUID', 'luis'], ['un número', 7]])('descarta el carrito con %s como holderId', (_label, holderId) => {
+      localStorage.setItem(
+        keyOf(LUIS),
+        JSON.stringify({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }], holderId }),
+      );
+      expect(create().lines()).toEqual([]);
+    });
+
+    it('un holderId null guardado se lee como bodega', () => {
+      localStorage.setItem(
+        keyOf(LUIS),
+        JSON.stringify({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }], holderId: null }),
+      );
+      const cart = create();
+      expect(cart.lines()).toEqual([{ productId: 1, units: 2 }]);
+      expect(cart.holderId()).toBeNull();
     });
   });
 

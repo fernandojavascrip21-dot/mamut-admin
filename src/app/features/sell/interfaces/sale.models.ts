@@ -21,16 +21,31 @@ export interface Sale {
   total: string;
 }
 
+// Lo que el backend agrega a la venta cuando la lee el administrador (HU-17): el costo del momento y
+// la ganancia (precio − costo) × piezas por renglón y de toda la venta (RNF-04). El vendedor nunca los
+// recibe, por eso viven aparte de `Sale`.
+export interface AdminSaleLine extends SaleLine {
+  unitCost: string;
+  profit: string;
+}
+
+export interface AdminSale extends Omit<Sale, 'lines'> {
+  lines: AdminSaleLine[];
+  profit: string;
+}
+
 // Petición de POST /api/sales. El vendedor nunca manda `holderId` ni precios: el backend vende de su
-// propio stock con el precio del momento.
+// propio stock con el precio del momento. El administrador manda `holderId` (null = bodega, o el id de
+// un vendedor activo, HU-17).
 export interface CreateSaleRequest {
   requestId: string;
+  holderId?: string | null;
   lines: { productId: number; qty: number }[];
 }
 
 // `replayed` es true cuando la llave ya existía y el backend respondió la venta hecha (200).
-export interface SaleResponse {
-  sale: Sale;
+export interface SaleResponse<S = Sale> {
+  sale: S;
   replayed: boolean;
 }
 

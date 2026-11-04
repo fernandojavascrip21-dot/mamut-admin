@@ -156,6 +156,12 @@
             [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
             [product]="item"
             [sellerId]="viewing.selectedSellerId()"
+            [sellUnits]="sellUnitsOf(item.id)"
+            [unitsInCart]="unitsInCartOf(item.id)"
+            [holderLabel]="holderLabel()"
+            (sellAdd)="sellAdd(item.id)"
+            (sellIncrement)="sellIncrement(item.id)"
+            (sellDecrement)="sellDecrement(item.id)"
           />
         }
       </div>

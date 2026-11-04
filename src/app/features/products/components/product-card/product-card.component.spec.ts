@@ -117,4 +117,75 @@ describe('ProductCardComponent', () => {
       expect(links()).toHaveLength(1);
     });
   });
+
+  describe('Agregar (HU-17)', () => {
+    async function renderSell(inputs: { sellUnits: number | null; unitsInCart?: number; holderLabel?: string | null }) {
+      fixture = TestBed.createComponent(ProductCardComponent);
+      fixture.componentRef.setInput('product', PRODUCT);
+      fixture.componentRef.setInput('sellUnits', inputs.sellUnits);
+      fixture.componentRef.setInput('unitsInCart', inputs.unitsInCart ?? 0);
+      fixture.componentRef.setInput('holderLabel', inputs.holderLabel ?? null);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+    const el = () => fixture.nativeElement as HTMLElement;
+    const click = (selector: string) => (el().querySelector(selector) as HTMLButtonElement).click();
+
+    it('con piezas del titular ofrece «Agregar» y emite sellAdd', async () => {
+      await renderSell({ sellUnits: 4 });
+      const button = el().querySelector('button.sell') as HTMLButtonElement;
+      expect(button.textContent!.trim()).toBe('Agregar');
+      expect(button.getAttribute('aria-label')).toBe('Agregar CBUM Thavage al carrito');
+      const added = vi.fn();
+      fixture.componentInstance.sellAdd.subscribe(added);
+      button.click();
+      expect(added).toHaveBeenCalledOnce();
+    });
+
+    it.each([
+      ['sin catálogo (null)', null],
+      ['con 0 piezas', 0],
+    ])('%s y fuera del carrito no ofrece «Agregar»', async (_label, sellUnits) => {
+      await renderSell({ sellUnits });
+      expect(el().querySelector('button.sell')).toBeNull();
+    });
+
+    it('con el producto en el carrito muestra − N + aunque ya no queden piezas, y emite sus output()', async () => {
+      await renderSell({ sellUnits: 0, unitsInCart: 2 });
+      expect(el().querySelector('button.sell')).toBeNull();
+      expect(el().querySelector('.units')!.textContent).toBe('2');
+      const inc = vi.fn();
+      const dec = vi.fn();
+      fixture.componentInstance.sellIncrement.subscribe(inc);
+      fixture.componentInstance.sellDecrement.subscribe(dec);
+      click('button.decrement');
+      expect(dec).toHaveBeenCalledOnce();
+      expect((el().querySelector('button.increment') as HTMLButtonElement).disabled).toBe(true);
+      expect(inc).not.toHaveBeenCalled();
+    });
+
+    it('el «+» se habilita mientras haya piezas y emite sellIncrement', async () => {
+      await renderSell({ sellUnits: 4, unitsInCart: 3 });
+      const inc = vi.fn();
+      fixture.componentInstance.sellIncrement.subscribe(inc);
+      const plus = el().querySelector('button.increment') as HTMLButtonElement;
+      expect(plus.disabled).toBe(false);
+      plus.click();
+      expect(inc).toHaveBeenCalledOnce();
+    });
+
+    it('con un vendedor muestra «Luis: N»; sin él no muestra la línea', async () => {
+      await renderSell({ sellUnits: 6, holderLabel: 'Luis' });
+      expect(el().querySelector('.holder-units')!.textContent!.trim()).toBe('Luis: 6');
+      await renderSell({ sellUnits: 6 });
+      expect(el().querySelector('.holder-units')).toBeNull();
+    });
+
+    it('«Dejar a vendedor» sigue saliendo junto a «Agregar»', async () => {
+      await renderSell({ sellUnits: 4 });
+      expect(el().querySelector('a.deliver')).not.toBeNull();
+      expect(el().querySelector('button.sell')).not.toBeNull();
+    });
+  });
 });

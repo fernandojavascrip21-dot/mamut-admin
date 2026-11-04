@@ -4,10 +4,17 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { ProductsPageComponent } from './products-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
+import { CartService } from '@core/cart/cart.service';
+import { ConfirmService } from '@core/confirm/confirm.service';
+import type { SaleCatalog } from '@core/sale-catalog/sale-catalog.models';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
+import { ViewingService } from '@core/viewing/viewing.service';
 import type { ProductSummary } from '../../interfaces/product.models';
 
 const PRODUCTS_URL = `${API_BASE_URL}/api/products`;
+const SELLERS_URL = `${API_BASE_URL}/api/sellers`;
+const CATALOG_URL = `${API_BASE_URL}/api/sales/catalog`;
+const LUIS_ID = '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b';
 
 const PRODUCTS: ProductSummary[] = [
   { id: 1, name: 'CBUM Thavage', categoryId: null, price: '450.00', stock: 10, fractionable: false, image: '' },
@@ -17,11 +24,18 @@ const PRODUCTS: ProductSummary[] = [
 describe('ProductsPageComponent', () => {
   let fixture: ComponentFixture<ProductsPageComponent>;
   let httpMock: HttpTestingController;
+  const ask = vi.fn<(options: { title: string; message: string }) => Promise<boolean>>();
 
   beforeEach(async () => {
+    ask.mockReset();
     await TestBed.configureTestingModule({
       imports: [ProductsPageComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ConfirmService, useValue: { ask } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProductsPageComponent);
@@ -133,6 +147,156 @@ describe('ProductsPageComponent', () => {
       TestBed.inject(StockChangesService).notify();
       await load(PRODUCTS);
       httpMock.expectNone(PRODUCTS_URL);
+    });
+  });
+
+  describe('Agregar al carrito como administrador (HU-17)', () => {
+    const WAREHOUSE_CATALOG: SaleCatalog = {
+      holder: null,
+      products: [
+        { productId: 1, name: 'CBUM Thavage', image: null, units: 3, price: '450.00', unitCost: '200.0000' },
+        { productId: 2, name: 'Creatina', image: null, units: 0, price: '300.00', unitCost: '120.0000' },
+      ],
+    };
+    const LUIS_CATALOG: SaleCatalog = {
+      holder: { id: LUIS_ID, fullName: 'Luis Vendedor' },
+      products: [
+        { productId: 1, name: 'CBUM Thavage', image: null, units: 6, price: '500.00', unitCost: '310.1234' },
+        { productId: 2, name: 'Creatina', image: null, units: 0, price: '350.00', unitCost: '120.0000' },
+      ],
+    };
+    let cart: CartService;
+    let viewing: ViewingService;
+
+    beforeEach(() => {
+      localStorage.setItem('mamut.user', JSON.stringify({ userId: 'a1', role: 'admin', clientId: null, fullName: 'Ana' }));
+      cart = TestBed.inject(CartService);
+      viewing = TestBed.inject(ViewingService);
+      TestBed.tick();
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+
+    // Carga la lista de vendedores (el shell lo hace en la app), la de productos y el catálogo del titular.
+    async function loadWith(catalog: SaleCatalog, holderId: string | null = null) {
+      if (holderId) viewing.select(holderId);
+      viewing.load();
+      httpMock.expectOne(SELLERS_URL).flush([{ id: LUIS_ID, fullName: 'Luis Vendedor' }]);
+      fixture.detectChanges();
+      httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
+      const req = httpMock.expectOne((r) => r.url === CATALOG_URL);
+      expect(req.request.params.get('holderId')).toBe(holderId);
+      req.flush(catalog);
+      await settle();
+    }
+
+    const card = (index: number) => fixture.nativeElement.querySelectorAll('app-product-card')[index] as HTMLElement;
+    const click = (selector: string, from: HTMLElement = fixture.nativeElement) => {
+      (from.querySelector(selector) as HTMLButtonElement).click();
+    };
+
+    it('no pide el catálogo mientras carga la lista de vendedores', () => {
+      fixture.detectChanges();
+      httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
+      httpMock.expectNone((r) => r.url === CATALOG_URL);
+    });
+
+    it('con «Yo · bodega» pide el catálogo sin holderId y ofrece «Agregar» solo con piezas', async () => {
+      await loadWith(WAREHOUSE_CATALOG);
+      expect(card(0).querySelector('button.sell')).not.toBeNull();
+      expect(card(1).querySelector('button.sell')).toBeNull();
+      expect(card(0).querySelector('.holder-units')).toBeNull();
+    });
+
+    it('el primer «Agregar» agrega 1 pieza y el botón se vuelve − N + con tope en las piezas', async () => {
+      await loadWith(WAREHOUSE_CATALOG);
+      click('button.sell', card(0));
+      await settle();
+      expect(cart.lines()).toEqual([{ productId: 1, units: 1 }]);
+      expect(cart.holderId()).toBeNull();
+      expect(card(0).querySelector('.units')!.textContent).toBe('1');
+
+      click('button.increment', card(0));
+      click('button.increment', card(0));
+      fixture.detectChanges();
+      expect(cart.unitsOf(1)).toBe(3);
+      expect((card(0).querySelector('button.increment') as HTMLButtonElement).disabled).toBe(true);
+      click('button.increment', card(0));
+      expect(cart.unitsOf(1)).toBe(3);
+    });
+
+    it('«−» con 1 pieza quita el producto', async () => {
+      await loadWith(WAREHOUSE_CATALOG);
+      click('button.sell', card(0));
+      await settle();
+      click('button.decrement', card(0));
+      fixture.detectChanges();
+      expect(cart.lines()).toEqual([]);
+      expect(card(0).querySelector('button.sell')).not.toBeNull();
+    });
+
+    it('con un vendedor en «Viendo» pide su catálogo, muestra «Luis: N» y el tope es lo que tiene', async () => {
+      await loadWith(LUIS_CATALOG, LUIS_ID);
+      expect(card(0).querySelector('.holder-units')!.textContent!.trim()).toBe('Luis: 6');
+      expect(card(1).querySelector('.holder-units')!.textContent!.trim()).toBe('Luis: 0');
+      expect(card(1).querySelector('button.sell')).toBeNull();
+      click('button.sell', card(0));
+      await settle();
+      expect(cart.holderId()).toBe(LUIS_ID);
+    });
+
+    it('no muestra barra del carrito: el carrito se abre con el botón del menú', async () => {
+      await loadWith(WAREHOUSE_CATALOG);
+      click('button.sell', card(0));
+      await settle();
+      expect(cart.totalUnits()).toBe(1);
+      expect(fixture.nativeElement.querySelector('app-cart-bar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('a.view-cart')).toBeNull();
+    });
+
+    describe('con un carrito de otro titular', () => {
+      beforeEach(async () => {
+        cart.assignHolder(LUIS_ID);
+        cart.setUnits(1, 2);
+        await loadWith(WAREHOUSE_CATALOG);
+      });
+
+      it('las tarjetas no pintan las piezas del otro titular', () => {
+        expect(card(0).querySelector('button.sell')).not.toBeNull();
+        expect(card(0).querySelector('.stepper')).toBeNull();
+      });
+
+      it('«Agregar» pregunta «¿Vaciar el carrito?»; cancelar no cambia nada', async () => {
+        ask.mockResolvedValue(false);
+        click('button.sell', card(0));
+        await settle();
+        expect(ask.mock.calls[0]![0]).toMatchObject({
+          title: '¿Vaciar el carrito?',
+          message: 'Tu carrito es de Luis Vendedor. Si cambias a la bodega, se vacía.',
+        });
+        expect(cart.holderId()).toBe(LUIS_ID);
+        expect(cart.unitsOf(1)).toBe(2);
+      });
+
+      it('aceptar vacía el carrito y agrega con el titular nuevo', async () => {
+        ask.mockResolvedValue(true);
+        click('button.sell', card(0));
+        await settle();
+        expect(cart.holderId()).toBeNull();
+        expect(cart.lines()).toEqual([{ productId: 1, units: 1 }]);
+      });
+    });
+
+    it('al avisarse un cambio de inventario vuelve a pedir también el catálogo', async () => {
+      await loadWith(WAREHOUSE_CATALOG);
+      TestBed.inject(StockChangesService).notify();
+      fixture.detectChanges();
+      httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
+      httpMock.expectOne((r) => r.url === CATALOG_URL).flush(WAREHOUSE_CATALOG);
+      await settle();
     });
   });
 });
