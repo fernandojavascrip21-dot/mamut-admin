@@ -95,16 +95,71 @@
         }
       </ul>
 
-      @if (needsFix()) {
-        <p class="fix-hint m-0 mt-4 text-sm text-muted">{{ texts.fixHint }}</p>
-      }
-
       <section class="summary mt-5 flex items-baseline justify-between gap-3 surface-card p-5">
         <p class="m-0 text-sm font-semibold text-muted">{{ texts.total }}</p>
         <p class="total m-0 font-display text-[32px] leading-none font-extrabold tracking-[-0.02em]">
           {{ totalAmount() | currency: 'MXN' : 'symbol-narrow' }}
         </p>
       </section>
+
+      @if (confirmError(); as error) {
+        <div class="confirm-error mt-4 flex gap-3 alert-danger p-4" role="alert">
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="mt-0.5 shrink-0 stroke-danger"
+          >
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+          @switch (error) {
+            @case ('offline') {
+              <p class="m-0 text-[15px] font-bold">{{ texts.offlineTitle }}</p>
+              <p class="m-0 text-sm leading-snug">{{ texts.offlineHint }}</p>
+              <button
+                pButton
+                severity="secondary"
+                type="button"
+                class="retry-send mt-2 h-11 self-start px-4 text-sm"
+                [disabled]="saving()"
+                (click)="retrySend()"
+              >
+                {{ texts.retry }}
+              </button>
+            }
+            @case ('not-enough-units') {
+              <p class="m-0 text-[15px] font-bold">{{ texts.notEnoughTitle }}</p>
+              <p class="m-0 text-sm leading-snug">{{ texts.notEnoughHint }}</p>
+            }
+            @default {
+              <p class="m-0 text-[15px] font-bold">{{ texts.invalidTitle }}</p>
+              <p class="m-0 text-sm leading-snug">{{ invalidMessage() }}</p>
+            }
+          }
+          </div>
+        </div>
+      }
+
+      <button
+        pButton
+        type="button"
+        class="confirm mt-4 h-[52px] w-full text-sm"
+        [disabled]="saving() || needsFix()"
+        (click)="confirm()"
+      >
+        {{ saving() ? texts.confirming : texts.confirm }}
+      </button>
+      @if (needsFix()) {
+        <p class="confirm-hint m-0 mt-2 text-center text-sm font-semibold text-danger-text" role="status">{{ texts.confirmDisabledHint }}</p>
+      }
 
       <a pButton severity="secondary" [routerLink]="sellUrl" class="keep-selling mt-4 h-[52px] w-full text-sm">
         {{ texts.keepSelling }}

@@ -2,6 +2,7 @@ import type { CartLine } from '@core/cart/cart.models';
 import { fromMinorUnits, toMinorUnits } from '@shared/utils/money';
 import { normalizeText } from '@shared/utils/normalize-text';
 import { UNAVAILABLE_PRODUCT_NAME } from '../constants/cart-page.constants';
+import type { CreateSaleRequest } from '../interfaces/sale.models';
 import type { SellProduct } from '../interfaces/sell-stock.models';
 import type { CartRow, CartRowStatus } from '../models/cart-page.models';
 
@@ -68,4 +69,14 @@ export function cartTotal(rows: CartRow[]): string {
 // Hay que corregir el carrito mientras algún renglón pida de más o ya no tenga piezas.
 export function cartNeedsFix(rows: CartRow[]): boolean {
   return rows.some((row) => row.status !== 'ok');
+}
+
+// Petición de POST /api/sales: solo los renglones que alcanzan, con las piezas del carrito. Sin
+// precios: los resuelve el backend al confirmar. La página no llama a esto con renglones por corregir
+// (el botón está deshabilitado), pero ignorarlos evita mandar piezas que el stock no cubre.
+export function buildSaleRequest(requestId: string, rows: CartRow[]): CreateSaleRequest {
+  return {
+    requestId,
+    lines: rows.filter((row) => row.status === 'ok').map((row) => ({ productId: row.product.productId, qty: row.units })),
+  };
 }

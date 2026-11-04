@@ -9,5 +9,6 @@ export const SELLER_ROUTES: Routes = [
   { path: 'mi-stock', loadChildren: () => import('@features/my-stock/my-stock.routes').then((m) => m.MY_STOCK_ROUTES) },
   { path: 'vender', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.SELL_ROUTES) },
   { path: 'carrito', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.CART_ROUTES) },
+  { path: 'venta', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.SALE_ROUTES) },
   { path: 'mi-corte', loadComponent: comingSoon, data: { title: 'Mi corte' } },
 ];

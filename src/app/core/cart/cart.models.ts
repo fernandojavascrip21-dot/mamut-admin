@@ -6,7 +6,15 @@ export interface CartLine {
 }
 
 // Lo que se escribe en localStorage. `version` deja descartar un formato viejo sin romper nada.
+// `requestId` es la llave de idempotencia de la venta en curso (HU-16); falta en la versión 1.
 export interface StoredCart {
   version: number;
   lines: CartLine[];
+  requestId?: string;
+}
+
+// Lo que sale de leer y validar lo guardado.
+export interface ReadCart {
+  lines: CartLine[];
+  requestId: string | null;
 }

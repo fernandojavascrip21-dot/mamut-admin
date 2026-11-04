@@ -1,12 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { unitsLabel } from '@shared/utils/units-label';
 import { MyStockCardSkeletonComponent } from '../../components/my-stock-card-skeleton/my-stock-card-skeleton.component';
 import { MyStockCardComponent } from '../../components/my-stock-card/my-stock-card.component';
-import { MY_STOCK_PAGE_TEXTS, SELL_URL } from '../../constants/my-stock-page.constants';
+import { MY_STOCK_PAGE_TEXTS } from '../../constants/my-stock-page.constants';
 import type { MyStock } from '../../interfaces/my-stock.models';
 import type { MyStockPageState } from '../../models/my-stock-page.models';
 import { filterMyStockByName } from '../../rules/my-stock.rules';
@@ -16,7 +14,7 @@ import { MyStockService } from '../../services/my-stock.service';
 // costos. Pide el stock cada vez que se entra (la página nace de nuevo al volver), así que tras un
 // «Dejar», un «Retirar» o una venta los números ya son los nuevos; no se actualiza en vivo.
 @Component({
-  imports: [RouterLink, ButtonDirective, InputText, MyStockCardComponent, MyStockCardSkeletonComponent],
+  imports: [ButtonDirective, InputText, MyStockCardComponent, MyStockCardSkeletonComponent],
   selector: 'app-my-stock-page',
   templateUrl: './my-stock-page.component.html',
 })
@@ -37,10 +35,9 @@ export class MyStockPageComponent {
 
   readonly searchQuery = signal('');
   readonly texts = MY_STOCK_PAGE_TEXTS;
-  readonly sellUrl = SELL_URL;
 
   // 3) Lista. El total sale de la respuesta, así que filtrar la lista no lo cambia.
-  readonly totalLabel = computed(() => `${this.texts.totalPrefix} ${unitsLabel(this.stock()?.total ?? 0)}`);
+  readonly totalUnits = computed(() => this.stock()?.total ?? 0);
   readonly visibleProducts = computed(() =>
     filterMyStockByName(this.stock()?.products ?? [], this.searchQuery()),
   );

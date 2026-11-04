@@ -1,7 +1,7 @@
 import type { CartLine } from '@core/cart/cart.models';
 import type { SellProduct } from '../interfaces/sell-stock.models';
 import {
-  buildCartRows, canIncrement, cartNeedsFix, cartTotal, filterSellProductsByName, unitsLeft,
+  buildCartRows, buildSaleRequest, canIncrement, cartNeedsFix, cartTotal, filterSellProductsByName, unitsLeft,
 } from './sell.rules';
 
 const product = (overrides: Partial<SellProduct> = {}): SellProduct => ({
@@ -130,5 +130,26 @@ describe('cartTotal y cartNeedsFix', () => {
     expect(cartNeedsFix(buildCartRows(products, [line(1, 2), line(2, 5)]))).toBe(true);
     expect(cartNeedsFix(buildCartRows(products, [line(1, 2), line(3, 1)]))).toBe(true);
     expect(cartNeedsFix(buildCartRows(products, [line(99, 1)]))).toBe(true);
+  });
+});
+
+describe('buildSaleRequest', () => {
+  const products = [
+    product({ productId: 1, units: 6 }),
+    product({ productId: 2, units: 2 }),
+    product({ productId: 3, units: 0 }),
+  ];
+
+  it('arma { requestId, lines } con las piezas del carrito, sin precios', () => {
+    const rows = buildCartRows(products, [line(1, 2), line(2, 1)]);
+    expect(buildSaleRequest('r-1', rows)).toEqual({
+      requestId: 'r-1',
+      lines: [{ productId: 1, qty: 2 }, { productId: 2, qty: 1 }],
+    });
+  });
+
+  it('solo incluye los renglones que alcanzan', () => {
+    const rows = buildCartRows(products, [line(1, 2), line(2, 5), line(3, 1), line(99, 1)]);
+    expect(buildSaleRequest('r-1', rows).lines).toEqual([{ productId: 1, qty: 2 }]);
   });
 });
