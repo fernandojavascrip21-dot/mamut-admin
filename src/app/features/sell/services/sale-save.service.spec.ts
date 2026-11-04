@@ -40,6 +40,17 @@ describe('SaleSaveService', () => {
     expect(outcome.result()).toEqual({ ok: true, sale: SALE, replayed: false });
   });
 
+  it('reenvía el holderId cuando viene en la petición (administrador, HU-17)', () => {
+    const body: CreateSaleRequest = { ...BODY, holderId: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b' };
+    service.confirm(body).subscribe();
+    expect(httpMock.expectOne(URL).request.body).toEqual(body);
+  });
+
+  it('con holderId null (bodega) lo manda como null', () => {
+    service.confirm({ ...BODY, holderId: null }).subscribe();
+    expect(httpMock.expectOne(URL).request.body).toEqual({ ...BODY, holderId: null });
+  });
+
   it('una venta repetida (200) llega con replayed', () => {
     const outcome = confirm();
     httpMock.expectOne(URL).flush({ sale: SALE, replayed: true });

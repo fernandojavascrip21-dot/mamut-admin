@@ -1,0 +1,178 @@
+<div class="flex w-full flex-col px-5 py-6">
+  <h1 class="page-title">{{ texts.title }}</h1>
+  @if (state() !== 'empty') {
+    <p class="pieces m-0 mt-1 text-sm font-semibold text-muted">{{ piecesLabel() }}</p>
+    @if (holderName(); as holder) {
+      <p class="holder m-0 mt-1 text-sm font-semibold">{{ texts.sellingFrom }} {{ holder }}</p>
+    }
+  }
+
+  @switch (state()) {
+    @case ('empty') {
+      <div
+        class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+      >
+        <svg
+          aria-hidden="true"
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="shrink-0 stroke-accent-2"
+        >
+          <circle cx="9" cy="20" r="1.5"></circle>
+          <circle cx="18" cy="20" r="1.5"></circle>
+          <path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 8H6"></path>
+        </svg>
+        <p class="m-0 text-[17px] font-bold">{{ texts.emptyTitle }}</p>
+        <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
+        <a pButton [routerLink]="productsUrl" class="go-sell mt-2 h-[52px] text-sm">{{ texts.emptyAction }}</a>
+      </div>
+    }
+    @case ('loading') {
+      <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
+        <svg
+          aria-hidden="true"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="animate-spin stroke-accent motion-reduce:animate-none"
+        >
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+        </svg>
+        <p class="m-0 text-sm font-semibold">{{ texts.loadingTitle }}</p>
+        <p class="m-0 text-sm text-muted">{{ texts.loadingHint }}</p>
+      </div>
+      <div class="mt-5 flex flex-col gap-3">
+        <app-sell-product-card-skeleton />
+        <app-sell-product-card-skeleton />
+      </div>
+    }
+    @case ('error') {
+      <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+        <svg
+          aria-hidden="true"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="shrink-0 stroke-danger"
+        >
+          <path
+            d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+          ></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+        <p class="m-0 text-[15px] font-bold">{{ texts.errorTitle }}</p>
+        <p class="m-0 text-sm leading-snug">{{ texts.errorHint }}</p>
+        <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry()">
+          {{ texts.retry }}
+        </button>
+      </div>
+    }
+    @default {
+      <ul class="lines mt-5 mb-0 flex list-none flex-col gap-3 p-0">
+        @for (row of rows(); track row.product.productId; let index = $index) {
+          <li
+            class="min-w-0 animate-rise-in motion-reduce:animate-none"
+            [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+          >
+            <app-cart-line
+              [row]="row"
+              (increment)="increment(row)"
+              (decrement)="decrement(row)"
+              (remove)="remove(row)"
+            />
+          </li>
+        }
+      </ul>
+
+      <section class="summary mt-5 flex items-baseline justify-between gap-3 surface-card p-5">
+        <p class="m-0 text-sm font-semibold text-muted">{{ texts.total }}</p>
+        <p class="total m-0 font-display text-[32px] leading-none font-extrabold tracking-[-0.02em]">
+          {{ totalAmount() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      </section>
+      <section class="profit-summary mt-3 flex items-baseline justify-between gap-3 surface-card p-4">
+        <p class="m-0 text-sm font-semibold text-muted">{{ texts.profit }}</p>
+        <p class="profit m-0 font-mono text-xl font-bold text-success-text">
+          {{ profitAmount() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      </section>
+
+      @if (confirmError(); as error) {
+        <div class="confirm-error mt-4 flex gap-3 alert-danger p-4" role="alert">
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="mt-0.5 shrink-0 stroke-danger"
+          >
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+          @switch (error) {
+            @case ('offline') {
+              <p class="m-0 text-[15px] font-bold">{{ texts.offlineTitle }}</p>
+              <p class="m-0 text-sm leading-snug">{{ texts.offlineHint }}</p>
+              <button
+                pButton
+                severity="secondary"
+                type="button"
+                class="retry-send mt-2 h-11 self-start px-4 text-sm"
+                [disabled]="saving()"
+                (click)="retrySend()"
+              >
+                {{ texts.retry }}
+              </button>
+            }
+            @case ('not-enough-units') {
+              <p class="m-0 text-[15px] font-bold">{{ texts.notEnoughTitle }}</p>
+              <p class="m-0 text-sm leading-snug">{{ texts.notEnoughHint }}</p>
+            }
+            @default {
+              <p class="m-0 text-[15px] font-bold">{{ texts.invalidTitle }}</p>
+              <p class="m-0 text-sm leading-snug">{{ invalidMessage() }}</p>
+            }
+          }
+          </div>
+        </div>
+      }
+
+      <button
+        pButton
+        type="button"
+        class="confirm mt-4 h-[52px] w-full text-sm"
+        [disabled]="saving() || needsFix()"
+        (click)="confirm()"
+      >
+        {{ saving() ? texts.confirming : texts.confirm }}
+      </button>
+      @if (needsFix()) {
+        <p class="confirm-hint m-0 mt-2 text-center text-sm font-semibold text-danger-text" role="status">{{ texts.confirmDisabledHint }}</p>
+      }
+
+      <a pButton severity="secondary" [routerLink]="productsUrl" class="keep-selling mt-4 h-[52px] w-full text-sm">
+        {{ texts.keepSelling }}
+      </a>
+    }
+  }
+</div>

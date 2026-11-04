@@ -26,3 +26,13 @@ export const SALE_ROUTES: Routes = [
     data: { title: 'Venta confirmada' },
   },
 ];
+
+// «Carrito» del administrador, montada en /admin/carrito por admin.routes.ts (HU-17).
+export const ADMIN_CART_ROUTES: Routes = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./pages/admin-cart-page/admin-cart-page.component').then((m) => m.AdminCartPageComponent),
+    data: { title: 'Carrito' },
+  },
+];

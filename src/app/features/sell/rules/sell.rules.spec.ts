@@ -1,7 +1,7 @@
 import type { CartLine } from '@core/cart/cart.models';
 import type { SellProduct } from '../interfaces/sell-stock.models';
 import {
-  buildCartRows, buildSaleRequest, canIncrement, cartNeedsFix, cartTotal, filterSellProductsByName, unitsLeft,
+  buildCartRows, buildSaleRequest, canIncrement, cartNeedsFix, cartProfit, cartTotal, filterSellProductsByName, unitsLeft,
 } from './sell.rules';
 
 const product = (overrides: Partial<SellProduct> = {}): SellProduct => ({
@@ -151,5 +151,69 @@ describe('buildSaleRequest', () => {
   it('solo incluye los renglones que alcanzan', () => {
     const rows = buildCartRows(products, [line(1, 2), line(2, 5), line(3, 1), line(99, 1)]);
     expect(buildSaleRequest('r-1', rows).lines).toEqual([{ productId: 1, qty: 2 }]);
+  });
+});
+
+describe('buildSaleRequest con holderId (HU-17)', () => {
+  const rows = buildCartRows([product({ productId: 1, units: 5 })], [line(1, 2)]);
+
+  it('sin holderId (vendedor) la petición no lo lleva', () => {
+    expect(Object.keys(buildSaleRequest('r-1', rows))).toEqual(['requestId', 'lines']);
+  });
+
+  it('con null (bodega) o un id lo manda tal cual', () => {
+    expect(buildSaleRequest('r-1', rows, null).holderId).toBeNull();
+    expect(buildSaleRequest('r-1', rows, 'v-1').holderId).toBe('v-1');
+  });
+});
+
+describe('cartProfit (HU-17)', () => {
+  const costs: Record<number, string> = { 1: '610.5000', 2: '100.3333', 3: '10.0000' };
+  const costOf = (id: number) => costs[id];
+
+  it('suma (precio − costo) × piezas con costos de 4 decimales y redondea a centavos al final', () => {
+    // 2 × (920.00 − 610.5000) = 619.0000; 3 × (150.00 − 100.3333) = 149.0001 → 768.0001 → 768.00
+    const rows = buildCartRows(
+      [product({ productId: 1, units: 5, price: '920.00' }), product({ productId: 2, units: 5, price: '150.00' })],
+      [line(1, 2), line(2, 3)],
+    );
+    expect(cartProfit(rows, costOf)).toBe('768.00');
+  });
+
+  it('redondea una sola vez: dos renglones de 0.0050 suman 0.0100 = 0.01, no 0.02', () => {
+    const rows = buildCartRows(
+      [product({ productId: 1, units: 5, price: '10.00' }), product({ productId: 2, units: 5, price: '10.00' })],
+      [line(1, 1), line(2, 1)],
+    );
+    expect(cartProfit(rows, (id) => (id === 1 ? '9.9950' : '9.9950'))).toBe('0.01');
+  });
+
+  it('la mitad sube: 0.0050 → 0.01', () => {
+    const rows = buildCartRows([product({ productId: 1, units: 5, price: '10.00' })], [line(1, 1)]);
+    expect(cartProfit(rows, () => '9.9950')).toBe('0.01');
+  });
+
+  it('solo cuentan los renglones que alcanzan', () => {
+    const rows = buildCartRows(
+      [product({ productId: 1, units: 1, price: '920.00' }), product({ productId: 3, units: 0, price: '50.00' })],
+      [line(1, 5), line(3, 1)],
+    );
+    expect(cartProfit(rows, costOf)).toBe('0.00');
+  });
+
+  it('vender bajo el costo da una ganancia negativa', () => {
+    const rows = buildCartRows([product({ productId: 3, units: 5, price: '8.00' })], [line(3, 2)]);
+    expect(cartProfit(rows, costOf)).toBe('-4.00');
+  });
+
+  it('un renglón sin costo no suma', () => {
+    const rows = buildCartRows([product({ productId: 9, units: 5, price: '8.00' })], [line(9, 2)]);
+    expect(cartProfit(rows, costOf)).toBe('0.00');
+  });
+
+  it('coincide con la ganancia del backend para los mismos renglones', () => {
+    // Mismo caso que backend/tests/sales.test.ts: 2 × (471.00 − 205.5000) = 531.0000 → 531.00
+    const rows = buildCartRows([product({ productId: 1, units: 4, price: '471.00' })], [line(1, 2)]);
+    expect(cartProfit(rows, () => '205.5000')).toBe('531.00');
   });
 });
