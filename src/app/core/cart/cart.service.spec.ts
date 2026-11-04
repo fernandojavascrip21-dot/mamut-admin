@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '@core/auth/services/auth.service';
 import type { AuthContext } from '@core/auth/interfaces/auth.models';
-import { CART_STORAGE_PREFIX, CART_STORAGE_VERSION } from './cart.constants';
+import { CART_STORAGE_PREFIX, CART_STORAGE_VERSION, LEGACY_CART_STORAGE_VERSION } from './cart.constants';
 import { CartService } from './cart.service';
 
 const LUIS: AuthContext = { userId: 'v-luis', role: 'vendedor', clientId: null, fullName: 'Luis' };
@@ -150,6 +150,108 @@ describe('CartService', () => {
       user.set(LUIS);
       TestBed.tick();
       expect(cart.lines()).toEqual([{ productId: 10, units: 2 }]);
+    });
+  });
+
+  describe('requestId de la venta (HU-16)', () => {
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    const A_KEY = '6f1c2a4e-1b3d-4c5e-8f70-123456789abc';
+
+    it('saleRequestId crea un UUID, lo guarda con el carrito y devuelve el mismo después', () => {
+      const cart = create();
+      cart.setUnits(10, 2);
+      const id = cart.saleRequestId();
+      expect(id).toMatch(UUID);
+      expect(cart.saleRequestId()).toBe(id);
+      expect(JSON.parse(stored(LUIS)!)).toEqual({
+        version: CART_STORAGE_VERSION,
+        lines: [{ productId: 10, units: 2 }],
+        requestId: id,
+      });
+    });
+
+    it('un servicio nuevo (recarga) devuelve la misma llave', () => {
+      const first = create();
+      first.setUnits(10, 2);
+      const id = first.saleRequestId();
+      TestBed.resetTestingModule();
+      expect(create().saleRequestId()).toBe(id);
+    });
+
+    it('cambiar piezas, agregar o quitar otro producto no cambia la llave', () => {
+      const cart = create();
+      cart.setUnits(10, 2);
+      const id = cart.saleRequestId();
+      cart.setUnits(10, 5);
+      cart.setUnits(12, 1);
+      cart.remove(12);
+      expect(cart.saleRequestId()).toBe(id);
+      expect(JSON.parse(stored(LUIS)!).requestId).toBe(id);
+    });
+
+    it('clear descarta la llave y la siguiente venta usa otra', () => {
+      const cart = create();
+      cart.setUnits(10, 2);
+      const id = cart.saleRequestId();
+      cart.clear();
+      cart.setUnits(10, 1);
+      expect(stored(LUIS)).not.toContain('requestId');
+      expect(cart.saleRequestId()).not.toBe(id);
+    });
+
+    it('quitar el último renglón descarta la llave', () => {
+      const cart = create();
+      cart.setUnits(10, 2);
+      const id = cart.saleRequestId();
+      cart.remove(10);
+      cart.setUnits(10, 2);
+      expect(cart.saleRequestId()).not.toBe(id);
+    });
+
+    it('al cerrar sesión se descarta la llave junto con el carrito', () => {
+      const cart = create();
+      cart.setUnits(10, 2);
+      cart.saleRequestId();
+      user.set(null);
+      TestBed.tick();
+      expect(stored(LUIS)).toBeNull();
+      user.set(LUIS);
+      TestBed.tick();
+      cart.setUnits(10, 2);
+      expect(JSON.parse(stored(LUIS)!).requestId).toBeUndefined();
+    });
+
+    it('sin renglones la llave solo vive en memoria y no se guarda nada', () => {
+      const cart = create();
+      cart.saleRequestId();
+      expect(stored(LUIS)).toBeNull();
+    });
+
+    it('un carrito en versión 1 se lee con sus renglones y se reescribe en versión 2 al cambiar', () => {
+      localStorage.setItem(
+        keyOf(LUIS),
+        JSON.stringify({ version: LEGACY_CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }] }),
+      );
+      const cart = create();
+      expect(cart.lines()).toEqual([{ productId: 1, units: 2 }]);
+      cart.setUnits(1, 3);
+      expect(JSON.parse(stored(LUIS)!)).toEqual({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 3 }] });
+    });
+
+    it('lee un requestId válido guardado', () => {
+      localStorage.setItem(
+        keyOf(LUIS),
+        JSON.stringify({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }], requestId: A_KEY }),
+      );
+      expect(create().saleRequestId()).toBe(A_KEY);
+    });
+
+    it.each([['un texto que no es UUID', 'abc'], ['un número', 7]])('descarta el carrito con %s como requestId', (_label, requestId) => {
+      localStorage.setItem(
+        keyOf(LUIS),
+        JSON.stringify({ version: CART_STORAGE_VERSION, lines: [{ productId: 1, units: 2 }], requestId }),
+      );
+      expect(create().lines()).toEqual([]);
     });
   });
 
