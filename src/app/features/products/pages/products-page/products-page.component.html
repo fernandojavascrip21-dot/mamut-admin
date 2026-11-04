@@ -168,7 +168,3 @@
     }
   }
 </div>
-
-@if (cartUnits() > 0 && catalog() !== null) {
-  <app-cart-bar class="sticky bottom-0 z-10 block" [units]="cartUnits()" [total]="cartTotal()" [cartUrl]="cartUrl" />
-}

@@ -11,22 +11,20 @@ import { SaleCatalogService } from '@core/sale-catalog/sale-catalog.service';
 import type { SaleCatalog, SaleCatalogProduct } from '@core/sale-catalog/sale-catalog.models';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { CartBarComponent } from '@shared/components/cart-bar/cart-bar.component';
 import { ProductsService } from '../../services/products.service';
 import type { ProductSummary } from '../../interfaces/product.models';
-import { cartTotalOf, filterProductsByName } from '../../rules/product.rules';
+import { filterProductsByName } from '../../rules/product.rules';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from '../../components/product-card-skeleton/product-card-skeleton.component';
-import { ADMIN_CART_URL } from '../../constants/products.constants';
 import type { ProductsState } from '../../models/products-page.models';
 
 // Pantalla «Productos» (03): una tarjeta por producto activo, con los estados cargando, error
 // y catálogo vacío. La lista completa se pide una sola vez al entrar (o con «Reintentar»): ver
 // specs/M1-hu05-ver-y-buscar-productos/spec.md §2 y §5. Desde HU-17 cada tarjeta ofrece «Vender» con el
 // stock del titular de «Viendo»: el tope y el precio salen de su catálogo (GET /api/sales/catalog), no
-// de `products.stock`, y la barra del carrito aparece abajo cuando hay piezas de ese titular.
+// de `products.stock`. El carrito se ve con el botón del menú, no con una barra en esta pantalla.
 @Component({
-  imports: [RouterLink, ButtonDirective, InputText, CartBarComponent, ProductCardComponent, ProductCardSkeletonComponent],
+  imports: [RouterLink, ButtonDirective, InputText, ProductCardComponent, ProductCardSkeletonComponent],
   selector: 'app-products-page',
   templateUrl: './products-page.component.html',
 })
@@ -69,14 +67,10 @@ export class ProductsPageComponent {
 
   // Primer nombre del vendedor en «Viendo» para la línea «Luis: N»; null con «Yo · bodega».
   readonly holderLabel = computed(() => this.viewing.selectedSeller()?.fullName.split(' ')[0] ?? null);
-  // El carrito es del titular de «Viendo» (o está vacío): solo entonces sus piezas se pintan en las tarjetas
-  // y su total se puede calcular con este catálogo.
+  // El carrito es del titular de «Viendo» (o está vacío): solo entonces sus piezas se pintan en las tarjetas.
   private readonly cartIsHere = computed(
     () => this.cart.lines().length === 0 || this.cart.holderId() === this.viewing.selectedSellerId(),
   );
-  readonly cartUnits = computed(() => (this.cartIsHere() ? this.cart.totalUnits() : 0));
-  readonly cartTotal = computed(() => cartTotalOf(this.catalog()?.products ?? [], this.cart.lines()));
-  readonly cartUrl = ADMIN_CART_URL;
 
   constructor() {
     // Dejar piezas desde el pop-up cambia la bodega: se vuelve a pedir la lista. Se ignora la versión
@@ -116,7 +110,7 @@ export class ProductsPageComponent {
     return this.cartIsHere() ? this.cart.unitsOf(productId) : 0;
   }
 
-  // Primer «Vender» de un producto: agrega 1 pieza. Si el carrito tiene renglones de otro titular se
+  // Primer «Agregar» de un producto: agrega 1 pieza. Si el carrito tiene renglones de otro titular se
   // pregunta antes de vaciarlo; cancelar no agrega nada. Con el carrito vacío se le asigna el titular
   // de «Viendo» (el que dio el catálogo), así lo que se confirma es del stock con que se armó.
   async sellAdd(productId: number): Promise<void> {

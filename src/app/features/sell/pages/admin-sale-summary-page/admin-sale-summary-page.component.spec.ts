@@ -87,6 +87,20 @@ describe('AdminSaleSummaryPageComponent', () => {
     expect(text('.profit-summary .profit')).toBe('$619.00');
   });
 
+  it('muestra cuántos productos y piezas fueron y la fecha con hora', async () => {
+    await loaded();
+    expect(text('.counts')).toBe('1 producto · 2 piezas');
+    expect(text('.sold-at')).toMatch(/^\d{2}\/\d{2}\/\d{4} · \d{1,2}:\d{2} (AM|PM)$/);
+  });
+
+  it('los renglones van en una cuadrícula con scroll propio y el panel de totales a un lado', async () => {
+    await loaded();
+    expect(el().querySelector('ul.lines')?.className).toContain('grid');
+    expect(el().querySelector('ul.lines')?.className).toContain('overflow-y-auto');
+    expect(el().querySelector('aside .total')).not.toBeNull();
+    expect(el().querySelector('aside a.new-sale')).not.toBeNull();
+  });
+
   it('con un vendedor dice su nombre y «Luis: 6 → 4»', async () => {
     await loaded({
       ...SALE,

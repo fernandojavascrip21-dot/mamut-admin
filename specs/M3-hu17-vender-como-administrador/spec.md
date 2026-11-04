@@ -1,6 +1,6 @@
 # Spec técnico — HU-17 · Vender como administrador desde Productos (carrito y venta confirmada)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M3-t18-base-ventas (`specs/M3-t18-base-ventas/spec.md`) — `POST /api/sales` con `holderId`, `GET /api/sales/:requestId`, `unitCost` y `profit` solo para el administrador; M3-hu16-confirmar-venta (`specs/M3-hu16-confirmar-venta/spec.md`) — `CartService` v2 con `requestId`, `SaleSaveService`, «Confirmar venta» y «Venta confirmada»; M3-hu15-vender-catalogo-carrito (`specs/M3-hu15-vender-catalogo-carrito/spec.md`) — `buildCartRows`, `cartTotal`, `cartNeedsFix`, `cart-line`, `cart-bar`; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — `ViewingService`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — acciones rápidas de «Stock general»; M1-hu05-ver-y-buscar-productos (`specs/M1-hu05-ver-y-buscar-productos/spec.md`) — «Productos» y `product-card`; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — `money.ts`
 > **Fecha:** 2026-11-04
 > **Objetivo:** que el administrador agregue productos al carrito desde «Productos», del stock del titular en «Viendo» (bodega o un vendedor), y confirme la venta viendo su total y su ganancia, sin vender del stock equivocado ni registrarla dos veces.
@@ -33,11 +33,11 @@ Fuentes:
 - **Frontend · `core/layout/admin-shell`:**
   - Cambiar de «Viendo» con un carrito de otro titular pregunta «¿Vaciar el carrito?»; cancelar deja el titular anterior.
 - **Frontend · `shared/components/cart-bar`:**
-  - La barra «Carrito · N piezas · $total · Ver carrito» pasa de `features/sell` a `shared/`, con el destino del enlace como `input()`, para usarla en «Vender» y en «Productos».
+  - La barra «Carrito · N piezas · $total · Ver carrito» pasa de `features/sell` a `shared/`, con el destino del enlace como `input()`, para usarla en «Vender». «Productos» ya no la usa (cambio del 2026-11-04, §9); queda en `shared/` porque el paso 4 ya la movió.
 - **Frontend · `features/products/` · «Productos»:**
-  - En cada card, «Vender» junto a «Dejar a vendedor»: el primer toque agrega 1 pieza y el botón se vuelve − N + con tope en las piezas del titular.
+  - En cada card, «Agregar» junto a «Dejar a vendedor»: el primer toque agrega 1 pieza y el botón se vuelve − N + con tope en las piezas del titular.
   - Con un vendedor en «Viendo», una línea «Luis: N» en la card.
-  - La barra del carrito abajo cuando hay piezas.
+  - Sin barra del carrito: el administrador ve lo agregado con el botón del carrito del menú (con su globo de piezas).
 - **Frontend · `features/sell/` · administrador:**
   - `/admin/carrito`: renglones con precio, −/+, subtotal y «Quitar», titular («Vendiendo de: Bodega» / «Vendiendo de: Luis»), total, ganancia, «Confirmar venta» con diálogo, avisos y errores como HU-16.
   - `/admin/venta/:requestId`: «Venta confirmada» con foto, producto, piezas, precio, subtotal, ganancia por renglón, «Bodega: 4 → 2» / «Luis: 6 → 4», total y ganancia de la venta; acciones «Nueva venta» y «Ver stock general».
@@ -70,18 +70,18 @@ Fuentes:
   - Aceptar vacía el carrito (y su `requestId`) y aplica el cambio con `viewing.pick()`.
   - Cancelar, `Escape` o la X no cambian nada: la barra «Viendo» regresa al titular anterior.
   - `viewing.select()` (cuando una página fija la selección, p. ej. el detalle de un vendedor) no pregunta ni vacía: el carrito conserva su propio titular, y la regla siguiente lo cubre.
-- **Agregar con otro titular:** si el carrito tiene renglones de un titular distinto al de «Viendo» (p. ej. tras cerrar el navegador, «Viendo» volvió a «Yo» y el carrito era de Luis), el primer «Vender» en «Productos» pregunta lo mismo; aceptar vacía el carrito y agrega con el titular nuevo.
+- **Agregar con otro titular:** si el carrito tiene renglones de un titular distinto al de «Viendo» (p. ej. tras cerrar el navegador, «Viendo» volvió a «Yo» y el carrito era de Luis), el primer «Agregar» en «Productos» pregunta lo mismo; aceptar vacía el carrito y agrega con el titular nuevo.
 - **Catálogo por titular** (`GET /api/sales/catalog`):
   - **Bodega** (`holderId` ausente o vacío): todos los productos activos, `units` = `products.stock`, `price` = precio general y `unitCost` = costo de fábrica.
   - **Vendedor** (`holderId` = uuid de un vendedor activo; si no, `404`): lo que tiene y lo que tuvo (`stockOfHolder(id, { includeSoldOut: true })`), `units` = sus piezas, `price` = su precio o el general, `unitCost` = su costo con envío o el de fábrica.
   - Ordenado por nombre, como lo entrega el backend.
-- **«Vender» en la card de «Productos»:**
+- **«Agregar» en la card de «Productos»:**
   - Se ve cuando el titular de «Viendo» tiene piezas de ese producto o ya está en el carrito.
   - Primer toque: agrega 1 pieza. Después el botón es «−» / «N» / «+»; «+» se deshabilita en el tope (piezas del titular); «−» con 1 pieza quita el producto.
   - El tope y el precio salen del catálogo del titular de «Viendo», nunca de `products.stock` cuando es un vendedor.
-  - Con un vendedor en «Viendo», la card agrega «Luis: N» (sus piezas). Sin piezas, «Vender» no sale.
+  - Con un vendedor en «Viendo», la card agrega «Luis: N» (sus piezas). Sin piezas, «Agregar» no sale.
   - El enlace de la card a «Editar» y «Dejar a vendedor» no cambian.
-- **Barra del carrito en «Productos»:** «Carrito · N piezas · $total» y «Ver carrito» → `/admin/carrito`, solo con piezas en el carrito, como en «Vender».
+- **Sin barra del carrito en «Productos»** (cambio del 2026-11-04): no hay «Carrito · N piezas · $total» ni «Ver carrito» abajo. Para ver lo agregado, el administrador toca el botón del carrito del menú, que lleva a `/admin/carrito` y muestra el total de piezas. La barra sigue en «Vender» del vendedor.
 - **`/admin/carrito`:**
   - Lee el catálogo del titular del carrito (no el de «Viendo») y resuelve los renglones con `buildCartRows`. Los avisos de carrito viejo («Solo te quedan N de este producto», «Agotado») son los de HU-15.
   - Encabezado «Vendiendo de: Bodega» o «Vendiendo de: {nombre}».
@@ -99,7 +99,7 @@ Fuentes:
 - **Ganancia y costos solo para el administrador** (RNF-04): el catálogo nuevo exige rol admin y las pantallas viven en `/admin`. Las pantallas del vendedor no cambian.
 - **Stock:** baja solo con los `direct_sale` de `createSale` (T-07). Vender de un vendedor no mueve la bodega.
 - **Textos:** los de este spec son de partida y se confirman contra el canvas en el paso de diseño (§5 paso 8).
-- **Celular (RNF-03):** a 375 px sin scroll horizontal; «Vender», −/+, «Confirmar venta», «Nueva venta» y «Ver stock general» de al menos 44 px de alto (52 px los botones principales, como HU-16).
+- **Celular (RNF-03):** a 375 px sin scroll horizontal; «Agregar», −/+, «Confirmar venta», «Nueva venta» y «Ver stock general» de al menos 44 px de alto (52 px los botones principales, como HU-16).
 
 ## 3. Endpoints
 
@@ -197,7 +197,7 @@ load(holderId: string | null): Observable<SaleCatalog>   // GET ${API_BASE_URL}/
 **Frontend · `src/app/features/products/`:**
 
 - `components/product-card`: `input()` nuevos `sellUnits` (piezas del titular o `null` si no se puede vender), `unitsInCart`, `holderLabel` (`'Luis'` o `null`); `output()` nuevos `sellAdd`, `sellIncrement`, `sellDecrement`.
-- `pages/products-page`: `rxResource` sobre `SaleCatalogService.load(viewing.selectedSellerId())`, el cambio del carrito con tope, la pregunta de otro titular (`ConfirmService`) y `cart-bar`.
+- `pages/products-page`: `rxResource` sobre `SaleCatalogService.load(viewing.selectedSellerId())`, el cambio del carrito con tope, y la pregunta de otro titular (`ConfirmService`); sin `cart-bar`.
 
 **Frontend · `src/app/features/sell/`:**
 
@@ -244,8 +244,8 @@ cartProfit(rows: CartRow[], costOf: (productId: number) => string): string   // 
 4. **Frontend · `cart-bar` a `shared/`.**
    - Mover el componente y sus textos, agregar `cartUrl` y actualizar «Vender» (`sell-page`). Sin cambio visible para el vendedor.
    - `ng test` y `npm run check:architecture` pasan.
-5. **Frontend · «Vender» en «Productos».**
-   - `product-card` con «Vender», −/+, «Luis: N» y sus `output()`; `products-page` con el catálogo del titular, el tope, la pregunta de otro titular y `cart-bar`.
+5. **Frontend · «Agregar» en «Productos».**
+   - `product-card` con «Agregar», −/+, «Luis: N» y sus `output()`; `products-page` con el catálogo del titular, el tope y la pregunta de otro titular (sin `cart-bar`).
    - Ampliar los specs de `product-card` y `products-page`. `ng test` pasa.
 6. **Frontend · carrito del administrador.**
    - `cartProfit`, `CreateSaleRequest.holderId`, `admin-cart-page` y `ADMIN_CART_ROUTES`; `carrito` en `admin.routes.ts`.
@@ -255,12 +255,12 @@ cartProfit(rows: CartRow[], costOf: (productId: number) => string): string   // 
    - «Vender» en las acciones rápidas de «Stock general».
    - Specs de los componentes nuevos, de `admin.routes.spec.ts` y de `stock-page`. `ng test` y `ng build` pasan.
 8. **Frontend · diseño.** El flujo de `CLAUDE.md`: ui-ux-pro-max y luego frontend-design, sobre los tableros `Venta` (03, 03c) del canvas, traducidos a los tokens de `styles.css`.
-   - Se confirman los textos de §2 (botón «Vender», «Luis: N», «Vendiendo de», ganancia, diálogo de vaciar, «Venta confirmada»).
+   - Se confirman los textos de §2 (botón «Agregar», «Luis: N», «Vendiendo de», ganancia, diálogo de vaciar, «Venta confirmada»).
    - Se reusan `surface-*`, `page-title`, `alert-*`, `pButton`, `cart-line`, el sello y el bloque de total de HU-16.
    - No se copian del mockup los colores, la forma de pago ni el precio especial.
    - Cierre del paso: `ng build`, `ng test` y `npm run check:architecture` pasan.
 9. **Verificación manual** contra la base local con el seed, como `admin@mammut.local`, en escritorio y a 375 px:
-   - Con «Yo · bodega», «Vender» en un producto con N piezas en bodega llega al tope N; el carrito dice «Vendiendo de: Bodega», muestra total y ganancia.
+   - Con «Yo · bodega», «Agregar» en un producto con N piezas en bodega llega al tope N; el carrito dice «Vendiendo de: Bodega», muestra total y ganancia.
    - Confirmar 2 piezas: «Venta confirmada» con «Bodega: N → N−2», ganancia por renglón y total; «Stock general» muestra la bodega 2 menos.
    - Con Víctor en «Viendo»: tope = sus piezas, su precio, «Víctor: N» en la card; al confirmar baja su stock y la bodega no cambia; la ganancia usa su costo con envío (o el de fábrica).
    - Con carrito de bodega, cambiar «Viendo» a Víctor: pregunta «¿Vaciar el carrito?»; «Cancelar» deja «Yo · bodega» y el carrito; «Vaciar y cambiar» lo vacía.
@@ -279,7 +279,7 @@ cartProfit(rows: CartRow[], costOf: (productId: number) => string): string   // 
 
 Por criterio de `SCRUM-51`:
 
-- [ ] **1.** Con «Yo · bodega» y 4 piezas en bodega de un producto, «Vender» en su card lo agrega al carrito con tope de 4 piezas, al precio general.
+- [ ] **1.** Con «Yo · bodega» y 4 piezas en bodega de un producto, «Agregar» en su card lo agrega al carrito con tope de 4 piezas, al precio general.
 - [ ] **2.** Con un vendedor en «Viendo», el tope es lo que tiene ese vendedor y el precio es el suyo (o el general si no tiene uno propio).
 - [ ] **3.** «Carrito» muestra las piezas por producto, deja cambiarlas o quitarlas, y muestra el total y la ganancia de la venta.
 - [ ] **4.** Confirmar con «Yo» 2 piezas de un producto con 4 en bodega abre «Venta confirmada» con foto, precio, «Bodega: 4 → 2» y ganancia, y «Stock general» muestra 2.
@@ -291,7 +291,7 @@ Además:
 
 - [ ] `GET /api/sales/catalog` responde 403 a un vendedor, 404 con un vendedor inactivo o inexistente y 422 con un `holderId` que no es UUID.
 - [ ] Un carrito guardado en versión 1 o 2 se conserva al actualizar (titular bodega); vaciarlo o cerrar sesión descarta su titular y su `requestId`.
-- [ ] Tras cerrar el navegador con un carrito de un vendedor, el primer «Vender» con «Yo · bodega» pregunta si vaciarlo.
+- [ ] Tras cerrar el navegador con un carrito de un vendedor, el primer «Agregar» con «Yo · bodega» pregunta si vaciarlo.
 - [ ] La ganancia del carrito coincide con la de «Venta confirmada» para los mismos renglones (redondeo a centavos una sola vez).
 - [ ] «Nueva venta» lleva a `/admin/productos` y «Ver stock general» a `/admin/stock`; un `requestId` que no existe muestra «No encontramos esta venta».
 - [ ] La acción rápida «Vender» de «Stock general» abre `/admin/productos`.
@@ -310,8 +310,8 @@ Además:
 - **`core/sale-catalog/sale-catalog.service.spec.ts`:** `load(null)` pide `/api/sales/catalog` y `load(id)` agrega `?holderId=`.
 - **`core/layout/admin-shell/admin-shell.component.spec.ts`** (se amplía): sin carrito o con el mismo titular cambia sin preguntar; con otro titular pregunta, cancelar no llama a `pick` y deja la selección, aceptar vacía y cambia.
 - **`shared/components/cart-bar/cart-bar.component.spec.ts`** (movido): piezas, total y el enlace del `input()` `cartUrl`.
-- **`features/products/components/product-card/product-card.component.spec.ts`** (se amplía): «Vender» solo con piezas; −/+ con tope; «Luis: N» con vendedor; los `output()`.
-- **`features/products/pages/products-page/products-page.component.spec.ts`** (se amplía): pide el catálogo del titular de «Viendo»; agrega con tope; con otro titular pregunta; barra del carrito hacia `/admin/carrito`.
+- **`features/products/components/product-card/product-card.component.spec.ts`** (se amplía): «Agregar» solo con piezas; −/+ con tope; «Luis: N» con vendedor; los `output()`.
+- **`features/products/pages/products-page/products-page.component.spec.ts`** (se amplía): pide el catálogo del titular de «Viendo»; agrega con tope; con otro titular pregunta; no hay barra del carrito.
 - **`features/sell/rules/sell.rules.spec.ts`** (se amplía): `cartProfit` con costos de 4 decimales, solo renglones `ok`, redondeo una vez.
 - **`features/sell/services/sale-save.service.spec.ts`** (se amplía): manda `holderId` cuando viene.
 - **`features/sell/pages/admin-cart-page/admin-cart-page.component.spec.ts`:** lee el catálogo del titular del carrito; «Vendiendo de»; total y ganancia; confirmar con `holderId`; éxito a `/admin/venta/<requestId>` y aviso a `StockChangesService`; `offline`, `not-enough-units`, `already-registered` e `invalid`.
@@ -343,9 +343,9 @@ Además:
 - **No:** una feature `admin-sell` aparte, que tendría que duplicar o mover a `shared/` lo común.
 - **Sí:** endpoint nuevo `GET /api/sales/catalog?holderId=` con piezas, precio y costo ya resueltos por titular (decisión del usuario). Una sola fuente para el tope, el precio y la ganancia, como `/api/me/stock` del vendedor.
 - **No:** agregar `unitCost` a `GET /api/products` y leer el stock del vendedor de `GET /api/sellers/:id`: dos caminos y rompe la regla de que la lista nunca trae costo.
-- **Sí:** la card de «Productos» sigue diciendo «N en bodega» y agrega «Vender» y, con un vendedor, «Luis: N» (decisión del usuario).
+- **Sí:** la card de «Productos» sigue diciendo «N en bodega» y agrega «Agregar» y, con un vendedor, «Luis: N» (decisión del usuario).
 - **No:** cambiar toda la lista al stock del titular (toca HU-05 más a fondo).
-- **Sí:** «Vender» agrega 1 pieza y se vuelve − N + con tope (decisión del usuario), como el catálogo del vendedor.
+- **Sí:** «Agregar» agrega 1 pieza y se vuelve − N + con tope (decisión del usuario), como el catálogo del vendedor.
 - **No:** solo sumar una pieza por toque.
 - **Sí:** el carrito guarda su titular (formato v3) (decisión del usuario). Sobrevive a cerrar el navegador aunque «Viendo» vuelva a «Yo».
 - **No:** que el carrito siga a «Viendo» sin guardar titular: tras reabrir el navegador podría vender del stock equivocado.
@@ -355,6 +355,11 @@ Además:
 - **Sí:** `SaleCatalogService` vive en `core/sale-catalog/` (recomendación). Lo usan `features/products` y `features/sell`, que no se importan entre sí.
 - **Sí:** el carrito del administrador lee el catálogo del titular del carrito, no el de «Viendo» (recomendación). Así lo que se confirma siempre es del stock con el que se armó.
 - **No:** cambios en `POST /api/sales`, migraciones o el seed. T-18 ya da titular, costos y ganancia al administrador.
+
+- **Sí:** el botón de la card se llama «Agregar» y «Productos» no lleva barra del carrito (decisión del usuario del 2026-11-04, tras ver la pantalla). El carrito se abre con el botón del menú. **No:** la barra «Ver carrito» abajo. La acción rápida «Vender» de «Stock general» conserva su nombre.
+- **Sí:** el carrito del administrador reparte la pantalla en una cuadrícula de tarjetas con scroll propio y un panel fijo de cobro (ganancia, total y «Confirmar venta»); en celular el panel se fija abajo, y «Seguir vendiendo» va en la cabecera (decisión del usuario del 2026-11-04). El del vendedor no cambia.
+- **Sí:** el panel de cobro del carrito del administrador lleva un «Resumen de la venta» con nombre, piezas (si son más de una) y subtotal de cada producto, para que se vea cómo se arma el total (decisión del usuario del 2026-11-04). Solo suma lo que suma el total; en celular, donde el panel va fijo abajo, no se muestra.
+- **Sí:** «Venta confirmada» del administrador reparte la pantalla igual que su carrito: los renglones en una cuadrícula con scroll propio y, a un lado, el panel oscuro con «N productos · M piezas», total y ganancia, y las acciones; la hora lleva también la fecha (decisión del usuario del 2026-11-04). En celular va todo en una columna.
 
 ## Lo que **no** entra en este spec
 

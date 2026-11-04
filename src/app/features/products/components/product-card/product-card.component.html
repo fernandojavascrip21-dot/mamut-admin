@@ -65,7 +65,7 @@
             pButton
             type="button"
             class="sell h-11 px-4 text-sm"
-            [attr.aria-label]="texts.sellPrefix + ' ' + product().name"
+            [attr.aria-label]="texts.sellPrefix + ' ' + product().name + ' ' + texts.sellSuffix"
             (click)="sellAdd.emit()"
           >
             {{ texts.sell }}

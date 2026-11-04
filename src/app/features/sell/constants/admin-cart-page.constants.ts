@@ -4,16 +4,17 @@ import { CART_PAGE_TEXTS } from './cart-page.constants';
 export const ADMIN_PRODUCTS_URL = '/admin/productos';
 
 // Textos de «Carrito» del administrador: los del vendedor, salvo los que hablan de «tu stock» o de
-// «Vender», más el titular («Vendiendo de: Bodega») y la ganancia. Son de partida y se confirman
-// contra el canvas en el paso de diseño del spec (HU-17 §5 paso 8).
+// «Vender», más el titular («Vendiendo de: Bodega») y la ganancia. Vacío y ganancia salen del canvas
+// (tablero `EstadosCarritoAdmin` y `Productos` con venta); «Vendiendo de:» es el del spec, que ya lo fija.
 export const ADMIN_CART_PAGE_TEXTS = {
   ...CART_PAGE_TEXTS,
   loadingTitle: 'Cargando el stock…',
   errorTitle: 'No pudimos cargar el stock',
-  emptyHint: 'Agrega productos desde Productos.',
-  emptyAction: 'Ir a Productos',
+  emptyHint: 'Toca «Vender» en los productos para agregarlos.',
+  emptyAction: 'Ir a productos',
   soldOutHint: 'Ya no quedan piezas. Quítalo del carrito.',
   sellingFrom: 'Vendiendo de:',
   warehouse: 'Bodega',
-  profit: 'Ganancia',
+  profit: 'Ganancia de esta venta',
+  summaryTitle: 'Resumen de la venta',
 } as const;

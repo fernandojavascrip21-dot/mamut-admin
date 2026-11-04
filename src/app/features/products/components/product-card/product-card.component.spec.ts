@@ -118,7 +118,7 @@ describe('ProductCardComponent', () => {
     });
   });
 
-  describe('Vender (HU-17)', () => {
+  describe('Agregar (HU-17)', () => {
     async function renderSell(inputs: { sellUnits: number | null; unitsInCart?: number; holderLabel?: string | null }) {
       fixture = TestBed.createComponent(ProductCardComponent);
       fixture.componentRef.setInput('product', PRODUCT);
@@ -132,11 +132,11 @@ describe('ProductCardComponent', () => {
     const el = () => fixture.nativeElement as HTMLElement;
     const click = (selector: string) => (el().querySelector(selector) as HTMLButtonElement).click();
 
-    it('con piezas del titular ofrece «Vender» y emite sellAdd', async () => {
+    it('con piezas del titular ofrece «Agregar» y emite sellAdd', async () => {
       await renderSell({ sellUnits: 4 });
       const button = el().querySelector('button.sell') as HTMLButtonElement;
-      expect(button.textContent!.trim()).toBe('Vender');
-      expect(button.getAttribute('aria-label')).toBe('Vender CBUM Thavage');
+      expect(button.textContent!.trim()).toBe('Agregar');
+      expect(button.getAttribute('aria-label')).toBe('Agregar CBUM Thavage al carrito');
       const added = vi.fn();
       fixture.componentInstance.sellAdd.subscribe(added);
       button.click();
@@ -146,7 +146,7 @@ describe('ProductCardComponent', () => {
     it.each([
       ['sin catálogo (null)', null],
       ['con 0 piezas', 0],
-    ])('%s y fuera del carrito no ofrece «Vender»', async (_label, sellUnits) => {
+    ])('%s y fuera del carrito no ofrece «Agregar»', async (_label, sellUnits) => {
       await renderSell({ sellUnits });
       expect(el().querySelector('button.sell')).toBeNull();
     });
@@ -182,7 +182,7 @@ describe('ProductCardComponent', () => {
       expect(el().querySelector('.holder-units')).toBeNull();
     });
 
-    it('«Dejar a vendedor» sigue saliendo junto a «Vender»', async () => {
+    it('«Dejar a vendedor» sigue saliendo junto a «Agregar»', async () => {
       await renderSell({ sellUnits: 4 });
       expect(el().querySelector('a.deliver')).not.toBeNull();
       expect(el().querySelector('button.sell')).not.toBeNull();

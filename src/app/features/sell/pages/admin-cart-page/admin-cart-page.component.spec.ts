@@ -93,6 +93,8 @@ describe('AdminCartPageComponent', () => {
     fixture.detectChanges();
     await settle();
     expect(text('.empty')).toContain('Tu carrito está vacío');
+    expect(text('.empty')).toContain('Toca «Vender» en los productos para agregarlos.');
+    expect(text('a.go-sell')).toBe('Ir a productos');
     expect(el().querySelector('a.go-sell')?.getAttribute('href')).toBe('/admin/productos');
     httpMock.expectNone((r) => r.url === CATALOG_URL);
   });
@@ -131,6 +133,24 @@ describe('AdminCartPageComponent', () => {
     expect(text('.pieces')).toBe('3 piezas');
     expect(text('.total')).toBe('$1,651.00');
     expect(text('.profit')).toBe('$750.38');
+    expect(text('.profit-summary')).toContain('Ganancia de esta venta');
+  });
+
+  it('el panel resume lo que suma el total: nombre, piezas y subtotal por producto', async () => {
+    create([{ productId: 1, units: 2 }, { productId: 2, units: 1 }]);
+    await load();
+    const items = Array.from(el().querySelectorAll('.summary-line')).map((li) =>
+      li.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(items).toEqual(['Creatina ×2 $901.00', 'Proteína Whey $750.00']);
+    expect(text('.sale-summary h2')).toBe('Resumen de la venta');
+  });
+
+  it('el resumen no incluye los renglones de más ni los agotados, igual que el total', async () => {
+    create([{ productId: 1, units: 9 }, { productId: 2, units: 1 }, { productId: 3, units: 1 }]);
+    await load();
+    expect(Array.from(el().querySelectorAll('.summary-line'))).toHaveLength(1);
+    expect(text('.summary-line')).toBe('Proteína Whey $750.00');
   });
 
   it('cambiar piezas actualiza total y ganancia, con tope en lo que tiene el titular', async () => {

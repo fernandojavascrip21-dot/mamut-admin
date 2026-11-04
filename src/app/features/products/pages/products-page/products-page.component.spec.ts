@@ -150,7 +150,7 @@ describe('ProductsPageComponent', () => {
     });
   });
 
-  describe('Vender como administrador (HU-17)', () => {
+  describe('Agregar al carrito como administrador (HU-17)', () => {
     const WAREHOUSE_CATALOG: SaleCatalog = {
       holder: null,
       products: [
@@ -204,14 +204,14 @@ describe('ProductsPageComponent', () => {
       httpMock.expectNone((r) => r.url === CATALOG_URL);
     });
 
-    it('con «Yo · bodega» pide el catálogo sin holderId y ofrece «Vender» solo con piezas', async () => {
+    it('con «Yo · bodega» pide el catálogo sin holderId y ofrece «Agregar» solo con piezas', async () => {
       await loadWith(WAREHOUSE_CATALOG);
       expect(card(0).querySelector('button.sell')).not.toBeNull();
       expect(card(1).querySelector('button.sell')).toBeNull();
       expect(card(0).querySelector('.holder-units')).toBeNull();
     });
 
-    it('el primer «Vender» agrega 1 pieza y el botón se vuelve − N + con tope en las piezas', async () => {
+    it('el primer «Agregar» agrega 1 pieza y el botón se vuelve − N + con tope en las piezas', async () => {
       await loadWith(WAREHOUSE_CATALOG);
       click('button.sell', card(0));
       await settle();
@@ -248,17 +248,13 @@ describe('ProductsPageComponent', () => {
       expect(cart.holderId()).toBe(LUIS_ID);
     });
 
-    it('la barra del carrito aparece con piezas, con el total del catálogo, y enlaza a /admin/carrito', async () => {
+    it('no muestra barra del carrito: el carrito se abre con el botón del menú', async () => {
       await loadWith(WAREHOUSE_CATALOG);
-      expect(fixture.nativeElement.querySelector('app-cart-bar')).toBeNull();
       click('button.sell', card(0));
       await settle();
-      click('button.increment', card(0));
-      await settle();
-      const bar = fixture.nativeElement.querySelector('app-cart-bar') as HTMLElement;
-      expect(bar.querySelector('.summary')!.textContent!.trim()).toBe('Carrito · 2 piezas');
-      expect(bar.querySelector('.total')!.textContent!.trim()).toBe('$900.00');
-      expect(bar.querySelector('a.view-cart')!.getAttribute('href')).toBe('/admin/carrito');
+      expect(cart.totalUnits()).toBe(1);
+      expect(fixture.nativeElement.querySelector('app-cart-bar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('a.view-cart')).toBeNull();
     });
 
     describe('con un carrito de otro titular', () => {
@@ -268,13 +264,12 @@ describe('ProductsPageComponent', () => {
         await loadWith(WAREHOUSE_CATALOG);
       });
 
-      it('las tarjetas no pintan sus piezas ni se muestra la barra', () => {
+      it('las tarjetas no pintan las piezas del otro titular', () => {
         expect(card(0).querySelector('button.sell')).not.toBeNull();
         expect(card(0).querySelector('.stepper')).toBeNull();
-        expect(fixture.nativeElement.querySelector('app-cart-bar')).toBeNull();
       });
 
-      it('«Vender» pregunta «¿Vaciar el carrito?»; cancelar no cambia nada', async () => {
+      it('«Agregar» pregunta «¿Vaciar el carrito?»; cancelar no cambia nada', async () => {
         ask.mockResolvedValue(false);
         click('button.sell', card(0));
         await settle();

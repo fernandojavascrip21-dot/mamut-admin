@@ -4,6 +4,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { httpStatus } from '@shared/utils/http-errors';
+import { unitsLabel } from '@shared/utils/units-label';
 import { AdminSaleLineComponent } from '../../components/admin-sale-line/admin-sale-line.component';
 import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
 import {
@@ -57,6 +58,12 @@ export class AdminSaleSummaryPageComponent {
   // De quién era el stock: «Bodega» o el vendedor (nombre completo arriba, primer nombre en cada renglón).
   readonly holderName = computed(() => this.sale()?.holder?.fullName ?? this.texts.warehouse);
   readonly holderLabel = computed(() => this.sale()?.holder?.fullName.split(' ')[0] ?? this.texts.warehouse);
+  // «3 productos · 8 piezas»: de qué tamaño fue la venta, para el panel de totales.
+  readonly countsLabel = computed(() => {
+    const lines = this.sale()?.lines ?? [];
+    const products = `${lines.length} ${lines.length === 1 ? this.texts.productSingular : this.texts.productPlural}`;
+    return `${products} · ${unitsLabel(lines.reduce((sum, line) => sum + line.qty, 0))}`;
+  });
   // Único `Number()` sobre un monto: solo para pasarlo al pipe `currency` al mostrarlo.
   readonly totalAmount = computed(() => Number(this.sale()?.total ?? 0));
   readonly profitAmount = computed(() => Number(this.sale()?.profit ?? 0));

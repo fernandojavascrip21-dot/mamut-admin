@@ -81,11 +81,20 @@ export class AdminCartPageComponent {
   private readonly costById = computed(
     () => new Map((this.catalog()?.products ?? []).map((product) => [product.productId, product.unitCost])),
   );
+  // Renglones que entran a la suma (los de más o agotados no cuentan): el resumen del panel muestra lo
+  // mismo que suma el total.
+  readonly summaryRows = computed(() => this.rows().filter((row) => row.status === 'ok'));
   readonly needsFix = computed(() => cartNeedsFix(this.rows()));
   readonly piecesLabel = computed(() => unitsLabel(this.cart.totalUnits()));
   // Único `Number()` sobre un monto: solo para pasarlo al pipe `currency` al mostrarlo.
   readonly totalAmount = computed(() => Number(cartTotal(this.rows())));
   readonly profitAmount = computed(() => Number(cartProfit(this.rows(), (id) => this.costById().get(id))));
+
+  // Subtotal de un renglón para mostrarlo con el pipe `currency` (único `Number()` sobre un monto, junto
+  // a los totales).
+  amountOf(row: CartRow): number {
+    return Number(row.subtotal);
+  }
 
   // 4) Acciones del usuario. El tope se aplica aquí: CartService no conoce el stock.
   increment(row: CartRow): void {

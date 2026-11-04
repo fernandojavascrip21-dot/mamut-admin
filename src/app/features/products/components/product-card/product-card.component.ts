@@ -12,7 +12,7 @@ import { PRODUCT_CARD_PASS_THROUGH, PRODUCT_CARD_SELL_TEXTS } from './product-ca
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
 // "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
-// dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Vender» (HU-17) agrega 1 pieza
+// dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Agregar» (HU-17) agrega 1 pieza
 // al carrito del titular de «Viendo» y se vuelve − N + con tope en las piezas de ese titular; la
 // tarjeta solo presenta y emite, la página decide qué cambio pedirle al carrito.
 @Component({
@@ -28,7 +28,7 @@ export class ProductCardComponent {
   readonly texts = PRODUCT_CARD_SELL_TEXTS;
 
   // Piezas que el titular de «Viendo» puede vender de este producto; null si no hay catálogo
-  // (cargando, error o un vendedor que nunca lo tuvo). Con 0 y fuera del carrito no se ofrece «Vender».
+  // (cargando, error o un vendedor que nunca lo tuvo). Con 0 y fuera del carrito no se ofrece «Agregar».
   readonly sellUnits = input<number | null>(null);
   // Piezas de este producto en el carrito de ese mismo titular.
   readonly unitsInCart = input(0);
