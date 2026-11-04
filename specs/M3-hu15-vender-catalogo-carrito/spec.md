@@ -1,6 +1,6 @@
 # Spec técnico — HU-15 · Elegir los productos que voy a vender (catálogo y carrito del vendedor)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — `GET /api/me/stock`, `getOwnStock` y el botón «Vender» hacia `/vendedor/vender`; M2-hu09-ver-mis-vendedores (`specs/M2-hu09-ver-mis-vendedores/spec.md`) — `stockOfHolder`; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — un retiro deja la fila de `vendor_stock` con `qty` 0; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — `money.ts`; M0-hu03-rutas-por-rol (`specs/M0-hu03-rutas-por-rol/spec.md`) — rutas de `/vendedor`
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el vendedor busque en su stock, agregue piezas a un carrito con tope en lo que tiene, y revise en «Carrito» las piezas, los subtotales y el total, sin costos y sin perder el carrito al salir o recargar.
@@ -227,27 +227,27 @@ cartNeedsFix(rows: CartRow[]): boolean                               // algún '
 
 Por criterio de `SCRUM-49`:
 
-- [ ] **1.** En «Vender» se ve un catálogo con una card por producto (foto o iniciales, precio del vendedor y «Quedan N») y un buscador por nombre.
-- [ ] **2.** El buscador deja solo los productos que coinciden, sin importar mayúsculas ni acentos.
-- [ ] **3.** Con 3 piezas de un producto, el carrito sube hasta 3 y el + queda deshabilitado; no se puede pasar de 3.
-- [ ] **4.** «Carrito» muestra cada producto con sus piezas, su precio, su subtotal y el total de la venta, y deja cambiar las piezas o quitarlo.
-- [ ] **5.** Ni el catálogo, ni el carrito, ni la respuesta de `GET /api/me/stock?includeSoldOut=true` contienen costo, costo con envío ni ganancia.
-- [ ] **6.** Un producto que el vendedor tuvo y tiene en 0 piezas sale «Agotado» en el catálogo y no se puede agregar.
-- [ ] **7.** Al salir de «Vender» y regresar, y al recargar la página, el carrito sigue igual.
+- [x] **1.** En «Vender» se ve un catálogo con una card por producto (foto o iniciales, precio del vendedor y «Quedan N») y un buscador por nombre.
+- [x] **2.** El buscador deja solo los productos que coinciden, sin importar mayúsculas ni acentos.
+- [x] **3.** Con 3 piezas de un producto, el carrito sube hasta 3 y el + queda deshabilitado; no se puede pasar de 3.
+- [x] **4.** «Carrito» muestra cada producto con sus piezas, su precio, su subtotal y el total de la venta, y deja cambiar las piezas o quitarlo.
+- [x] **5.** Ni el catálogo, ni el carrito, ni la respuesta de `GET /api/me/stock?includeSoldOut=true` contienen costo, costo con envío ni ganancia.
+- [x] **6.** Un producto que el vendedor tuvo y tiene en 0 piezas sale «Agotado» en el catálogo y no se puede agregar.
+- [x] **7.** Al salir de «Vender» y regresar, y al recargar la página, el carrito sigue igual.
 
 Además:
 
-- [ ] Sin `includeSoldOut=true`, `GET /api/me/stock` responde igual que en HU-14, y «Mi stock» no muestra agotados.
-- [ ] Un producto que el vendedor nunca tuvo no sale en el catálogo.
-- [ ] Subtotales y total se calculan en centavos con `money.ts` (p. ej. 3 × «0.10» = «0.30» exacto).
-- [ ] Con un carrito viejo, un renglón con piezas de más muestra «Solo te quedan N de este producto», un producto agotado sale «Agotado» con «Quitar», y nada se ajusta solo.
-- [ ] El contador de `top-nav` muestra las piezas del carrito y desaparece con el carrito vacío.
-- [ ] Cerrar sesión borra el carrito de ese usuario; otro usuario en el mismo navegador empieza con el carrito vacío.
-- [ ] Un carrito guardado con otra versión o JSON inválido se descarta sin romper la pantalla.
-- [ ] Cargando, vacío del catálogo, carrito vacío y error se ven con los textos confirmados contra el canvas, y «Reintentar» vuelve a pedir el stock.
-- [ ] A 375 px no hay scroll horizontal ni zoom, y los −/+ y «+ Agregar» miden al menos 44 px.
-- [ ] `features/sell` no importa otras features; `core/cart` no importa `features/`.
-- [ ] Backend: `npm run type-check` y `npm test` pasan, con `SUPABASE_SERVICE_ROLE_KEY` puesta. Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan.
+- [x] Sin `includeSoldOut=true`, `GET /api/me/stock` responde igual que en HU-14, y «Mi stock» no muestra agotados.
+- [x] Un producto que el vendedor nunca tuvo no sale en el catálogo.
+- [x] Subtotales y total se calculan en centavos con `money.ts` (p. ej. 3 × «0.10» = «0.30» exacto).
+- [x] Con un carrito viejo, un renglón con piezas de más muestra «Solo te quedan N de este producto», un producto agotado sale «Agotado» con «Quitar», y nada se ajusta solo.
+- [x] El contador de `top-nav` muestra las piezas del carrito y desaparece con el carrito vacío.
+- [x] Cerrar sesión borra el carrito de ese usuario; otro usuario en el mismo navegador empieza con el carrito vacío.
+- [x] Un carrito guardado con otra versión o JSON inválido se descarta sin romper la pantalla.
+- [x] Cargando, vacío del catálogo, carrito vacío y error se ven con los textos confirmados contra el canvas, y «Reintentar» vuelve a pedir el stock.
+- [x] A 375 px no hay scroll horizontal ni zoom, y los −/+ y «+ Agregar» miden al menos 44 px.
+- [x] `features/sell` no importa otras features; `core/cart` no importa `features/`.
+- [x] Backend: `npm run type-check` y `npm test` pasan, con `SUPABASE_SERVICE_ROLE_KEY` puesta. Frontend: `ng build`, `ng test` y `npm run check:architecture` pasan.
 
 ## 7. Plan de pruebas
 
