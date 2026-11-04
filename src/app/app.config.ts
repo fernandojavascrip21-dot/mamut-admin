@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { authInterceptor } from '@core/auth/services/auth.interceptor';
+import { CartService } from '@core/cart/cart.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { providePrimeNG } from 'primeng/config';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -23,5 +24,8 @@ export const appConfig: ApplicationConfig = {
     // La barra «Viendo» se crea al arrancar, no al entrar a /admin: así ve cerrar sesión desde
     // cualquier pantalla (p. ej. /cuenta tras recargar) y borra la selección guardada (HU-10).
     provideEnvironmentInitializer(() => inject(ViewingService)),
+    // Lo mismo con el carrito (HU-15): el servicio borra el carrito del usuario al cerrar sesión, y para
+    // eso tiene que existir desde el arranque aunque la página abierta no use el `top-nav`.
+    provideEnvironmentInitializer(() => inject(CartService)),
   ]
 };
