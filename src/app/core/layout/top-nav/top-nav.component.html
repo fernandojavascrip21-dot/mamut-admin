@@ -38,25 +38,37 @@
       </button>
     </div>
 
-    <div class="order-2 ml-auto flex shrink-0 items-center gap-2 px-4 py-3 lg:order-4 lg:mt-auto lg:ml-0 lg:w-full lg:justify-between lg:p-0 lg:pt-4">
-      <!-- El contador de items del carrito (M2/M3) va aquí cuando exista; hoy no tiene datos reales. -->
-      <a
-        pButton
-        [text]="true"
-        [routerLink]="cart().path"
-        routerLinkActive
-        #cartRla="routerLinkActive"
-        [attr.aria-current]="cartRla.isActive ? 'page' : null"
-        [attr.aria-label]="cart().label"
-        class="flex h-11 w-11 items-center justify-center rounded-xl border px-0 focus-visible:outline-page"
-        [class]="
-          cartRla.isActive
-            ? 'border-accent bg-accent text-white hover:bg-accent hover:text-white active:bg-accent'
-            : 'border-page/20 bg-transparent text-page/85 hover:border-page/40 hover:bg-transparent hover:text-page active:bg-transparent'
-        "
-      >
-        <app-nav-icon name="cart" />
-      </a>
+    <div
+      class="order-2 ml-auto flex shrink-0 items-center gap-2 px-4 py-3 lg:order-4 lg:mt-auto lg:ml-0 lg:w-full lg:justify-between lg:p-0 lg:pt-4"
+    >
+      <!-- El globo va fuera del enlace, no dentro: el `pButton` de PrimeNG recorta lo que sobresale. -->
+      <span class="relative shrink-0">
+        <a
+          pButton
+          [text]="true"
+          [routerLink]="cart().path"
+          routerLinkActive
+          #cartRla="routerLinkActive"
+          [attr.aria-current]="cartRla.isActive ? 'page' : null"
+          [attr.aria-label]="cartAriaLabel()"
+          class="flex h-11 w-11 items-center justify-center rounded-xl border px-0 focus-visible:outline-page"
+          [class]="
+            cartRla.isActive
+              ? 'border-accent bg-accent text-white hover:bg-accent hover:text-white active:bg-accent'
+              : 'border-page/20 bg-transparent text-page/85 hover:border-page/40 hover:bg-transparent hover:text-page active:bg-transparent'
+          "
+        >
+          <app-nav-icon name="cart" />
+        </a>
+        @if (cartUnits() > 0) {
+          <span
+            aria-hidden="true"
+            class="cart-badge pointer-events-none absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-page px-1 font-mono text-[11px] leading-none font-bold text-ink ring-2 ring-ink"
+          >
+            {{ cartBadge() }}
+          </span>
+        }
+      </span>
 
       <a
         routerLink="/cuenta"

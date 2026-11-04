@@ -1,0 +1,135 @@
+<div class="flex w-full flex-col px-5 py-6">
+  <h1 class="page-title">{{ texts.title }}</h1>
+
+  @if (state() === 'loading') {
+    <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
+      <svg
+        aria-hidden="true"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="animate-spin stroke-accent motion-reduce:animate-none"
+      >
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+      </svg>
+      <p class="m-0 text-sm font-semibold">{{ texts.loadingTitle }}</p>
+      <p class="m-0 text-sm text-muted">{{ texts.loadingHint }}</p>
+    </div>
+    <div class="mt-5 flex flex-col gap-3 sm:grid sm:grid-cols-2">
+      <app-sell-product-card-skeleton />
+      <app-sell-product-card-skeleton />
+      <app-sell-product-card-skeleton />
+    </div>
+  } @else if (state() === 'error') {
+    <div class="mt-6 flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+      <svg
+        aria-hidden="true"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="shrink-0 stroke-danger"
+      >
+        <path
+          d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+        ></path>
+        <path d="M12 9v4"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
+      <p class="m-0 text-[15px] font-bold">{{ texts.errorTitle }}</p>
+      <p class="m-0 text-sm leading-snug">{{ texts.errorHint }}</p>
+      <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry()">
+        {{ texts.retry }}
+      </button>
+    </div>
+  } @else if (isEmpty()) {
+    <div
+      class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+    >
+      <svg
+        aria-hidden="true"
+        width="26"
+        height="26"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="shrink-0 stroke-accent-2"
+      >
+        <path d="m21 8-9-5-9 5v8l9 5 9-5z"></path>
+        <path d="m3 8 9 5 9-5"></path>
+        <path d="M12 13v8"></path>
+      </svg>
+      <p class="m-0 text-[17px] font-bold">{{ texts.emptyTitle }}</p>
+      <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
+    </div>
+  } @else {
+    <div class="relative mt-5">
+      <label for="sell-search" class="sr-only">{{ texts.searchLabel }}</label>
+      <svg
+        aria-hidden="true"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+      <input
+        pInputText
+        id="sell-search"
+        type="search"
+        [placeholder]="texts.searchPlaceholder"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        class="h-[52px] min-w-0 w-full pl-11"
+      />
+    </div>
+
+    @if (visibleProducts().length === 0) {
+      <div
+        class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+      >
+        <p class="m-0 text-[17px] font-bold">{{ texts.noMatchTitle }}</p>
+        <p class="m-0 text-sm text-muted">{{ texts.noMatchHint }}</p>
+        <button pButton severity="secondary" type="button" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+          {{ texts.clearSearch }}
+        </button>
+      </div>
+    } @else {
+      <ul class="products mt-5 mb-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
+        @for (product of visibleProducts(); track product.productId; let index = $index) {
+          <li
+            class="min-w-0 animate-rise-in motion-reduce:animate-none"
+            [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+          >
+            <app-sell-product-card
+              [product]="product"
+              [unitsInCart]="cart.unitsOf(product.productId)"
+              (add)="add(product)"
+              (increment)="increment(product)"
+              (decrement)="decrement(product)"
+            />
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>
+
+@if (state() === 'ready' && cartUnits() > 0) {
+  <app-cart-bar class="sticky bottom-0 z-10 mt-2 block" [units]="cartUnits()" [total]="cartTotal()" />
+}

@@ -4,7 +4,9 @@ import { ButtonDirective } from 'primeng/button';
 import { Menu } from 'primeng/menu';
 import type { MenuPassThrough } from 'primeng/types/menu';
 import { AuthService } from '@core/auth/services/auth.service';
+import { CartService } from '@core/cart/cart.service';
 import { initialsOf } from '@shared/utils/initials';
+import { unitsLabel } from '@shared/utils/units-label';
 import { SidebarService } from '../services/sidebar.service';
 import { NavIconComponent } from '../nav-icon/nav-icon.component';
 import { HIDE_SIDEBAR_LABEL, SHOW_SIDEBAR_LABEL, SIDEBAR_ID } from '../constants/sidebar.constants';
@@ -12,6 +14,7 @@ import {
   ACCOUNT_LABEL,
   AVATAR_BG_BY_ROLE,
   BRAND_NAME,
+  CART_BADGE_MAX,
   MENU_GRID_CLASS_BY_COLUMNS,
   MENU_ITEM_CLASS,
   MENU_LIST_BASE_CLASS,
@@ -31,6 +34,7 @@ import { toNavMenuEntries } from './top-nav.utils';
 })
 export class TopNavComponent {
   private readonly auth = inject(AuthService);
+  private readonly cartState = inject(CartService);
   protected readonly sidebar = inject(SidebarService);
 
   readonly menu = input.required<NavMenuItem[]>();
@@ -54,6 +58,19 @@ export class TopNavComponent {
   readonly avatarBg = computed(() =>
     this.auth.currentUser()?.role === 'admin' ? AVATAR_BG_BY_ROLE.admin : AVATAR_BG_BY_ROLE.vendedor,
   );
+
+  // Piezas en el carrito (HU-15). Con 0 el botón se ve como siempre; con piezas muestra un globo con el
+  // número y su nombre accesible lo dice completo («Carrito, 3 piezas»), así que el globo va oculto
+  // a lectores de pantalla. En el administrador el carrito está vacío hasta HU-17.
+  readonly cartUnits = computed(() => this.cartState.totalUnits());
+  readonly cartBadge = computed(() => {
+    const units = this.cartUnits();
+    return units > CART_BADGE_MAX ? `${CART_BADGE_MAX}+` : String(units);
+  });
+  readonly cartAriaLabel = computed(() => {
+    const units = this.cartUnits();
+    return units > 0 ? `${this.cart().label}, ${unitsLabel(units)}` : this.cart().label;
+  });
 
   readonly menuEntries = computed(() => toNavMenuEntries(this.menu()));
 

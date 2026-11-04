@@ -7,7 +7,7 @@ const comingSoon = () =>
 export const SELLER_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'mi-stock' },
   { path: 'mi-stock', loadChildren: () => import('@features/my-stock/my-stock.routes').then((m) => m.MY_STOCK_ROUTES) },
-  { path: 'vender', loadComponent: comingSoon, data: { title: 'Vender' } },
-  { path: 'carrito', loadComponent: comingSoon, data: { title: 'Carrito' } },
+  { path: 'vender', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.SELL_ROUTES) },
+  { path: 'carrito', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.CART_ROUTES) },
   { path: 'mi-corte', loadComponent: comingSoon, data: { title: 'Mi corte' } },
 ];
