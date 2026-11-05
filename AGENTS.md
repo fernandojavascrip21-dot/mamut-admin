@@ -1,232 +1,163 @@
 # AGENTS.md
 
-Guidance for AI coding agents (Codex, Cursor, Copilot, Claude Code, etc.) working in this repository. `CLAUDE.md` holds the same rules in more detail; keep both in sync. If they disagree, `CLAUDE.md` wins and this file should be updated.
+Guidance for AI coding agents (Codex, Cursor, Copilot, Claude Code, etc.) working in this repository. `CLAUDE.md` holds the same rules; keep both in sync. If they disagree, `CLAUDE.md` wins and this file should be updated. The rules govern the work; what each folder or service contains is in the code (`ls`, the specs in `specs/`).
 
-## Project overview
+## What this repo is
 
-- **Frontend (repo root):** Angular 22 admin app (`mamut-admin`) for Mammut Supplements, a supplement-inventory business. Standalone components, SSR (`src/server.ts`, `outputMode: "server"`), Tailwind v4 via `@tailwindcss/postcss`.
-- **Backend (`backend/`):** Next.js API-only project (own `package.json`, `node_modules`, `.env`), reused from the sibling Vue project `mammutSuplements/mammut-Suplements` and extended here. Supabase (Postgres + Auth) accessed through Drizzle.
-- **Migrations:** `supabase/migrations/` (timestamped SQL files).
-- **Specs:** `specs/<milestone>-<story>/spec.md` (e.g. `specs/M1-hu05-ver-y-buscar-productos/`). `specs/M0-base/spec.md` is the only milestone-wide spec.
-- **Requirements, mockups, user stories:** Jira/Confluence on `fernandojavascrip21.atlassian.net` (Jira project key `SCRUM`), not local files.
-- **Design references:** `references/` (local HTML/Vue references and the inventory Excel).
+A new **Angular 22** admin app (`mamut-admin`) for a supplement-inventory business (Mammut Supplements), paired with a **Next.js API-only backend** in `backend/`. The backend was copied from a sibling project (`mammutSuplements/mammut-Suplements`, a Vue catalog app for the same business/Supabase project) and is **reused and extended**, not rebuilt:
 
-Known legacy mismatches inherited from the old project:
-
-- `backend/README.md` still talks about a Vue frontend and a Vite dev port; it's accurate about backend code, outdated about who consumes it.
-- The schema's domain (`clients`, `consignment_items`, `debtors`, …) doesn't map 1:1 onto this project's vocabulary (administrador/vendedor, bodega, dejar/retirar). Settled in spec `M1-t03`: a `vendedor` is **not** a `client`. A seller is a `profiles` row with `role = 'vendedor'`, and `clients` stays unused for now.
-- `profiles.role` allows `'admin' | 'client' | 'vendedor'` (check constraint and `AuthContext['role']`); a `vendedor` requires a 10-digit `phone` (spec `M2-t10`). New roles **extend** both, never replace them.
+- `backend/README.md` still describes the old Vue frontend (accurate for backend code, outdated about who consumes it). `ALLOWED_ORIGINS` still lists the old Vue port.
+- The schema (`clients`, `consignment_items`, `debtors`, …) reflects the old domain. Settled in `specs/M1-t03-tablas-productos-stock`: **a `vendedor` is not a `client`**; a seller is a `profiles` row with `role = 'vendedor'` and no `clients` row (`clients`/`consignment_items` stay reserved for a wholesale distributor the app doesn't use yet).
+- `profiles.role` allows `'admin' | 'client' | 'vendedor'` (`profiles_role_check` and `AuthContext['role']`); a `vendedor` needs a 10-digit `profiles.phone` (spec `M2-t10`). A new role **extends** both, never replaces them.
+- Schema changes for this repo are timestamped SQL files in `supabase/migrations/`.
+- Requirements, mockups and user stories are **not local**: they live in Jira (`SCRUM`) and Confluence on `fernandojavascrip21.atlassian.net`; the `/spec` skill fetches them. Local design references (Vue/HTML exports, the inventory Excel) are in `references/`.
 
 ## Commands
 
-### Frontend (repo root)
+### Frontend (repo root — Angular 22, SSR, Tailwind v4)
 
 ```bash
-npm start                # ng serve — http://localhost:4200
-npm run dev              # frontend + backend at once (concurrently): :4200 and :3000
-npm run dev:all          # db:start (Docker Supabase; no-op if already up) and then dev
-npm run build            # production build
-npm run watch            # dev build in watch mode
-npm test                 # unit tests (Vitest runner, jsdom) — not Karma/Jasmine
-npm run check:architecture # layer boundaries of src/app (core/shared/features), see «Architecture»
-npm run ui:prepare       # generates the PrimeNG license file from .env/env (hooks already do it)
-ng test --include src/app/core/auth/services/auth.service.spec.ts   # single file
-ng test --filter "AuthService"                                  # by name
+npm start / npm run dev / npm run dev:all   # :4200 / + backend :3000 / + db:start (Docker Supabase)
+npm run build | watch                       # production build / dev watch
+npm test                                    # ng test: Vitest runner, jsdom (not Karma/Jasmine)
+ng test --include src/app/core/auth/services/auth.service.spec.ts   # one file
+ng test --filter "AuthService"                                      # by name
+npm run check:architecture                  # layer boundaries of src/app — run it with the build
+npm run ui:prepare                          # generates the PrimeNG license file (the pre* hooks run it)
 ```
 
-`prestart`/`predev`/`prewatch`/`prebuild`/`pretest` run `ui:prepare`; direct `ng` commands need `npm run ui:prepare` first, and CI must define `PRIMENG_LICENSE_KEY`. No lint script is configured (no ESLint at root or in `backend/`).
+Direct `ng serve|build|test` need `npm run ui:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY`. There is no lint script.
 
-### Backend (`cd backend`)
+### Backend (`cd backend` — own `package.json`, `node_modules`, `.env`)
 
 ```bash
-npm run dev              # http://localhost:3000/api/health
-npm run build / start
-npm run type-check       # tsc --noEmit
-npm test                 # vitest run against whatever DB backend/.env points to (local Docker by default)
-npx vitest run tests/admins.test.ts   # single file
-npm run db:check         # sanity query
-npm run db:pull          # regenerate src/db/schema.ts (point .env at PRODUCCIÓN first)
+npm run dev | build | start | type-check   # :3000/api/health
+npm test                                   # vitest against the REAL database in DATABASE_URL (never a mock)
+npx vitest run tests/admins.test.ts        # one file
+npm run db:check | db:pull                 # sanity query / regenerate src/db/schema.ts (point .env at PRODUCCIÓN first)
 ```
 
-- Backend tests hit the database `backend/.env` points to — see "Local environment" below. Account tests need `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`; without it they are **silently skipped**, so a green run doesn't prove auth logic passed. Test data is prefixed `test-auth-` / `test-tx-` and cleaned up automatically.
-- After `npm run db:pull`, fix `src/db/schema.ts` by hand before committing:
-  1. `.default(')` → `.default('')`.
-  2. Re-add at the top: `const authSchema = pgSchema("auth")`, `export const usersInAuth = authSchema.table("users", { id: uuid().primaryKey() })`, `const users = usersInAuth`.
-  3. Delete the generated `src/db/0000_*.sql` and `src/db/meta/` — they aren't used.
+- Tests that touch accounts need `SUPABASE_SERVICE_ROLE_KEY`; without it they are **silently skipped**, so a green run doesn't prove auth passed. They create `test-auth-` / `test-tx-` data and clean it up.
+- After `db:pull`, fix `src/db/schema.ts` by hand: `.default(')` → `.default('')`; re-add at the top `const authSchema = pgSchema("auth")`, `export const usersInAuth = authSchema.table("users", { id: uuid().primaryKey() })`, `const users = usersInAuth`; delete the generated `src/db/0000_*.sql` and `src/db/meta/`.
 
 ### Local environment (Docker — Supabase local)
 
-```bash
-npm run db:start         # (repo root) Postgres + Auth + Storage + Studio in Docker; needs Docker Desktop running
-npm run db:reset         # wipe local DB, re-apply supabase/migrations + supabase/seed.sql
-npm run db:status        # URLs and local keys
-npm run db:stop
-```
+`npm run db:start | db:reset | db:status | db:stop` (repo root, needs Docker Desktop). `db:reset` re-applies `supabase/migrations` + `supabase/seed.sql`.
 
-- `backend/.env` has two connection blocks, **PRODUCCIÓN** and **LOCAL**: keep one active, comment the other. Next, tests, `db:check` and drizzle all read that file; restart `npm run dev` after switching. `backend/.env.example` has the same layout.
-- Studio: http://127.0.0.1:54323 · Mailpit: http://127.0.0.1:54324 · DB: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
-- Test users: `usuarios-prueba.md` (seed accounts, sellers created from the app, production test accounts). Keep it updated. It is **local only** (`.gitignore`) because it holds real passwords and emails and the repo is public, so never commit it or copy its contents into tracked files.
-- `next dev` may exit right after start-up with a Next.js security-upgrade notice (exit code 1). Re-run `npm run dev`. Upgrading Next is its own deliberate change.
-- Seed users (`supabase/seed.sql`, all fake data): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated). Every `vendedor` has a 10-digit phone, which the database requires (spec `M2-t10`).
-- `supabase/migrations/20261024000000_baseline_schema.sql` is a schema-only snapshot of the inherited production schema so an empty DB can replay every migration. Never apply it to production.
-- New migrations: add the `.sql` to `supabase/migrations/`, verify with `npm run db:reset` locally, then apply to production.
+- `backend/.env` has **PRODUCCIÓN** and **LOCAL** connection blocks; keep one active. Next, Vitest, `db:check` and drizzle all read it; restart `npm run dev` after switching.
+- Studio http://127.0.0.1:54323 · Mailpit :54324 · DB `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- **`usuarios-prueba.md`** (repo root) lists test accounts. It is **local only** (`.gitignore`: real passwords, public repo) — never commit it or copy its contents into a tracked file; update it when accounts change.
+- `next dev` may exit right after start-up with a security-upgrade notice (exit 1): run `npm run dev` again. Upgrading Next is a separate, deliberate change.
+- Seed (fake): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated, login must fail); sellers have 10-digit phones.
+- `supabase/migrations/20261024000000_baseline_schema.sql` only lets an empty DB replay every migration — never apply it to production. New migration: write the `.sql`, check it with `npm run db:reset`, then apply to production.
 
-## Frontend conventions
+## Architecture
 
-**Folder structure — component-based, grouped by feature** (dependencies one way only: `features → core / shared`, `core → shared`, `shared → nothing internal`; a feature never imports another; `npm run check:architecture` enforces it):
+### Frontend
 
-- `src/app/core/` — app-wide singletons: `auth/` (service, interceptor, `role`/`guest` guards, `interfaces/auth.models.ts`, `constants/`), `layout/` (`admin-shell/` and `seller-shell/` hosting the `<router-outlet>`, `top-nav/`, `constants/` with the menus, `routes/admin.routes.ts`/`seller.routes.ts`, still loaded with `loadChildren` after `roleGuard` so a seller never downloads the admin branch; `admin.routes.ts` only mounts each feature's routes), `toast/` (service over PrimeNG `MessageService`, `toast.models.ts`, `constants/`; `<p-toast>` once, via `toast-host/` loaded with `@defer` in `app.html`; early notices wait in the service), `confirm/` (`ConfirmService.ask(): Promise<boolean>` over `ConfirmationService`; `<p-confirmdialog>` once, via `confirm-host/` loaded with `@defer` in `app.html`; `ask()` waits until the dialog is ready; cancel/`Escape`/X resolve `false`), `cart/` (`CartService`, the seller's cart: only `productId` and units, saved in `localStorage` as `mamut.cart.<userId>` with a version, deleted when that user signs out, discarded when it doesn't validate; created at start by `provideEnvironmentInitializer` in `app.config.ts`; doesn't know the stock, the screens enforce the cap; `top-nav` shows its `totalUnits` as a badge outside the `pButton` link, which clips overflow), `api-base-url.ts`. Core never imports features except `core/layout/routes/`.
-- `src/app/shared/` — reusable, stateless code: `utils/` (`initials.ts`, `normalize-text.ts`, `phone.ts`, `money.ts`, `http-errors.ts` — `isOffline`/`httpStatus`/`isNotFound`, the only place that reads `HttpErrorResponse`), `validators/validators.ts`, `pipes/phone.pipe.ts` (`phone`, the only way to display a stored phone (`55 2468 1357`), display only), `constants/`, `pages/coming-soon-page/`.
-- **Ventanas de inventario (T-16):** `admin-shell` tiene un segundo outlet, `ventana`. Sus rutas `dejar` y `retirar/:sellerId` se cargan con `loadComponent` desde `core/layout/routes/admin.routes.ts`, dentro de la rama protegida de administrador. Las features abren y cierran con las funciones puras `shared/utils/modal-links.ts`; `vendedor` y `producto` son parámetros matriciales. `shared/components/modal-panel/` envuelve un `p-dialog` modal (M3-t04) con la misma API (`title`, `closable`, `closed`): foco, Tab atrapado, Escape/X y bloqueo del scroll los pone PrimeNG, el contenido hace scroll dentro, a pantalla completa en celular y centrado desde `sm` (clase `modal-panel-dialog` en `styles.css`); no cierra al pulsar el fondo. El diálogo se monta en `body`. `shared/guards/modal-saving.guard.ts` bloquea salir mientras guarda. `core/stock-changes/stock-changes.service.ts` avisa al detalle del vendedor y a Productos para recargar sin ocultar sus datos. Guardar cierra la ventana, muestra el toast y refresca el fondo; los resúmenes siguen en sus URLs. El fallback de `app.routes.server.ts` entrega CSR y el redirect comodín de `app.routes.ts` se resuelve en cliente, para conservar las URLs auxiliares al recargar.
-- `src/app/features/<feature>/` (`auth` = login screen, `account`, `products`, `sellers`, `deliveries`, `stock` = «Stock general», `GET /api/stock`; `my-stock` = «Mi stock» del vendedor, `GET /api/me/stock`, mounted at `/vendedor/mi-stock` by `seller.routes.ts`; `sell` = «Vender», «Carrito» y «Venta confirmada» del vendedor, mounted at `/vendedor/vender`, `/vendedor/carrito` and `/vendedor/venta/:requestId`: catalog from `GET /api/me/stock?includeSoldOut=true`, cart lines resolved against the fresh stock, «Confirmar venta» (HU-16) asks with `ConfirmService` and sends `POST /api/sales` with the cart's `requestId` (kept in `core/cart/`, storage version 3 with the sale's `holderId`, so a retry doesn't duplicate the sale), «Venta confirmada» reads `GET /api/sales/:requestId`; no cost or profit anywhere for the seller; since HU-17 it also serves the admin: `/admin/carrito` reads `core/sale-catalog/` (`GET /api/sales/catalog`) for the cart's own holder and shows total and profit, `/admin/venta/:requestId` shows profit per line; «Productos» has «Agregar» per card and no cart bar) — `pages/<name>-page/` (routed container components; a page folder only holds its component `.ts`/`.html`/`.spec.ts` and its `ui/` if any), `components/` (presentational: only `input()`/`output()`, e.g. `product-form`, `product-card`), `<feature>.routes.ts` (e.g. `PRODUCT_ROUTES`), and when needed `services/`, `guards/`, `interfaces/`, `validators/` (Reactive Forms validators), `rules/` (pure business-rule functions testable without Angular), `models/` (page types, `<page>.models.ts`), `constants/` (page constants, `<page>.constants.ts`, and the feature's own).
-- Visual-only subcomponents of a page/component go in its own `ui/` subfolder; once reused, they move to the feature's `components/`.
-- **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type` or `interface`. Types shared across a feature go in `<feature>/interfaces/*.models.ts` (e.g. `features/products/interfaces/product.models.ts`); types used by a single page go in the feature's `models/<page>.models.ts` (e.g. `features/auth/models/login-page.models.ts`), and types used by a single non-page component go in a `<name>.models.ts` file next to it (e.g. `core/layout/top-nav/top-nav.models.ts`, `features/products/components/product-form/product-form.models.ts`). `type` and `interface` may coexist in the same models file. Import them with `import type`. **Constants live apart too** (user preference): a class file never declares module-level constants such as a messages map, a field→message lookup or a minimum length. This applies to **all** code, frontend and backend. Frontend: page constants go in the feature's `constants/<page>.constants.ts` (e.g. `features/sellers/constants/create-seller-page.constants.ts`); constants of a single non-page component go in a `<name>.constants.ts` file next to it; constants of a feature's or core area's services, guards or rules go in its `constants/` (e.g. `core/auth/constants/auth.constants.ts`, `shared/constants/money.constants.ts`). Backend: one `constants.ts` per module (`backend/src/accounts/constants.ts`, `backend/src/lib/constants.ts`, …). Not constants in this sense: functions stored in a `const` (guards, interceptors, error helpers), runtime instances (`db`, `sql`, the Express `app`), config objects a framework requires (`proxy.ts` `config`, `nextConfig`), route arrays (`*.routes.ts`), `core/api-base-url.ts` (already a constants-only file), and values local to a test file.
-- No root-level `src/app/components/`, `src/app/services/` or `src/app/pages/` catch-alls.
-- Create a new feature's whole folder skeleton before adding files to it.
-- Imports between areas use the `tsconfig.json` aliases `@core/*`, `@shared/*`, `@features/*`; imports inside the same area (one feature, one `core/<area>`, or `shared`) stay relative. A new feature needs no new alias.
+Standalone-component Angular app with SSR (`src/server.ts`, `outputMode: "server"`). Three layers, dependencies one way only: **`features → core / shared`, `core → shared`, `shared → nothing internal`**; a feature never imports another feature. `npm run check:architecture` fails on any break.
 
-**Components:**
+- `src/app/core/`: app-wide singletons (auth, layout shells and menus, toast, confirm, cart, viewing, sale-catalog, stock-changes, low-stock-notice, ui theme). Never imports `features/`, except `core/layout/routes/`, which mounts the feature route tables with `loadChildren` after `roleGuard`, so a seller never downloads the admin branch. Rules worth knowing: notices go through `ToastService`; confirmations only through `ConfirmService.ask()`; services that must see a sign-out from any screen (`ViewingService`, `CartService`, `LowStockNoticeService`) are created at start with `provideEnvironmentInitializer` in `app.config.ts`.
+- `src/app/shared/`: reusable stateless code (`utils/`, `validators/`, `pipes/`, `components/`, `constants/`). `http-errors.ts` is the only place that reads `HttpErrorResponse`; the `phone` pipe is the only way to display a stored phone; money goes through `money.ts` (see «Dinero e inventario»). The pop-ups «Dejar»/«Retirar» live in the `ventana` outlet of `admin-shell` and use `shared/components/modal-panel` (a modal `p-dialog`).
+- `src/app/features/<feature>/` (one functional area each): `pages/<name>-page/` (routed containers; a page folder holds only its component `.ts/.html/.spec.ts` and an optional `ui/`), `components/` (presentational: only `input()`/`output()`, never data services or `Router`), `<feature>.routes.ts` (pages lazy-loaded with `loadComponent`), and when needed `services/`, `guards/`, `interfaces/` (backend models shared across the feature), `validators/`, `rules/` (pure business-rule functions), `models/`, `constants/`. Visual-only subcomponents of one page go in its `ui/`; once reused, in `components/`.
+- No global `src/app/components/`, `services/` or `pages/` catch-alls. Create a new feature's whole folder skeleton before adding files.
+- **Imports between areas use the `tsconfig.json` aliases** `@core/*`, `@shared/*`, `@features/*`; inside one area they stay relative. A new feature needs no alias.
+- **Types and interfaces live apart from classes:** a class file (component, page, service, guard, interceptor) never declares a `type`/`interface`. Shared in a feature → `<feature>/interfaces/*.models.ts`; one page → `models/<page>.models.ts`; one non-page component → `<name>.models.ts` beside it. Import with `import type`.
+- **Constants live apart too** (frontend **and** backend): a class file never declares module-level constants (message maps, minimum lengths…). One page → `constants/<page>.constants.ts`; one non-page component → `<name>.constants.ts` beside it; services/guards/rules → the feature's or area's `constants/`. Backend: one `constants.ts` per module. Not constants in this sense: functions in a `const`, runtime instances (`db`, `sql`), framework config objects (`nextConfig`, `proxy.ts` `config`), route arrays, `core/api-base-url.ts`, and values local to a test.
+- **Components:** always `ng generate component` (never hand-written); selectors with the `app-` prefix; kebab-case names describing function and context, **without** the word «component» (`angular.json` keeps the `.component` suffix and `style: "none"`, so files are `name.component.ts/.html/.spec.ts`, no `.css`).
+- **Comments:** every non-trivial function (auth flows, guards, interceptors, non-obvious rules) gets a short comment saying what it does and *why*, not a restatement of the code.
+- **Styling:** Tailwind utility classes in the template only (no per-component `.css`, no `styleUrl`). Brand colors and fonts are `@theme` tokens in `src/styles.css` (`bg-page`, `text-ink`, `border-danger`, `font-display`, `warning-*`…): never hard-code hex or font stacks. Use the shared utilities there (`field-*`, `surface-*`, `page-title`, `alert-*`) before repeating utilities; one-off sizes may be arbitrary (`h-[50px]`); test-hook classes alongside are fine. New UI combines the Jira/Confluence mockups with `references/`, translated to the app's tokens — never copy mockup colors or Vue code verbatim.
+- **PrimeNG** is used for all buttons and button-looking links (`pButton`: primary without `severity`, `secondary`, `[text]="true"` for ghost, `danger` + `[outlined]`), forms, lists (`DataView`), `Select`, toast, confirm dialog, the `top-nav` menu, cards/`Tag`/`Skeleton` and the pop-ups (`Dialog` inside `modal-panel`). Import each control from `primeng/*` — no aggregate module, PrimeFlex, `primeicons` or `tailwindcss-primeui`; register `MessageService`/`ConfirmationService` once in `app.config.ts`. Config in `core/ui/constants/primeng.constants.ts` and the `MAMMUT_THEME` preset (`mammut-theme.constants.ts`: only the used Aura subpresets, CSS variables from `styles.css`, no hex in TS); `styles.css` declares `theme, base, primeng, components, utilities` first. `PRIMENG_LICENSE_KEY` lives in `.env`/env (`scripts/prepare-primeng-license.mjs` generates a git-ignored file; the key is never printed or committed). Text fields are `pInputText`, selectors `p-select` (values are text; `''` = «Sin categoría»); money fields stay `string` with `type="text" inputmode="decimal"` — never `InputNumber`, never format or round while typing.
+- **Low stock (spec `M3-hu18`):** the backend decides the level (`LOW_STOCK_THRESHOLD`, `stockLevel` `'ok'|'low'|'out'`); the frontend never repeats the number, it only paints `stockLevel` (`shared/constants/stock-level.constants.ts`).
 
-- Always generate with `ng generate component`, never hand-write the files. `angular.json` already sets `type: "component"` (keeps the `.component` suffix that Angular 22 otherwise drops) and `style: "none"`, so files come out as `name.component.ts`/`.html`/`.spec.ts`, with no `.css`.
-- Selector prefix `app-`; kebab-case names describing function and context (`inventory-list`, `grid-client`); don't include the word "component" in the name.
+### Backend (`backend/`)
 
-**Styling:**
-
-Use the shared utilities in `src/styles.css` (`field-*`, `surface-*`, `page-title`, `alert-*`) before repeating visual utilities in templates. Keep test-hook classes alongside them; local Tailwind utilities may override size, spacing or semantic states.
-
-- Tailwind utility classes in templates only — no per-component `.css` files, no `styleUrl`.
-- Brand colors and fonts are Tailwind v4 theme tokens in `src/styles.css` (`@theme`: `--color-*`, `--font-*`); use them as utilities (`bg-page`, `text-ink`, `border-danger`, `font-display`). Never hard-code hex values or font stacks.
-- One-off sizes can use arbitrary values (`h-[50px]`).
-- Non-styling test-hook classes (e.g. `field-error`) are fine.
-- New UI combines the Jira/Confluence mockups with the local `references/`, translated into the app's tokens — don't copy mockup colors or Vue code verbatim.
-
-**PrimeNG (T-17, M3-t01, M3-t02 y M3-t04):**
-
-- PrimeNG se usa en todos los botones y enlaces con aspecto de botón (`pButton` sobre `<button>` y `<a routerLink>`: primario sin `severity`, `secondary`, `[text]` para el «fantasma», `danger` con `[outlined]`; tamaños como utilidades locales y clases de enganche conservadas), en el formulario de producto, las listas del detalle del vendedor (`DataView`), el selector de producto de «Dejar» (`Select` con filtro), el toast (`Toast` + `MessageService`) las confirmaciones (`ConfirmDialog`, siempre vía `ConfirmService`), el menú de `top-nav` (`Menu` con `#item` propio), la barra «Viendo» (`Select` oscuro sin filtro), las tarjetas de «Productos» y «Mis vendedores» (`Card`, `Tag`, `Skeleton`) y el pop-up `ventana` (`Dialog` dentro de `modal-panel`). La migración está completa (cuadro «Camino de migración» en `specs/M3-t01-primeng-listas-dialogos/spec.md`); los shells y el login conservan su estructura con Tailwind. Importar cada control desde `primeng/*`; sin módulo agregador, PrimeFlex, `primeicons` ni `tailwindcss-primeui`. `MessageService` y `ConfirmationService` se registran una vez en `app.config.ts`. Sin CSS por componente en los tramos nuevos.
-- Configuración única en `app.config.ts` con `providePrimeNG(PRIMENG_CONFIG)`; opciones/traducciones en `core/ui/constants/primeng.constants.ts` y tema en `mammut-theme.constants.ts` (Aura limitado a los subpresets usados —`inputtext`, `select`, `checkbox`, `toast` solo con `success`/`error`, `dialog`, `confirmdialog`, `dataview`, `card`, `skeleton`; `menu` y `tag` a mano porque los de Aura dependen de tokens que el preset no define; `button` con `primary`/`secondary`/`danger` a mano—, referenciando variables CSS de `styles.css`, sin hexadecimales en TS).
-- Licencia: `PRIMENG_LICENSE_KEY` en `.env`/entorno; `scripts/prepare-primeng-license.mjs` genera `primeng-license.generated.ts`. Ambos están ignorados por Git y la clave nunca se imprime ni se versiona.
-- `styles.css` declara `theme, base, primeng, components, utilities` antes de Tailwind; `@theme static` conserva los tokens que consume el preset. Los campos de texto son `pInputText` y los selectores `p-select` (la utilidad `field-input` ya no existe; el borde de error de `[invalid]` está en la sección «PrimeNG: campos» de `styles.css`); las utilidades `btn-*` ya no existen (estados en la sección «PrimeNG: botones» de `styles.css`).
-- Precio y costo siguen como `string` con `type="text" inputmode="decimal"` y `pInputText`; nunca `InputNumber`, formateo ni redondeo al escribir. `Select` usa valores de texto y la opción `''` «Sin categoría».
-
-**Comments:** every non-trivial function (auth flows, guards, interceptors, non-obvious rules) gets a short comment explaining what it does and *why*, not a restatement of the code.
-
-## Backend conventions
-
-Next.js App Router, API routes only, as a **modular monolith** (one app, one database, business modules with explicit public APIs; deliberately not microservices: stock lives in Postgres triggers, operations cross modules in one transaction, auth is re-read per request):
+Next.js App Router, API routes only, as a **modular monolith** (one app, one database; not microservices: stock is kept by Postgres triggers, operations cross modules inside one `withTransaction`, auth is re-read per request). Routes in `app/api/**/route.ts` only validate and call a use case in `src/` — no business logic in routes.
 
 ```
-proxy.ts         CORS for /api/** (Next 16's renamed "middleware")
-app/api/         thin routes: validate input, call a use case in src/
-src/db/          (infra) Drizzle client, introspected schema.ts, withTransaction + lockRows
-src/lib/         (infra) errors.ts (AppError), cors.ts, supabase.ts, handler.ts (request helpers, requireMoney), money.ts
-src/auth/        module: getAuthContext, guards (requireAuth/requireRole/requireOwnClient), session
-src/accounts/    module: account use cases built on the internal accounts.ts (createAccount/toView)
-src/products/    module: products, photos
-src/categories/  module: categories
-src/stock/       module: movements.ts (insertMovements: the only way inventory changes), holdings.ts (reads/prices of vendor_stock, delivery history, holdingsByProduct; `stockOfHolder(profileId, { includeSoldOut })` adds the rows with qty 0 when asked, default false)
-src/deliveries/  module: deliveries.ts (createDelivery: leave pieces to a seller, idempotent by requestId; spec M2-hu11)
-src/returns/     module: returns.ts (createReturn: take pieces back from a seller to the warehouse, idempotent by requestId; spec M2-hu12)
-src/inventory/  module: overview.ts (getStockOverview: warehouse + every active seller + per-product split for GET /api/stock, inactive sellers grouped without a name; joins `stock` and `accounts` so it lives apart to avoid a cycle; spec M2-hu13) and own-stock.ts (getOwnStock: the signed-in seller's stock for `GET /api/me/stock`, only `productId`, `name`, `image`, `units` and a single already-resolved `price` (own or general), never costs; uses only `@stock`; `includeSoldOut` adds what the seller had and ran out of, with `units` 0; spec M3-hu14 and M3-hu15) and sale-catalog.ts (getSaleCatalog for `GET /api/sales/catalog?holderId=`, admin only, with resolved `units`/`price`/`unitCost`; spec M3-hu17)
-src/sales/      module: sales.ts (createSale: sell from the warehouse or a seller's stock with the price and cost of the moment, one `direct_sale` movement per product, idempotent by requestId; getSale; `POST /api/sales`, `GET /api/sales/:requestId`; reuses the inherited `direct_sales`/`direct_sale_items`, so those two tables are no longer legacy-only; spec M3-t18)
-tests/           Vitest against the real DB; architecture.test.ts checks module boundaries
+proxy.ts      CORS for /api/**              src/db/   Drizzle client, schema.ts, withTransaction + lockRows
+app/api/      thin routes                   src/lib/  errors (AppError), cors, supabase, handler (readJson, requireMoney…), money
+src/<module>/ auth · accounts · products · categories · stock · deliveries · returns · inventory · sales (each: index.ts + constants.ts)
+tests/        Vitest against the real DB; architecture.test.ts checks module boundaries
 ```
 
-- **Module boundaries and aliases:** each business module exposes its API in `src/<module>/index.ts`. Between areas, imports use the `backend/tsconfig.json` aliases, like the frontend: `@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries`, `@returns`, `@inventory`, `@sales` (a module alias points only at its index, so its internals stay private) and `@api/*`. Inside an area, imports stay relative. `src/db`/`src/lib` never depend on a module, and `src/` never imports `app/` (`tests/architecture.test.ts`). Vitest reads the same aliases (`resolve.tsconfigPaths`). A new area is a new module with `index.ts` + `constants.ts` + its alias. A use case spanning modules in one transaction lives in the owning module and passes its `tx` to the others' public functions.
+- **Boundaries:** a module exposes its API only in `src/<module>/index.ts`. Between areas use the `backend/tsconfig.json` aliases (`@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries`, `@returns`, `@inventory`, `@sales`, `@api/*`); a module alias points only at its `index.ts`. Inside an area, imports stay relative. Infrastructure never depends on a module; `src/` never imports `app/`. A new area = new `src/<module>/` with `index.ts`, `constants.ts` and its alias. A use case writing to several modules lives in the owning module and passes its `tx` to the others' public functions.
+- **Auth is re-checked on every request** (`getAuthContext` loads `profiles` fresh); never trust JWT claims for role/active status.
+- **Account creation** = Supabase Auth user, then `profiles` row, with manual compensation (delete the Auth user if the insert fails); follow `createAccount`.
+- **Transactions** go through `withTransaction`/`lockRows` (`select … for update`), not raw queries.
+- **Inventory only changes by inserting `stock_movements` via `insertMovements`** (`src/stock/movements.ts`). Never write `products.stock` or `vendor_stock.qty`: Postgres triggers maintain them and reject direct writes from any client. Products are inserted with `stock = 0`; a negative balance → `409` «No hay piezas suficientes». Movements are never updated (correct with `*_void` or `adjustment`); deleting one (tests only) reverts it — delete newest first.
+- **Movement signs** (`stock_movements_qty_sign_check`): one row per holder (`holder_profile_id` null = warehouse), signed `qty`; a transfer is two rows in one transaction. `initial`/`purchase`: warehouse `> 0`; `delivery`: warehouse `< 0`, seller `> 0`; `return`: warehouse `> 0`, seller `< 0`; `direct_sale`/`shrinkage`/`fraction_out`: `< 0`; `*_void`/`fraction_in`: `> 0`; `adjustment`: `≠ 0`.
+- Rows with history are **deactivated, never deleted** (`DELETE` relies on FK `restrict` → 409).
+- **Errors** are always `{ error: { code, message } }` via `AppError`/`toResponse` with a fixed status per code (401/403/404/409/422/500); login/refresh give one generic message for wrong password, unknown and deactivated accounts.
+- **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`; add any new frontend origin there.
+- `src/db/schema.ts` is generated: never hand-edit beyond the `db:pull` fixups, never add Drizzle-generated migrations.
 
-- **No business logic in routes** — routes validate and delegate to `src/`.
-- **Auth is re-checked on every request**: `getAuthContext` loads `profiles` fresh so deactivation takes effect immediately. Never trust JWT claims for role/active status.
-- **Account creation = Supabase Auth user, then `profiles` row**, with manual compensation (delete the Auth user if the profile insert fails). Follow `createAccount` for any new account flow.
-- **Transactions** go through `withTransaction` / `lockRows` (`select … for update`), not raw queries.
-- **Inventory only changes by inserting `stock_movements` via `insertMovements`** (`src/stock/movements.ts`). Never write `products.stock` / `vendor_stock.qty`: Postgres triggers maintain them and reject direct writes from any client. Products are inserted with `stock = 0`. A balance going negative → `409` «No hay piezas suficientes». Movements are never updated; deleting one (tests only) reverts it, so delete newest first.
-- **Movement sign convention** (`stock_movements_qty_sign_check`, spec `M1-t07` §3): one row per holder (`holder_profile_id` null = warehouse), signed `qty` (in `> 0`, out `< 0`); a transfer is two rows in one transaction. `initial`/`purchase`: warehouse `> 0`; `delivery`: warehouse `< 0`, seller `> 0`; `return`: warehouse `> 0`, seller `< 0`; `direct_sale`/`shrinkage`/`fraction_out`: `< 0`; `*_void`/`fraction_in`: `> 0`; `adjustment`: `≠ 0`.
-- **Rows with history are deactivated, never deleted.** `DELETE` endpoints rely on FK `restrict` to surface a 409.
-- **Errors** are always `{ error: { code, message } }` via `AppError` / `toResponse`, with a fixed HTTP status per code (401/403/404/409/422/500). Login/refresh return one generic message for wrong password, unknown account and deactivated account.
-- **CORS** origins come from `ALLOWED_ORIGINS` in `backend/.env`. It lists `http://localhost:4200` (Angular) plus the legacy Vue port `5173`. Add any new frontend origin there.
-- `src/db/schema.ts` is generated — never hand-edit beyond the `db:pull` fixups, never add Drizzle-generated migrations. Schema changes go in `supabase/migrations/`.
+### Specs workflow
+
+Specs are written with `/spec` and implemented with `/spec-impl` (Claude Code skills); `specs/.spec-config.yml` (`AutoCreateBranch`) controls the automatic `spec-<slug>` branch. `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, cross-spec relationships): update it in the same change whenever a spec is created, changes status or affects another one. Older specs cite pre-reorganization paths; the old → new table is the last bullet of its «Relaciones» section.
+
+**Jira sync** (when a spec maps to a user story `HU-NN`): while implementing, comment progress on the issue (current step of the plan and ✅/❌/⏳ per acceptance criterion; pattern of `SCRUM-17`) and move it En curso → In review → Finalizada as the work advances; Finalizada only when every criterion is checked, tests pass and the user reviewed.
 
 ## Buenas prácticas de código
 
 ### Principios
-- Aplicar SOLID: una responsabilidad por clase o componente, dependencias por inyección, interfaces pequeñas.
-- La lógica de negocio va en servicios, no en componentes ni en plantillas.
-- Los componentes solo presentan datos y emiten eventos.
+- SOLID: una responsabilidad por clase o componente, dependencias por inyección, interfaces pequeñas. La lógica de negocio va en servicios; los componentes solo presentan datos y emiten eventos.
 
 ### Angular
-- Componentes standalone; no crear NgModules nuevos.
-- Inyectar dependencias con `inject()`.
-- Usar `input()`, `output()` y `computed()` en lugar de decoradores y propiedades calculadas en la plantilla.
-- OnPush en todos los componentes: en Angular 22 ya es el valor por defecto, así que no se declara `changeDetection`; nunca usar `ChangeDetectionStrategy.Eager` ni `Default`.
-- Plantillas con `@if`, `@for` (con `track`) y `@switch`.
-- No anidar `subscribe`. Lo que se carga al entrar a una pantalla va con `rxResource` (su `status()`/`error()` da el estado cargando/error y «Reintentar» es `reload()`) o `toSignal()`. Las acciones del usuario (enviar un formulario, cerrar sesión, guardar) usan un solo `subscribe` con `takeUntilDestroyed()`; si una llamada depende de otra, se encadenan con `switchMap` dentro del mismo `pipe`.
-- Lazy loading en todas las rutas de funcionalidades.
+- Componentes standalone (sin NgModules nuevos); `inject()`; `input()`, `output()` y `computed()`; plantillas con `@if`, `@for` (con `track`) y `@switch`; lazy loading en todas las rutas de funcionalidades.
+- OnPush ya es el valor por defecto en Angular 22: no declarar `changeDetection`, nunca `Eager` ni `Default`.
+- No anidar `subscribe`. Lo que se carga al entrar a una pantalla va con `rxResource` (`status()`/`error()` dan cargando/error; «Reintentar» es `reload()`) o `toSignal()`. Las acciones del usuario usan un solo `subscribe` con `takeUntilDestroyed()`; si una llamada depende de otra, `switchMap` en el mismo `pipe`.
 
 ### Formularios
-
-Todo formulario reactivo (nuevo o existente) sigue este patrón. Ejemplos: `features/products/components/product-form` (presentacional) y `features/auth/pages/login-page` (llama al servicio).
-
-- **Orden del componente**, cada sección con un comentario breve: 1) dependencias con `inject()`; 2) formulario y estados; 3) getters y setters; 4) ciclo de vida e inicialización; 5) carga de datos; 6) métodos que agregan, quitan o modifican controles; 7) validación, preparación del payload y envío.
-- **Construcción:** formularios tipados con `FormBuilder` (`.nonNullable` cuando tenga sentido), `FormGroup` para objetos anidados y `FormArray` para colecciones. La estructura y las validaciones van en un método dedicado, `createEmptyForm()`. En `ngOnInit()` se ven las dos etapas: primero `createEmptyForm()` y después la carga de datos (`loadInitialValue()`/`loadX()`). Los validadores van en `<feature>/validators/` o en `shared/validators/validators.ts`, no escritos dentro del componente.
-- **Getters y setters:** getters para los controles y grupos que se consultan seguido (sobre todo los `FormArray`). Un setter reemplaza una colección que viene del backend: limpia los controles anteriores y crea los nuevos con un método privado, el mismo que usa «agregar», para que tengan las mismas validaciones. Nada de HTTP en getters ni setters.
-- **Carga:** `patchValue()` para los campos simples. Los elementos de un `FormArray` se crean antes de asignarles valor, porque `patchValue()` no los crea. Hay que contemplar colecciones vacías y opcionales según el contrato de la API. El modelo del backend (`interfaces/`), la estructura del formulario (tipo `FormGroup<…>`) y el payload quedan separados cuando sus nombres o formatos difieren.
-- **Interacción:** métodos específicos para agregar y quitar. Se revisa el índice antes de quitar y se llama a `markAsDirty()` cuando el usuario cambia una colección.
-- **Envío:** si el formulario es inválido, `markAllAsTouched()` y se detiene. El payload se arma en `prepareSavePayload()` (o `prepare<X>Payload()`) con los nombres que espera el backend, usando `getRawValue()` si hay controles deshabilitados. No se manda un segundo envío mientras el primero sigue en curso. Los estados de espera se cierran tanto en éxito como en error. Las suscripciones usan `takeUntilDestroyed()`.
-- **Componente presentacional** (solo `input()`/`output()`): la «carga» se hace desde un `input()` en `ngOnInit()` y el «envío» emite un `output()` con el payload. La consulta al servicio, el guardado y sus estados de espera son de la página que lo usa.
-- **Lo que ve el usuario:** los errores de campo se muestran al enviar, no al tocar el campo. Las reglas en vivo, como «precio menor que el costo», son la excepción explícita.
-- No se inventan endpoints, campos ni reglas de negocio. Si falta información del backend, se señala qué hay que adaptar.
+Todo formulario reactivo sigue este patrón (ejemplos: `features/products/components/product-form`, `features/auth/pages/login-page`):
+- **Orden del componente**, cada sección con un comentario breve: dependencias (`inject()`) → formulario y estados → getters/setters → ciclo de vida → carga de datos → métodos que agregan/quitan/modifican controles → validación, payload y envío.
+- Tipados con `FormBuilder` (`.nonNullable`), `FormGroup` para objetos y `FormArray` para colecciones; estructura y validaciones en `createEmptyForm()` (en `ngOnInit()`: primero eso, luego `loadInitialValue()`/`loadX()`); validadores en `<feature>/validators/` o `shared/validators/validators.ts`, no dentro del componente.
+- Getters para controles que se consultan seguido; un setter reemplaza una colección del backend (limpia y crea con el mismo método privado que «agregar»); nada de HTTP en getters ni setters. `patchValue()` para campos simples; los elementos de un `FormArray` se crean antes de asignarles valor. Modelo del backend, forma del formulario y payload quedan separados si difieren.
+- Envío: inválido → `markAllAsTouched()` y parar; payload en `prepareSavePayload()` (con `getRawValue()` si hay controles deshabilitados); sin segundo envío mientras el primero está en curso; cerrar los estados de espera en éxito y error; `markAsDirty()` al cambiar una colección.
+- Un componente presentacional carga desde un `input()` y emite un `output()` con el payload; la consulta y el guardado son de la página. Los errores de campo se muestran al enviar, no al tocar (excepción: reglas en vivo como «precio menor que el costo»).
+- No se inventan endpoints, campos ni reglas de negocio: si falta información del backend, se señala qué hay que adaptar.
 
 ### Calidad
-- TypeScript estricto. Prohibido `any`; usar `unknown` y validar.
-- Nombres descriptivos en inglés para código, y en español solo en textos visibles para el usuario.
-  - «Código» son identificadores, archivos, carpetas, selectores, refs de plantilla e `id`/`name` de HTML. Los comentarios y las descripciones de las pruebas (`describe`/`it`) siguen en español, igual que las URLs (`/admin/productos`, `/vendedor/mi-stock`) y los datos del contrato con la base y el backend (el rol `'vendedor'`).
-  - Glosario (alineado con `stock_movements.type` y las columnas de `products`):
+- TypeScript estricto; prohibido `any` (usar `unknown` y validar). No dejar código comentado ni `console.log`. Antes de terminar una tarea, `ng build` y los tests afectados.
+- Nombres en inglés para código (identificadores, archivos, carpetas, selectores, refs de plantilla, `id`/`name` de HTML) y español solo en textos visibles. Comentarios, descripciones de pruebas (`describe`/`it`), URLs (`/admin/productos`) y datos del contrato con la base (el rol `'vendedor'`) siguen en español. Los specs anteriores a T-05 citan nombres viejos: ver la tabla «viejo → nuevo» de `specs/M1-t05-codigo-en-ingles/spec.md` §4.
 
-    | Negocio (español, visible) | Código (inglés) | Referencia en backend |
-    | --- | --- | --- |
-    | producto / productos | `product` / `products` | `products` |
-    | categoría | `category` | `categories` |
-    | vendedor | `seller` | rol `'vendedor'` (el valor no cambia) |
-    | administrador | `admin` | rol `'admin'` |
-    | bodega | `warehouse` | `holderProfileId = null` |
-    | piezas | `units` (en `stock`, `qty`) | `products.stock`, `stock_movements.qty` |
-    | costo de fábrica | `unitCost` | `products.unit_cost` |
-    | precio de venta | `price` | `products.price` |
-    | alta (de producto) | `create` | — |
-    | edición | `edit` / `update` | — |
-    | entrada a bodega | `purchase` | tipo `purchase` |
-    | dejar a vendedor | `delivery` | tipo `delivery` |
-    | retirar (del vendedor) | `return` | tipo `return` |
-    | venta directa | `directSale` | tipo `direct_sale` |
-    | merma | `shrinkage` | tipo `shrinkage` |
-    | fraccionar / se fracciona | `fraction` / `fractionable` | tipos `fraction_out`/`fraction_in`, `products.fractionable` |
-    | porción | `portionSize` | `products.portion_size` |
-    | bolsita | `portionProduct` (producto con `parentProductId`) | `products.parent_product_id` |
-    | corte | `cashCut` | `cuts` |
-    | carrito | `cart` | — |
-    | búsqueda | `search` / `searchQuery` | — |
-    | foto | `photo` (el archivo) / `image` (la URL guardada) | `products.image`, bucket `product-photos` |
-    | cambios sin guardar | `unsavedChanges` | — |
-
-  - Los specs escritos antes de T-05 citan nombres viejos en español; su traducción está en la tabla «viejo → nuevo» de `specs/M1-t05-codigo-en-ingles/spec.md` §4.
-- No dejar código comentado ni `console.log` en los cambios finales.
-- Antes de terminar una tarea, ejecutar `ng build` y los tests afectados.
+| Negocio (español, visible) | Código (inglés) | Referencia en backend |
+| --- | --- | --- |
+| producto / productos | `product` / `products` | `products` |
+| categoría | `category` | `categories` |
+| vendedor | `seller` | rol `'vendedor'` (el valor no cambia) |
+| administrador | `admin` | rol `'admin'` |
+| bodega | `warehouse` | `holderProfileId = null` |
+| piezas | `units` (en `stock`, `qty`) | `products.stock`, `stock_movements.qty` |
+| costo de fábrica | `unitCost` | `products.unit_cost` |
+| precio de venta | `price` | `products.price` |
+| alta (de producto) | `create` | — |
+| edición | `edit` / `update` | — |
+| entrada a bodega | `purchase` | tipo `purchase` |
+| dejar a vendedor | `delivery` | tipo `delivery` |
+| retirar (del vendedor) | `return` | tipo `return` |
+| venta directa | `directSale` | tipo `direct_sale` |
+| merma | `shrinkage` | tipo `shrinkage` |
+| fraccionar / se fracciona | `fraction` / `fractionable` | tipos `fraction_out`/`fraction_in`, `products.fractionable` |
+| porción | `portionSize` | `products.portion_size` |
+| bolsita | `portionProduct` (producto con `parentProductId`) | `products.parent_product_id` |
+| corte | `cashCut` | `cuts` |
+| carrito | `cart` | — |
+| búsqueda | `search` / `searchQuery` | — |
+| foto | `photo` (el archivo) / `image` (la URL guardada) | `products.image`, bucket `product-photos` |
+| cambios sin guardar | `unsavedChanges` | — |
 
 ### Dinero e inventario
-- Cantidades monetarias como enteros en centavos o con tipos decimales, nunca con `number` flotante para cálculos de caja.
-- **Convención de dinero (spec `M1-t08`):** precio hasta 2 decimales (máx. `99999999.99`), costo hasta 4 (máx. `999999.9999`); decimales de más o fuera de rango → error de campo y `422`, nunca redondeo silencioso. Los montos viajan como texto (`"450.50"`); el backend también acepta número y normaliza con `requireMoney`. En el frontend son `string` e inputs `type="text" inputmode="decimal"`. Comparar o calcular siempre con `money.ts` (`src/app/shared/` y `backend/src/lib/`, mismo contrato): `toMinorUnits`, `fromMinorUnits`, `compareMoney`, `decimalPlaces`; `Number()` solo para el pipe `currency`. M2/M3: cada venta guarda precio y costo del momento como `numeric`; totales de venta con enteros en el backend; cortes y reportes con `sum()` en SQL; redondeo a centavos una sola vez al final (mitad hacia arriba).
-- Toda operación que modifique inventario o caja debe registrar un movimiento; no sobrescribir saldos directamente. En inventario la base lo impone: solo se insertan `stock_movements` con `insertMovements`.
+- Nunca `number` flotante para cálculos de caja. **Convención (spec `M1-t08`):** precio hasta 2 decimales (máx. `99999999.99`), costo hasta 4 (máx. `999999.9999`); decimales de más o fuera de rango → error de campo y `422`, **nunca redondeo silencioso**. Los montos viajan como texto (`"450.50"`); el backend también acepta número y normaliza con `requireMoney(body, field, { scale, label })`. En el frontend son `string`.
+- Calcular o comparar siempre con `money.ts` (`src/app/shared/utils/` y `backend/src/lib/`, mismo contrato): `toMinorUnits`, `fromMinorUnits`, `compareMoney`, `decimalPlaces`; `Number()` solo para el pipe `currency` al mostrar.
+- Ventas, cortes y precios por vendedor: cada venta guarda precio y costo del momento como `numeric`; totales de venta con enteros en el backend; cortes y reportes con `sum()` en SQL; un costo de 4 decimales se redondea a centavos **una sola vez, al final** (mitad hacia arriba).
+- Toda operación que modifique inventario o caja registra un movimiento; no se sobrescriben saldos (en inventario la base lo impone).
 
 ## Diseño de interfaces
 
-- Antes de crear una pantalla nueva, definir estilo, paleta y reglas de UX (en Claude Code, con la skill ui-ux-pro-max).
-- Después, trabajar el acabado visual (en Claude Code, con la skill frontend-design).
-- No aplicar este flujo a cambios menores ni a lógica sin interfaz.
+- Antes de crear una pantalla nueva, usar definir estilo, paleta y reglas de UX (en Claude Code, la skill ui-ux-pro-max); después trabajar el acabado visual (la skill frontend-design). No aplicar este flujo a cambios menores ni a lógica sin interfaz.
 - Mantener los colores, tipografías y componentes ya definidos en el sistema de diseño del proyecto.
 
-## Workflow
+## Git
 
-- Specs are written with `/spec` and implemented with `/spec-impl`; `specs/.spec-config.yml` (`AutoCreateBranch`) controls whether a `spec-<slug>` branch is created automatically.
-- `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, and cross-spec relationships). Update it in the same change whenever a spec is created, changes status, or affects another spec. Older specs cite pre-reorganization paths (`pages/…`, `@pages/*`…); the old → new table is the last bullet of its «Relaciones» section.
-- When a spec maps to a Jira user story (`HU-NN`):
-  - **During implementation**, comment progress on the Jira issue: current step of the spec's plan and the status (✅ done / ❌ pending / ⏳ deferred) of each acceptance criterion — follow the pattern on `SCRUM-17`.
-  - **At 100%** (all acceptance criteria checked, tests passing), transition the story to `Finalizada`.
 - Don't commit or push unless asked; branch off `main` rather than committing to it.
