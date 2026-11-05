@@ -1,6 +1,6 @@
 # Spec técnico — HU-19 · Generar el corte con los precios del vendedor (administrador)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M4a-t20-base-cortes (`specs/M4a-t20-base-cortes/spec.md`) — `GET /api/cuts` con totales, desglose y ventas; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — titular de «Viendo» (`ViewingService`); M3-hu16-confirmar-venta (`specs/M3-hu16-confirmar-venta/spec.md`) — ventas del vendedor; M3-hu17-vender-como-administrador (`specs/M3-hu17-vender-como-administrador/spec.md`) — ventas del administrador desde el stock de un vendedor; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-04
 > **Objetivo:** que el administrador, en «Corte», genere el corte con precios del titular de «Viendo» (un vendedor o la bodega) para un día, semana o mes, actual o anterior, y vea lo vendido, el costo, la ganancia, el desglose por producto y las ventas que lo forman.
@@ -89,6 +89,7 @@ Fuentes:
   - **Ventas:**
     - Sección «Ventas (N)», con la más reciente primero.
     - Cada venta, plegada, muestra la hora (con «Día») o la fecha y la hora (con Semana o Mes), el total, la ganancia y la etiqueta «Registrada por ti» si `registeredByAdmin`.
+    - Las listas del desglose y de ventas tienen alto máximo y se desplazan por dentro (scroll propio, con el encabezado fuera), para ver ambas secciones sin alargar la página (ajuste del 2026-11-04 tras la revisión visual).
     - Al tocarla se despliegan sus productos (cantidad × precio, subtotal y ganancia). Se despliega una a la vez o varias, según lo que decida diseño.
   - **Precios y costos:** son los guardados en cada venta (precio y costo con envío del vendedor, o los generales). La pantalla nunca relee los precios actuales (criterio 3).
 - **Dinero (criterio 4):** los montos llegan como texto y solo se convierten con `Number()` para el pipe `currency` al mostrarlos (`$1,840.00`). Ninguna suma ni resta se hace en el frontend.
@@ -212,25 +213,25 @@ export function periodLabel(kind: CutPeriodKind, from: string, to: string, today
 
 Por criterio de `SCRUM-55`:
 
-- [ ] **1.** En «Corte», el administrador ve a quién corta (el titular de «Viendo»: un vendedor o «Yo · bodega»), el periodo (Día, Semana, Mes) y «Generar corte».
-- [ ] **2.** Con Luis y «Semana», «Generar corte» muestra lo vendido, el costo con envío, la ganancia y el desglose por producto (foto, piezas, precio de Luis y subtotal).
-- [ ] **3.** Si Luis tiene precio y costo con envío propios, el corte usa los guardados en cada venta, no los precios actuales del producto.
-- [ ] **4.** 2 piezas a $920 con costo con envío $700 se muestran como vendido $1,840.00, costo $1,400.00 y ganancia $440.00, sin sumar ni redondear en el frontend.
-- [ ] **5.** Un periodo sin ventas muestra el estado vacío del canvas, no un corte en ceros.
-- [ ] **6.** Al cambiar de periodo o de titular en «Viendo» el resultado se quita, y el nuevo corte generado corresponde a la nueva selección sin mezclar ventas de otro titular.
-- [ ] **7.** Mientras carga se ve «Calculando el corte…». Si falla o no hay conexión se ve el error con «Reintentar», y «Reintentar» vuelve a pedirlo.
-- [ ] **8.** A 375 px se usa sin zoom ni scroll horizontal (RNF-03), y generar un corte toma unos pocos toques (RNF-02).
+- [x] **1.** En «Corte», el administrador ve a quién corta (el titular de «Viendo»: un vendedor o «Yo · bodega»), el periodo (Día, Semana, Mes) y «Generar corte».
+- [x] **2.** Con Luis y «Semana», «Generar corte» muestra lo vendido, el costo con envío, la ganancia y el desglose por producto (foto, piezas, precio de Luis y subtotal).
+- [x] **3.** Si Luis tiene precio y costo con envío propios, el corte usa los guardados en cada venta, no los precios actuales del producto.
+- [x] **4.** 2 piezas a $920 con costo con envío $700 se muestran como vendido $1,840.00, costo $1,400.00 y ganancia $440.00, sin sumar ni redondear en el frontend.
+- [x] **5.** Un periodo sin ventas muestra el estado vacío del canvas, no un corte en ceros.
+- [x] **6.** Al cambiar de periodo o de titular en «Viendo» el resultado se quita, y el nuevo corte generado corresponde a la nueva selección sin mezclar ventas de otro titular.
+- [x] **7.** Mientras carga se ve «Calculando el corte…». Si falla o no hay conexión se ve el error con «Reintentar», y «Reintentar» vuelve a pedirlo.
+- [x] **8.** A 375 px se usa sin zoom ni scroll horizontal (RNF-03), y generar un corte toma unos pocos toques (RNF-02).
 
 Además (decisiones del 2026-11-04, §9):
 
-- [ ] Las flechas «‹ Anterior» y «Siguiente ›» cambian el periodo y su texto. «Siguiente ›» está deshabilitado en el periodo actual.
-- [ ] El texto del periodo coincide con el `period.from/to` del backend (lunes a domingo, mes calendario) en hora de México.
-- [ ] El selector «Tipo de corte» muestra «Corte con precios (para vendedor)» elegido y «Corte (para casa)» deshabilitado con «Próximamente».
-- [ ] Con «Yo · bodega» el corte es el de la bodega («Mis ventas desde bodega», «Lo que vendí»), sin «Resumen del negocio».
-- [ ] La sección «Ventas» lista cada venta plegada (hora, total, ganancia), con «Registrada por ti» en las del administrador desde el stock del vendedor, y se despliega con sus productos.
-- [ ] El resultado muestra «Generado hoy a las HH:MM», y «Generar de nuevo» vuelve a pedir el mismo corte.
-- [ ] «Generar corte» está deshabilitado mientras carga la lista de «Viendo».
-- [ ] `features/cash-cut` no importa otras features. `npm run check:architecture`, `ng build` y `ng test` pasan.
+- [x] Las flechas «‹ Anterior» y «Siguiente ›» cambian el periodo y su texto. «Siguiente ›» está deshabilitado en el periodo actual.
+- [x] El texto del periodo coincide con el `period.from/to` del backend (lunes a domingo, mes calendario) en hora de México.
+- [x] El selector «Tipo de corte» muestra «Corte con precios (para vendedor)» elegido y «Corte (para casa)» deshabilitado con «Próximamente».
+- [x] Con «Yo · bodega» el corte es el de la bodega («Mis ventas desde bodega», «Lo que vendí»), sin «Resumen del negocio».
+- [x] La sección «Ventas» lista cada venta plegada (hora, total, ganancia), con «Registrada por ti» en las del administrador desde el stock del vendedor, y se despliega con sus productos.
+- [x] El resultado muestra «Generado hoy a las HH:MM», y «Generar de nuevo» vuelve a pedir el mismo corte.
+- [x] «Generar corte» está deshabilitado mientras carga la lista de «Viendo».
+- [x] `features/cash-cut` no importa otras features. `npm run check:architecture`, `ng build` y `ng test` pasan.
 
 ## 7. Plan de pruebas
 
