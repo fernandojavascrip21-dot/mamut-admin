@@ -21,6 +21,7 @@ const ALIASES: Record<string, string> = {
   '@returns': 'src/returns',
   '@inventory': 'src/inventory',
   '@sales': 'src/sales',
+  '@cuts': 'src/cuts',
 }
 
 const walk = (dir: string): string[] =>

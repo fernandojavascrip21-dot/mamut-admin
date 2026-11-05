@@ -1,0 +1,2 @@
+// API pública del módulo de cortes (T-20): calcula el corte de un titular sin guardarlo.
+export * from './cuts'
