@@ -29,10 +29,11 @@ describe('CutSaleItemComponent', () => {
     el().querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim();
   const toggle = () => el().querySelector('.toggle') as HTMLButtonElement;
 
-  function render(sale: CutSale, showDate = false) {
+  function render(sale: CutSale, showDate = false, perspective?: 'admin' | 'seller') {
     fixture = TestBed.createComponent(CutSaleItemComponent);
     fixture.componentRef.setInput('sale', sale);
     fixture.componentRef.setInput('showDate', showDate);
+    if (perspective) fixture.componentRef.setInput('perspective', perspective);
     fixture.detectChanges();
   }
 
@@ -84,5 +85,13 @@ describe('CutSaleItemComponent', () => {
     toggle().click();
     fixture.detectChanges();
     expect(el().querySelector('.line-profit')).toBeNull();
+  });
+
+  it('la marca de una venta del administrador dice «Registrada por ti» o «Registrada por el administrador» según la perspectiva', () => {
+    const adminSale = { ...SALE, registeredByAdmin: true };
+    render(adminSale);
+    expect(text('.admin-tag')).toBe('Registrada por ti');
+    render(adminSale, false, 'seller');
+    expect(text('.admin-tag')).toBe('Registrada por el administrador');
   });
 });

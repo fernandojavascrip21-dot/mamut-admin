@@ -16,11 +16,16 @@ describe('CutSummaryComponent', () => {
     profit: '440.00',
   };
 
-  function render(totals: CashCut['totals'], holderName: string | null) {
+  function render(
+    totals: CashCut['totals'],
+    holderName: string | null,
+    perspective?: 'admin' | 'seller',
+  ) {
     fixture = TestBed.createComponent(CutSummaryComponent);
     fixture.componentRef.setInput('totals', totals);
     fixture.componentRef.setInput('holderName', holderName);
     fixture.componentRef.setInput('periodText', '2 al 8 nov');
+    if (perspective) fixture.componentRef.setInput('perspective', perspective);
     fixture.detectChanges();
   }
 
@@ -43,6 +48,20 @@ describe('CutSummaryComponent', () => {
     render({ ...TOTALS, units: 1 }, null);
     expect(text('.sold-caption')).toBe('Mis ventas desde bodega · 2 al 8 nov · 1 pieza');
     expect(text('.cost-label')).toBe('Costo');
+  });
+
+  it('con perspective «seller»: «Vendí · 2 al 8 nov · 5 piezas» y «Total a entregar»', () => {
+    render(TOTALS, null, 'seller');
+    expect(text('.sold-caption')).toBe('Vendí · 2 al 8 nov · 5 piezas');
+    expect(text('.cost-label')).toBe('Total a entregar');
+    expect(text('.cost')).toBe('$1,400.00');
+    expect(text('.profit')).toBe('$440.00');
+  });
+
+  it('con perspective «admin» los textos de HU-19 no cambian', () => {
+    render(TOTALS, 'Luis', 'admin');
+    expect(text('.sold-caption')).toBe('Vendió Luis · 2 al 8 nov · 5 piezas');
+    expect(text('.cost-label')).toBe('Costo con envío');
   });
 
   it('una ganancia negativa se muestra con signo menos', () => {

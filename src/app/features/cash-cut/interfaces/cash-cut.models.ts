@@ -1,6 +1,9 @@
 // Forma de GET /api/cuts (T-20), compartida con «Mi corte» del vendedor (HU-20).
-// Los campos de costo y ganancia son opcionales porque el backend no los manda al vendedor.
+// Los campos de costo y ganancia se mantienen opcionales; desde HU-20 el vendedor también los recibe.
 export type CutPeriodKind = 'day' | 'week' | 'month';
+
+// Quién lee el corte: cambia solo los textos de los componentes compartidos (HU-19 / HU-20).
+export type CutPerspective = 'admin' | 'seller';
 
 // Petición del corte. `holderId` null = bodega (no se manda al backend); `date` es 'YYYY-MM-DD'.
 export interface CashCutQuery {

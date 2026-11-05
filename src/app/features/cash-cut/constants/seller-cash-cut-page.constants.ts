@@ -10,8 +10,10 @@ export const SELLER_CASH_CUT_PAGE_TEXTS = {
   emptyTitle: 'Sin ventas en este periodo',
   emptyHint: 'Cambia el periodo o vende algo para ver tu corte.',
   errorTitle: 'No se pudo generar tu corte',
+  errorHint: 'Revisa tu conexión e inténtalo de nuevo.',
   retry: 'Reintentar',
   generatedAt: 'Generado hoy a las',
   productsTitle: 'Lo que vendí',
+  productsColumns: 'vendido · ganancia',
   salesTitle: 'Ventas',
 } as const;

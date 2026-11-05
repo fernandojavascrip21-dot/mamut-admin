@@ -3,7 +3,7 @@ import { Component, computed, input } from '@angular/core';
 import { Card } from 'primeng/card';
 import { CUT_CARD_PASS_THROUGH } from '../../constants/cash-cut.constants';
 import { unitsLabel } from '@shared/utils/units-label';
-import type { CashCut } from '../../interfaces/cash-cut.models';
+import type { CashCut, CutPerspective } from '../../interfaces/cash-cut.models';
 import { CUT_SUMMARY_TEXTS } from './cut-summary.constants';
 
 // Resumen del corte: vendido, costo y ganancia (HU-19). Las cifras son las de `totals` tal como las
@@ -22,17 +22,23 @@ export class CutSummaryComponent {
   readonly holderName = input.required<string | null>();
   // Texto del periodo («2 al 8 nov»).
   readonly periodText = input.required<string>();
+  // 'seller' (HU-20): «Vendí…» y «Total a entregar»; 'admin' conserva los textos de HU-19.
+  readonly perspective = input<CutPerspective>('admin');
 
   // «Vendió Luis · 2 al 8 nov · 5 piezas» o «Mis ventas desde bodega · … · N piezas».
   readonly soldCaption = computed(() => {
-    const who = this.holderName()
-      ? `${this.texts.sellerSold} ${this.holderName()}`
-      : this.texts.warehouseSold;
+    const who =
+      this.perspective() === 'seller'
+        ? this.texts.mySold
+        : this.holderName()
+          ? `${this.texts.sellerSold} ${this.holderName()}`
+          : this.texts.warehouseSold;
     return `${who} · ${this.periodText()} · ${unitsLabel(this.totals().units)}`;
   });
-  readonly costLabel = computed(() =>
-    this.holderName() ? this.texts.costWithShipping : this.texts.cost,
-  );
+  readonly costLabel = computed(() => {
+    if (this.perspective() === 'seller') return this.texts.amountToDeliver;
+    return this.holderName() ? this.texts.costWithShipping : this.texts.cost;
+  });
 
   // `Number()` solo para pasar el monto al pipe `currency` al mostrarlo.
   readonly total = computed(() => Number(this.totals().total));
