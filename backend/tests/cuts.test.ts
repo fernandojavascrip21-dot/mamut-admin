@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { desc, eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { GET as cutsRoute } from '@api/cuts/route'
 import { getCashCut, resolveCutHolder, resolveCutPeriod } from '@cuts'
 import { db, sql } from '@db/client'
 import { directSales, products, stockMovements, vendorStock } from '@db/schema'
@@ -161,7 +162,6 @@ describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas re
   afterAll(async () => {
     await cleanupStock()
     await cleanupTestData()
-    await sql.end()
   }, 60_000)
 
   it('un periodo sin ventas devuelve ceros y listas vacías', async () => {
@@ -251,5 +251,75 @@ describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas re
     expect(cut.totals.salesCount).toBeGreaterThan(0)
     const keys = JSON.stringify(cut)
     expect(keys).not.toMatch(/"(cost|unitCost|profit)"/)
+  })
+})
+
+describe.skipIf(!hasServiceKey)('Corte: GET /api/cuts (T-20, con cuentas reales)', () => {
+  let admin: TestUser
+  let seller: TestUser
+  let otherSeller: TestUser
+  let inactiveSeller: TestUser
+
+  const getCut = (token: string | undefined, query = '') =>
+    cutsRoute(new Request(`http://api.test/api/cuts${query}`, {
+      headers: token ? { authorization: `Bearer ${token}` } : {},
+    }), undefined)
+
+  beforeAll(async () => {
+    await cleanupStock()
+    await cleanupTestData()
+    admin = await createTestUser('t20-ruta-admin', { role: 'admin' })
+    seller = await createTestUser('t20-ruta-luis', { role: 'vendedor' })
+    otherSeller = await createTestUser('t20-ruta-otro', { role: 'vendedor' })
+    inactiveSeller = await createTestUser('t20-ruta-inactivo', { role: 'vendedor', active: false })
+  }, 60_000)
+
+  afterAll(async () => {
+    await cleanupStock()
+    await cleanupTestData()
+    await sql.end()
+  }, 60_000)
+
+  it('sin sesión da 401 y una cuenta desactivada no pasa', async () => {
+    expect((await getCut(undefined)).status).toBe(401)
+    expect((await getCut(inactiveSeller.token)).status).toBeGreaterThanOrEqual(401)
+    expect((await getCut(inactiveSeller.token)).status).toBeLessThanOrEqual(403)
+  })
+
+  it('administrador con holderId y period=week recibe 200 con la semana de lunes a domingo', async () => {
+    const res = await getCut(admin.token, `?holderId=${seller.id}&period=week&date=2026-11-04`)
+    expect(res.status).toBe(200)
+    const { cut } = await res.json()
+    expect(cut.holder).toMatchObject({ id: seller.id })
+    expect(cut.period).toEqual({ kind: 'week', from: '2026-11-02', to: '2026-11-08', timeZone: 'America/Mexico_City' })
+    expect(cut.totals).toMatchObject({ salesCount: 0, total: '0.00' })
+    expect(cut.products).toEqual([])
+    expect(cut.sales).toEqual([])
+  })
+
+  it('administrador sin holderId recibe la bodega; period por defecto es day', async () => {
+    const { cut } = await (await getCut(admin.token)).json()
+    expect(cut.holder).toBeNull()
+    expect(cut.period.kind).toBe('day')
+    expect(cut.period.from).toBe(cut.period.to)
+  })
+
+  it('administrador pide un vendedor desactivado: 200; un id que no es de vendedor: 404', async () => {
+    expect((await getCut(admin.token, `?holderId=${inactiveSeller.id}`)).status).toBe(200)
+    expect((await getCut(admin.token, `?holderId=${admin.id}`)).status).toBe(404)
+  })
+
+  it('vendedor: su corte sin holderId; el de otro, 403; sin llaves de costo ni ganancia', async () => {
+    const own = await getCut(seller.token)
+    expect(own.status).toBe(200)
+    const text = JSON.stringify(await own.json())
+    expect(text).not.toMatch(/"(cost|unitCost|profit)"/)
+    expect((await getCut(seller.token, `?holderId=${otherSeller.id}`)).status).toBe(403)
+  })
+
+  it('parámetros inválidos dan 422', async () => {
+    for (const query of ['?period=year', '?date=2026-13-01', '?date=2026-02-30', '?date=04/11/2026', '?holderId=no-es-uuid']) {
+      expect((await getCut(admin.token, query)).status, query).toBe(422)
+    }
   })
 })
