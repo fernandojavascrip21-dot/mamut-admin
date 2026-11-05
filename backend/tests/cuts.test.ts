@@ -1,6 +1,33 @@
+import { randomUUID } from 'node:crypto'
+import { desc, eq, ilike, inArray } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { resolveCutHolder, resolveCutPeriod } from '@cuts'
-import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
+import { getCashCut, resolveCutHolder, resolveCutPeriod } from '@cuts'
+import { db, sql } from '@db/client'
+import { directSales, products, stockMovements, vendorStock } from '@db/schema'
+import { withTransaction } from '@db/transaction'
+import { createSale } from '@sales'
+import { insertMovements, setHolderPrices } from '@stock'
+import { cleanupSales, cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
+
+// Productos de prueba con prefijo propio, para limpiarlos sin tocar el catálogo.
+const PREFIX = 'test-cuts-'
+const productName = (label: string) => `${PREFIX}${label}-${Date.now()}-${Math.floor(Math.random() * 1e5)}`
+
+// Las ventas se borran primero (sus renglones apuntan a los productos con FK `restrict`); luego los
+// movimientos del más nuevo al más viejo, vendor_stock y los productos.
+async function cleanupStock() {
+  await cleanupSales()
+  const rows = await db.select({ id: products.id }).from(products).where(ilike(products.name, `${PREFIX}%`))
+  const ids = rows.map((row) => row.id)
+  if (ids.length === 0) return
+  const movements = await db.select({ id: stockMovements.id }).from(stockMovements)
+    .where(inArray(stockMovements.productId, ids)).orderBy(desc(stockMovements.id))
+  for (const movement of movements) {
+    await db.delete(stockMovements).where(eq(stockMovements.id, movement.id))
+  }
+  await db.delete(vendorStock).where(inArray(vendorStock.productId, ids))
+  await db.delete(products).where(inArray(products.id, ids))
+}
 
 // México no tiene horario de verano: UTC-6 todo el año (spec T-20 §8).
 describe('Corte: periodo (T-20)', () => {
@@ -89,5 +116,106 @@ describe.skipIf(!hasServiceKey)('Corte: titular y permisos (T-20, con cuentas re
 
   it('el vendedor que pide el corte de otro vendedor recibe 403', async () => {
     await expect(resolveCutHolder(otherSeller.id, asSeller())).rejects.toMatchObject({ status: 403 })
+  })
+})
+
+describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas reales)', () => {
+  let admin: TestUser
+  let seller: TestUser
+  const asAdmin = () => ({ userId: admin.id, role: 'admin' })
+  const asSeller = () => ({ userId: seller.id, role: 'vendedor' })
+
+  // Producto con `qty` piezas ya en manos del vendedor, con precio y costo con envío propios.
+  const productWithSeller = async (label: string, qty: number, unitPrice: string, unitCostWithShipping: string) => {
+    const [product] = await db.insert(products)
+      .values({ name: productName(label), price: '1', unitCost: '1' })
+      .returning()
+    const productId = product!.id
+    await withTransaction(async (tx) => {
+      await insertMovements(tx, [
+        { productId, type: 'initial', qty, holderProfileId: null, createdBy: admin.id },
+        { productId, type: 'delivery', qty: -qty, holderProfileId: null, createdBy: admin.id },
+        { productId, type: 'delivery', qty, holderProfileId: seller.id, createdBy: admin.id },
+      ])
+      await setHolderPrices(tx, seller.id, productId, { unitPrice, unitCostWithShipping })
+    })
+    return productId
+  }
+
+  const sellAs = (actor: { userId: string; role: string }, productId: number, qty: number) =>
+    createSale({ requestId: randomUUID(), holderId: seller.id, lines: [{ productId, qty }] }, actor)
+
+  // Corte del día de hoy en México del vendedor, visto por el administrador.
+  const todayCut = async () => {
+    const { from } = await resolveCutPeriod('day', undefined)
+    return getCashCut({ holderId: seller.id, period: 'day', date: from }, asAdmin())
+  }
+
+  beforeAll(async () => {
+    await cleanupStock()
+    await cleanupTestData()
+    admin = await createTestUser('t20-sumas-admin', { role: 'admin' })
+    seller = await createTestUser('t20-sumas-luis', { role: 'vendedor' })
+  }, 60_000)
+
+  afterAll(async () => {
+    await cleanupStock()
+    await cleanupTestData()
+    await sql.end()
+  }, 60_000)
+
+  it('un periodo sin ventas devuelve ceros y listas vacías', async () => {
+    const cut = await getCashCut({ holderId: seller.id, period: 'day', date: '2001-01-01' }, asAdmin())
+    expect(cut.totals).toEqual({ salesCount: 0, units: 0, total: '0.00', cost: '0.00', profit: '0.00' })
+    expect(cut.products).toEqual([])
+  })
+
+  it('cifras: 2 piezas a 920.00 con costo 700.0000 dan total 1840.00, costo 1400.00 y ganancia 440.00', async () => {
+    const productId = await productWithSeller('cifras', 5, '920', '700')
+    await sellAs({ userId: seller.id, role: 'vendedor' }, productId, 2)
+    const cut = await todayCut()
+    expect(cut.totals).toEqual({ salesCount: 1, units: 2, total: '1840.00', cost: '1400.00', profit: '440.00' })
+    expect(cut.products).toEqual([
+      { productId, name: expect.stringContaining('cifras'), image: null, unitPrice: '920.00', units: 2, total: '1840.00', cost: '1400.00', profit: '440.00' },
+    ])
+  })
+
+  it('el costo de 4 decimales se redondea una sola vez: 3 piezas a 0.3335 dan 1.00', async () => {
+    const productId = await productWithSeller('redondeo', 5, '2', '0.3335')
+    await sellAs({ userId: seller.id, role: 'vendedor' }, productId, 3)
+    const cut = await todayCut()
+    const line = cut.products.find((product) => product.productId === productId)
+    expect(line).toMatchObject({ total: '6.00', cost: '1.00', profit: '5.00' })
+  })
+
+  it('si el precio cambió dentro del periodo, el desglose trae un renglón por precio', async () => {
+    const productId = await productWithSeller('dos-precios', 6, '100', '40')
+    await sellAs({ userId: seller.id, role: 'vendedor' }, productId, 1)
+    await withTransaction((tx) => setHolderPrices(tx, seller.id, productId, { unitPrice: '120', unitCostWithShipping: '40' }))
+    await sellAs({ userId: seller.id, role: 'vendedor' }, productId, 2)
+    const cut = await todayCut()
+    const lines = cut.products.filter((product) => product.productId === productId)
+    expect(lines.map((line) => [line.unitPrice, line.units, line.total]).sort()).toEqual([
+      ['100.00', 1, '100.00'],
+      ['120.00', 2, '240.00'],
+    ])
+  })
+
+  it('una venta anulada no cuenta en totales ni desglose', async () => {
+    const productId = await productWithSeller('anulada', 3, '50', '10')
+    const { sale } = await sellAs({ userId: seller.id, role: 'vendedor' }, productId, 1)
+    const before = await todayCut()
+    await db.update(directSales).set({ voidedAt: new Date().toISOString() }).where(eq(directSales.id, sale.id))
+    const after = await todayCut()
+    expect(after.totals.salesCount).toBe(before.totals.salesCount - 1)
+    expect(after.products.some((product) => product.productId === productId)).toBe(false)
+  })
+
+  it('el vendedor recibe el corte sin costo ni ganancia en ningún nivel', async () => {
+    const { from } = await resolveCutPeriod('day', undefined)
+    const cut = await getCashCut({ holderId: undefined, period: 'day', date: from }, asSeller())
+    expect(cut.totals.salesCount).toBeGreaterThan(0)
+    const keys = JSON.stringify(cut)
+    expect(keys).not.toMatch(/"(cost|unitCost|profit)"/)
   })
 })

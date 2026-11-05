@@ -137,3 +137,117 @@ export async function resolveCutHolder(
   if (holderId && holderId !== actor.userId) throw forbidden()
   return getSellerName(actor.userId)
 }
+
+// Ventas vigentes del titular dentro del periodo: `null` = bodega. El rango es [inicio, fin) en
+// instantes, así que una venta a las 00:00:00 del día siguiente queda fuera. Las anuladas no cuentan.
+const salesOf = (holder: { id: string } | null, period: ResolvedPeriod) => sql`
+  ${holder ? sql`ds.holder_profile_id = ${holder.id}::uuid` : sql`ds.holder_profile_id is null`}
+  and ds.voided_at is null
+  and ds.sold_at >= ${period.startsAt}::timestamptz
+  and ds.sold_at < ${period.endsAt}::timestamptz`
+
+type TotalsRow = {
+  sales_count: number
+  units: number
+  total: string
+  cost: string
+  profit: string
+}
+
+type ProductRow = {
+  product_id: number
+  name: string
+  image: string | null
+  unit_price: string
+  units: number
+  total: string
+  cost: string
+  profit: string
+}
+
+// Totales del corte. `total` es exacto (numeric a 2 decimales); `cost` suma `qty × unit_cost` a 4
+// decimales y se redondea a centavos una sola vez, aquí al final (T-08); `round` de Postgres es
+// «mitad lejos de cero», que con costos ≥ 0 equivale a «mitad hacia arriba». `profit` ya sale de
+// centavos menos centavos. En un periodo vacío todo queda en cero.
+async function queryTotals(holder: { id: string } | null, period: ResolvedPeriod): Promise<CashCut['totals']> {
+  const [row] = await db.execute<TotalsRow>(sql`
+    select
+      count(distinct ds.id)::int as sales_count,
+      coalesce(sum(dsi.qty), 0)::int as units,
+      round(coalesce(sum(dsi.qty * dsi.unit_price), 0), 2)::text as total,
+      round(coalesce(sum(dsi.qty * dsi.unit_cost), 0), 2)::text as cost,
+      (round(coalesce(sum(dsi.qty * dsi.unit_price), 0), 2)
+        - round(coalesce(sum(dsi.qty * dsi.unit_cost), 0), 2))::text as profit
+    from direct_sales ds
+    join direct_sale_items dsi on dsi.direct_sale_id = ds.id
+    where ${salesOf(holder, period)}
+  `)
+  return { salesCount: row.sales_count, units: row.units, total: row.total, cost: row.cost, profit: row.profit }
+}
+
+// Desglose por producto *y precio de venta*: si el precio cambió dentro del periodo salen dos
+// renglones en vez de promediarlo. Nombre y foto son los actuales; precio y costo, los de la venta.
+async function queryProducts(holder: { id: string } | null, period: ResolvedPeriod): Promise<CutProductLine[]> {
+  const rows = await db.execute<ProductRow>(sql`
+    select
+      dsi.product_id,
+      p.name,
+      p.image,
+      dsi.unit_price::text as unit_price,
+      sum(dsi.qty)::int as units,
+      round(sum(dsi.qty * dsi.unit_price), 2)::text as total,
+      round(sum(dsi.qty * dsi.unit_cost), 2)::text as cost,
+      (round(sum(dsi.qty * dsi.unit_price), 2) - round(sum(dsi.qty * dsi.unit_cost), 2))::text as profit
+    from direct_sales ds
+    join direct_sale_items dsi on dsi.direct_sale_id = ds.id
+    join products p on p.id = dsi.product_id
+    where ${salesOf(holder, period)}
+    group by dsi.product_id, p.name, p.image, dsi.unit_price
+    order by sum(dsi.qty * dsi.unit_price) desc, p.name, dsi.unit_price desc
+  `)
+  return rows.map((row) => ({
+    productId: Number(row.product_id),
+    name: row.name,
+    image: row.image || null, // sin foto la base guarda '' (igual que en T-18)
+    unitPrice: row.unit_price,
+    units: row.units,
+    total: row.total,
+    cost: row.cost,
+    profit: row.profit,
+  }))
+}
+
+// Quita costo y ganancia de la respuesta cuando quien pide no es administrador (RF-02, RNF-04):
+// es el único lugar donde se recorta, para que ninguna consulta nueva filtre el costo por olvido.
+function trimForRole(cut: CashCut, actor: CutActor): CashCut {
+  if (actor.role === 'admin') return cut
+  const { cost: _totalCost, profit: _totalProfit, ...totals } = cut.totals
+  return {
+    ...cut,
+    totals,
+    products: cut.products.map(({ cost: _cost, profit: _profit, ...product }) => product),
+    sales: cut.sales.map(({ profit: _profit, lines, ...sale }) => ({
+      ...sale,
+      lines: lines.map(({ unitCost: _unitCost, profit: _lineProfit, ...line }) => line),
+    })),
+  }
+}
+
+// Corte de un titular para un periodo calendario, calculado cada vez a partir de las ventas (no se
+// guarda). Resuelve primero periodo y titular, para que un 422/403/404 salga sin tocar las ventas.
+// La lista de ventas se agrega en el paso siguiente del plan (T-20 §5.5).
+export async function getCashCut(input: CashCutInput, actor: CutActor): Promise<CashCut> {
+  const period = await resolveCutPeriod(input.period, input.date)
+  const holder = await resolveCutHolder(input.holderId, actor)
+  const [totals, products] = await Promise.all([queryTotals(holder, period), queryProducts(holder, period)])
+  return trimForRole(
+    {
+      holder,
+      period: { kind: period.kind, from: period.from, to: period.to, timeZone: period.timeZone },
+      totals,
+      products,
+      sales: [],
+    },
+    actor,
+  )
+}
