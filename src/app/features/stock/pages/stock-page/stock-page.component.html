@@ -96,9 +96,13 @@
       </section>
     }
 
-    @if (lowStockItems().length > 0) {
+    @if (showLowStockCard()) {
       <div class="low-stock mt-4">
-        <app-low-stock-alert [title]="lowStockCardTitle()" [items]="lowStockItems()" />
+        <app-low-stock-alert
+          [title]="lowStockCardTitle()"
+          [items]="lowStockItems()"
+          (dismissed)="dismissLowStockCard()"
+        />
       </div>
     }
 
@@ -106,36 +110,111 @@
       <app-stock-quick-actions [actions]="quickActions()" />
     </div>
 
-    @if (!hasRows()) {
-      <p class="seller-empty mt-5 mb-0 text-center text-sm text-muted">{{ texts.sellerEmpty }}</p>
-    } @else {
-      <div class="relative mt-5">
-        <label for="stock-search" class="sr-only">{{ texts.searchLabel }}</label>
+    <div class="toolbar mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <button
+        pButton
+        type="button"
+        #lowButton
+        severity="secondary"
+        class="low-filter h-[52px] w-full shrink-0 justify-center gap-2 px-5 text-sm sm:w-auto"
+        aria-haspopup="dialog"
+        [attr.aria-label]="lowFilterAriaLabel()"
+        (click)="openLow()"
+      >
         <svg
           aria-hidden="true"
           width="18"
           height="18"
           viewBox="0 0 24 24"
           fill="none"
+          stroke="currentColor"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+          class="shrink-0 text-warning"
         >
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
+          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
         </svg>
-        <input
-          pInputText
-          id="stock-search"
-          type="search"
-          [placeholder]="texts.searchPlaceholder"
-          [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)"
-          class="h-[52px] min-w-0 w-full pl-11"
-        />
-      </div>
+        {{ texts.lowFilterLabel }}
+        @if (lowBadge(); as badge) {
+          <span
+            aria-hidden="true"
+            class="low-filter-badge inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning-bg px-1.5 font-mono text-[11px] leading-none font-bold text-warning-text ring-1 ring-warning-border"
+          >
+            {{ badge }}
+          </span>
+        }
+      </button>
+      @if (hasRows()) {
+        <div class="relative min-w-0 flex-1">
+          <label for="stock-search" class="sr-only">{{ texts.searchLabel }}</label>
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input
+            pInputText
+            id="stock-search"
+            type="search"
+            [placeholder]="texts.searchPlaceholder"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+            class="h-[52px] min-w-0 w-full pl-11"
+          />
+        </div>
+      }
+    </div>
 
+    @if (lowOpen()) {
+      <app-modal-panel [title]="lowPopupTitle()" (closed)="closeLow()">
+        <div class="low-popup flex w-full flex-col gap-3">
+          @if (lowRows().length === 0) {
+            <div class="empty flex flex-col items-center gap-1 text-center">
+              <p class="m-0 text-[17px] font-bold">{{ texts.lowFilterEmpty }}</p>
+              <p class="m-0 text-sm text-muted">{{ lowPopupEmptyHint() }}</p>
+            </div>
+          } @else {
+            <p class="summary m-0 text-sm font-semibold text-muted">
+              {{ lowPopupHolder() }} · <span class="count">{{ lowPopupCount() }}</span>
+            </p>
+            <ul
+              class="rows m-0 flex max-h-[60vh] list-none flex-col gap-3 overflow-y-auto p-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              tabindex="0"
+              [attr.aria-label]="lowPopupTitle()"
+            >
+              @for (row of lowRows(); track row.productId) {
+                <li class="min-w-0">
+                  <app-stock-product-row
+                    [name]="row.name"
+                    [image]="row.image"
+                    [units]="row.units"
+                    [stockLevel]="row.stockLevel ?? null"
+                  />
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </app-modal-panel>
+    }
+
+    @if (!hasRows()) {
+      <p class="seller-empty mt-5 mb-0 text-center text-sm text-muted">
+        {{ texts.sellerEmpty }}
+      </p>
+    } @else {
       @if (visibleRows().length === 0) {
         <div
           class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"

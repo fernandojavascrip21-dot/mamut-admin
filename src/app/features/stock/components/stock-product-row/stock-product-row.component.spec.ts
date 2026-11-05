@@ -47,4 +47,19 @@ describe('StockProductRowComponent', () => {
     fixture.detectChanges();
     expect(el().querySelector('img')).toBeNull();
   });
+
+  it('con stockLevel «out» muestra «Agotado» en texto; con «low» o sin él, no (HU-18)', () => {
+    fixture.componentRef.setInput('units', 0);
+    fixture.componentRef.setInput('stockLevel', 'out');
+    fixture.detectChanges();
+    expect(el().querySelector('.out')!.textContent!.trim()).toBe('Agotado');
+
+    fixture.componentRef.setInput('stockLevel', 'low');
+    fixture.detectChanges();
+    expect(el().querySelector('.out')).toBeNull();
+
+    fixture.componentRef.setInput('stockLevel', null);
+    fixture.detectChanges();
+    expect(el().querySelector('.out')).toBeNull();
+  });
 });

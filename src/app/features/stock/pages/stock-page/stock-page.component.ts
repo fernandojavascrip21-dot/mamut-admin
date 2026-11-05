@@ -1,10 +1,12 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { LowStockNoticeService } from '@core/low-stock-notice/low-stock-notice.service';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
+import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
 import { deliveryModalLink, returnModalLink } from '@shared/utils/modal-links';
 import { unitsLabel } from '@shared/utils/units-label';
 import { LowStockAlertComponent } from '../../components/low-stock-alert/low-stock-alert.component';
@@ -15,12 +17,12 @@ import { StockQuickActionsComponent } from '../../components/stock-quick-actions
 import type { StockQuickAction } from '../../components/stock-quick-actions/stock-quick-actions.models';
 import { StockSplitBarComponent } from '../../components/stock-split-bar/stock-split-bar.component';
 import {
-  LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
+  LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
 } from '../../constants/stock-page.constants';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import type { StockPageState, StockRow } from '../../models/stock-page.models';
 import {
-  filterStockByName, lowStockFor, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
+  filterStockByName, lowStockFor, lowStockOfHolder, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
 } from '../../rules/stock.rules';
 import { StockService } from '../../services/stock.service';
 
@@ -37,6 +39,7 @@ import { StockService } from '../../services/stock.service';
     StockProductRowComponent,
     StockProductRowSkeletonComponent,
     StockQuickActionsComponent,
+    ModalPanelComponent,
   ],
   selector: 'app-stock-page',
   templateUrl: './stock-page.component.html',
@@ -46,6 +49,7 @@ export class StockPageComponent {
   private readonly stockService = inject(StockService);
   private readonly viewing = inject(ViewingService);
   private readonly stockChanges = inject(StockChangesService);
+  private readonly lowStockNotice = inject(LowStockNoticeService);
 
   // 2) Datos y estados. El estado se deriva del recurso; volver a pedir el stock con datos en
   // pantalla (tras «Dejar» o «Retirar») no cuenta como cargando, para que no parpadee detrás del pop-up.
@@ -60,6 +64,9 @@ export class StockPageComponent {
   readonly isEmpty = computed(() => (this.overview()?.products.length ?? 0) === 0);
 
   readonly searchQuery = signal('');
+  // Pop-up «Baja existencia» (HU-18, spec §10): abierto muestra solo los productos bajos o agotados del
+  // titular en «Viendo»; la lista de la pantalla no cambia.
+  readonly lowOpen = signal(false);
   readonly texts = STOCK_PAGE_TEXTS;
   readonly newProductUrl = NEW_PRODUCT_URL;
 
@@ -108,7 +115,45 @@ export class StockPageComponent {
       stockLevel: alert.stockLevel,
     }));
   });
+  // La tarjeta sale si hay avisos y no se cerró con la X en esta sesión (HU-18, spec §10).
+  readonly showLowStockCard = computed(() => this.lowStockItems().length > 0 && !this.lowStockNotice.dismissed());
   readonly lowStockCardTitle = computed(() => lowStockTitle(this.lowStockItems().length, this.seller() !== null));
+
+  // Productos bajos o agotados del titular en «Viendo»: los del globo del botón y los del pop-up.
+  readonly lowRows = computed<StockRow[]>(() => {
+    const overview = this.overview();
+    if (!overview) return [];
+    return lowStockOfHolder(overview, this.seller()?.id ?? null).map((alert) => ({
+      productId: alert.productId, name: alert.name, image: alert.image, units: alert.units, breakdown: '',
+      stockLevel: alert.stockLevel,
+    }));
+  });
+  private readonly lowCount = computed(() => this.lowRows().length);
+  // Título y resumen del pop-up: «Baja existencia» o «Baja existencia de {nombre}», y «3 productos».
+  readonly lowPopupTitle = computed(() => {
+    const seller = this.seller();
+    return seller ? `${this.texts.lowPopupSellerTitlePrefix} ${seller.fullName}` : this.texts.lowFilterLabel;
+  });
+  readonly lowPopupHolder = computed(() => this.seller()?.fullName ?? this.texts.lowPopupWarehouse);
+  readonly lowPopupCount = computed(() => {
+    const count = this.lowCount();
+    return `${count} ${count === 1 ? this.texts.lowFilterAriaSingular : this.texts.lowFilterAriaPlural}`;
+  });
+  readonly lowPopupEmptyHint = computed(() =>
+    this.seller() ? this.texts.lowPopupEmptySeller : this.texts.lowPopupEmptyWarehouse,
+  );
+  readonly lowBadge = computed(() => {
+    const count = this.lowCount();
+    if (count <= 0) return null;
+    return count > LOW_FILTER_BADGE_MAX ? `${LOW_FILTER_BADGE_MAX}+` : String(count);
+  });
+  // Nombre accesible del botón: el globo va oculto a lectores de pantalla, así que el número va aquí.
+  readonly lowFilterAriaLabel = computed(() => {
+    const count = this.lowCount();
+    if (count <= 0) return this.texts.lowFilterLabel;
+    const noun = count === 1 ? this.texts.lowFilterAriaSingular : this.texts.lowFilterAriaPlural;
+    return `${this.texts.lowFilterLabel}, ${count} ${noun}`;
+  });
 
   // 4) Vista de un vendedor
   readonly sellerTotalLabel = computed(() => {
@@ -140,9 +185,29 @@ export class StockPageComponent {
     });
   }
 
+  // Botón «Baja existencia»: recibe el foco cuando se cierra la tarjeta, para que no caiga en `body`.
+  private readonly lowButton = viewChild<ElementRef<HTMLButtonElement>>('lowButton');
+
   // 5) Acciones del usuario
   retry(): void {
     this.stockResource.reload();
+  }
+
+  // «Baja existencia» (HU-18): abre y cierra el pop-up. Al cerrar, el foco regresa al botón (lo hace el
+  // marco `app-modal-panel`).
+  // X de la tarjeta ámbar: queda cerrada hasta el siguiente inicio de sesión y el foco pasa al botón, que
+  // sigue mostrando las notificaciones de baja existencia.
+  dismissLowStockCard(): void {
+    this.lowStockNotice.dismiss();
+    this.lowButton()?.nativeElement.focus();
+  }
+
+  openLow(): void {
+    this.lowOpen.set(true);
+  }
+
+  closeLow(): void {
+    this.lowOpen.set(false);
   }
 
   clearSearch(): void {

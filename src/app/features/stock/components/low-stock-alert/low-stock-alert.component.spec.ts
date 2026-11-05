@@ -39,6 +39,16 @@ describe('LowStockAlertComponent', () => {
     expect(rows[1].querySelector('.units')?.textContent?.trim()).toBe('1');
   });
 
+  it('la X tiene nombre accesible y emite dismissed al presionarla', () => {
+    const emitted = vi.fn();
+    fixture.componentInstance.dismissed.subscribe(emitted);
+    render('2 productos con baja existencia');
+    const button = el().querySelector('button.dismiss') as HTMLButtonElement;
+    expect(button.getAttribute('aria-label')).toBe('Cerrar aviso de baja existencia');
+    button.click();
+    expect(emitted).toHaveBeenCalledTimes(1);
+  });
+
   it('el renglón agotado dice «Agotado» con texto y el de baja existencia no', () => {
     render('2 productos con baja existencia');
     const rows = el().querySelectorAll('.item');

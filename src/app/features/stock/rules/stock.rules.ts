@@ -77,6 +77,14 @@ export function lowStockFor(overview: StockOverview, sellerId: string | null): S
   return overview.lowStock.filter((alert) => alert.holder?.id === sellerId);
 }
 
+// Avisos del titular en «Viendo» para el filtro «Baja existencia» (HU-18, spec §10): con `null`
+// («Yo · bodega») solo los de la bodega, no los de los vendedores; con un id, solo los de ese vendedor.
+// A diferencia de `lowStockFor`, que con `null` devuelve todos para la tarjeta ámbar. Conserva el orden
+// del backend (agotados primero, luego por nombre).
+export function lowStockOfHolder(overview: StockOverview, sellerId: string | null): StockLowAlert[] {
+  return overview.lowStock.filter((alert) => (alert.holder?.id ?? null) === sellerId);
+}
+
 // Título de la tarjeta de avisos: «1 producto con baja existencia» / «3 productos con baja
 // existencia»; con un vendedor, «N productos por terminarse».
 export function lowStockTitle(count: number, forSeller: boolean): string {

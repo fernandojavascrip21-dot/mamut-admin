@@ -3,7 +3,7 @@
 > **Estado:** Aprovado
 > **Depende de:** M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — «Stock general» y `GET /api/stock`; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — «Mi stock» y `GET /api/me/stock`; M3-hu16-confirmar-venta (`specs/M3-hu16-confirmar-venta/spec.md`) — «Venta confirmada» del vendedor; M3-hu17-vender-como-administrador (`specs/M3-hu17-vender-como-administrador/spec.md`) — `GET /api/sales/catalog`, «Productos» con «Agregar» y «Venta confirmada» del administrador; M1-hu05-ver-y-buscar-productos (`specs/M1-hu05-ver-y-buscar-productos/spec.md`) — `product-card` y su etiqueta «Agotado»; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `products.stock`, `vendor_stock.qty` y `stock_movements`
 > **Fecha:** 2026-11-04
-> **Objetivo:** que el administrador y cada vendedor vean dentro de la app qué productos quedaron con 2 piezas o menos, o agotados, en la bodega o con cada vendedor, para resurtir a tiempo.
+> **Objetivo:** que el administrador y cada vendedor vean dentro de la app qué productos quedaron con 2 piezas o menos, o agotados, en la bodega o con cada vendedor, para resurtir a tiempo. El administrador, además, los consulta con un botón «Baja existencia» dentro de «Stock general» que abre un pop-up con los productos del titular de «Viendo» (§10).
 
 Fuentes:
 
@@ -30,6 +30,7 @@ Fuentes:
 - **Frontend · «Venta confirmada»:**
   - Vendedor: aviso «Se avisó al administrador que te quedan pocas piezas de: …» cuando algún renglón quedó bajo o agotado.
   - Administrador: etiqueta «Baja existencia» / «Agotado» en el renglón que quedó así.
+- **Frontend · botón y pop-up «Baja existencia» en «Stock general»:** un solo botón con globo del número de avisos que abre un pop-up con los productos en baja existencia del titular en «Viendo»: la bodega con «Yo · bodega», o ese vendedor (§10).
 - **Pruebas** de backend y frontend (§7).
 
 **No entra en este spec:**
@@ -39,6 +40,9 @@ Fuentes:
 - Guardar avisos, marcarlos como leídos o llevar un historial: se calculan en cada lectura.
 - Lista de resurtir (RF-19, RF-20): v2.
 - Etiquetas en las filas de la lista de «Stock general» (el aviso es la tarjeta).
+- El botón «Baja existencia» para el vendedor: él ya tiene sus avisos en «Mi stock» y en «Venta confirmada».
+- Una opción de menú o una pantalla aparte para «Baja existencia»: el pedido final del usuario es el botón dentro de «Stock general» (§10).
+- Acciones sobre un aviso (dejar, retirar, entrada a bodega): solo consulta; actuar sobre un aviso es otra historia.
 - Productos archivados: nunca generan aviso.
 - Migraciones o cambios en `supabase/seed.sql`.
 
@@ -58,6 +62,7 @@ Fuentes:
   - Con «Yo · bodega»: tarjeta ámbar «N productos con baja existencia» (singular «1 producto con baja existencia») con un renglón por aviso: nombre, titular y piezas («Creatina 300 g · Bodega: 1», «Whey 2 lb · Luis: 0 · Agotado»). Un mismo producto bajo en la bodega y con Luis sale dos veces.
   - Con un vendedor en «Viendo»: «N productos por terminarse» con solo los avisos de ese vendedor.
   - Sin avisos, la tarjeta no sale. Orden: agotados primero, luego por nombre.
+  - La tarjeta tiene una X (pedido del usuario del 2026-11-04, §10): al cerrarla queda cerrada el resto de la sesión (aunque se navegue, se cambie de vendedor o se recargue la página) y reaparece en el siguiente inicio de sesión. El botón «Baja existencia» sigue ahí.
 - **«Productos»:** la card muestra «Agotado» (`stockLevel 'out'`) o «Baja existencia» (`'low'`) según el catálogo del titular en «Viendo» (`GET /api/sales/catalog`, el mismo que usa «Agregar»).
   - Mientras el catálogo carga (o si falla), con «Yo · bodega» se conserva la regla de HU-05 (`products.stock <= 0` → «Agotado») y no sale «Baja existencia».
   - Con un vendedor en «Viendo», un producto que no está en su catálogo no lleva etiqueta.
@@ -177,9 +182,13 @@ export async function withdrawnProductIds(holderProfileId: string): Promise<Set<
    - Retirarle todo a un vendedor: no aparece como «Agotado».
    - Como vendedor, «Mi stock» muestra el aviso y las etiquetas sin costos.
    - Al terminar, `npm run db:reset` deja la base como el seed.
-9. **Cierre.**
+9. **Frontend · botón «Baja existencia» en «Stock general» (§10).**
+   - `features/stock`: `lowStockOfHolder` en `rules/stock.rules.ts`, el botón con globo y el pop-up (con `app-modal-panel`) en `stock-page` y «Agotado» en texto en `stock-product-row`. Sin servicios ni pantallas nuevas: los avisos salen del `lowStock` que `stock-page` ya pide.
+   - Specs de la regla, de la página y de la fila. `ng build`, `ng test` y `npm run check:architecture` pasan.
+   - Verificación manual: con «Yo · bodega» solo salen los de la bodega; con Víctor en «Viendo», solo los suyos; el globo coincide con el total; a 375 px el botón cabe sin scroll horizontal.
+10. **Cierre.**
    - Actualizar `specs/README.md` (fila y relaciones).
-   - Actualizar `CLAUDE.md` y `AGENTS.md`: `LOW_STOCK_THRESHOLD` y `stockLevel` en `@stock`, `lowStock`/`alerts` en las respuestas, `shared/constants/stock-level.constants.ts` y `low-stock-alert`.
+   - Actualizar `CLAUDE.md` y `AGENTS.md`: `LOW_STOCK_THRESHOLD` y `stockLevel` en `@stock`, `lowStock`/`alerts` en las respuestas, `shared/constants/stock-level.constants.ts`, `low-stock-alert` y el botón «Baja existencia» de `stock-page`.
    - Comentar el avance en `SCRUM-52` en cada paso y moverla de estado según el flujo de `CLAUDE.md`.
 
 ## 6. Criterios de aceptación
@@ -193,6 +202,16 @@ Por criterio de `SCRUM-52`:
 - [ ] **5.** Cuando un vendedor confirma una venta y un producto le queda con 2 o menos, «Venta confirmada» dice que se avisó al administrador, y el administrador lo ve en «Stock general» al abrirlo o recargarlo.
 - [ ] **6.** El vendedor ve en «Mi stock» el aviso de sus productos por terminarse, sin costos.
 - [ ] **7.** Al dejarle o entrar producto hasta superar 2 piezas, el aviso desaparece al recargar.
+
+Del botón «Baja existencia» de «Stock general» (§10, pedido del usuario del 2026-11-04; no está en `SCRUM-52`):
+
+- [ ] **8.** «Stock general» tiene un botón «Baja existencia» con un globo con el número de productos en baja existencia del titular en «Viendo»; sin avisos, no lleva globo.
+- [ ] **9.** Con «Yo · bodega», al presionar el botón se abre un pop-up que muestra solo los productos de la bodega con 2 piezas o menos, o agotados.
+- [ ] **10.** Con un vendedor en «Viendo», el pop-up muestra solo los suyos y su nombre en el título; al cambiar de vendedor en la barra, el globo y la lista cambian sin recargar.
+- [ ] **11.** El pop-up cierra con la X o con `Escape` y el foco regresa al botón; la lista de «Stock general» y la tarjeta ámbar no cambian.
+- [ ] **12.** Sin avisos, el pop-up dice que no hay productos con baja existencia.
+- [ ] **13.** A 375 px el botón ocupa todo el ancho sin scroll horizontal, el pop-up va a pantalla completa y el nombre accesible del botón lleva el número.
+- [ ] **14.** La tarjeta ámbar de «Stock general» tiene una X (de 44 px y con nombre accesible); al cerrarla no vuelve en esa sesión, ni al navegar, cambiar de vendedor o recargar, y reaparece al iniciar sesión de nuevo; el foco pasa al botón «Baja existencia».
 
 Además:
 
@@ -222,6 +241,11 @@ Además:
 - **`features/my-stock/pages/my-stock-page/my-stock-page.component.spec.ts`** (se amplía): aviso con nombres, etiquetas, sin aviso cuando `alerts` está vacío.
 - **`features/sell/pages/sale-summary-page/sale-summary-page.component.spec.ts`** (se amplía): aviso «Se avisó al administrador…» solo con renglones bajos o agotados.
 - **`features/sell/components/admin-sale-line/admin-sale-line.component.spec.ts`** (se amplía): etiqueta por `stockLevel`.
+- **`features/stock/rules/stock.rules.spec.ts`** (se amplía): `lowStockOfHolder` con `null` (solo la bodega) y con un id (solo ese vendedor), orden conservado.
+- **`features/stock/pages/stock-page/stock-page.component.spec.ts`** (se amplía): botón con globo y nombre accesible con el número, sin globo en 0, el pop-up cerrado hasta presionarlo, muestra solo los de la bodega con «Yo · bodega» y solo los del vendedor con «Viendo» (con su nombre en el título), se actualiza al cambiar de vendedor sin pedir datos, cierra con la X, mensaje sin avisos.
+- **`core/low-stock-notice/low-stock-notice.service.spec.ts`** (nuevo): empieza abierta, `dismiss()` la cierra y lo guarda en `sessionStorage`, una instancia nueva lo lee (recarga), al cerrar sesión se borra y vuelve a salir.
+- **`features/stock/components/low-stock-alert/low-stock-alert.component.spec.ts`** (se amplía): la X existe con su nombre accesible y emite `dismissed`.
+- **`features/stock/components/stock-product-row/stock-product-row.component.spec.ts`** (se amplía): «Agotado» con texto solo con `stockLevel` `'out'`.
 
 ## 8. Riesgos
 
@@ -232,6 +256,8 @@ Además:
 | Con muchos productos bajos la tarjeta llena la pantalla | Se recorta o hace scroll dentro; se define en el paso de diseño |
 | El frontend y el backend discrepan en qué es «bajo» | El número solo vive en el backend; el frontend pinta `stockLevel` |
 | La consulta del último movimiento por titular y producto se vuelve lenta | Se usa el índice `stock_movements_product_created_idx`; con el volumen del MVP es una lectura pequeña. Si crece, se agrega un índice en una migración aparte |
+| El botón y el buscador no caben juntos a 375 px | El botón va en su propia fila, a todo el ancho, encima del buscador en celular; desde `sm` comparten fila; se verifica a 375 px en el paso 9 |
+| El pop-up y la tarjeta de «Stock general» muestran cosas distintas con «Yo · bodega» | Es a propósito: la tarjeta lista bodega y vendedores; el pop-up, solo lo del titular en «Viendo» (§10) |
 | El vendedor cree que el administrador recibió una notificación | El texto dice «Se avisó al administrador», y el administrador lo ve en «Stock general» al abrirlo: es la decisión de solo-app (§9) |
 
 ## 9. Decisiones
@@ -270,6 +296,34 @@ Decisiones:
 - **Recorte de la tarjeta (§2 «Celular»):** hace scroll dentro (`max-h-60`) y no se corta con «y N más», para que ningún aviso quede escondido. La lista es enfocable con teclado y lleva el título como nombre accesible.
 - **El color nunca es lo único que informa:** «Agotado» lleva texto; «Baja existencia» y «Quedan pocas» son etiquetas con texto.
 - **La tarjeta no es un enlace:** el canvas la enlaza a «Productos», pero la spec no lo pide; queda para una historia aparte si se quiere.
+
+## 10. Botón «Baja existencia» en «Stock general» (pedido del usuario del 2026-11-04)
+
+**Qué es:** un solo botón «Baja existencia» dentro de «Stock general». Al presionarlo se abre un pop-up (el marco `app-modal-panel` que ya usan «Dejar» y «Retirar») con **los productos de baja o nula existencia del titular en «Viendo»**; la lista de «Stock general» y la tarjeta ámbar no cambian. El botón lleva un globo con el número de esos productos. Es el mismo dato de HU-18 (`lowStock` de `GET /api/stock`, que `stock-page` ya pide), sin endpoints nuevos ni servicios nuevos. Reemplaza a las versiones anteriores de este paso (botón con desplegable en la barra, opción de menú con pantalla propia y selector «Todos | Baja existencia»).
+
+**Regla (distinta de la tarjeta de «Stock general»):**
+
+- Con **«Yo · bodega»:** solo los avisos de la bodega (`holder: null`). No salen los de los vendedores: «veo la baja existencia que yo tenga».
+- Con **un vendedor en «Viendo»:** solo los avisos de ese vendedor.
+- El globo cuenta los mismos productos que muestra el pop-up; cambiar de titular en «Viendo» cambia el número y la lista (también con el pop-up abierto) sin pedir datos de nuevo.
+- Orden: el del backend (agotados primero, luego por nombre). Cada fila: nombre, piezas y «Agotado» en texto cuando es 0.
+
+**Decisiones de diseño (confirmadas por el usuario):**
+
+| Tema | Decisión | Por qué |
+| --- | --- | --- |
+| Dónde va | Un solo botón «Baja existencia» (icono de advertencia y globo ámbar con el número) en la fila del buscador: encima del buscador y a todo el ancho en celular; a su izquierda y con ancho propio desde `sm` | Pedido del usuario: un botón solo de baja existencia, bien distribuido |
+| Al presionarlo | Se abre un pop-up modal (`app-modal-panel`: foco atrapado, `Escape` y X cierran, el foco regresa al botón; a pantalla completa en celular) con el título «Baja existencia» (o «Baja existencia de {nombre}»), «Bodega · N productos» y una fila por producto con piezas y «Agotado» en texto | Decisión del usuario: «se despliegue un pop-up donde se muestren los productos en baja existencia» |
+| Sin avisos | Sin globo; el pop-up dice «Sin productos con baja existencia» y que no hay nada por resurtir | Un pop-up vacío sin texto parece roto |
+| Quién lo ve | Solo el administrador (es su pantalla) | El vendedor ya tiene «Mi stock» |
+| Datos | `stock-page` usa el `lowStock` que ya pide; la regla `lowStockOfHolder` va en `features/stock/rules/stock.rules.ts` | Sin servicio nuevo, y «Stock general» no importa otras features |
+| Colores | `warning-*` | Mismos tokens que el resto de HU-18 |
+
+**Archivos:** `features/stock/rules/stock.rules.ts`, `features/stock/pages/stock-page/` (botón, globo y pop-up), `features/stock/components/stock-product-row/` («Agotado» en texto) y `features/stock/constants/stock-page.constants.ts`.
+
+**Qué no cambia:** la tarjeta ámbar de «Stock general» sigue listando bodega y vendedores con «Yo · bodega» (§2).
+
+**La tarjeta se cierra con una X (pedido del usuario del 2026-11-04):** la tarjeta es para verla al iniciar sesión y poder quitarla mientras se navega; ya solo quedan las notificaciones del botón. El estado «cerrada» vive en `core/low-stock-notice/` (`LowStockNoticeService`), se guarda en `sessionStorage` (sobrevive a navegar y a recargar la pestaña) y se borra al cerrar sesión (`AuthService.currentUser()` en `null`, que también cubre un token vencido), así que reaparece en el siguiente inicio de sesión. Decisión del usuario: se queda hasta que la cierre. **No:** guardarlo por usuario en la base, ni un «no volver a mostrar».
 
 ## Lo que **no** entra en este spec
 

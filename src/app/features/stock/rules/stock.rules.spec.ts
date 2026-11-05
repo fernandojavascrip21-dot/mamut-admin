@@ -1,6 +1,6 @@
 import type { StockLowAlert, StockOverview, StockProduct, StockSellerTotal } from '../interfaces/stock-overview.models';
 import {
-  filterStockByName, lowStockFor, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
+  filterStockByName, lowStockFor, lowStockOfHolder, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
 } from './stock.rules';
 
 const seller = (fullName: string, units = 0): StockSellerTotal => ({ id: fullName, fullName, units });
@@ -129,6 +129,16 @@ describe('lowStockFor y lowStockTitle', () => {
   it('con un vendedor devuelve solo los suyos', () => {
     expect(lowStockFor(data, 'Luis').map((a) => a.name)).toEqual(['Whey', 'Creatina']);
     expect(lowStockFor(data, 'Valeria')).toEqual([]);
+  });
+
+  it('lowStockOfHolder con null devuelve solo los de la bodega, no los de los vendedores', () => {
+    expect(lowStockOfHolder(data, null).map((a) => a.name)).toEqual(['Creatina']);
+    expect(lowStockOfHolder(data, null)[0].holder).toBeNull();
+  });
+
+  it('lowStockOfHolder con un id devuelve solo los de ese vendedor, en el mismo orden', () => {
+    expect(lowStockOfHolder(data, 'Luis').map((a) => a.name)).toEqual(['Whey', 'Creatina']);
+    expect(lowStockOfHolder(data, 'Valeria')).toEqual([]);
   });
 
   it('el título va en singular y plural, y cambia con un vendedor', () => {
