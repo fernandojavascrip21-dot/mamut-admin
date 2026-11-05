@@ -204,6 +204,22 @@ Además:
 - **Sí:** reutilizar `features/cash-cut/` con un `input()` de texto, no duplicar los componentes.
 - **Sí:** el periodo recordado por defecto es «Día» (regla de `SCRUM-56`).
 
+## 10. Traducción del canvas (paso 4 de diseño)
+
+Revisados `VendedorCorte` y `EstadosMiCorte` junto con `features/cash-cut/` de HU-19 (misma estructura, tokens de `styles.css`, PrimeNG). No se copió ningún color del canvas.
+
+| Elemento del canvas | En la app |
+| --- | --- |
+| Título «Mi corte» y selector Día / Semana / Mes | `page-title` + `app-cut-period-picker` (PrimeNG `ToggleButton`, flechas de HU-19) |
+| Tarjeta punteada «Mi corte · {periodo}» con «Generar corte» de 56 px | Sección `idle` con `pButton` primario de `h-14` |
+| «Generado hoy a las HH:MM» y «Generar de nuevo» | Fila `generated-at` + `pButton` secundario con `[text]="true"` |
+| Tarjeta oscura con el total | `app-cut-summary` con `perspective="seller"` |
+| «Lo que vendí», un renglón por producto | `p-card` con `app-cut-product-line` (foto o iniciales, «2 × $920.00», subtotal, costo con envío y ganancia) |
+| Cargando, vacío y error | `loading` con `p-skeleton`, `empty` con ícono `accent-2`, `alert-danger` con `pButton` «Reintentar» |
+| «Enviar corte al administrador» | Fuera de este spec (§2) |
+
+Diferencia con el canvas: el canvas muestra una sola cifra grande rotulada «Total a entregar» con el total vendido. Este spec la separa en «Vendido», «Total a entregar» (costo con envío) y «Ganancia» (§3 y §9). Los textos de §3 quedan como están; falta confirmar con el administrador el significado de «Total a entregar» antes de pasar a `Finalizada` (§8).
+
 ## Lo que **no** entra en este spec
 
 - «Enviar corte al administrador» y guardar cortes.
