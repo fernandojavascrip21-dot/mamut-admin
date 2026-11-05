@@ -217,6 +217,83 @@ async function queryProducts(holder: { id: string } | null, period: ResolvedPeri
   }))
 }
 
+type SaleLineRow = {
+  sale_id: number
+  request_id: string | null
+  sold_at: Date | string
+  registered_by_admin: boolean
+  sold_by_id: string
+  sold_by_name: string
+  sale_total: string
+  sale_profit: string
+  product_id: number
+  name: string
+  qty: number
+  unit_price: string
+  unit_cost: string
+  subtotal: string
+  line_profit: string
+}
+
+// Ventas del periodo con sus renglones, la más reciente primero. La ganancia (de renglón y de venta)
+// sigue la regla de T-18: se calcula exacta en diezmilésimas y se redondea a centavos una vez, mitad
+// hacia arriba (`floor(x × 100 + 0.5) / 100`, también para negativos). La suma de las ganancias por
+// venta puede diferir en un centavo por venta de la del corte; manda la del corte. Una venta del
+// administrador desde el stock de un vendedor lleva `registeredByAdmin`; la bodega nunca la lleva.
+async function querySales(holder: { id: string } | null, period: ResolvedPeriod): Promise<CutSale[]> {
+  const rows = await db.execute<SaleLineRow>(sql`
+    select
+      ds.id as sale_id,
+      ds.request_id,
+      ds.sold_at,
+      (ds.holder_profile_id is not null and ds.sold_by <> ds.holder_profile_id) as registered_by_admin,
+      ds.sold_by as sold_by_id,
+      seller.full_name as sold_by_name,
+      round(sum(dsi.qty * dsi.unit_price) over (partition by ds.id), 2)::text as sale_total,
+      round(floor(sum(dsi.qty * (dsi.unit_price - dsi.unit_cost)) over (partition by ds.id) * 100 + 0.5) / 100, 2)::text as sale_profit,
+      dsi.product_id,
+      p.name,
+      dsi.qty,
+      dsi.unit_price::text as unit_price,
+      dsi.unit_cost::text as unit_cost,
+      round(dsi.qty * dsi.unit_price, 2)::text as subtotal,
+      round(floor(dsi.qty * (dsi.unit_price - dsi.unit_cost) * 100 + 0.5) / 100, 2)::text as line_profit
+    from direct_sales ds
+    join direct_sale_items dsi on dsi.direct_sale_id = ds.id
+    join products p on p.id = dsi.product_id
+    join profiles seller on seller.id = ds.sold_by
+    where ${salesOf(holder, period)}
+    order by ds.sold_at desc, ds.id desc, dsi.id asc
+  `)
+  const sales = new Map<number, CutSale>()
+  for (const row of rows) {
+    const saleId = Number(row.sale_id)
+    let sale = sales.get(saleId)
+    if (!sale) {
+      sale = {
+        requestId: row.request_id ?? '',
+        soldAt: new Date(row.sold_at).toISOString(),
+        registeredByAdmin: row.registered_by_admin,
+        soldBy: { id: row.sold_by_id, fullName: row.sold_by_name },
+        total: row.sale_total,
+        profit: row.sale_profit,
+        lines: [],
+      }
+      sales.set(saleId, sale)
+    }
+    sale.lines.push({
+      productId: Number(row.product_id),
+      name: row.name,
+      qty: row.qty,
+      unitPrice: row.unit_price,
+      subtotal: row.subtotal,
+      unitCost: row.unit_cost,
+      profit: row.line_profit,
+    })
+  }
+  return [...sales.values()]
+}
+
 // Quita costo y ganancia de la respuesta cuando quien pide no es administrador (RF-02, RNF-04):
 // es el único lugar donde se recorta, para que ninguna consulta nueva filtre el costo por olvido.
 function trimForRole(cut: CashCut, actor: CutActor): CashCut {
@@ -235,18 +312,21 @@ function trimForRole(cut: CashCut, actor: CutActor): CashCut {
 
 // Corte de un titular para un periodo calendario, calculado cada vez a partir de las ventas (no se
 // guarda). Resuelve primero periodo y titular, para que un 422/403/404 salga sin tocar las ventas.
-// La lista de ventas se agrega en el paso siguiente del plan (T-20 §5.5).
 export async function getCashCut(input: CashCutInput, actor: CutActor): Promise<CashCut> {
   const period = await resolveCutPeriod(input.period, input.date)
   const holder = await resolveCutHolder(input.holderId, actor)
-  const [totals, products] = await Promise.all([queryTotals(holder, period), queryProducts(holder, period)])
+  const [totals, products, sales] = await Promise.all([
+    queryTotals(holder, period),
+    queryProducts(holder, period),
+    querySales(holder, period),
+  ])
   return trimForRole(
     {
       holder,
       period: { kind: period.kind, from: period.from, to: period.to, timeZone: period.timeZone },
       totals,
       products,
-      sales: [],
+      sales,
     },
     actor,
   )

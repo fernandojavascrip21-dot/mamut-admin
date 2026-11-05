@@ -5,7 +5,7 @@ import { getCashCut, resolveCutHolder, resolveCutPeriod } from '@cuts'
 import { db, sql } from '@db/client'
 import { directSales, products, stockMovements, vendorStock } from '@db/schema'
 import { withTransaction } from '@db/transaction'
-import { createSale } from '@sales'
+import { createSale, getSale } from '@sales'
 import { insertMovements, setHolderPrices } from '@stock'
 import { cleanupSales, cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
@@ -209,6 +209,40 @@ describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas re
     const after = await todayCut()
     expect(after.totals.salesCount).toBe(before.totals.salesCount - 1)
     expect(after.products.some((product) => product.productId === productId)).toBe(false)
+  })
+
+  it('lista de ventas: la más reciente primero, con renglones, quién vendió y la marca del administrador', async () => {
+    const productId = await productWithSeller('lista', 6, '920', '700.3335')
+    const mine = await sellAs(asSeller(), productId, 1)
+    const byAdmin = await sellAs(asAdmin(), productId, 2)
+    const cut = await todayCut()
+    const [first, second] = cut.sales.filter((sale) => sale.lines.some((line) => line.productId === productId))
+    expect(first).toMatchObject({
+      requestId: byAdmin.sale.requestId,
+      registeredByAdmin: true,
+      soldBy: { id: admin.id },
+      total: '1840.00',
+      lines: [{ productId, qty: 2, unitPrice: '920.00', subtotal: '1840.00', unitCost: '700.3335' }],
+    })
+    expect(second).toMatchObject({ requestId: mine.sale.requestId, registeredByAdmin: false, soldBy: { id: seller.id } })
+    expect(Date.parse(first!.soldAt)).toBeGreaterThanOrEqual(Date.parse(second!.soldAt))
+  })
+
+  it('total y ganancia de cada venta y renglón coinciden con la regla de T-18 (getSale)', async () => {
+    const productId = await productWithSeller('regla-t18', 6, '10', '3.3335')
+    const { sale } = await sellAs(asSeller(), productId, 3)
+    const detail = await getSale(sale.requestId, asAdmin())
+    const listed = (await todayCut()).sales.find((item) => item.requestId === sale.requestId)
+    expect(listed).toMatchObject({ total: detail.total, profit: detail.profit })
+    expect(listed!.lines[0]).toMatchObject({ subtotal: detail.lines[0]!.subtotal, profit: detail.lines[0]!.profit })
+  })
+
+  it('una venta anulada tampoco sale en la lista', async () => {
+    const productId = await productWithSeller('anulada-lista', 3, '50', '10')
+    const { sale } = await sellAs(asSeller(), productId, 1)
+    await db.update(directSales).set({ voidedAt: new Date().toISOString() }).where(eq(directSales.id, sale.id))
+    const cut = await todayCut()
+    expect(cut.sales.some((item) => item.requestId === sale.requestId)).toBe(false)
   })
 
   it('el vendedor recibe el corte sin costo ni ganancia en ningún nivel', async () => {
