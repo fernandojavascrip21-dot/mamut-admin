@@ -31,7 +31,7 @@
       type="button"
       severity="secondary"
       [text]="true"
-      class="next h-11 px-3 text-sm"
+      class="next h-11 px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
       [attr.aria-label]="texts.nextLabel"
       [disabled]="offset() >= 0"
       (click)="next()"

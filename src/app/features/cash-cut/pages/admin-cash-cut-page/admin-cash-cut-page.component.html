@@ -41,7 +41,7 @@
         <button
           pButton
           type="button"
-          class="generate h-14 gap-2 text-[17px]"
+          class="generate h-14 gap-2 text-[17px] disabled:cursor-not-allowed disabled:opacity-50"
           [disabled]="viewingLoading()"
           (click)="generate()"
         >
@@ -187,7 +187,11 @@
                 </h3>
                 <span class="text-xs text-muted">{{ texts.productsColumns }}</span>
               </div>
-              <ul class="products m-0 list-none p-0">
+              <ul
+                class="products m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                tabindex="0"
+                aria-labelledby="cut-products-title"
+              >
                 @for (line of cut.products; track $index) {
                   <li class="min-w-0 border-t border-line">
                     <app-cut-product-line [line]="line" [withShipping]="holderName() !== null" />
@@ -205,7 +209,11 @@
               >
                 {{ texts.salesTitle }} ({{ cut.sales.length }})
               </h3>
-              <ul class="sales m-0 list-none p-0">
+              <ul
+                class="sales m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                tabindex="0"
+                aria-labelledby="cut-sales-title"
+              >
                 @for (sale of cut.sales; track sale.requestId) {
                   <li class="min-w-0 border-t border-line">
                     <app-cut-sale-item [sale]="sale" [showDate]="showSaleDate()" />
