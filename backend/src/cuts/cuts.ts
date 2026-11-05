@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { db } from '@db/client'
-import { validation } from '@lib/errors'
+import { getSellerName } from '@accounts'
+import { forbidden, validation } from '@lib/errors'
 import { CUT_PERIODS, CUT_TIME_ZONE, INVALID_DATE, INVALID_PERIOD, ISO_DATE } from './constants'
 
 export type CutPeriodKind = 'day' | 'week' | 'month'
@@ -117,4 +118,22 @@ export async function resolveCutPeriod(period: string, date: string | undefined)
     startsAt: new Date(row.starts_at).toISOString(),
     endsAt: new Date(row.ends_at).toISOString(),
   }
+}
+
+// Quien pide el corte. `role` es el de AuthContext; aquí solo importa si es administrador.
+export interface CutActor {
+  userId: string
+  role: string
+}
+
+// Titular del corte según quien lo pide. Un vendedor solo ve el suyo (sin holderId o con el propio;
+// otro es 403). El administrador ve la bodega (sin holderId, `null`) o el de cualquier vendedor,
+// activo o no: sus ventas son historial. `getSellerName` da 404 si el id no es de un vendedor.
+export async function resolveCutHolder(
+  holderId: string | null | undefined,
+  actor: CutActor,
+): Promise<{ id: string; fullName: string } | null> {
+  if (actor.role === 'admin') return holderId ? getSellerName(holderId) : null
+  if (holderId && holderId !== actor.userId) throw forbidden()
+  return getSellerName(actor.userId)
 }
