@@ -5,7 +5,7 @@ import { directSaleItems, directSales, products, vendorStock } from '@db/schema'
 import { lockRows, withTransaction } from '@db/transaction'
 import { getActiveSellerName, getSellerName } from '@accounts'
 import { findProduct } from '@products'
-import { insertMovements, movementsOfSale } from '@stock'
+import { insertMovements, movementsOfSale, stockLevelOf, type StockLevel } from '@stock'
 import { conflict, forbidden, notFound, validation } from '@lib/errors'
 import { toMinorUnits } from '@lib/money'
 import { DUPLICATE_PRODUCT, MAX_LINES, MAX_QTY, SALE_MISMATCH } from './constants'
@@ -30,6 +30,7 @@ export interface SaleLine {
   unitPrice: string
   subtotal: string
   stock: { before: number; after: number }
+  stockLevel: StockLevel // del titular tras la venta (HU-18); un renglón de venta nunca es un retiro
   unitCost?: string // solo administrador
   profit?: string // solo administrador
 }
@@ -120,6 +121,7 @@ async function toSale(row: SaleRow, actor: SaleActor): Promise<Sale> {
     const lineProfit = profitTenThousandths(item.qty, item.unitPrice, item.unitCost)
     total += subtotal
     profit += lineProfit
+    const stock = stockOf.get(item.productId) ?? { before: 0, after: 0 }
     const line: SaleLine = {
       productId: item.productId,
       name: item.name,
@@ -127,7 +129,8 @@ async function toSale(row: SaleRow, actor: SaleActor): Promise<Sale> {
       qty: item.qty,
       unitPrice: item.unitPrice,
       subtotal: formatMinor(subtotal, 2),
-      stock: stockOf.get(item.productId) ?? { before: 0, after: 0 },
+      stock,
+      stockLevel: stockLevelOf(stock.after),
     }
     if (isAdmin) {
       line.unitCost = item.unitCost

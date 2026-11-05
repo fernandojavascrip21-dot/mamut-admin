@@ -23,8 +23,10 @@
       }
 
       <div class="absolute top-1 left-1 flex flex-col gap-1">
-        @if (outOfStock()) {
-          <p-tag value="Agotado" severity="contrast" />
+        @if (level() === 'out') {
+          <p-tag [value]="levelLabels.out" severity="contrast" />
+        } @else if (level() === 'low') {
+          <p-tag [value]="levelLabels.low" severity="warn" />
         }
         @if (product().fractionable) {
           <p-tag value="Fraccionado" severity="secondary" />

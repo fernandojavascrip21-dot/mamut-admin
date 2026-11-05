@@ -1,4 +1,5 @@
 import { Component, computed, input, signal } from '@angular/core';
+import { STOCK_LEVEL_LABELS, type StockLevel } from '@shared/constants/stock-level.constants';
 import { initialsOf } from '@shared/utils/initials';
 import { unitsLabel } from '@shared/utils/units-label';
 
@@ -14,6 +15,9 @@ export class StockProductRowComponent {
   readonly image = input<string | null>(null);
   readonly units = input.required<number>();
   readonly breakdown = input('');
+  // Con 'out' (filtro «Baja existencia», HU-18) pinta «Agotado» en texto bajo las piezas.
+  readonly stockLevel = input<StockLevel | null>(null);
+  readonly outLabel = STOCK_LEVEL_LABELS.out;
 
   // Si la URL de la foto no carga, cae a las iniciales en vez de dejar una imagen rota.
   private readonly imageBroken = signal(false);

@@ -22,7 +22,7 @@ const SALE: Sale = {
       qty: 2,
       unitPrice: '920.00',
       subtotal: '1840.00',
-      stock: { before: 6, after: 4 },
+      stock: { before: 6, after: 4 }, stockLevel: 'ok',
     },
   ],
   total: '1840.00',
@@ -81,6 +81,29 @@ describe('SaleSummaryPageComponent', () => {
     expect(text('.sold-at')).toMatch(/\d{1,2}:\d{2}/);
     expect(el().querySelectorAll('a.new-sale, a.view-stock').length).toBe(2);
     expect(el().textContent!.toLowerCase()).not.toMatch(/costo|ganancia|anular/);
+  });
+
+  describe('aviso de baja existencia (HU-18)', () => {
+    const lineOf = (productId: number, name: string, after: number, stockLevel: 'ok' | 'low' | 'out'): Sale['lines'][number] => ({
+      ...SALE.lines[0]!, productId, name, stock: { before: after + 2, after }, stockLevel,
+    });
+
+    it('avisa de los productos que quedaron bajos o agotados, no de los que quedaron bien', async () => {
+      create();
+      httpMock.expectOne(URL).flush({
+        sale: { ...SALE, lines: [lineOf(1, 'Creatina', 2, 'low'), lineOf(2, 'Whey', 0, 'out'), lineOf(3, 'Barra', 9, 'ok')] },
+        replayed: false,
+      });
+      await settle();
+      expect(text('.low-stock-notice')).toBe('Se avisó al administrador que te quedan pocas piezas de: Creatina, Whey.');
+    });
+
+    it('si todos los renglones quedaron bien no hay aviso', async () => {
+      create();
+      httpMock.expectOne(URL).flush({ sale: SALE, replayed: false });
+      await settle();
+      expect(el().querySelector('.low-stock-notice')).toBeNull();
+    });
   });
 
   it('con ?repetida=1 muestra el aviso de venta repetida', async () => {

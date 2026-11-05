@@ -11,7 +11,7 @@ const LINE: AdminSaleLine = {
   subtotal: '1840.00',
   unitCost: '610.5000',
   profit: '619.00',
-  stock: { before: 4, after: 2 },
+  stock: { before: 4, after: 2 }, stockLevel: 'low',
 };
 
 describe('AdminSaleLineComponent', () => {
@@ -42,8 +42,24 @@ describe('AdminSaleLineComponent', () => {
   });
 
   it('con un vendedor muestra «Luis: 6 → 4»', () => {
-    render({ ...LINE, stock: { before: 6, after: 4 } }, 'Luis');
+    render({ ...LINE, stock: { before: 6, after: 4 }, stockLevel: 'ok' }, 'Luis');
     expect(text('.stock-change')).toBe('Luis: 6 → 4');
+  });
+
+  it('«low» muestra «Baja existencia» junto al cambio de stock', () => {
+    render({ ...LINE, stock: { before: 4, after: 2 }, stockLevel: 'low' }, 'Bodega');
+    expect(text('.level')).toBe('Baja existencia');
+  });
+
+  it('«out» muestra «Agotado»: «Luis: 3 → 0»', () => {
+    render({ ...LINE, stock: { before: 3, after: 0 }, stockLevel: 'out' }, 'Luis');
+    expect(text('.stock-change')).toBe('Luis: 3 → 0');
+    expect(text('.level')).toBe('Agotado');
+  });
+
+  it('«ok» no muestra etiqueta', () => {
+    render({ ...LINE, stock: { before: 6, after: 4 }, stockLevel: 'ok' }, 'Luis');
+    expect(el().querySelector('.level')).toBeNull();
   });
 
   it('sin foto muestra las iniciales; con foto, la imagen', () => {

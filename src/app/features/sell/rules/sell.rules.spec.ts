@@ -1,7 +1,7 @@
 import type { CartLine } from '@core/cart/cart.models';
 import type { SellProduct } from '../interfaces/sell-stock.models';
 import {
-  buildCartRows, buildSaleRequest, canIncrement, cartNeedsFix, cartProfit, cartTotal, filterSellProductsByName, unitsLeft,
+  buildCartRows, buildSaleRequest, canIncrement, cartNeedsFix, cartProfit, cartTotal, filterSellProductsByName, lowStockLines, unitsLeft,
 } from './sell.rules';
 
 const product = (overrides: Partial<SellProduct> = {}): SellProduct => ({
@@ -215,5 +215,17 @@ describe('cartProfit (HU-17)', () => {
     // Mismo caso que backend/tests/sales.test.ts: 2 × (471.00 − 205.5000) = 531.0000 → 531.00
     const rows = buildCartRows([product({ productId: 1, units: 4, price: '471.00' })], [line(1, 2)]);
     expect(cartProfit(rows, () => '205.5000')).toBe('531.00');
+  });
+});
+
+describe('lowStockLines', () => {
+  it('deja solo los renglones que quedaron en «low» o «out», en el orden de la venta', () => {
+    const lines = [
+      { name: 'A', stockLevel: 'ok' as const },
+      { name: 'B', stockLevel: 'out' as const },
+      { name: 'C', stockLevel: 'low' as const },
+    ];
+    expect(lowStockLines(lines).map((line) => line.name)).toEqual(['B', 'C']);
+    expect(lowStockLines([lines[0]!])).toEqual([]);
   });
 });

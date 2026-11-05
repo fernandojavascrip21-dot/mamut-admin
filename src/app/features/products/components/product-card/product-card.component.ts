@@ -6,11 +6,12 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
 import { deliveryModalLink } from '@shared/utils/modal-links';
+import { STOCK_LEVEL_LABELS, type StockLevel } from '@shared/constants/stock-level.constants';
 import { initialsOf } from '@shared/utils/initials';
 import { PRODUCT_CARD_PASS_THROUGH, PRODUCT_CARD_SELL_TEXTS } from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
-// "Agotado"/"Fraccionado" encima, nombre, piezas en bodega y precio. La parte de arriba abre la
+// "Agotado"/"Baja existencia"/"Fraccionado" encima, nombre, piezas en bodega y precio. La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
 // dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Agregar» (HU-17) agrega 1 pieza
 // al carrito del titular de «Viendo» y se vuelve − N + con tope en las piezas de ese titular; la
@@ -26,6 +27,11 @@ export class ProductCardComponent {
   readonly product = input.required<ProductSummary>();
   readonly sellerId = input<string | null>(null); // vendedor en «Viendo»: la ventana lo deja fijo
   readonly texts = PRODUCT_CARD_SELL_TEXTS;
+  readonly levelLabels = STOCK_LEVEL_LABELS;
+
+  // Existencia del titular de «Viendo» según su catálogo (HU-18). null = sin catálogo todavía: se
+  // conserva la regla de HU-05 (sin piezas en la bodega → «Agotado») y no sale «Baja existencia».
+  readonly stockLevel = input<StockLevel | null>(null);
 
   // Piezas que el titular de «Viendo» puede vender de este producto; null si no hay catálogo
   // (cargando, error o un vendedor que nunca lo tuvo). Con 0 y fuera del carrito no se ofrece «Agregar».
@@ -45,7 +51,7 @@ export class ProductCardComponent {
 
   readonly showPhoto = computed(() => this.product().image !== '' && !this.imageBroken());
   readonly initial = computed(() => initialsOf(this.product().name));
-  readonly outOfStock = computed(() => this.product().stock <= 0);
+  readonly level = computed<StockLevel>(() => this.stockLevel() ?? (this.product().stock <= 0 ? 'out' : 'ok'));
   readonly price = computed(() => Number(this.product().price));
 
   // Solo se puede dejar lo que hay en la bodega.

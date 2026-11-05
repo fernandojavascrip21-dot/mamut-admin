@@ -1,3 +1,5 @@
+import type { StockLevel } from '@shared/constants/stock-level.constants';
+
 // Estado de la pantalla «Stock general»: «vacío» y «sin resultados» se derivan de los datos.
 export type StockPageState = 'loading' | 'error' | 'ready';
 
@@ -9,4 +11,6 @@ export interface StockRow {
   image: string | null;
   units: number;
   breakdown: string;
+  // Solo en el filtro «Baja existencia» (HU-18): 'out' pinta «Agotado» en texto. Sin él, no hay etiqueta.
+  stockLevel?: StockLevel;
 }

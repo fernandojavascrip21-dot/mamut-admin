@@ -1,5 +1,5 @@
 import { getActiveSellerName } from '@accounts'
-import { stockOfHolder, stockOfWarehouse } from '@stock'
+import { stockOfHolder, stockOfWarehouse, type StockLevel } from '@stock'
 
 // Un producto que el administrador puede vender de un titular (HU-17). `units`, `price` y `unitCost`
 // ya vienen resueltos para ese titular: la misma fuente para el tope, el precio y la ganancia.
@@ -10,6 +10,7 @@ export interface SaleCatalogProduct {
   units: number
   price: string
   unitCost: string
+  stockLevel: StockLevel // HU-18: lo decide el backend, el frontend solo lo pinta
 }
 
 export interface SaleCatalog {
@@ -36,6 +37,7 @@ export async function getSaleCatalog(holderId: string | null): Promise<SaleCatal
       units: line.units,
       price: line.unitPrice ?? line.price,
       unitCost: line.unitCostWithShipping ?? line.unitCost,
+      stockLevel: line.stockLevel,
     })),
   }
 }

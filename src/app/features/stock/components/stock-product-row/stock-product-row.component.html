@@ -21,5 +21,10 @@
       <p class="breakdown m-0 text-xs leading-snug break-words text-muted">{{ breakdown() }}</p>
     }
   </div>
-  <p class="units m-0 font-mono text-base font-bold whitespace-nowrap">{{ unitsText() }}</p>
+  <div class="flex shrink-0 flex-col items-end gap-0.5">
+    <p class="units m-0 font-mono text-base font-bold whitespace-nowrap">{{ unitsText() }}</p>
+    @if (stockLevel() === 'out') {
+      <p class="out m-0 text-xs font-bold tracking-wide text-danger uppercase">{{ outLabel }}</p>
+    }
+  </div>
 </div>

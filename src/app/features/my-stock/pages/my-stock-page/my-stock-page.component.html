@@ -50,6 +50,27 @@
       </button>
     </div>
   } @else {
+    @if (alertNotice(); as notice) {
+      <p class="low-stock-notice m-0 mt-5 flex items-start gap-2 alert-warning text-sm leading-snug" role="status">
+        <svg
+          aria-hidden="true"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="mt-px shrink-0 stroke-warning"
+        >
+          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+        <span class="min-w-0 break-words">{{ notice }}</span>
+      </p>
+    }
+
     <div class="toolbar mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
       <section
         class="summary flex items-baseline justify-between gap-3 surface-card px-5 py-4 sm:min-w-44 sm:shrink-0 sm:flex-col sm:items-start sm:justify-center sm:gap-1"

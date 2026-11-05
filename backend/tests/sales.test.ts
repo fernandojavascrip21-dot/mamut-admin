@@ -106,7 +106,7 @@ describe.skipIf(!hasServiceKey)('Ventas (T-18, con cuentas reales)', () => {
     expect(replayed).toBe(false)
     expect(sale).toMatchObject({
       soldById: admin.id, holder: null, total: '900.00', profit: '300.00',
-      lines: [{ productId, qty: 2, unitPrice: '450.00', subtotal: '900.00', unitCost: '300.0000', profit: '300.00', stock: { before: 4, after: 2 }, image: null }],
+      lines: [{ productId, qty: 2, unitPrice: '450.00', subtotal: '900.00', unitCost: '300.0000', profit: '300.00', stock: { before: 4, after: 2 }, stockLevel: 'low', image: null }],
     })
     expect(await stockOf(productId)).toMatchObject({ warehouse: 2 })
     const rows = await db.select().from(stockMovements).where(eq(stockMovements.directSaleId, sale.id))
@@ -128,6 +128,20 @@ describe.skipIf(!hasServiceKey)('Ventas (T-18, con cuentas reales)', () => {
     expect((await res.json()).sale).toMatchObject({ holder: { id: seller.id }, lines: [{ stock: { before: 6, after: 4 } }] })
     expect(await stockOf(productId)).toMatchObject({ warehouse: 4, seller: 4 })
     expect(await total()).toBe(8)
+  })
+
+  it('stockLevel del renglón sale de lo que queda: 2 → low, 0 → out, 3 → ok, igual en el GET (HU-18)', async () => {
+    const low = await newProduct('nivel-low', 5)
+    const out = await newProduct('nivel-out', 2)
+    const ok = await newProduct('nivel-ok', 5)
+    const res = await sell(admin.token, [{ productId: low, qty: 3 }, { productId: out, qty: 2 }, { productId: ok, qty: 2 }])
+    expect(res.status).toBe(201)
+    const { sale } = await res.json()
+    const levels = (lines: { productId: number; stockLevel: string }[]) =>
+      Object.fromEntries(lines.map((line) => [line.productId, line.stockLevel]))
+    expect(levels(sale.lines)).toEqual({ [low]: 'low', [out]: 'out', [ok]: 'ok' })
+    const fromGet = await (await getAs(admin.token, sale.requestId)).json()
+    expect(levels(fromGet.sale.lines)).toEqual({ [low]: 'low', [out]: 'out', [ok]: 'ok' })
   })
 
   it('varios productos: dos renglones y dos movimientos con el mismo direct_sale_id', async () => {

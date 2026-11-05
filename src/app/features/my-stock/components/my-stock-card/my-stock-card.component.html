@@ -18,8 +18,15 @@
     }
 
     <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
+      @if (product().stockLevel === 'low') {
+        <p-tag class="level self-start" [value]="levelLabels.sellerLow" severity="warn" />
+      } @else if (product().stockLevel === 'out') {
+        <p-tag class="level self-start" [value]="levelLabels.out" severity="contrast" />
+      }
       <p class="name m-0 text-sm leading-tight font-bold break-words">{{ product().name }}</p>
-      <p class="units m-0 font-mono text-[22px] leading-tight font-bold">{{ unitsText() }}</p>
+      <p class="units m-0 font-mono text-[22px] leading-tight font-bold" [class.text-warning]="product().stockLevel === 'low'">
+        {{ unitsText() }}
+      </p>
       <p class="price m-0 font-mono text-sm font-bold">
         {{ price() | currency: 'MXN' : 'symbol-narrow' }}
       </p>

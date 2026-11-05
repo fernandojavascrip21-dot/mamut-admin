@@ -16,6 +16,7 @@ const req = (token?: string) =>
 
 interface Overview {
   warehouse: number
+  lowStock: { productId: number; name: string; holder: { id: string; fullName: string } | null; units: number; stockLevel: string }[]
   sellers: { id: string; fullName: string; units: number }[]
   inactiveSellers: number
   total: number
@@ -24,7 +25,8 @@ interface Overview {
     name: string
     image: string | null
     warehouse: number
-    sellers: { sellerId: string; units: number }[]
+    warehouseLevel: string
+    sellers: { sellerId: string; units: number; stockLevel: string }[]
     inactiveSellers: number
     total: number
   }[]
@@ -50,6 +52,8 @@ describe.skipIf(!hasServiceKey)('Stock general (HU-13, con cuentas reales)', () 
   let admin: TestUser
   let seller: TestUser
   let leavingSeller: TestUser
+  let lowSeller: TestUser
+  let few: number
   let whey: number
   let archived: number
   let empty: number
@@ -101,6 +105,10 @@ describe.skipIf(!hasServiceKey)('Stock general (HU-13, con cuentas reales)', () 
     await deliver(whey, seller.id, 6)
     archived = await newProduct('archivado', { initial: 5, archived: true })
     empty = await newProduct('vacio')
+    // 1 pieza en bodega y 2 con un vendedor: dos avisos del mismo producto (HU-18).
+    lowSeller = await createTestUser('hu18-poco', { role: 'vendedor' })
+    few = await newProduct('poco', { initial: 3 })
+    await deliver(few, lowSeller.id, 2)
   }, 60_000)
 
   afterAll(async () => {
@@ -116,7 +124,8 @@ describe.skipIf(!hasServiceKey)('Stock general (HU-13, con cuentas reales)', () 
       name: expect.stringContaining('whey'),
       image: 'https://example.com/whey.jpg',
       warehouse: 4,
-      sellers: [{ sellerId: seller.id, units: 6 }],
+      warehouseLevel: 'ok',
+      sellers: [{ sellerId: seller.id, units: 6, stockLevel: 'ok' }],
       inactiveSellers: 0,
       total: 10,
     })
@@ -142,7 +151,7 @@ describe.skipIf(!hasServiceKey)('Stock general (HU-13, con cuentas reales)', () 
     const names = (await overview()).products.map((p) => p.name)
     const mine = names.filter((n) => n.startsWith(PREFIX))
     expect(mine).toEqual([...mine].sort())
-    expect(mine).toHaveLength(2)
+    expect(mine).toHaveLength(3)
   })
 
   it('las piezas de un vendedor desactivado suman como «inactivos», sin su nombre', async () => {
@@ -157,10 +166,36 @@ describe.skipIf(!hasServiceKey)('Stock general (HU-13, con cuentas reales)', () 
     expect(after.sellers.some((s) => s.id === leavingSeller.id)).toBe(false)
     const row = after.products.find((p) => p.productId === whey)!
     expect(row).toMatchObject({ warehouse: 2, inactiveSellers: 2, total: 10 })
-    expect(row.sellers).toEqual([{ sellerId: seller.id, units: 6 }])
+    expect(row.sellers).toEqual([{ sellerId: seller.id, units: 6, stockLevel: 'ok' }])
     expect(JSON.stringify(after)).not.toContain(leavingSeller.id)
     expect(after.total).toBe(before.total)
     expectInvariants(after)
+  })
+
+  it('lowStock avisa del mismo producto en la bodega y con el vendedor, con el nombre del titular (HU-18)', async () => {
+    const body = await overview()
+    expect(body.products.find((p) => p.productId === few)).toMatchObject({
+      warehouse: 1,
+      warehouseLevel: 'low',
+      sellers: [{ sellerId: lowSeller.id, units: 2, stockLevel: 'low' }],
+    })
+    const alerts = body.lowStock.filter((a) => a.productId === few)
+    expect(alerts).toHaveLength(2)
+    expect(alerts).toContainEqual(expect.objectContaining({ holder: null, units: 1, stockLevel: 'low' }))
+    expect(alerts).toContainEqual(expect.objectContaining({
+      holder: { id: lowSeller.id, fullName: 'Prueba hu18-poco' }, units: 2, stockLevel: 'low',
+    }))
+  })
+
+  it('lowStock incluye un producto activo sin piezas como «out» y ni el archivado', async () => {
+    const { lowStock } = await overview()
+    expect(lowStock.find((a) => a.productId === empty)).toMatchObject({ holder: null, units: 0, stockLevel: 'out' })
+    expect(lowStock.some((a) => a.productId === archived)).toBe(false)
+  })
+
+  it('lowStock pone los agotados primero', async () => {
+    const levels = (await overview()).lowStock.map((a) => a.stockLevel)
+    expect(levels.slice(levels.indexOf('low')).includes('out')).toBe(false)
   })
 
   it('responde 403 a un vendedor y 401 sin sesión', async () => {

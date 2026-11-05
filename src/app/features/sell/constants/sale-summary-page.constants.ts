@@ -18,6 +18,7 @@ export const SALE_SUMMARY_TEXTS = {
   errorTitle: 'No pudimos cargar tu venta',
   errorHint: 'Revisa tu conexión e inténtalo de nuevo.',
   retry: 'Reintentar',
+  lowStockPrefix: 'Se avisó al administrador que te quedan pocas piezas de:',
 } as const;
 
 export const SALE_SUMMARY_LINKS = { sell: SELL_URL, stock: MY_STOCK_URL } as const;

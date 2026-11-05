@@ -1,14 +1,14 @@
-import type { StockOverview, StockProduct, StockSellerTotal } from '../interfaces/stock-overview.models';
+import type { StockLowAlert, StockOverview, StockProduct, StockSellerTotal } from '../interfaces/stock-overview.models';
 import {
-  filterStockByName, productBreakdown, sellerProducts, sellerTotal, splitParts,
+  filterStockByName, lowStockFor, lowStockOfHolder, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
 } from './stock.rules';
 
 const seller = (fullName: string, units = 0): StockSellerTotal => ({ id: fullName, fullName, units });
 const product = (overrides: Partial<StockProduct> = {}): StockProduct => ({
-  productId: 1, name: 'Proteína', image: null, warehouse: 0, sellers: [], inactiveSellers: 0, total: 0, ...overrides,
+  productId: 1, name: 'Proteína', image: null, warehouse: 0, warehouseLevel: 'out', sellers: [], inactiveSellers: 0, total: 0, ...overrides,
 });
 const overview = (overrides: Partial<StockOverview> = {}): StockOverview => ({
-  warehouse: 0, sellers: [], inactiveSellers: 0, total: 0, products: [], ...overrides,
+  warehouse: 0, sellers: [], inactiveSellers: 0, total: 0, products: [], lowStock: [], ...overrides,
 });
 
 describe('splitParts', () => {
@@ -55,28 +55,28 @@ describe('productBreakdown', () => {
   const sellers = [seller('Luis'), seller('Valeria')];
 
   it('muestra bodega y vendedor: «Bodega 4 · Luis 6»', () => {
-    const row = product({ warehouse: 4, sellers: [{ sellerId: 'Luis', units: 6 }], total: 10 });
+    const row = product({ warehouse: 4, sellers: [{ sellerId: 'Luis', units: 6, stockLevel: 'ok' }], total: 10 });
     expect(productBreakdown(row, sellers)).toBe('Bodega 4 · Luis 6');
   });
 
   it('omite los lugares con 0 piezas', () => {
-    expect(productBreakdown(product({ warehouse: 0, sellers: [{ sellerId: 'Luis', units: 6 }] }), sellers)).toBe('Luis 6');
+    expect(productBreakdown(product({ warehouse: 0, sellers: [{ sellerId: 'Luis', units: 6, stockLevel: 'ok' }] }), sellers)).toBe('Luis 6');
     expect(productBreakdown(product({ warehouse: 3 }), sellers)).toBe('Bodega 3');
   });
 
   it('ordena los vendedores por nombre, no por el orden de la respuesta', () => {
-    const row = product({ warehouse: 1, sellers: [{ sellerId: 'Valeria', units: 2 }, { sellerId: 'Luis', units: 5 }] });
+    const row = product({ warehouse: 1, sellers: [{ sellerId: 'Valeria', units: 2, stockLevel: 'ok' }, { sellerId: 'Luis', units: 5, stockLevel: 'ok' }] });
     expect(productBreakdown(row, sellers)).toBe('Bodega 1 · Luis 5 · Valeria 2');
   });
 
   it('pone «Vendedores inactivos» al final', () => {
-    const row = product({ warehouse: 2, sellers: [{ sellerId: 'Luis', units: 1 }], inactiveSellers: 3 });
+    const row = product({ warehouse: 2, sellers: [{ sellerId: 'Luis', units: 1, stockLevel: 'ok' }], inactiveSellers: 3 });
     expect(productBreakdown(row, sellers)).toBe('Bodega 2 · Luis 1 · Vendedores inactivos 3');
   });
 });
 
 describe('sellerProducts y sellerTotal', () => {
-  const whey = product({ productId: 1, name: 'Whey', warehouse: 4, sellers: [{ sellerId: 'Luis', units: 6 }], total: 10 });
+  const whey = product({ productId: 1, name: 'Whey', warehouse: 4, sellers: [{ sellerId: 'Luis', units: 6, stockLevel: 'ok' }], total: 10 });
   const creatine = product({ productId: 2, name: 'Creatina', warehouse: 2, total: 2 });
   const data = overview({
     warehouse: 6, sellers: [seller('Luis', 6), seller('Valeria', 0)], total: 12, products: [creatine, whey],
@@ -112,5 +112,38 @@ describe('filterStockByName', () => {
 
   it('sin coincidencias devuelve una lista vacía', () => {
     expect(filterStockByName(items, 'xyz')).toEqual([]);
+  });
+});
+
+describe('lowStockFor y lowStockTitle', () => {
+  const alert = (name: string, holderId: string | null, units: number): StockLowAlert => ({
+    productId: 1, name, image: null, holder: holderId ? { id: holderId, fullName: holderId } : null,
+    units, stockLevel: units === 0 ? 'out' : 'low',
+  });
+  const data = overview({ lowStock: [alert('Whey', 'Luis', 0), alert('Creatina', null, 1), alert('Creatina', 'Luis', 2)] });
+
+  it('sin vendedor devuelve todos los avisos, en el orden del backend', () => {
+    expect(lowStockFor(data, null)).toEqual(data.lowStock);
+  });
+
+  it('con un vendedor devuelve solo los suyos', () => {
+    expect(lowStockFor(data, 'Luis').map((a) => a.name)).toEqual(['Whey', 'Creatina']);
+    expect(lowStockFor(data, 'Valeria')).toEqual([]);
+  });
+
+  it('lowStockOfHolder con null devuelve solo los de la bodega, no los de los vendedores', () => {
+    expect(lowStockOfHolder(data, null).map((a) => a.name)).toEqual(['Creatina']);
+    expect(lowStockOfHolder(data, null)[0].holder).toBeNull();
+  });
+
+  it('lowStockOfHolder con un id devuelve solo los de ese vendedor, en el mismo orden', () => {
+    expect(lowStockOfHolder(data, 'Luis').map((a) => a.name)).toEqual(['Whey', 'Creatina']);
+    expect(lowStockOfHolder(data, 'Valeria')).toEqual([]);
+  });
+
+  it('el título va en singular y plural, y cambia con un vendedor', () => {
+    expect(lowStockTitle(1, false)).toBe('1 producto con baja existencia');
+    expect(lowStockTitle(3, false)).toBe('3 productos con baja existencia');
+    expect(lowStockTitle(2, true)).toBe('2 productos por terminarse');
   });
 });

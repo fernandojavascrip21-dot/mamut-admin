@@ -16,7 +16,8 @@ const req = (token?: string, query = '') =>
 
 interface OwnStockBody {
   total: number
-  products: { productId: number; name: string; image: string | null; units: number; price: string }[]
+  products: { productId: number; name: string; image: string | null; units: number; price: string; stockLevel: string }[]
+  alerts: { productId: number; name: string; units: number; stockLevel: string }[]
 }
 
 // Los movimientos se borran del más nuevo al más viejo (el trigger revierte cada uno); después
@@ -45,6 +46,7 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
   let general: number
   let archived: number
   let withdrawn: number
+  let soldOut: number
   let others: number
 
   const move = (rows: Omit<NewStockMovement, 'createdBy'>[]) =>
@@ -101,6 +103,10 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
     await deliver(withdrawn, seller.id, 3)
     await withTransaction((tx) => setHolderPrices(tx, seller.id, withdrawn, { unitPrice: '999', unitCostWithShipping: null }))
     await takeBack(withdrawn, seller.id, 3)
+    // Se le acabó vendiendo (último movimiento: venta): aviso «out». El retirado no avisa.
+    soldOut = await newProduct('vendido', { initial: 4 })
+    await deliver(soldOut, seller.id, 2)
+    await move([{ productId: soldOut, type: 'direct_sale', qty: -2, holderProfileId: seller.id }])
     others = await newProduct('ajeno', { initial: 8 })
     await deliver(others, otherSeller.id, 7)
   }, 60_000)
@@ -119,23 +125,27 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
       image: 'https://example.com/propio.jpg',
       units: 6,
       price: '500.00',
+      stockLevel: 'ok',
     })
   })
 
   it('sin precio propio sale el precio general (criterio 3)', async () => {
     const line = (await stockOf(seller)).products.find((p) => p.productId === general)
-    expect(line).toMatchObject({ units: 2, price: '350.00', image: null })
+    expect(line).toMatchObject({ units: 2, price: '350.00', image: null, stockLevel: 'low' })
   })
 
-  it('cada producto trae solo productId, name, image, units y price, sin costos (criterio 4)', async () => {
+  it('cada producto trae solo productId, name, image, units, price y stockLevel, sin costos (criterio 4)', async () => {
     const res = await ownStockRoute(req(seller.token), undefined)
     const text = await res.clone().text()
     const body: OwnStockBody = await res.json()
     expect(body.products.length).toBeGreaterThan(0)
     for (const product of body.products) {
-      expect(Object.keys(product).sort()).toEqual(['image', 'name', 'price', 'productId', 'units'])
+      expect(Object.keys(product).sort()).toEqual(['image', 'name', 'price', 'productId', 'stockLevel', 'units'])
     }
-    expect(Object.keys(body).sort()).toEqual(['products', 'total'])
+    expect(Object.keys(body).sort()).toEqual(['alerts', 'products', 'total'])
+    for (const alert of body.alerts) {
+      expect(Object.keys(alert).sort()).toEqual(['name', 'productId', 'stockLevel', 'units'])
+    }
     for (const forbidden of ['unitCost', 'unitCostWithShipping', 'unit_cost', 'profit', 'unitPrice']) {
       expect(text).not.toContain(forbidden)
     }
@@ -150,6 +160,27 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
     const [held] = await db.select().from(vendorStock).where(eq(vendorStock.productId, withdrawn))
     expect(held).toMatchObject({ qty: 0, unitPrice: '999.00' })
     expect(body.total).toBe(6 + 2 + 3)
+  })
+
+  it('alerts lista lo que tiene con 1 o 2 piezas y lo que se le acabó vendiendo, sin lo retirado ni lo archivado', async () => {
+    const { alerts } = await stockOf(seller)
+    expect(alerts.find((a) => a.productId === general)).toMatchObject({ units: 2, stockLevel: 'low' })
+    expect(alerts.find((a) => a.productId === soldOut)).toMatchObject({ units: 0, stockLevel: 'out' })
+    expect(alerts.some((a) => a.productId === withdrawn)).toBe(false)
+    expect(alerts.some((a) => a.productId === own)).toBe(false)
+    expect(alerts.some((a) => a.productId === others)).toBe(false)
+    expect(alerts[0]!.stockLevel).toBe('out')
+  })
+
+  it('con includeSoldOut el producto que se le acabó vendiendo sale «out» y el retirado «ok»', async () => {
+    const body = await stockOf(seller, '?includeSoldOut=true')
+    expect(body.products.find((p) => p.productId === soldOut)).toMatchObject({ units: 0, stockLevel: 'out' })
+    expect(body.products.find((p) => p.productId === withdrawn)).toMatchObject({ units: 0, stockLevel: 'ok' })
+  })
+
+  it('cada vendedor recibe solo sus propios avisos', async () => {
+    const theirs = await stockOf(otherSeller)
+    expect(theirs.alerts).toEqual([])
   })
 
   it('un producto archivado con piezas sale', async () => {
@@ -171,7 +202,7 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
   })
 
   it('un vendedor sin piezas responde total 0 y lista vacía', async () => {
-    expect(await stockOf(emptySeller)).toEqual({ total: 0, products: [] })
+    expect(await stockOf(emptySeller)).toEqual({ total: 0, products: [], alerts: [] })
   })
 
   describe('con includeSoldOut (HU-15)', () => {
@@ -183,6 +214,7 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
         image: null,
         units: 0,
         price: '999.00',
+        stockLevel: 'ok',
       })
     })
 
@@ -197,15 +229,15 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
     it('un producto que el vendedor nunca tuvo no sale', async () => {
       const body = await stockOf(seller, '?includeSoldOut=true')
       expect(body.products.some((p) => p.productId === others)).toBe(false)
-      expect((await stockOf(emptySeller, '?includeSoldOut=true'))).toEqual({ total: 0, products: [] })
+      expect((await stockOf(emptySeller, '?includeSoldOut=true'))).toEqual({ total: 0, products: [], alerts: [] })
     })
 
-    it('las llaves de cada producto siguen siendo las cinco, también en los agotados', async () => {
+    it('las llaves de cada producto siguen siendo las seis, también en los agotados', async () => {
       const res = await ownStockRoute(req(seller.token, '?includeSoldOut=true'), undefined)
       const text = await res.clone().text()
       const body: OwnStockBody = await res.json()
       for (const product of body.products) {
-        expect(Object.keys(product).sort()).toEqual(['image', 'name', 'price', 'productId', 'units'])
+        expect(Object.keys(product).sort()).toEqual(['image', 'name', 'price', 'productId', 'stockLevel', 'units'])
       }
       for (const forbidden of ['unitCost', 'unitCostWithShipping', 'unit_cost', 'profit', 'unitPrice']) {
         expect(text).not.toContain(forbidden)

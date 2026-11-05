@@ -1,3 +1,5 @@
+import type { StockLevel } from '@shared/constants/stock-level.constants';
+
 // Una línea de la venta tal como la devuelve POST/GET /api/sales (T-18). Al vendedor el backend no le
 // manda costo ni ganancia, y estos modelos tampoco tienen esas llaves (RNF-04). Los montos son texto
 // con 2 decimales (T-08).
@@ -9,6 +11,8 @@ export interface SaleLine {
   unitPrice: string;
   subtotal: string;
   stock: { before: number; after: number };
+  // Existencia del titular tras la venta (HU-18): la decide el backend y la reciben vendedor y administrador.
+  stockLevel: StockLevel;
 }
 
 export interface Sale {

@@ -11,9 +11,10 @@ const URL = `${API_BASE_URL}/api/me/stock`;
 const STOCK: MyStock = {
   total: 8,
   products: [
-    { productId: 1, name: 'Creatina', image: null, units: 2, price: '350.00' },
-    { productId: 2, name: 'Proteína Whey', image: null, units: 6, price: '500.00' },
+    { productId: 1, name: 'Creatina', image: null, units: 2, price: '350.00', stockLevel: 'low' },
+    { productId: 2, name: 'Proteína Whey', image: null, units: 6, price: '500.00', stockLevel: 'ok' },
   ],
+  alerts: [],
 };
 
 describe('MyStockPageComponent', () => {
@@ -74,7 +75,7 @@ describe('MyStockPageComponent', () => {
   });
 
   it('con una sola pieza el total dice 1', async () => {
-    await load({ total: 1, products: [{ productId: 1, name: 'Creatina', image: null, units: 1, price: '350.00' }] });
+    await load({ total: 1, products: [{ productId: 1, name: 'Creatina', image: null, units: 1, price: '350.00', stockLevel: 'low' }], alerts: [] });
     expect(text('.total')).toBe('1');
   });
 
@@ -86,7 +87,7 @@ describe('MyStockPageComponent', () => {
   });
 
   it('sin productos muestra el estado vacío, sin buscador', async () => {
-    await load({ total: 0, products: [] });
+    await load({ total: 0, products: [], alerts: [] });
     expect(text('.empty')).toContain('Aún no te han dejado producto');
     expect(text('.empty')).toContain('Cuando el administrador te deje piezas, las verás aquí.');
     expect(text('.total')).toBe('0');
@@ -125,6 +126,44 @@ describe('MyStockPageComponent', () => {
       (el().querySelector('.no-match button') as HTMLButtonElement).click();
       fixture.detectChanges();
       expect(el().querySelectorAll('app-my-stock-card')).toHaveLength(2);
+    });
+  });
+
+  describe('aviso de baja existencia (HU-18)', () => {
+    it('lista los productos que quedan pocos y dice que ya se avisó al administrador', async () => {
+      await load({ ...STOCK, alerts: [{ productId: 1, name: 'Creatina', units: 2, stockLevel: 'low' }] });
+      expect(text('.low-stock-notice')).toBe(
+        'Te quedan pocas piezas de: Creatina. Ya se le avisó al administrador.',
+      );
+    });
+
+    it('marca «(agotado)» a lo que se le acabó vendiendo, aunque no esté en la lista', async () => {
+      await load({
+        ...STOCK,
+        alerts: [
+          { productId: 9, name: 'Whey', units: 0, stockLevel: 'out' },
+          { productId: 1, name: 'Creatina', units: 2, stockLevel: 'low' },
+        ],
+      });
+      expect(text('.low-stock-notice')).toContain('Te quedan pocas piezas de: Whey (agotado), Creatina.');
+      expect(el().querySelectorAll('.products li')).toHaveLength(2);
+    });
+
+    it('sin avisos no se pinta el aviso', async () => {
+      await load();
+      expect(el().querySelector('.low-stock-notice')).toBeNull();
+    });
+
+    it('la card de un producto con pocas piezas lleva «Quedan pocas» y la normal no', async () => {
+      await load();
+      const cards = el().querySelectorAll('.products li');
+      expect(cards[0].querySelector('.level')?.textContent?.trim()).toBe('Quedan pocas');
+      expect(cards[1].querySelector('.level')).toBeNull();
+    });
+
+    it('el aviso no muestra costos', async () => {
+      await load({ ...STOCK, alerts: [{ productId: 1, name: 'Creatina', units: 2, stockLevel: 'low' }] });
+      expect(el().textContent).not.toMatch(/costo/i);
     });
   });
 });

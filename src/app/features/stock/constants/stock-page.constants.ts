@@ -52,4 +52,26 @@ export const STOCK_PAGE_TEXTS = {
   noMatchHint: 'Revisa cómo lo escribiste.',
   clearSearch: 'Limpiar búsqueda',
   sellerEmpty: 'Todavía no tiene producto.',
+  lowFilterLabel: 'Baja existencia',
+  lowFilterEmpty: 'Sin productos con baja existencia',
+  lowPopupSellerTitlePrefix: 'Baja existencia de',
+  lowPopupWarehouse: 'Bodega',
+  lowPopupEmptyWarehouse: 'Nada por resurtir en la bodega por ahora.',
+  lowPopupEmptySeller: 'Nada por resurtir con este vendedor por ahora.',
+  lowFilterAriaSingular: 'producto',
+  lowFilterAriaPlural: 'productos',
 } as const;
+
+// Piezas del título de la tarjeta de avisos (HU-18).
+export const LOW_STOCK_TITLES = {
+  singular: 'producto',
+  plural: 'productos',
+  businessSuffix: 'con baja existencia',
+  sellerSuffix: 'por terminarse',
+} as const;
+
+// Titular de la bodega en un aviso.
+export const LOW_STOCK_WAREHOUSE_HOLDER = WAREHOUSE_LABEL;
+
+// Tope del número en el globo del botón «Baja existencia» (HU-18): con más avisos se ve «99+».
+export const LOW_FILTER_BADGE_MAX = 99;

@@ -17,7 +17,7 @@ const req = (token?: string, query = '') =>
 
 interface CatalogBody {
   holder: { id: string; fullName: string } | null
-  products: { productId: number; name: string; image: string | null; units: number; price: string; unitCost: string }[]
+  products: { productId: number; name: string; image: string | null; units: number; price: string; unitCost: string; stockLevel: string }[]
 }
 
 // Los movimientos se borran del más nuevo al más viejo (el trigger revierte cada uno); después
@@ -105,6 +105,20 @@ describe.skipIf(!hasServiceKey)('Catálogo de venta por titular (HU-17, con cuen
     await sql.end()
   }, 60_000)
 
+  describe('stockLevel (HU-18)', () => {
+    it('en la bodega: 7 piezas es «ok»', async () => {
+      expect((await catalog()).products.find((p) => p.productId === warehouseOnly)?.stockLevel).toBe('ok')
+    })
+
+    it('en el vendedor: 2 piezas es «low», 6 es «ok» y el 0 de un retiro es «ok»', async () => {
+      const body = await catalog(`?holderId=${seller.id}`)
+      const level = (id: number) => body.products.find((p) => p.productId === id)?.stockLevel
+      expect(level(general)).toBe('low')
+      expect(level(own)).toBe('ok')
+      expect(level(soldOut)).toBe('ok')
+    })
+  })
+
   describe('bodega', () => {
     it('lista los productos activos con units = stock, precio general y costo de fábrica', async () => {
       const body = await catalog()
@@ -116,6 +130,7 @@ describe.skipIf(!hasServiceKey)('Catálogo de venta por titular (HU-17, con cuen
         units: 4,
         price: '471.00',
         unitCost: '205.5000',
+        stockLevel: 'ok',
       })
       expect(body.products.find((p) => p.productId === warehouseOnly)).toMatchObject({ units: 7, image: null })
     })
@@ -154,7 +169,7 @@ describe.skipIf(!hasServiceKey)('Catálogo de venta por titular (HU-17, con cuen
 
     it('incluye lo que tuvo y se le acabó, con units 0', async () => {
       const body = await catalog(`?holderId=${seller.id}`)
-      expect(body.products.find((p) => p.productId === soldOut)).toMatchObject({ units: 0 })
+      expect(body.products.find((p) => p.productId === soldOut)).toMatchObject({ units: 0, stockLevel: 'ok' })
     })
 
     it('no incluye lo que nunca tuvo', async () => {

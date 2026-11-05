@@ -1,11 +1,11 @@
 import { normalizeText } from '@shared/utils/normalize-text';
 import { sortByName } from '@shared/utils/sort-by-name';
 import {
-  BREAKDOWN_SEPARATOR, INACTIVE_PART_KEY, INACTIVE_SELLERS_LABEL, SPLIT_PALETTE_SIZE,
+  BREAKDOWN_SEPARATOR, LOW_STOCK_TITLES, INACTIVE_PART_KEY, INACTIVE_SELLERS_LABEL, SPLIT_PALETTE_SIZE,
   WAREHOUSE_LABEL, WAREHOUSE_PART_KEY,
 } from '../constants/stock-page.constants';
 import type {
-  StockOverview, StockProduct, StockSellerTotal, StockSplitPart,
+  StockLowAlert, StockOverview, StockProduct, StockSellerTotal, StockSplitPart,
 } from '../interfaces/stock-overview.models';
 
 // Segmentos de la barra y entradas de la leyenda: «Bodega» primero, los vendedores activos por
@@ -68,4 +68,26 @@ export function filterStockByName<T extends { name: string }>(items: T[], query:
   const normalizedQuery = normalizeText(query);
   if (normalizedQuery === '') return items;
   return items.filter((item) => normalizeText(item.name).includes(normalizedQuery));
+}
+
+// Avisos que se ven en la vista activa: con un vendedor en «Viendo», solo los suyos; sin él, todos
+// (bodega y vendedores). El backend ya los manda ordenados: agotados primero, luego por nombre.
+export function lowStockFor(overview: StockOverview, sellerId: string | null): StockLowAlert[] {
+  if (sellerId === null) return overview.lowStock;
+  return overview.lowStock.filter((alert) => alert.holder?.id === sellerId);
+}
+
+// Avisos del titular en «Viendo» para el filtro «Baja existencia» (HU-18, spec §10): con `null`
+// («Yo · bodega») solo los de la bodega, no los de los vendedores; con un id, solo los de ese vendedor.
+// A diferencia de `lowStockFor`, que con `null` devuelve todos para la tarjeta ámbar. Conserva el orden
+// del backend (agotados primero, luego por nombre).
+export function lowStockOfHolder(overview: StockOverview, sellerId: string | null): StockLowAlert[] {
+  return overview.lowStock.filter((alert) => (alert.holder?.id ?? null) === sellerId);
+}
+
+// Título de la tarjeta de avisos: «1 producto con baja existencia» / «3 productos con baja
+// existencia»; con un vendedor, «N productos por terminarse».
+export function lowStockTitle(count: number, forSeller: boolean): string {
+  const noun = count === 1 ? LOW_STOCK_TITLES.singular : LOW_STOCK_TITLES.plural;
+  return `${count} ${noun} ${forSeller ? LOW_STOCK_TITLES.sellerSuffix : LOW_STOCK_TITLES.businessSuffix}`;
 }

@@ -5,6 +5,7 @@ import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { authInterceptor } from '@core/auth/services/auth.interceptor';
 import { CartService } from '@core/cart/cart.service';
+import { LowStockNoticeService } from '@core/low-stock-notice/low-stock-notice.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { providePrimeNG } from 'primeng/config';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -27,5 +28,8 @@ export const appConfig: ApplicationConfig = {
     // Lo mismo con el carrito (HU-15): el servicio borra el carrito del usuario al cerrar sesión, y para
     // eso tiene que existir desde el arranque aunque la página abierta no use el `top-nav`.
     provideEnvironmentInitializer(() => inject(CartService)),
+    // Y la tarjeta de baja existencia cerrada (HU-18): olvida «cerrada» al cerrar sesión desde cualquier
+    // pantalla (p. ej. /cuenta tras recargar), para que reaparezca en el siguiente inicio de sesión.
+    provideEnvironmentInitializer(() => inject(LowStockNoticeService)),
   ]
 };

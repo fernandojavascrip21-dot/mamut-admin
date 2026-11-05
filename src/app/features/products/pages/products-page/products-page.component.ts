@@ -11,6 +11,7 @@ import { SaleCatalogService } from '@core/sale-catalog/sale-catalog.service';
 import type { SaleCatalog, SaleCatalogProduct } from '@core/sale-catalog/sale-catalog.models';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
+import type { StockLevel } from '@shared/constants/stock-level.constants';
 import { ProductsService } from '../../services/products.service';
 import type { ProductSummary } from '../../interfaces/product.models';
 import { filterProductsByName } from '../../rules/product.rules';
@@ -103,6 +104,15 @@ export class ProductsPageComponent {
   // Piezas del titular de «Viendo» de un producto; null si no hay catálogo o no lo tiene.
   sellUnitsOf(productId: number): number | null {
     return this.catalogById().get(productId)?.units ?? null;
+  }
+
+  // Existencia del titular de «Viendo» para la etiqueta de la tarjeta (HU-18). Con el catálogo en
+  // mano manda su `stockLevel`; un producto que el vendedor nunca tuvo no lleva etiqueta. Sin catálogo
+  // (cargando o error), con «Yo · bodega» devuelve null y la tarjeta conserva la regla de HU-05; con un
+  // vendedor no hay etiqueta, porque la bodega no dice nada de sus piezas.
+  stockLevelOf(productId: number): StockLevel | null {
+    if (!this.catalog()) return this.viewing.selectedSellerId() === null ? null : 'ok';
+    return this.catalogById().get(productId)?.stockLevel ?? 'ok';
   }
 
   // Piezas del producto en el carrito, solo si el carrito es de este titular.

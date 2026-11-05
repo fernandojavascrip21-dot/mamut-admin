@@ -1,7 +1,9 @@
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db } from '@db/client'
-import { products, stockMovements, vendorStock } from '@db/schema'
+import { products, profiles, stockMovements, vendorStock } from '@db/schema'
 import type { Tx } from '@db/transaction'
+import { LOW_STOCK_THRESHOLD } from './constants'
+import { stockLevelOf, type StockLevel } from './levels'
 
 // Una línea del stock de un vendedor: un producto con las piezas que tiene (qty > 0).
 // `image` es null cuando el producto no tiene foto (products.image guarda '' en ese caso).
@@ -19,6 +21,7 @@ export interface HolderStockLine {
   unitCost: string
   unitPrice: string | null
   unitCostWithShipping: string | null
+  stockLevel: StockLevel
 }
 
 // Una línea de la bodega para vender (HU-17): un producto activo con las piezas de la bodega
@@ -31,6 +34,7 @@ export interface WarehouseStockLine {
   units: number
   price: string
   unitCost: string
+  stockLevel: StockLevel
 }
 
 // Productos activos de la bodega, por nombre, también con 0 piezas: el catálogo de venta decide
@@ -48,7 +52,7 @@ export async function stockOfWarehouse(): Promise<WarehouseStockLine[]> {
     .from(products)
     .where(eq(products.active, true))
     .orderBy(asc(products.name))
-  return rows.map((row) => ({ ...row, image: row.image || null }))
+  return rows.map((row) => ({ ...row, image: row.image || null, stockLevel: stockLevelOf(row.units) }))
 }
 
 // Total de piezas de cada vendedor: suma de vendor_stock.qty, que mantiene el trigger a partir de
@@ -88,7 +92,92 @@ export async function stockOfHolder(
     .innerJoin(products, eq(products.id, vendorStock.productId))
     .where(and(eq(vendorStock.profileId, profileId), (options.includeSoldOut ? gte : gt)(vendorStock.qty, 0)))
     .orderBy(asc(products.name))
-  return rows.map((row) => ({ ...row, image: row.image || null }))
+  // Solo con filas en 0 hace falta saber cuáles se le retiraron (HU-18): ahí 0 no es «agotado».
+  const withdrawn = rows.some((row) => row.units === 0) ? await withdrawnProductIds(profileId) : new Set<number>()
+  return rows.map((row) => ({
+    ...row,
+    image: row.image || null,
+    stockLevel: stockLevelOf(row.units, { withdrawn: withdrawn.has(row.productId) }),
+  }))
+}
+
+// Tipo del último movimiento de un producto para un vendedor (HU-18): distingue «se le acabó
+// vendiendo» de «se le retiró todo». Se apoya en stock_movements_product_created_idx.
+const lastMovementType = sql<string | null>`(
+  select m.type from stock_movements m
+  where m.product_id = ${vendorStock.productId} and m.holder_profile_id = ${vendorStock.profileId}
+  order by m.id desc limit 1
+)`
+
+// Productos en 0 de ese vendedor cuyo último movimiento fue un `return` (HU-18): se le retiró todo,
+// así que no se cuentan como agotados.
+export async function withdrawnProductIds(holderProfileId: string): Promise<Set<number>> {
+  const rows = await db
+    .select({ productId: vendorStock.productId })
+    .from(vendorStock)
+    .where(and(eq(vendorStock.profileId, holderProfileId), eq(vendorStock.qty, 0), sql`${lastMovementType} = 'return'`))
+  return new Set(rows.map((row) => row.productId))
+}
+
+// Un producto con baja o nula existencia en un titular (HU-18). `holderProfileId` null = bodega.
+export interface LowStockLine {
+  productId: number
+  name: string
+  image: string | null
+  holderProfileId: string | null
+  units: number
+  stockLevel: 'low' | 'out'
+}
+
+// Avisos de baja existencia: bodega y vendedores activos, o solo un vendedor si se pasa su id. Solo
+// productos activos. En la bodega entra todo producto activo con LOW_STOCK_THRESHOLD piezas o menos;
+// en un vendedor, los de 1 a LOW_STOCK_THRESHOLD y los que están en 0 solo si el último movimiento
+// no fue un retiro. Orden: agotados primero, luego por nombre, bodega antes que vendedores.
+export async function lowStockLines(holderProfileId?: string): Promise<LowStockLine[]> {
+  const warehouseRows = holderProfileId
+    ? []
+    : await db
+        .select({ productId: products.id, name: products.name, image: products.image, units: products.stock })
+        .from(products)
+        .where(and(eq(products.active, true), lte(products.stock, LOW_STOCK_THRESHOLD)))
+
+  const sellerRows = await db
+    .select({
+      productId: products.id,
+      name: products.name,
+      image: products.image,
+      units: vendorStock.qty,
+      holderProfileId: vendorStock.profileId,
+    })
+    .from(vendorStock)
+    .innerJoin(products, eq(products.id, vendorStock.productId))
+    .innerJoin(profiles, eq(profiles.id, vendorStock.profileId))
+    .where(and(
+      eq(products.active, true),
+      eq(profiles.active, true),
+      eq(profiles.role, 'vendedor'),
+      holderProfileId ? eq(vendorStock.profileId, holderProfileId) : undefined,
+      lte(vendorStock.qty, LOW_STOCK_THRESHOLD),
+      or(gt(vendorStock.qty, 0), sql`${lastMovementType} is distinct from 'return'`),
+    ))
+
+  const lines: LowStockLine[] = [
+    ...warehouseRows.map((row) => ({ ...row, holderProfileId: null })),
+    ...sellerRows,
+  ].map((row) => ({
+    productId: row.productId,
+    name: row.name,
+    image: row.image || null,
+    holderProfileId: row.holderProfileId,
+    units: row.units,
+    stockLevel: row.units <= 0 ? 'out' : 'low',
+  }))
+
+  return lines.sort((a, b) =>
+    Number(b.stockLevel === 'out') - Number(a.stockLevel === 'out')
+    || a.name.localeCompare(b.name, 'es')
+    || (a.holderProfileId ?? '').localeCompare(b.holderProfileId ?? ''),
+  )
 }
 
 // Un producto con piezas en algún lugar (HU-13): las de la bodega (products.stock) y las de cada

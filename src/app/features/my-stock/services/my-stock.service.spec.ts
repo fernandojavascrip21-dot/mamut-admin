@@ -24,7 +24,8 @@ describe('MyStockService', () => {
   it('load() pide GET /api/me/stock', async () => {
     const body = {
       total: 6,
-      products: [{ productId: 10, name: 'Proteína', image: null, units: 6, price: '480.00' }],
+      products: [{ productId: 10, name: 'Proteína', image: null, units: 6, price: '480.00', stockLevel: 'ok' }],
+      alerts: [],
     };
     const promise = firstValueFrom(service.load());
     const req = httpMock.expectOne(`${API_BASE_URL}/api/me/stock`);
