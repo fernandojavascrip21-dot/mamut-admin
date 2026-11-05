@@ -1,5 +1,6 @@
 import type { Route } from '@angular/router';
 import { ComingSoonPageComponent } from '@shared/pages/coming-soon-page/coming-soon-page.component';
+import { ADMIN_CASH_CUT_ROUTES } from '@features/cash-cut/cash-cut.routes';
 import { ADMIN_CART_ROUTES, ADMIN_SALE_ROUTES } from '@features/sell/sell.routes';
 import { STOCK_ROUTES } from '@features/stock/stock.routes';
 import { ADMIN_ROUTES } from './admin.routes';
@@ -26,5 +27,10 @@ describe('ADMIN_ROUTES', () => {
   it('«venta» carga las rutas de «Venta confirmada» del administrador', async () => {
     const loaded = await (routeOf('venta').loadChildren as () => Promise<unknown>)();
     expect(loaded).toBe(ADMIN_SALE_ROUTES);
+  });
+
+  it('«corte» carga las rutas de la feature cash-cut', async () => {
+    const loaded = await (routeOf('corte').loadChildren as () => Promise<unknown>)();
+    expect(loaded).toBe(ADMIN_CASH_CUT_ROUTES);
   });
 });
