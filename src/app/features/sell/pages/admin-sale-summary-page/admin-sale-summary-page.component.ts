@@ -1,12 +1,9 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ButtonDirective } from 'primeng/button';
+import { ActivatedRoute } from '@angular/router';
 import { httpStatus } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
-import { AdminSaleLineComponent } from '../../components/admin-sale-line/admin-sale-line.component';
-import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
+import { SaleSummaryViewComponent } from '../../components/sale-summary-view/sale-summary-view.component';
 import {
   ADMIN_SALE_SUMMARY_LINKS,
   ADMIN_SALE_SUMMARY_TEXTS,
@@ -21,14 +18,7 @@ import { SalesService } from '../../services/sales.service';
 // muestra la misma venta. El administrador recibe además costo y ganancia por renglón y de la venta.
 // `?repetida=1` avisa que la venta ya estaba registrada con otros renglones.
 @Component({
-  imports: [
-    CurrencyPipe,
-    DatePipe,
-    RouterLink,
-    ButtonDirective,
-    AdminSaleLineComponent,
-    SellProductCardSkeletonComponent,
-  ],
+  imports: [SaleSummaryViewComponent],
   selector: 'app-admin-sale-summary-page',
   templateUrl: './admin-sale-summary-page.component.html',
 })

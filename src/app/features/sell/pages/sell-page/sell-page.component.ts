@@ -52,7 +52,9 @@ export class SellPageComponent {
     filterSellProductsByName(this.stock()?.products ?? [], this.searchQuery()),
   );
   readonly cartUnits = this.cart.totalUnits;
-  readonly cartTotal = computed(() => cartTotal(buildCartRows(this.stock()?.products ?? [], this.cart.lines())));
+  private readonly cartRows = computed(() => buildCartRows(this.stock()?.products ?? [], this.cart.lines()));
+  readonly cartTotal = computed(() => cartTotal(this.cartRows()));
+
 
   // 4) Acciones del usuario. El tope se aplica aquí: CartService no conoce el stock.
   add(product: SellProduct): void {

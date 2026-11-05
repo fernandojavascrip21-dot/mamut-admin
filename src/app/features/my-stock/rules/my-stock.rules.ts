@@ -11,10 +11,10 @@ export function filterMyStockByName<T extends { name: string }>(items: T[], quer
   return items.filter((item) => normalizeText(item.name).includes(normalizedQuery));
 }
 
-// Piezas que le quedan al vendedor, en primera persona: «Me queda 1» / «Me quedan N». Con 1 va en
-// singular, y no se parece a `unitsLabel` («1 pieza»), que es para totales.
+// Piezas que tiene el vendedor de un producto: «Cantidad N». Sin singular ni plural, y no se parece a
+// `unitsLabel` («1 pieza»), que es para totales.
 export function unitsLeftLabel(units: number): string {
-  return units === 1 ? 'Me queda 1' : `Me quedan ${units}`;
+  return `Cantidad ${units}`;
 }
 
 // Texto del aviso de baja existencia (HU-18): «Te quedan pocas piezas de: Creatina, Whey (agotado).

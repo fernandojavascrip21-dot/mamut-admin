@@ -43,4 +43,7 @@ export const CART_PAGE_TEXTS = {
   notEnoughTitle: 'No hay piezas suficientes',
   notEnoughHint: 'Revisa los productos marcados y corrige tu carrito.',
   invalidTitle: 'No se pudo registrar la venta',
+  sellingFrom: 'Vendiendo de:',
+  profit: 'Ganancia de esta venta',
+  summaryTitle: 'Resumen de la venta',
 } as const;

@@ -12,7 +12,7 @@
 
   <!-- Con la barra oculta, el botón flotante de «mostrar» ocupa la esquina: se deja aire arriba. -->
   <main
-    class="flex min-w-0 flex-1 flex-col overflow-y-auto transition-[padding] duration-300 ease-out motion-reduce:transition-none" [class.lg:pt-12]="sidebar.collapsed()">
+    class="flex min-w-0 flex-1 flex-col overflow-y-clip transition-[padding] duration-300 ease-out motion-reduce:transition-none" [class.lg:pt-12]="sidebar.collapsed()">
     <div class="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col">
       <router-outlet></router-outlet>
     </div>

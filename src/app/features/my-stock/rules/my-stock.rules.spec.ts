@@ -23,13 +23,9 @@ describe('filterMyStockByName', () => {
 });
 
 describe('unitsLeftLabel', () => {
-  it('con 1 pieza dice «Me queda 1»', () => {
-    expect(unitsLeftLabel(1)).toBe('Me queda 1');
-  });
-
-  it('con 2 o más dice «Me quedan N»', () => {
-    expect(unitsLeftLabel(2)).toBe('Me quedan 2');
-    expect(unitsLeftLabel(6)).toBe('Me quedan 6');
+  it('dice «Cantidad N», también con 1 pieza', () => {
+    expect(unitsLeftLabel(1)).toBe('Cantidad 1');
+    expect(unitsLeftLabel(6)).toBe('Cantidad 6');
   });
 });
 

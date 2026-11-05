@@ -66,7 +66,7 @@ describe('MyStockPageComponent', () => {
     await load();
     expect(text('.total')).toBe('8');
     expect(el().querySelectorAll('app-my-stock-card')).toHaveLength(2);
-    expect(el().querySelector('.products')?.textContent).toContain('Me quedan 6');
+    expect(el().querySelector('.products')?.textContent).toContain('Cantidad 6');
   });
 
   it('el recuadro rotula el total como «Piezas en total»', async () => {

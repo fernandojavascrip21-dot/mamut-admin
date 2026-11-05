@@ -31,13 +31,13 @@ describe('ProductCardComponent', () => {
     }).compileComponents();
   });
 
-  it('muestra el nombre, el precio en pesos y las piezas en bodega', async () => {
+  it('muestra el nombre, el precio en pesos y la cantidad', async () => {
     await render(PRODUCT);
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('CBUM Thavage');
     expect(text).toContain('$450.00');
     expect(text).toContain('10');
-    expect(text).toContain('en bodega');
+    expect(text).toContain('Cantidad 10');
   });
 
   it('toda la tarjeta enlaza a edición con nombre accesible', async () => {
@@ -59,7 +59,7 @@ describe('ProductCardComponent', () => {
 
   describe('existencia del titular (HU-18)', () => {
     const labels = () =>
-      Array.from(fixture.nativeElement.querySelectorAll('.absolute span')).map((el) => (el as HTMLElement).textContent?.trim());
+      Array.from(fixture.nativeElement.querySelectorAll('.tags span')).map((el) => (el as HTMLElement).textContent?.trim());
 
     async function renderLevel(product: ProductSummary, stockLevel: 'ok' | 'low' | 'out' | null) {
       fixture = TestBed.createComponent(ProductCardComponent);
@@ -106,7 +106,7 @@ describe('ProductCardComponent', () => {
   it('con stock 0 y fractionable true muestra las dos etiquetas, "Agotado" primero', async () => {
     await render({ ...PRODUCT, stock: 0, fractionable: true });
     const labels = Array.from(
-      fixture.nativeElement.querySelectorAll('.absolute span'),
+      fixture.nativeElement.querySelectorAll('.tags span'),
     ).map((el) => (el as HTMLElement).textContent?.trim());
     expect(labels).toEqual(['Agotado', 'Fraccionado']);
   });
@@ -216,11 +216,17 @@ describe('ProductCardComponent', () => {
       expect(inc).toHaveBeenCalledOnce();
     });
 
-    it('con un vendedor muestra «Luis: N»; sin él no muestra la línea', async () => {
+    it('con o sin vendedor dice «Cantidad N» con las piezas del titular', async () => {
       await renderSell({ sellUnits: 6, holderLabel: 'Luis' });
-      expect(el().querySelector('.holder-units')!.textContent!.trim()).toBe('Luis: 6');
+      expect(el().querySelector('.holder-units')!.textContent!.trim()).toBe('Cantidad 10');
       await renderSell({ sellUnits: 6 });
-      expect(el().querySelector('.holder-units')).toBeNull();
+      expect(el().querySelector('.holder-units')!.textContent!.trim()).toBe('Cantidad 10');
+    });
+
+    it('con un vendedor no ofrece «Dejar a vendedor», solo «Agregar»', async () => {
+      await renderSell({ sellUnits: 4, holderLabel: 'Luis' });
+      expect(el().querySelector('a.deliver')).toBeNull();
+      expect(el().querySelector('button.sell')).not.toBeNull();
     });
 
     it('«Dejar a vendedor» sigue saliendo junto a «Agregar»', async () => {

@@ -5,9 +5,9 @@ import { ButtonDirective } from 'primeng/button';
 import { unitsLabel } from '@shared/utils/units-label';
 import { CART_BAR_TEXTS } from './cart-bar.constants';
 
-// Barra del carrito (HU-15, movida a shared en HU-17): «Carrito · N piezas», el total y «Ver carrito».
-// Solo presentación: la página decide cuándo se muestra (con piezas en el carrito), la deja fija
-// abajo y le pasa a dónde lleva el enlace (`/vendedor/carrito` o `/admin/carrito`).
+// Resumen compacto del carrito (HU-15, movido a shared en HU-17): «Carrito · N piezas», el total y «Ver
+// carrito». Solo presentación: la página decide cuándo se muestra (con piezas en el carrito), dónde se
+// coloca (junto al buscador) y a dónde lleva el enlace (`/vendedor/carrito` o `/admin/carrito`).
 @Component({
   imports: [CurrencyPipe, RouterLink, ButtonDirective],
   selector: 'app-cart-bar',

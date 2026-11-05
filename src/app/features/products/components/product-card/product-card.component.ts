@@ -11,7 +11,7 @@ import { initialsOf } from '@shared/utils/initials';
 import { PRODUCT_CARD_PASS_THROUGH, PRODUCT_CARD_SELL_TEXTS } from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
-// "Agotado"/"Baja existencia"/"Fraccionado" encima, nombre, piezas en bodega y precio. La parte de arriba abre la
+// "Agotado"/"Baja existencia"/"Fraccionado" encima, nombre, «Cantidad N» y precio. La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
 // dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Agregar» (HU-17) agrega 1 pieza
 // al carrito del titular de «Viendo» y se vuelve − N + con tope en las piezas de ese titular; la
@@ -54,8 +54,9 @@ export class ProductCardComponent {
   readonly level = computed<StockLevel>(() => this.stockLevel() ?? (this.product().stock <= 0 ? 'out' : 'ok'));
   readonly price = computed(() => Number(this.product().price));
 
-  // Solo se puede dejar lo que hay en la bodega.
-  readonly canDeliver = computed(() => this.product().stock > 0);
+  // Solo se puede dejar lo que hay en la bodega, y solo con «Yo · bodega»: con un vendedor en «Viendo»
+  // la tarjeta es de su stock y el pie queda para vender.
+  readonly canDeliver = computed(() => this.holderLabel() === null && this.product().stock > 0);
   readonly inCart = computed(() => this.unitsInCart() > 0);
   readonly canSell = computed(() => this.inCart() || (this.sellUnits() ?? 0) > 0);
   // El «+» se deshabilita en el tope: las piezas del titular.

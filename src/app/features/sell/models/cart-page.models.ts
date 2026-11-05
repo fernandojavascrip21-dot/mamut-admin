@@ -1,3 +1,4 @@
+import type { CART_PAGE_TEXTS } from '../constants/cart-page.constants';
 import type { SellProduct } from '../interfaces/sell-stock.models';
 
 // Cómo está un renglón del carrito frente al stock de ahora: 'ok' si alcanza, 'over' si pide más
@@ -21,3 +22,7 @@ export type CartPageState = 'empty' | 'loading' | 'error' | 'ready';
 // Por qué no se pudo confirmar la venta, para elegir la alerta de «Carrito»: sin conexión (con
 // «Reintentar»), piezas que ya no alcanzan, o un dato que el backend rechazó (con su mensaje).
 export type CartConfirmError = 'offline' | 'not-enough-units' | 'invalid';
+
+// Textos que recibe `cart-view`: los de «Carrito» con la misma forma para los dos roles; cada página
+// pasa los suyos (el administrador cambia los de cargando, vacío y error).
+export type CartPageTexts = { [K in keyof typeof CART_PAGE_TEXTS]: string };

@@ -1,16 +1,14 @@
-import { CurrencyPipe, formatCurrency, getCurrencySymbol } from '@angular/common';
+import { formatCurrency, getCurrencySymbol } from '@angular/common';
 import { Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
-import { ButtonDirective } from 'primeng/button';
+import { Router } from '@angular/router';
 import { CartService } from '@core/cart/cart.service';
 import { ConfirmService } from '@core/confirm/confirm.service';
 import type { SaleCatalog } from '@core/sale-catalog/sale-catalog.models';
 import { SaleCatalogService } from '@core/sale-catalog/sale-catalog.service';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { unitsLabel } from '@shared/utils/units-label';
-import { CartLineComponent } from '../../components/cart-line/cart-line.component';
-import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
+import { CartViewComponent } from '../../components/cart-view/cart-view.component';
 import { ADMIN_CART_PAGE_TEXTS, ADMIN_PRODUCTS_URL } from '../../constants/admin-cart-page.constants';
 import { ADMIN_SALE_SUMMARY_URL, REPLAYED_QUERY_PARAM } from '../../constants/sales.constants';
 import type { SaleResult } from '../../interfaces/sale.models';
@@ -31,7 +29,7 @@ import { SaleSaveService } from '../../services/sale-save.service';
 // venta» manda el carrito con su `requestId` y su `holderId`. Si queda registrada, vacía el carrito,
 // avisa a «Productos» y «Stock general» y abre «Venta confirmada».
 @Component({
-  imports: [CurrencyPipe, RouterLink, ButtonDirective, CartLineComponent, SellProductCardSkeletonComponent],
+  imports: [CartViewComponent],
   selector: 'app-admin-cart-page',
   providers: [SaleSaveService],
   templateUrl: './admin-cart-page.component.html',
@@ -81,20 +79,11 @@ export class AdminCartPageComponent {
   private readonly costById = computed(
     () => new Map((this.catalog()?.products ?? []).map((product) => [product.productId, product.unitCost])),
   );
-  // Renglones que entran a la suma (los de más o agotados no cuentan): el resumen del panel muestra lo
-  // mismo que suma el total.
-  readonly summaryRows = computed(() => this.rows().filter((row) => row.status === 'ok'));
   readonly needsFix = computed(() => cartNeedsFix(this.rows()));
   readonly piecesLabel = computed(() => unitsLabel(this.cart.totalUnits()));
   // Único `Number()` sobre un monto: solo para pasarlo al pipe `currency` al mostrarlo.
   readonly totalAmount = computed(() => Number(cartTotal(this.rows())));
   readonly profitAmount = computed(() => Number(cartProfit(this.rows(), (id) => this.costById().get(id))));
-
-  // Subtotal de un renglón para mostrarlo con el pipe `currency` (único `Number()` sobre un monto, junto
-  // a los totales).
-  amountOf(row: CartRow): number {
-    return Number(row.subtotal);
-  }
 
   // 4) Acciones del usuario. El tope se aplica aquí: CartService no conoce el stock.
   increment(row: CartRow): void {

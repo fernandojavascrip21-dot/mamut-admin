@@ -16,4 +16,5 @@ export const PRODUCT_CARD_SELL_TEXTS = {
   decrementPrefix: 'Quitar una pieza de',
   incrementPrefix: 'Agregar una pieza de',
   unitsInCartSuffix: 'en el carrito',
+  quantity: 'Cantidad',
 } as const;

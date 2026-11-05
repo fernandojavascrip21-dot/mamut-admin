@@ -66,6 +66,13 @@
         Reintentar
       </button>
     </div>
+  } @else if (sellerWithoutProducts()) {
+    <div
+      class="seller-empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+    >
+      <p class="m-0 text-[17px] font-bold">{{ holderLabel() }} no tiene productos</p>
+      <p class="m-0 text-sm text-muted">Déjale producto desde Stock o Vendedores para venderlo aquí.</p>
+    </div>
   } @else if (items().length === 0) {
     <div
       class="mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"

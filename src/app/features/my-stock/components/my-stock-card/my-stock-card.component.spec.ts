@@ -28,17 +28,17 @@ describe('MyStockCardComponent', () => {
     await TestBed.configureTestingModule({ imports: [MyStockCardComponent] }).compileComponents();
   });
 
-  it('muestra el nombre, «Me quedan N» y el precio en pesos', async () => {
+  it('muestra el nombre, «Cantidad N» y el precio en pesos', async () => {
     await render(PRODUCT);
     expect(text()).toContain('Proteína Whey');
-    expect(text()).toContain('Me quedan 6');
+    expect(text()).toContain('Cantidad 6');
     expect(text()).toContain('$480.00');
   });
 
-  it('con una pieza dice «Me queda 1»', async () => {
+  it('con una pieza dice «Cantidad 1»', async () => {
     await render({ ...PRODUCT, units: 1 });
-    expect(text()).toContain('Me queda 1');
-    expect(text()).not.toContain('Me quedan');
+    expect(text()).toContain('Cantidad 1');
+    expect(text()).not.toContain('Me queda');
   });
 
   it('muestra el precio que recibe, sea el propio o el general', async () => {

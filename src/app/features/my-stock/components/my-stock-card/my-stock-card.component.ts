@@ -8,7 +8,7 @@ import type { MyStockProduct } from '../../interfaces/my-stock.models';
 import { unitsLeftLabel } from '../../rules/my-stock.rules';
 import { MY_STOCK_CARD_PASS_THROUGH } from './my-stock-card.constants';
 
-// Tarjeta de un producto de «Mi stock» (HU-14): foto (o iniciales), nombre, «Me quedan N» y el
+// Tarjeta de un producto de «Mi stock» (HU-14): foto (o iniciales), nombre, «Cantidad N» y el
 // precio del vendedor y, con pocas piezas, la etiqueta «Quedan pocas» (HU-18). Es solo lectura: «Vender» lo decide HU-15. `price` ya llega resuelto
 // (propio o general) y sin costos, así que aquí no hay nada que ocultar.
 @Component({
