@@ -1,0 +1,42 @@
+<div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-1.5" role="group" aria-labelledby="cut-period-label">
+    <span id="cut-period-label" class="field-label">{{ texts.kindsLabel }}</span>
+    <p-selectbutton
+      class="kinds"
+      [options]="kindOptions"
+      optionLabel="label"
+      optionValue="kind"
+      [ngModel]="kind()"
+      (ngModelChange)="selectKind($event)"
+      [allowEmpty]="false"
+      [fluid]="true"
+    />
+  </div>
+
+  <div class="flex items-center justify-between gap-2">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [text]="true"
+      class="previous h-11 px-3 text-sm"
+      [attr.aria-label]="texts.previousLabel"
+      (click)="previous()"
+    >
+      ‹ {{ texts.previous }}
+    </button>
+    <p class="label m-0 text-center text-base font-bold" aria-live="polite">{{ label() }}</p>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [text]="true"
+      class="next h-11 px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+      [attr.aria-label]="texts.nextLabel"
+      [disabled]="offset() >= 0"
+      (click)="next()"
+    >
+      {{ texts.next }} ›
+    </button>
+  </div>
+</div>

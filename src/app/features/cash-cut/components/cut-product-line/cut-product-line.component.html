@@ -1,0 +1,45 @@
+<div class="flex min-w-0 gap-3 px-4 py-3">
+  @if (showPhoto()) {
+    <img
+      [src]="line().image"
+      [alt]="line().name"
+      loading="lazy"
+      (error)="onPhotoError()"
+      class="h-14 w-14 flex-shrink-0 rounded-xl object-cover"
+    />
+  } @else {
+    <div
+      class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
+      aria-hidden="true"
+    >
+      {{ initials() }}
+    </div>
+  }
+
+  <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+    <p class="name m-0 text-sm leading-tight font-bold break-words">{{ line().name }}</p>
+    <p class="detail m-0 font-mono text-xs text-muted">
+      {{ line().units }} × {{ unitPrice() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+    @if (line().cost !== undefined) {
+      <p class="cost m-0 font-mono text-xs text-muted">
+        {{ costLabel() }} {{ cost() | currency: 'MXN' : 'symbol-narrow' }}
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col items-end justify-center gap-0.5 text-right">
+    <p class="total m-0 font-mono text-base font-bold whitespace-nowrap">
+      {{ total() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+    @if (line().profit !== undefined) {
+      <p
+        class="profit m-0 font-mono text-xs font-semibold whitespace-nowrap"
+        [class.text-success-text]="!profitIsNegative()"
+        [class.text-danger-text]="profitIsNegative()"
+      >
+        {{ profitIsNegative() ? '' : '+' }}{{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+      </p>
+    }
+  </div>
+</div>
