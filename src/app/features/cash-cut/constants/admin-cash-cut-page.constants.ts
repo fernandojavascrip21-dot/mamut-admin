@@ -4,7 +4,7 @@ import type { CutTypeOption } from '../models/admin-cash-cut-page.models';
 export const ADMIN_CASH_CUT_PAGE_TEXTS = {
   title: 'Corte',
   warehouseOwner: 'mis ventas',
-  idleTitle: 'Generar corte',
+  idleAria: 'Generar corte',
   idleHint: 'Revisa a quién, el periodo y el tipo de corte. El corte se calcula cuando lo generes.',
   generate: 'Generar corte',
   regenerate: 'Generar de nuevo',

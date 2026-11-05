@@ -1,7 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
-import { Card } from 'primeng/card';
-import { CUT_CARD_PASS_THROUGH } from '../../constants/cash-cut.constants';
 import { initialsOf } from '@shared/utils/initials';
 import type { CutProductLine } from '../../interfaces/cash-cut.models';
 import { CUT_PRODUCT_LINE_TEXTS } from './cut-product-line.constants';
@@ -9,12 +7,11 @@ import { CUT_PRODUCT_LINE_TEXTS } from './cut-product-line.constants';
 // Un renglón del desglose del corte (HU-19): foto (o iniciales), nombre, «2 × $920.00», el costo, el
 // subtotal y la ganancia. Un mismo producto con dos precios llega como dos renglones. Solo presentación.
 @Component({
-  imports: [Card, CurrencyPipe],
+  imports: [CurrencyPipe],
   selector: 'app-cut-product-line',
   templateUrl: './cut-product-line.component.html',
 })
 export class CutProductLineComponent {
-  readonly cardPassThrough = CUT_CARD_PASS_THROUGH;
   readonly line = input.required<CutProductLine>();
   // true con un vendedor («costo con envío»); false con la bodega («costo»).
   readonly withShipping = input.required<boolean>();

@@ -6,7 +6,7 @@ export const CUT_PERIOD_PICKER_TEXTS = {
   next: 'Siguiente',
   previousLabel: 'Periodo anterior',
   nextLabel: 'Periodo siguiente',
-  kindsLabel: 'Tipo de periodo',
+  kindsLabel: 'Periodo',
 } as const;
 
 export const CUT_PERIOD_KIND_OPTIONS: { kind: CutPeriodKind; label: string }[] = [

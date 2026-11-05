@@ -1,5 +1,6 @@
 <div class="flex flex-col gap-3">
-  <div role="group" [attr.aria-label]="texts.kindsLabel">
+  <div class="flex flex-col gap-1.5" role="group" aria-labelledby="cut-period-label">
+    <span id="cut-period-label" class="field-label">{{ texts.kindsLabel }}</span>
     <p-selectbutton
       class="kinds"
       [options]="kindOptions"

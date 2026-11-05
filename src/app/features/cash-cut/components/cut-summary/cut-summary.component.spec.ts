@@ -48,7 +48,7 @@ describe('CutSummaryComponent', () => {
   it('una ganancia negativa se muestra con signo menos', () => {
     render({ ...TOTALS, profit: '-40.00' }, 'Luis');
     expect(text('.profit')).toBe('-$40.00');
-    expect(el().querySelector('.profit')?.classList.contains('text-danger-text')).toBe(true);
+    expect(el().querySelector('.profit')?.classList.contains('text-danger-border')).toBe(true);
   });
 
   it('sin costo ni ganancia no muestra esas cifras', () => {

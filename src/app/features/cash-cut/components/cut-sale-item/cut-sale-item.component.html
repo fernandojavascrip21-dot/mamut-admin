@@ -1,66 +1,73 @@
-<p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
-  <article>
-    <button
-      type="button"
-      class="toggle flex min-h-11 w-full items-center gap-3 rounded-card p-4 text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      [attr.aria-expanded]="expanded()"
-      [attr.aria-controls]="'sale-' + sale().requestId"
-      (click)="toggle()"
-    >
-      <span class="flex min-w-0 flex-1 flex-col gap-1">
-        <span class="time font-mono text-sm font-semibold">{{ timeLabel() }}</span>
-        @if (sale().registeredByAdmin) {
-          <p-tag
-            class="admin-tag self-start"
-            [value]="texts.registeredByYou"
-            severity="secondary"
-          />
-        }
+<article>
+  <button
+    type="button"
+    class="toggle flex min-h-11 w-full items-center gap-3 p-4 text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="'sale-' + sale().requestId"
+    (click)="toggle()"
+  >
+    <span class="flex min-w-0 flex-1 flex-col gap-1">
+      <span class="time font-mono text-sm font-semibold">{{ timeLabel() }}</span>
+      @if (sale().registeredByAdmin) {
+        <p-tag class="admin-tag self-start" [value]="texts.registeredByYou" severity="secondary" />
+      }
+    </span>
+    <span class="flex flex-col items-end gap-0.5 text-right">
+      <span class="total font-mono text-base font-bold whitespace-nowrap">
+        {{ total() | currency: 'MXN' : 'symbol-narrow' }}
       </span>
-      <span class="flex flex-col items-end gap-0.5 text-right">
-        <span class="total font-mono text-base font-bold whitespace-nowrap">
-          {{ total() | currency: 'MXN' : 'symbol-narrow' }}
+      @if (sale().profit !== undefined) {
+        <span
+          class="profit font-mono text-xs font-semibold whitespace-nowrap"
+          [class.text-success-text]="!profitIsNegative()"
+          [class.text-danger-text]="profitIsNegative()"
+        >
+          {{ texts.profit }} {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
         </span>
-        @if (sale().profit !== undefined) {
-          <span
-            class="profit font-mono text-xs font-semibold whitespace-nowrap"
-            [class.text-success-text]="!profitIsNegative()"
-            [class.text-danger-text]="profitIsNegative()"
-          >
-            {{ texts.profit }} {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
-          </span>
-        }
-      </span>
-      <span class="text-muted" aria-hidden="true">{{ expanded() ? '▴' : '▾' }}</span>
-    </button>
+      }
+    </span>
+    <svg
+      aria-hidden="true"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="shrink-0 stroke-muted transition-transform duration-200 motion-reduce:transition-none"
+      [class.rotate-180]="expanded()"
+    >
+      <path d="m6 9 6 6 6-6"></path>
+    </svg>
+  </button>
 
-    @if (expanded()) {
-      <ul
-        [id]="'sale-' + sale().requestId"
-        class="lines m-0 flex list-none flex-col gap-2 border-t border-line p-4"
-      >
-        @for (line of sale().lines; track $index) {
-          <li class="line flex items-baseline justify-between gap-3 text-sm">
-            <span class="min-w-0 break-words">
-              <span class="line-name font-semibold">{{ line.name }}</span>
-              <span class="line-detail block font-mono text-xs text-muted">
-                {{ line.qty }} ×
-                {{ lineUnitPrice(line.unitPrice) | currency: 'MXN' : 'symbol-narrow' }}
-              </span>
+  @if (expanded()) {
+    <ul
+      [id]="'sale-' + sale().requestId"
+      class="lines m-0 flex list-none flex-col gap-2 border-t border-line p-4"
+    >
+      @for (line of sale().lines; track $index) {
+        <li class="line flex items-baseline justify-between gap-3 text-sm">
+          <span class="min-w-0 break-words">
+            <span class="line-name font-semibold">{{ line.name }}</span>
+            <span class="line-detail block font-mono text-xs text-muted">
+              {{ line.qty }} ×
+              {{ lineUnitPrice(line.unitPrice) | currency: 'MXN' : 'symbol-narrow' }}
             </span>
-            <span class="flex flex-col items-end text-right">
-              <span class="line-subtotal font-mono font-bold whitespace-nowrap">
-                {{ lineUnitPrice(line.subtotal) | currency: 'MXN' : 'symbol-narrow' }}
-              </span>
-              @if (line.profit !== undefined) {
-                <span class="line-profit font-mono text-xs text-muted whitespace-nowrap">
-                  {{ lineUnitPrice(line.profit) | currency: 'MXN' : 'symbol-narrow' }}
-                </span>
-              }
+          </span>
+          <span class="flex flex-col items-end text-right">
+            <span class="line-subtotal font-mono font-bold whitespace-nowrap">
+              {{ lineUnitPrice(line.subtotal) | currency: 'MXN' : 'symbol-narrow' }}
             </span>
-          </li>
-        }
-      </ul>
-    }
-  </article>
-</p-card>
+            @if (line.profit !== undefined) {
+              <span class="line-profit font-mono text-xs text-muted whitespace-nowrap">
+                {{ lineUnitPrice(line.profit) | currency: 'MXN' : 'symbol-narrow' }}
+              </span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</article>

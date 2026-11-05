@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal, untracked } from '@angular
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { ViewingService } from '@core/viewing/viewing.service';
@@ -15,6 +16,7 @@ import {
   CUT_TYPE_OPTIONS,
   DEFAULT_CUT_TYPE,
 } from '../../constants/admin-cash-cut-page.constants';
+import { CUT_CARD_PASS_THROUGH } from '../../constants/cash-cut.constants';
 import type { CashCut, CashCutQuery, CutPeriodKind } from '../../interfaces/cash-cut.models';
 import type { CashCutPageState, CutSelection } from '../../models/admin-cash-cut-page.models';
 import {
@@ -34,6 +36,7 @@ import { CashCutService } from '../../services/cash-cut.service';
   imports: [
     FormsModule,
     ButtonDirective,
+    Card,
     Select,
     Skeleton,
     CutPeriodPickerComponent,
@@ -50,6 +53,7 @@ export class AdminCashCutPageComponent {
   private readonly viewing = inject(ViewingService);
 
   readonly texts = ADMIN_CASH_CUT_PAGE_TEXTS;
+  readonly cardPassThrough = CUT_CARD_PASS_THROUGH;
   readonly cutTypeOptions = CUT_TYPE_OPTIONS;
   readonly cutType = DEFAULT_CUT_TYPE;
 

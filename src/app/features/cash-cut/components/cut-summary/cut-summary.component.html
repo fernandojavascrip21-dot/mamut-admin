@@ -1,36 +1,35 @@
-<p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
-  <section class="flex flex-col gap-3 p-4">
-    <div>
-      <p class="m-0 text-xs font-semibold tracking-wide text-muted uppercase">{{ texts.sold }}</p>
-      <p class="sold m-0 font-mono text-3xl font-bold">
+<p-card
+  class="block min-w-0 overflow-hidden border border-ink [--p-card-background:var(--color-ink)] [--p-card-color:var(--color-white)]"
+  [pt]="cardPassThrough"
+>
+  <section class="grid grid-cols-2 gap-x-4 gap-y-3 p-4">
+    <div class="col-span-2">
+      <p class="m-0 text-xs font-semibold text-line">{{ texts.sold }}</p>
+      <p class="sold m-0 font-mono text-[34px] leading-tight font-bold tracking-tight">
         {{ total() | currency: 'MXN' : 'symbol-narrow' }}
       </p>
-      <p class="sold-caption m-0 text-sm text-muted">{{ soldCaption() }}</p>
+      <p class="sold-caption m-0 text-sm text-line">{{ soldCaption() }}</p>
     </div>
 
-    @if (totals().cost !== undefined || totals().profit !== undefined) {
-      <dl class="m-0 grid grid-cols-2 gap-3 border-t border-line pt-3">
-        @if (totals().cost !== undefined) {
-          <div>
-            <dt class="cost-label text-xs font-semibold text-muted">{{ costLabel() }}</dt>
-            <dd class="cost m-0 font-mono text-lg font-bold">
-              {{ cost() | currency: 'MXN' : 'symbol-narrow' }}
-            </dd>
-          </div>
-        }
-        @if (totals().profit !== undefined) {
-          <div>
-            <dt class="text-xs font-semibold text-muted">{{ texts.profit }}</dt>
-            <dd
-              class="profit m-0 font-mono text-lg font-bold"
-              [class.text-success-text]="!profitIsNegative()"
-              [class.text-danger-text]="profitIsNegative()"
-            >
-              {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
-            </dd>
-          </div>
-        }
-      </dl>
+    @if (totals().cost !== undefined) {
+      <div>
+        <p class="cost-label m-0 text-xs font-semibold text-line">{{ costLabel() }}</p>
+        <p class="cost m-0 font-mono text-lg font-bold">
+          {{ cost() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      </div>
+    }
+    @if (totals().profit !== undefined) {
+      <div>
+        <p class="m-0 text-xs font-semibold text-line">{{ texts.profit }}</p>
+        <p
+          class="profit m-0 font-mono text-lg font-bold"
+          [class.text-success-border]="!profitIsNegative()"
+          [class.text-danger-border]="profitIsNegative()"
+        >
+          {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      </div>
     }
   </section>
 </p-card>
