@@ -1,6 +1,6 @@
 # Spec técnico — HU-20 · Ver mi corte como vendedor, con la ganancia del precio que puso el administrador
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M4a-t20-base-cortes (`specs/M4a-t20-base-cortes/spec.md`) — `GET /api/cuts` y el recorte por rol que este spec cambia; M4a-hu19-corte-administrador (`specs/M4a-hu19-corte-administrador/spec.md`) — feature `cash-cut`, componentes y reglas de periodo que se reutilizan; M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — precio y costo con envío propios del vendedor; M3-hu16-confirmar-venta (`specs/M3-hu16-confirmar-venta/spec.md`) — ventas del vendedor; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — shell y rutas del vendedor; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-04
 > **Objetivo:** que el vendedor, en «Mi corte», genere su corte de un día, semana o mes (actual o anterior) y vea lo vendido, lo que entrega, su ganancia calculada con el precio y el costo con envío que le puso el administrador, el desglose por producto y las ventas que lo forman.
@@ -137,29 +137,29 @@ Esa cuenta ya existe: cada venta guarda `unit_price` (el del vendedor, o el gene
 
 Por criterio de `SCRUM-56`, con 4 y 5 reescritos:
 
-- [ ] **1.** Como vendedor, en «Mi corte» veo el selector Día, Semana y Mes (Día por defecto) y «Generar corte».
-- [ ] **2.** Con «Semana», «Generar corte» muestra lo vendido, el total a entregar, la ganancia y el desglose por producto con foto, nombre, piezas, mi precio y subtotal.
-- [ ] **3.** 2 piezas a $920 con costo con envío $700 se muestran como vendido $1,840.00, total a entregar $1,400.00 y ganancia $440.00, sin sumar ni redondear en el frontend.
-- [ ] **4 (reescrito).** La ganancia usa el precio y el costo con envío que el administrador puso al dejarme el producto. Si los cambia, las ventas nuevas usan los nuevos y las anteriores conservan los suyos.
-- [ ] **5 (reescrito).** `GET /api/cuts` con el `holderId` de otro vendedor responde `403` sin datos ajenos, y con el de la bodega también. Sin `holderId` responde mi corte con costo y ganancia.
-- [ ] **6.** Un periodo sin ventas muestra el estado vacío del canvas, no un corte en ceros.
-- [ ] **7.** Mientras carga se ve «Calculando tu corte…». Si falla o no hay conexión se ve el error, y «Reintentar» vuelve a pedirlo.
-- [ ] **8.** A 375 px se usa sin zoom ni scroll horizontal, con botones de al menos 44 px.
+- [x] **1.** Como vendedor, en «Mi corte» veo el selector Día, Semana y Mes (Día por defecto) y «Generar corte».
+- [x] **2.** Con «Semana», «Generar corte» muestra lo vendido, el total a entregar, la ganancia y el desglose por producto con foto, nombre, piezas, mi precio y subtotal.
+- [x] **3.** 2 piezas a $920 con costo con envío $700 se muestran como vendido $1,840.00, total a entregar $1,400.00 y ganancia $440.00, sin sumar ni redondear en el frontend.
+- [x] **4 (reescrito).** La ganancia usa el precio y el costo con envío que el administrador puso al dejarme el producto. Si los cambia, las ventas nuevas usan los nuevos y las anteriores conservan los suyos.
+- [x] **5 (reescrito).** `GET /api/cuts` con el `holderId` de otro vendedor responde `403` sin datos ajenos, y con el de la bodega también. Sin `holderId` responde mi corte con costo y ganancia.
+- [x] **6.** Un periodo sin ventas muestra el estado vacío del canvas, no un corte en ceros.
+- [x] **7.** Mientras carga se ve «Calculando tu corte…». Si falla o no hay conexión se ve el error, y «Reintentar» vuelve a pedirlo.
+- [x] **8.** A 375 px se usa sin zoom ni scroll horizontal, con botones de al menos 44 px.
 
 Además:
 
-- [ ] Si el vendedor ya vendió un producto y luego el administrador cambia su precio, la venta anterior sigue en el corte y en la ganancia con el precio que tenía.
-- [ ] Si el administrador cambia el precio y el vendedor aún no había vendido ese producto, su primera venta sale con el precio nuevo y su ganancia se calcula con él.
-- [ ] Un periodo con ventas antes y después del cambio muestra dos renglones del producto, cada uno con su precio.
-- [ ] Si el vendedor tiene precio propio, subir el precio general no cambia sus ventas; sí las nuevas tras dejarle producto con otro precio.
-- [ ] Las flechas «‹ Anterior» y «Siguiente ›» cambian el periodo y su texto; «Siguiente ›» está deshabilitado en el periodo actual.
-- [ ] Cambiar de clase o de periodo quita el resultado y vuelve la tarjeta «Generar corte»; una respuesta tardía no se muestra.
-- [ ] El resultado muestra «Generado hoy a las HH:MM», y «Generar de nuevo» vuelve a pedir el mismo corte.
-- [ ] La lista «Ventas» marca con «Registrada por el administrador» las ventas que él registró desde mi stock.
-- [ ] No existe el botón «Enviar corte al administrador» ni nada de contado o crédito.
-- [ ] `/vendedor/mi-corte` ya no carga «Próximamente», y el administrador no entra a esa ruta.
-- [ ] `trimForRole` ya no existe; el corte del administrador sigue igual (sus pruebas pasan sin cambios).
-- [ ] `features/cash-cut` no importa otras features. `npm run check:architecture`, `ng build`, `ng test` y `npm test` del backend (con `SUPABASE_SERVICE_ROLE_KEY`) pasan.
+- [x] Si el vendedor ya vendió un producto y luego el administrador cambia su precio, la venta anterior sigue en el corte y en la ganancia con el precio que tenía.
+- [x] Si el administrador cambia el precio y el vendedor aún no había vendido ese producto, su primera venta sale con el precio nuevo y su ganancia se calcula con él.
+- [x] Un periodo con ventas antes y después del cambio muestra dos renglones del producto, cada uno con su precio.
+- [x] Si el vendedor tiene precio propio, subir el precio general no cambia sus ventas; sí las nuevas tras dejarle producto con otro precio.
+- [x] Las flechas «‹ Anterior» y «Siguiente ›» cambian el periodo y su texto; «Siguiente ›» está deshabilitado en el periodo actual.
+- [x] Cambiar de clase o de periodo quita el resultado y vuelve la tarjeta «Generar corte»; una respuesta tardía no se muestra.
+- [x] El resultado muestra «Generado hoy a las HH:MM», y «Generar de nuevo» vuelve a pedir el mismo corte.
+- [x] La lista «Ventas» marca con «Registrada por el administrador» las ventas que él registró desde mi stock.
+- [x] No existe el botón «Enviar corte al administrador» ni nada de contado o crédito.
+- [ ] `/vendedor/mi-corte` ya no carga «Próximamente» (verificado), y el administrador no entra a esa ruta (lo cubre `roleGuard`; falta verlo en pantalla).
+- [x] `trimForRole` ya no existe; el corte del administrador sigue igual (sus pruebas pasan sin cambios).
+- [x] `features/cash-cut` no importa otras features. `npm run check:architecture`, `ng build`, `ng test` y `npm test` del backend (con `SUPABASE_SERVICE_ROLE_KEY`) pasan.
 
 ## 7. Plan de pruebas
 
