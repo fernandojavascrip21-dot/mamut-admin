@@ -100,7 +100,9 @@ describe('periodLabel', () => {
   });
 
   it('semana que cruza de año lleva ambos años', () => {
-    expect(periodLabel('week', '2025-12-28', '2026-01-03', today)).toBe('28 dic 2025 al 3 ene 2026');
+    expect(periodLabel('week', '2025-12-28', '2026-01-03', today)).toBe(
+      '28 dic 2025 al 3 ene 2026',
+    );
   });
 
   it('semana de otro año lleva el año al final', () => {

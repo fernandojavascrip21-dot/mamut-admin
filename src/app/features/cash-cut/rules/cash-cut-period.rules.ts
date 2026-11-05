@@ -1,4 +1,9 @@
-import { CUT_TIME_ZONE, MONTH_NAMES, MONTH_SHORT_NAMES, WEEKDAY_SHORT_NAMES } from '../constants/cash-cut.constants';
+import {
+  CUT_TIME_ZONE,
+  MONTH_NAMES,
+  MONTH_SHORT_NAMES,
+  WEEKDAY_SHORT_NAMES,
+} from '../constants/cash-cut.constants';
 import type { CutPeriodKind } from '../interfaces/cash-cut.models';
 
 // Regla de periodo del corte en el frontend. Solo sirve para el texto y la fecha de referencia que se
@@ -88,7 +93,8 @@ export function periodLabel(kind: CutPeriodKind, from: string, to: string, today
   }
 
   // Semana: mismo mes → «2 al 8 nov»; cruza de mes → «26 oct al 1 nov»; cruza de año → con ambos años.
-  if (startYear !== endYear) return `${shortDate(start)} ${startYear} al ${shortDate(end)} ${endYear}`;
+  if (startYear !== endYear)
+    return `${shortDate(start)} ${startYear} al ${shortDate(end)} ${endYear}`;
   const sameMonth = start.getUTCMonth() === end.getUTCMonth();
   const text = sameMonth
     ? `${start.getUTCDate()} al ${shortDate(end)}`

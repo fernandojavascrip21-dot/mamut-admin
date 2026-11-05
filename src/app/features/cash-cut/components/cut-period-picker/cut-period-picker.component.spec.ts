@@ -10,7 +10,9 @@ describe('CutPeriodPickerComponent', () => {
   const button = (selector: string) => el().querySelector(selector) as HTMLButtonElement;
   // Opciones del selector de PrimeNG (p-togglebutton), en el orden Día, Semana, Mes.
   const option = (label: string) =>
-    Array.from(el().querySelectorAll<HTMLElement>('p-togglebutton')).find((o) => o.textContent?.trim() === label)!;
+    Array.from(el().querySelectorAll<HTMLElement>('p-togglebutton')).find(
+      (o) => o.textContent?.trim() === label,
+    )!;
 
   async function render(kind: CutPeriodKind, offset: number) {
     fixture = TestBed.createComponent(CutPeriodPickerComponent);

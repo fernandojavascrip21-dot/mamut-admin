@@ -16,3 +16,11 @@ export function saleTimeLabel(soldAt: string, withDate: boolean): string {
   if (!withDate) return time;
   return `${part('day')} ${MONTH_SHORT_NAMES[Number(part('month')) - 1]} · ${time}`;
 }
+
+// Hora del dispositivo en 24 horas («18:42»), para «Generado hoy a las 18:42». Solo informa cuándo se
+// pidió el corte; no define el periodo, por eso va en la hora local y no en la de México.
+export function clockTime(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}

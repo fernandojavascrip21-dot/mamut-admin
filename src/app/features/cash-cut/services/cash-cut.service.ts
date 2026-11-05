@@ -16,6 +16,8 @@ export class CashCutService {
   get(query: CashCutQuery): Observable<CashCut> {
     let params = new HttpParams().set('period', query.period).set('date', query.date);
     if (query.holderId !== null) params = params.set('holderId', query.holderId);
-    return this.http.get<{ cut: CashCut }>(`${API_BASE_URL}/api/cuts`, { params }).pipe(map((r) => r.cut));
+    return this.http
+      .get<{ cut: CashCut }>(`${API_BASE_URL}/api/cuts`, { params })
+      .pipe(map((r) => r.cut));
   }
 }

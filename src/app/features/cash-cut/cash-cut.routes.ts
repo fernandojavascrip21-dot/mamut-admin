@@ -5,7 +5,9 @@ export const ADMIN_CASH_CUT_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/admin-cash-cut-page/admin-cash-cut-page.component').then((m) => m.AdminCashCutPageComponent),
+      import('./pages/admin-cash-cut-page/admin-cash-cut-page.component').then(
+        (m) => m.AdminCashCutPageComponent,
+      ),
     data: { title: 'Corte' },
   },
 ];

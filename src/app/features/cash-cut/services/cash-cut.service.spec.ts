@@ -11,7 +11,9 @@ describe('CashCutService', () => {
   const cut = { totals: { salesCount: 0 } } as CashCut;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     service = TestBed.inject(CashCutService);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -20,7 +22,9 @@ describe('CashCutService', () => {
 
   it('get() pide /api/cuts con holderId, period y date y devuelve el corte', () => {
     let received: CashCut | undefined;
-    service.get({ holderId: 'abc', period: 'week', date: '2026-11-02' }).subscribe((r) => (received = r));
+    service
+      .get({ holderId: 'abc', period: 'week', date: '2026-11-02' })
+      .subscribe((r) => (received = r));
     const req = httpMock.expectOne((r) => r.url === `${API_BASE_URL}/api/cuts`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('holderId')).toBe('abc');

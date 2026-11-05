@@ -1,4 +1,4 @@
-import { saleTimeLabel } from './cut-sale-time.rules';
+import { clockTime, saleTimeLabel } from './cut-sale-time.rules';
 
 describe('saleTimeLabel', () => {
   it('muestra la hora de México en 24 horas', () => {
@@ -15,5 +15,12 @@ describe('saleTimeLabel', () => {
 
   it('medianoche se muestra como 00:00', () => {
     expect(saleTimeLabel('2026-11-05T06:05:00Z', false)).toBe('00:05');
+  });
+});
+
+describe('clockTime', () => {
+  it('da la hora del dispositivo con dos dígitos', () => {
+    expect(clockTime(new Date(2026, 10, 4, 18, 42))).toBe('18:42');
+    expect(clockTime(new Date(2026, 10, 4, 7, 5))).toBe('07:05');
   });
 });
