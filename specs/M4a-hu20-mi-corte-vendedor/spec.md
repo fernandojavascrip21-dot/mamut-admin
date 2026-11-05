@@ -71,7 +71,7 @@ Esa cuenta ya existe: cada venta guarda `unit_price` (el del vendedor, o el gene
   - Al tocar «Generar corte» se pide `GET /api/cuts?period=…&date=…`.
   - Al cambiar clase o flecha, el resultado se quita y vuelve la tarjeta. Una respuesta tardía se descarta.
   - Generado: «Generado hoy a las 18:42» (hora del dispositivo) y «Generar de nuevo».
-- **Desglose y ventas:** «Lo que vendí», un renglón por producto y precio (foto, nombre, «2 × $920.00», subtotal, costo con envío y ganancia). «Ventas (N)» plegadas, la más reciente primero, con hora o fecha, total y ganancia. Una venta que el administrador registró desde el stock del vendedor lleva «Registrada por el administrador» (`registeredByAdmin`).
+- **Desglose y ventas:** «Lo que vendí», un renglón por producto y precio (foto, nombre, «2 × $920.00», subtotal, costo total del renglón y ganancia). Al vendedor solo se le muestra el costo total, rotulado «costo», sin la palabra «envío» (decisión del usuario del 2026-11-04): si cuesta $1,500 por pieza, dos piezas muestran «costo $3,000.00». «Ventas (N)» plegadas, la más reciente primero, con hora o fecha, total y ganancia. Una venta que el administrador registró desde el stock del vendedor lleva «Registrada por el administrador» (`registeredByAdmin`).
 - **Estados:**
   - Cargando: «Calculando tu corte…» y «Sumando tus ventas.», con esqueletos.
   - Vacío (`salesCount === 0`): «Sin ventas en este periodo» y «Cambia el periodo o vende algo para ver tu corte.».
@@ -103,7 +103,7 @@ Esa cuenta ya existe: cada venta guarda `unit_price` (el del vendedor, o el gene
 - Componentes reutilizados con un `input()` nuevo para el texto que cambia:
   - `cut-summary`: `perspective: 'admin' | 'seller'`. Con `'seller'`: «Vendí…» y «Total a entregar» en lugar de «Costo con envío».
   - `cut-sale-item`: la etiqueta pasa a «Registrada por el administrador» con `'seller'`.
-  - `cut-period-picker` y `cut-product-line`: sin cambios.
+  - `cut-period-picker` y `cut-product-line`: sin cambios (la página del vendedor pasa `withShipping` en `false`, así el renglón dice «costo» y no «costo con envío»).
 
 ## 5. Plan de implementación
 
@@ -214,7 +214,7 @@ Revisados `VendedorCorte` y `EstadosMiCorte` junto con `features/cash-cut/` de H
 | Tarjeta punteada «Mi corte · {periodo}» con «Generar corte» de 56 px | Sección `idle` con `pButton` primario de `h-14` |
 | «Generado hoy a las HH:MM» y «Generar de nuevo» | Fila `generated-at` + `pButton` secundario con `[text]="true"` |
 | Tarjeta oscura con el total | `app-cut-summary` con `perspective="seller"` |
-| «Lo que vendí», un renglón por producto | `p-card` con `app-cut-product-line` (foto o iniciales, «2 × $920.00», subtotal, costo con envío y ganancia) |
+| «Lo que vendí», un renglón por producto | `p-card` con `app-cut-product-line` (foto o iniciales, «2 × $920.00», «costo $1,400.00», subtotal y ganancia) |
 | Cargando, vacío y error | `loading` con `p-skeleton`, `empty` con ícono `accent-2`, `alert-danger` con `pButton` «Reintentar» |
 | «Enviar corte al administrador» | Fuera de este spec (§2) |
 

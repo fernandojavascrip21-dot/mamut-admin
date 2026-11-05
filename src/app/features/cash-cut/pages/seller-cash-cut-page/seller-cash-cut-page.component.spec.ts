@@ -146,6 +146,9 @@ describe('SellerCashCutPageComponent', () => {
     expect(text('app-cut-summary .profit')).toBe('$550.00');
     expect(text('.products-title')).toBe('Lo que vendí');
     expect(el().querySelectorAll('.products app-cut-product-line')).toHaveLength(2);
+    // Solo el costo total del renglón (2 × $700 = $1,400.00), sin la palabra «envío».
+    expect(text('.products .cost')).toBe('costo $1,400.00');
+    expect(el().querySelector('.products')?.textContent).not.toContain('envío');
     expect(text('.sales-title')).toBe('Ventas (2)');
     expect(el().querySelectorAll('.sales app-cut-sale-item')).toHaveLength(2);
     expect(text('.sales .admin-tag')).toBe('Registrada por el administrador');

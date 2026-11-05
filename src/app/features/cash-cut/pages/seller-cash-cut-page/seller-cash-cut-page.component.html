@@ -173,7 +173,7 @@
               >
                 @for (line of cut.products; track $index) {
                   <li class="min-w-0 border-t border-line">
-                    <app-cut-product-line [line]="line" [withShipping]="true" />
+                    <app-cut-product-line [line]="line" [withShipping]="false" />
                   </li>
                 }
               </ul>
