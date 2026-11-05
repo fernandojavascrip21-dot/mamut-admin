@@ -19,8 +19,8 @@ export interface CutProductLine {
   unitPrice: string
   units: number
   total: string
-  cost?: string
-  profit?: string
+  cost: string
+  profit: string
 }
 
 export interface CutSaleLine {
@@ -29,8 +29,8 @@ export interface CutSaleLine {
   qty: number
   unitPrice: string
   subtotal: string
-  unitCost?: string
-  profit?: string
+  unitCost: string
+  profit: string
 }
 
 export interface CutSale {
@@ -39,14 +39,14 @@ export interface CutSale {
   registeredByAdmin: boolean
   soldBy: { id: string; fullName: string }
   total: string
-  profit?: string
+  profit: string
   lines: CutSaleLine[]
 }
 
 export interface CashCut {
   holder: { id: string; fullName: string } | null
   period: { kind: CutPeriodKind; from: string; to: string; timeZone: string }
-  totals: { salesCount: number; units: number; total: string; cost?: string; profit?: string }
+  totals: { salesCount: number; units: number; total: string; cost: string; profit: string }
   products: CutProductLine[]
   sales: CutSale[]
 }
@@ -294,22 +294,6 @@ async function querySales(holder: { id: string } | null, period: ResolvedPeriod)
   return [...sales.values()]
 }
 
-// Quita costo y ganancia de la respuesta cuando quien pide no es administrador (RF-02, RNF-04):
-// es el único lugar donde se recorta, para que ninguna consulta nueva filtre el costo por olvido.
-function trimForRole(cut: CashCut, actor: CutActor): CashCut {
-  if (actor.role === 'admin') return cut
-  const { cost: _totalCost, profit: _totalProfit, ...totals } = cut.totals
-  return {
-    ...cut,
-    totals,
-    products: cut.products.map(({ cost: _cost, profit: _profit, ...product }) => product),
-    sales: cut.sales.map(({ profit: _profit, lines, ...sale }) => ({
-      ...sale,
-      lines: lines.map(({ unitCost: _unitCost, profit: _lineProfit, ...line }) => line),
-    })),
-  }
-}
-
 // Corte de un titular para un periodo calendario, calculado cada vez a partir de las ventas (no se
 // guarda). Resuelve primero periodo y titular, para que un 422/403/404 salga sin tocar las ventas.
 export async function getCashCut(input: CashCutInput, actor: CutActor): Promise<CashCut> {
@@ -320,14 +304,11 @@ export async function getCashCut(input: CashCutInput, actor: CutActor): Promise<
     queryProducts(holder, period),
     querySales(holder, period),
   ])
-  return trimForRole(
-    {
-      holder,
-      period: { kind: period.kind, from: period.from, to: period.to, timeZone: period.timeZone },
-      totals,
-      products,
-      sales,
-    },
-    actor,
-  )
+  return {
+    holder,
+    period: { kind: period.kind, from: period.from, to: period.to, timeZone: period.timeZone },
+    totals,
+    products,
+    sales,
+  }
 }

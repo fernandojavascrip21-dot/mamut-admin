@@ -1,7 +1,7 @@
 import type { Route } from '@angular/router';
+import { SELLER_CASH_CUT_ROUTES } from '@features/cash-cut/cash-cut.routes';
 import { MY_STOCK_ROUTES } from '@features/my-stock/my-stock.routes';
 import { CART_ROUTES, SALE_ROUTES, SELL_ROUTES } from '@features/sell/sell.routes';
-import { ComingSoonPageComponent } from '@shared/pages/coming-soon-page/coming-soon-page.component';
 import { SELLER_ROUTES } from './seller.routes';
 
 const routeOf = (path: string) => SELLER_ROUTES.find((route) => route.path === path) as Route;
@@ -27,9 +27,8 @@ describe('SELLER_ROUTES', () => {
     expect(loaded).toBe(SALE_ROUTES);
   });
 
-  it('«mi-corte» sigue siendo «Próximamente» hasta M4a', async () => {
-    const route = routeOf('mi-corte');
-    expect(route.data?.['title']).toBe('Mi corte');
-    expect(await (route.loadComponent as () => Promise<unknown>)()).toBe(ComingSoonPageComponent);
+  it('«mi-corte» carga las rutas de «Mi corte» de la feature cash-cut', async () => {
+    const loaded = await (routeOf('mi-corte').loadChildren as () => Promise<unknown>)();
+    expect(loaded).toBe(SELLER_CASH_CUT_ROUTES);
   });
 });

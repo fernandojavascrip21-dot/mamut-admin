@@ -1,7 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { Tag } from 'primeng/tag';
-import type { CutSale } from '../../interfaces/cash-cut.models';
+import type { CutPerspective, CutSale } from '../../interfaces/cash-cut.models';
 import { saleTimeLabel } from '../../rules/cut-sale-time.rules';
 import { CUT_SALE_ITEM_TEXTS } from './cut-sale-item.constants';
 
@@ -19,9 +19,14 @@ export class CutSaleItemComponent {
   readonly sale = input.required<CutSale>();
   // true en cortes de Semana o Mes, donde la hora sola no ubica la venta.
   readonly showDate = input.required<boolean>();
+  // 'seller' (HU-20): la marca dice «Registrada por el administrador»; 'admin', «Registrada por ti».
+  readonly perspective = input<CutPerspective>('admin');
 
   readonly expanded = signal(false);
 
+  readonly registeredLabel = computed(() =>
+    this.perspective() === 'seller' ? this.texts.registeredByAdmin : this.texts.registeredByYou,
+  );
   readonly timeLabel = computed(() => saleTimeLabel(this.sale().soldAt, this.showDate()));
   // `Number()` solo para pasar el monto al pipe `currency` al mostrarlo.
   readonly total = computed(() => Number(this.sale().total));

@@ -1,0 +1,212 @@
+<div class="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
+  <h1 class="page-title m-0">{{ texts.title }}</h1>
+
+  <section class="flex flex-col gap-4" aria-label="Selección del corte">
+    <app-cut-period-picker
+      [kind]="selection().kind"
+      [offset]="selection().offset"
+      [label]="selectionLabel()"
+      (kindChange)="selectKind($event)"
+      (offsetChange)="selectOffset($event)"
+    />
+  </section>
+
+  @switch (state()) {
+    @case ('idle') {
+      <section
+        class="idle flex flex-col gap-3 rounded-card border border-dashed border-line-strong bg-white p-5 text-center"
+        [attr.aria-label]="texts.idleAria"
+      >
+        <p class="idle-title m-0 text-base font-bold">
+          {{ texts.title }} · {{ selectionLabel() }}
+        </p>
+        <p class="m-0 text-sm leading-normal text-muted">{{ texts.idleHint }}</p>
+        <button
+          pButton
+          type="button"
+          class="generate h-14 gap-2 text-[17px]"
+          (click)="generate()"
+        >
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+            <path d="M8 8h8"></path>
+            <path d="M8 12h8"></path>
+            <path d="M8 16h5"></path>
+          </svg>
+          {{ texts.generate }}
+        </button>
+      </section>
+    }
+    @case ('loading') {
+      <section class="loading flex flex-col gap-3.5" role="status" aria-live="polite">
+        <div class="flex items-center gap-2.5 text-[15px] font-bold">
+          <svg
+            aria-hidden="true"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="animate-spin motion-reduce:animate-none"
+          >
+            <circle cx="12" cy="12" r="9" class="stroke-line-strong"></circle>
+            <path d="M21 12a9 9 0 0 0-9-9" class="stroke-accent"></path>
+          </svg>
+          {{ texts.loadingTitle }}
+        </div>
+        <p class="m-0 -mt-2 text-sm text-muted">{{ texts.loadingHint }}</p>
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+          <p-card class="block border border-line" [pt]="cardPassThrough" aria-hidden="true">
+            <div class="flex flex-col gap-2.5 p-3.5">
+              <p-skeleton height="0.9rem" width="55%" />
+              <p-skeleton height="1.6rem" width="30%" />
+              <p-skeleton height="0.8rem" width="80%" />
+            </div>
+          </p-card>
+        }
+      </section>
+    }
+    @case ('error') {
+      <div class="error flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+        <svg
+          aria-hidden="true"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="shrink-0 stroke-danger"
+        >
+          <path
+            d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+          ></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+        <p class="m-0 text-[15px] font-bold">{{ texts.errorTitle }}</p>
+        <p class="error-message m-0 text-sm leading-snug">{{ errorMessage() }}</p>
+        <button
+          pButton
+          severity="secondary"
+          type="button"
+          class="retry mt-2 h-12 px-5 text-base"
+          (click)="reload()"
+        >
+          {{ texts.retry }}
+        </button>
+      </div>
+    }
+    @case ('empty') {
+      <section
+        class="empty flex flex-col items-center gap-2.5 rounded-card border border-dashed border-line-strong bg-white px-5 py-7 text-center"
+      >
+        <svg
+          aria-hidden="true"
+          width="36"
+          height="36"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="stroke-accent-2"
+        >
+          <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+          <path d="M8 8h8"></path>
+          <path d="M8 12h8"></path>
+          <path d="M8 16h5"></path>
+        </svg>
+        <p class="m-0 text-[17px] font-bold">{{ texts.emptyTitle }}</p>
+        <p class="m-0 text-sm leading-normal text-muted">{{ texts.emptyHint }}</p>
+      </section>
+    }
+    @case ('ready') {
+      @if (cut(); as cut) {
+        <section class="result flex animate-rise-in flex-col gap-4 motion-reduce:animate-none">
+          <div class="flex items-center justify-between gap-2">
+            <p class="generated-at m-0 text-[13px] text-muted">{{ generatedAtLabel() }}</p>
+            <button
+              pButton
+              severity="secondary"
+              [text]="true"
+              type="button"
+              class="regenerate h-11 px-2 text-sm"
+              (click)="reload()"
+            >
+              {{ texts.regenerate }}
+            </button>
+          </div>
+
+          <app-cut-summary
+            [totals]="cut.totals"
+            [holderName]="null"
+            [periodText]="resultPeriodLabel()"
+            perspective="seller"
+          />
+
+          <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+            <section aria-labelledby="cut-products-title">
+              <div class="flex items-baseline justify-between gap-2 px-4 pt-3 pb-1.5">
+                <h3 id="cut-products-title" class="products-title m-0 text-[15px] font-bold">
+                  {{ texts.productsTitle }}
+                </h3>
+                <span class="text-xs text-muted">{{ texts.productsColumns }}</span>
+              </div>
+              <ul
+                class="products m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                tabindex="0"
+                aria-labelledby="cut-products-title"
+              >
+                @for (line of cut.products; track $index) {
+                  <li class="min-w-0 border-t border-line">
+                    <app-cut-product-line [line]="line" [withShipping]="false" />
+                  </li>
+                }
+              </ul>
+            </section>
+          </p-card>
+
+          <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+            <section aria-labelledby="cut-sales-title">
+              <h3
+                id="cut-sales-title"
+                class="sales-title m-0 px-4 pt-3 pb-1.5 text-[15px] font-bold"
+              >
+                {{ texts.salesTitle }} ({{ cut.sales.length }})
+              </h3>
+              <ul
+                class="sales m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                tabindex="0"
+                aria-labelledby="cut-sales-title"
+              >
+                @for (sale of cut.sales; track sale.requestId) {
+                  <li class="min-w-0 border-t border-line">
+                    <app-cut-sale-item
+                      [sale]="sale"
+                      [showDate]="showSaleDate()"
+                      perspective="seller"
+                    />
+                  </li>
+                }
+              </ul>
+            </section>
+          </p-card>
+        </section>
+      }
+    }
+  }
+</div>

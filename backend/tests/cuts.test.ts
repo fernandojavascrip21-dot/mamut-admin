@@ -309,12 +309,64 @@ describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas re
     expect(cut.sales.some((sale) => sale.requestId === theirs.sale.requestId)).toBe(false)
   })
 
-  it('el vendedor recibe el corte sin costo ni ganancia en ningún nivel', async () => {
+  it('el vendedor recibe costo y ganancia calculados con su precio y su costo con envío', async () => {
+    const productId = await productWithSeller('vendedor-ve', 5, '920', '700')
+    const { sale } = await sellAs(asSeller(), productId, 2)
     const { from } = await resolveCutPeriod('day', undefined)
     const cut = await getCashCut({ holderId: undefined, period: 'day', date: from }, asSeller())
-    expect(cut.totals.salesCount).toBeGreaterThan(0)
-    const keys = JSON.stringify(cut)
-    expect(keys).not.toMatch(/"(cost|unitCost|profit)"/)
+    // El seller de este bloque acumula ventas de otras pruebas del mismo día: se revisa la de este producto.
+    expect(cut.totals.cost).toEqual(expect.any(String))
+    expect(cut.totals.profit).toEqual(expect.any(String))
+    expect(cut.products.find((line) => line.productId === productId))
+      .toMatchObject({ unitPrice: '920.00', total: '1840.00', cost: '1400.00', profit: '440.00' })
+    const mine = cut.sales.find((item) => item.requestId === sale.requestId)
+    expect(mine).toMatchObject({ total: '1840.00', profit: '440.00' })
+    expect(mine!.lines[0]).toMatchObject({ unitCost: '700.0000', profit: '440.00' })
+  })
+
+  it('el vendedor y el administrador reciben cifras idénticas para el mismo titular y periodo', async () => {
+    const productId = await productWithSeller('mismas-cifras', 3, '50', '20')
+    await sellAs(asSeller(), productId, 1)
+    const { from } = await resolveCutPeriod('day', undefined)
+    const bySeller = await getCashCut({ holderId: undefined, period: 'day', date: from }, asSeller())
+    const byAdmin = await getCashCut({ holderId: seller.id, period: 'day', date: from }, asAdmin())
+    expect(bySeller).toEqual(byAdmin)
+  })
+
+  it('tras cambiar el precio con otra entrega, las ventas viejas conservan su precio', async () => {
+    const productId = await productWithSeller('cambio-precio', 6, '100', '40')
+    await sellAs(asSeller(), productId, 1)
+    await withTransaction((tx) => setHolderPrices(tx, seller.id, productId, { unitPrice: '150', unitCostWithShipping: '60' }))
+    await sellAs(asSeller(), productId, 1)
+    const cut = await todayCut()
+    const lines = cut.products.filter((line) => line.productId === productId)
+    expect(lines.map((line) => [line.unitPrice, line.units, line.profit]).sort()).toEqual([
+      ['100.00', 1, '60.00'],
+      ['150.00', 1, '90.00'],
+    ])
+  })
+
+  it('sin precio propio, subir el precio general afecta la venta nueva y no la anterior', async () => {
+    const [product] = await db.insert(products).values({ name: productName('general-sube'), price: '80', unitCost: '30' }).returning()
+    const productId = product!.id
+    await withTransaction((tx) => insertMovements(tx, [
+      { productId, type: 'initial', qty: 4, holderProfileId: null, createdBy: admin.id },
+      { productId, type: 'delivery', qty: -4, holderProfileId: null, createdBy: admin.id },
+      { productId, type: 'delivery', qty: 4, holderProfileId: seller.id, createdBy: admin.id },
+    ]))
+    await sellAs(asSeller(), productId, 1)
+    await db.update(products).set({ price: '90' }).where(eq(products.id, productId))
+    await sellAs(asSeller(), productId, 1)
+    const lines = (await todayCut()).products.filter((line) => line.productId === productId)
+    expect(lines.map((line) => [line.unitPrice, line.units]).sort()).toEqual([['80.00', 1], ['90.00', 1]])
+  })
+
+  it('con precio propio, subir el general no cambia el precio de la venta nueva', async () => {
+    const productId = await productWithSeller('propio-fijo', 4, '120', '50')
+    await db.update(products).set({ price: '999' }).where(eq(products.id, productId))
+    await sellAs(asSeller(), productId, 1)
+    const lines = (await todayCut()).products.filter((line) => line.productId === productId)
+    expect(lines.map((line) => line.unitPrice)).toEqual(['120.00'])
   })
 })
 
@@ -373,12 +425,14 @@ describe.skipIf(!hasServiceKey)('Corte: GET /api/cuts (T-20, con cuentas reales)
     expect((await getCut(admin.token, `?holderId=${admin.id}`)).status).toBe(404)
   })
 
-  it('vendedor: su corte sin holderId; el de otro, 403; sin llaves de costo ni ganancia', async () => {
+  it('vendedor: su corte sin holderId trae costo y ganancia; el de otro o el de la bodega, 403', async () => {
     const own = await getCut(seller.token)
     expect(own.status).toBe(200)
-    const text = JSON.stringify(await own.json())
-    expect(text).not.toMatch(/"(cost|unitCost|profit)"/)
+    const { cut } = await own.json()
+    expect(cut.totals).toHaveProperty('cost')
+    expect(cut.totals).toHaveProperty('profit')
     expect((await getCut(seller.token, `?holderId=${otherSeller.id}`)).status).toBe(403)
+    expect((await getCut(seller.token, `?holderId=${admin.id}`)).status).toBe(403)
   })
 
   it('parámetros inválidos dan 422', async () => {

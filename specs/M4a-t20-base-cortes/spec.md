@@ -4,6 +4,8 @@
 > **Depende de:** M3-t18-base-ventas (`specs/M3-t18-base-ventas/spec.md`) — `direct_sales`/`direct_sale_items` con titular, quién vendió, precio y costo del momento; M3-hu17-vender-como-administrador (`specs/M3-hu17-vender-como-administrador/spec.md`) — ventas del administrador desde el stock de un vendedor; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto y redondeo una sola vez; M2-t10-base-vendedores (`specs/M2-t10-base-vendedores/spec.md`) — precio y costo con envío por vendedor
 > **Fecha:** 2026-11-04
 > **Objetivo:** que el backend calcule, sin guardar nada, el corte de un titular (un vendedor o la bodega) para un día, semana o mes calendario a partir de las ventas ya registradas, con totales, desglose por producto y lista de ventas, y sin costos ni ganancia para el vendedor.
+>
+> **Nota (HU-20, 2026-11-04):** la regla «sin costos ni ganancia para el vendedor» de este spec ya no rige: `GET /api/cuts` devuelve costo y ganancia también al vendedor (se eliminó `trimForRole`). Se conservan la fórmula, el periodo y el `403` por titular. Ver `specs/M4a-hu20-mi-corte-vendedor/spec.md`.
 
 Fuentes:
 

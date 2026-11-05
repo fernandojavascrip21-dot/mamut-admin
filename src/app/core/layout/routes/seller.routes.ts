@@ -1,8 +1,5 @@
 import { Routes } from '@angular/router';
 
-const comingSoon = () =>
-  import('@shared/pages/coming-soon-page/coming-soon-page.component').then((m) => m.ComingSoonPageComponent);
-
 // Hijos de /vendedor, cargados con loadChildren solo después de que roleGuard aceptó al vendedor.
 export const SELLER_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'mi-stock' },
@@ -10,5 +7,5 @@ export const SELLER_ROUTES: Routes = [
   { path: 'vender', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.SELL_ROUTES) },
   { path: 'carrito', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.CART_ROUTES) },
   { path: 'venta', loadChildren: () => import('@features/sell/sell.routes').then((m) => m.SALE_ROUTES) },
-  { path: 'mi-corte', loadComponent: comingSoon, data: { title: 'Mi corte' } },
+  { path: 'mi-corte', loadChildren: () => import('@features/cash-cut/cash-cut.routes').then((m) => m.SELLER_CASH_CUT_ROUTES) },
 ];
