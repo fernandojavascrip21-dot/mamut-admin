@@ -5,6 +5,8 @@
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el vendedor confirme la venta de su carrito con `POST /api/sales`, sin duplicarla al reintentar, y vea «Venta confirmada» con el desglose mientras su stock baja.
 
+> **Nota (2026-11-04):** el carrito y «Venta confirmada» de los dos roles se pintan con los mismos componentes (`cart-view`, `sale-summary-view` y `sale-line` en `features/sell/components/`), con el diseño del administrador (dos columnas, panel de resumen fijo y «← Seguir vendiendo» arriba). Cada página pasa solo los datos de su rol: la ganancia, el titular y el desglose «antes → después» llegan solo al administrador (el vendedor nunca recibe costos). `admin-sale-line` ya no existe: la línea es `sale-line`.
+
 Fuentes:
 
 - **Jira:** historia `SCRUM-50 · HU-16`, épica `SCRUM-8 · M3 · Ventas`. Requerimientos RF-10, RF-21, RF-02, RNF-04, RNF-06. Talla M. Depende de T-18 (`SCRUM-47`) y HU-15 (`SCRUM-49`).

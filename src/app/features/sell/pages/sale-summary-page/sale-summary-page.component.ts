@@ -1,11 +1,9 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ButtonDirective } from 'primeng/button';
+import { ActivatedRoute } from '@angular/router';
 import { httpStatus } from '@shared/utils/http-errors';
-import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
-import { SaleLineComponent } from '../../components/sale-line/sale-line.component';
+import { unitsLabel } from '@shared/utils/units-label';
+import { SaleSummaryViewComponent } from '../../components/sale-summary-view/sale-summary-view.component';
 import { SALE_SUMMARY_LINKS, SALE_SUMMARY_TEXTS } from '../../constants/sale-summary-page.constants';
 import { REPLAYED_QUERY_PARAM } from '../../constants/sales.constants';
 import { lowStockLines } from '../../rules/sell.rules';
@@ -17,7 +15,7 @@ import { SalesService } from '../../services/sales.service';
 // también justo después de confirmar, para que recargar o volver atrás muestre la misma venta.
 // `?repetida=1` avisa que la venta ya estaba registrada con otros renglones.
 @Component({
-  imports: [CurrencyPipe, DatePipe, RouterLink, ButtonDirective, SaleLineComponent, SellProductCardSkeletonComponent],
+  imports: [SaleSummaryViewComponent],
   selector: 'app-sale-summary-page',
   templateUrl: './sale-summary-page.component.html',
 })
@@ -46,6 +44,13 @@ export class SaleSummaryPageComponent {
   );
   // Único `Number()` sobre un monto: solo para pasarlo al pipe `currency` al mostrarlo.
   readonly totalAmount = computed(() => Number(this.sale()?.total ?? 0));
+
+  // «3 productos · 8 piezas»: de qué tamaño fue la venta, para el panel de totales.
+  readonly countsLabel = computed(() => {
+    const lines = this.sale()?.lines ?? [];
+    const products = `${lines.length} ${lines.length === 1 ? this.texts.productSingular : this.texts.productPlural}`;
+    return `${products} · ${unitsLabel(lines.reduce((sum, line) => sum + line.qty, 0))}`;
+  });
 
   // «Se avisó al administrador que te quedan pocas piezas de: …» con los productos que quedaron
   // bajos o agotados (HU-18); null si ninguno. El administrador lo ve en «Stock general» al abrirlo.

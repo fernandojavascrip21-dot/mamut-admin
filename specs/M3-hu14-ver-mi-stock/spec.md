@@ -23,7 +23,7 @@ Fuentes:
   - `GET /api/me/stock`, solo para el rol `vendedor`.
 - **Frontend:**
   - Feature nueva `features/my-stock/`: `/vendedor/mi-stock` deja de ser «Próximamente» y pasa a «Mi stock».
-  - Total de piezas arriba, buscador por nombre y una card por producto con foto (o iniciales), nombre, precio y «Me quedan N».
+  - Total de piezas arriba, buscador por nombre y una card por producto con foto (o iniciales), nombre, precio y «Cantidad N».
   - Botón «Vender» hacia `/vendedor/vender`, que sigue siendo «Próximamente» hasta HU-15.
   - Estados cargando, vacío y error con «Reintentar».
 - **Seed:** `supabase/seed.sql` le pone precio propio a uno de los dos productos de Víctor, para ver los dos casos de precio en local.
@@ -46,7 +46,7 @@ Fuentes:
 - **Mi precio** = `vendor_stock.unit_price` o, si es `null`, `products.price`. El backend manda el precio ya resuelto en un solo campo `price`, sin indicar de dónde salió (criterios 2 y 3).
 - **Sin costos (RF-02, RNF-04):** la respuesta no trae `unitCost`, `unitCostWithShipping`, ganancia ni el precio general cuando hay uno propio. `getOwnStock` arma cada producto con llaves explícitas; no reenvía la fila de `stockOfHolder`.
 - **Total** = suma de las piezas de los productos que salen. «Tengo N piezas», con «1 pieza» / «N piezas» (`unitsLabel`). El buscador no lo cambia.
-- **Card de producto:** foto (o iniciales si no tiene), nombre, `price` en pesos y «Me quedan N». Con una pieza, «Me queda 1».
+- **Card de producto:** foto (o iniciales si no tiene), nombre, `price` en pesos y «Cantidad N» (cambiado el 2026-11-04 por decisión del usuario; antes «Me quedan N»).
 - **Orden:** por nombre sin mayúsculas ni acentos, como lo entrega el backend (`stockOfHolder` ya ordena).
 - **Buscador:** filtra por nombre sin mayúsculas ni acentos con `shared/utils/normalize-text.ts`. Solo filtra la lista; el total no cambia.
 - **«Vender»:** un `<a pButton routerLink="/vendedor/vender">` junto al total (criterio 5). Se muestra también sin productos.
@@ -124,12 +124,12 @@ load(): Observable<MyStock>   // GET ${API_BASE_URL}/api/me/stock
 
 // rules/my-stock.rules.ts (puras)
 filterMyStockByName<T extends { name: string }>(items: T[], query: string): T[]
-unitsLeftLabel(units: number): string   // «Me queda 1» / «Me quedan N»
+unitsLeftLabel(units: number): string   // «Cantidad N»
 ```
 
 - **Constantes** (`constants/my-stock-page.constants.ts`): los textos de la pantalla y de los estados, y el enlace de «Vender».
 - **Componentes presentacionales** (`features/my-stock/components/`, solo `input()`/`output()`):
-  - `my-stock-card`: `Card` de PrimeNG con foto o iniciales (`shared/utils/initials.ts`), nombre, precio con el pipe `currency` (único uso de `Number()` sobre un monto, al mostrarlo) y «Me quedan N».
+  - `my-stock-card`: `Card` de PrimeNG con foto o iniciales (`shared/utils/initials.ts`), nombre, precio con el pipe `currency` (único uso de `Number()` sobre un monto, al mostrarlo) y «Cantidad N».
   - `my-stock-card-skeleton`: esqueleto de una card con `Skeleton`.
 - **Página** `pages/my-stock-page`: `rxResource` sobre `load()`, `computed()` para la lista filtrada, el buscador como `signal`, «Reintentar» con `reload()` y el botón «Vender».
 - **Rutas:** `features/my-stock/my-stock.routes.ts` exporta `MY_STOCK_ROUTES`: `''` → `my-stock-page`, lazy, con `data: { title: 'Mi stock' }`. En `core/layout/routes/seller.routes.ts`, `mi-stock` pasa a `loadChildren` de `@features/my-stock/my-stock.routes`. El menú (`MENU`) no cambia.
@@ -148,7 +148,7 @@ unitsLeftLabel(units: number): string   // «Me queda 1» / «Me quedan N»
 6. **Frontend · componentes.** `ng generate component` para `my-stock-card` y `my-stock-card-skeleton`, con sus specs.
 7. **Frontend · página y rutas.** `ng generate component` para `my-stock-page`. Crear `my-stock.routes.ts`, montar `mi-stock` en `seller.routes.ts` y armar la pantalla con sus estados. Cierre del paso: `ng build`, `ng test` y `npm run check:architecture` pasan.
 8. **Verificación manual** contra la base local con el seed, entrando como `vendedor1@mammut.local`, en escritorio y a 375 px:
-   - Se ven los dos productos de Víctor con «Me quedan N», uno con precio propio y otro con el general.
+   - Se ven los dos productos de Víctor con «Cantidad N», uno con precio propio y otro con el general.
    - En la pestaña de red de la respuesta no aparece ningún costo ni ganancia.
    - «Vender» abre «Próximamente».
    - Un «Dejar» o «Retirar» hecho desde el administrador se ve al volver a «Mi stock». Retirar todo un producto lo quita de la lista.
@@ -162,8 +162,8 @@ unitsLeftLabel(units: number): string   // «Me queda 1» / «Me quedan N»
 
 Por criterio de `SCRUM-48`:
 
-- [x] **1.** Un vendedor que entra a «Mi stock» ve una card por cada producto con piezas, con foto (o iniciales), nombre, su precio y «Me quedan N».
-- [x] **2.** Con 6 piezas dejadas y un precio propio, la card dice «Me quedan 6» y muestra el precio propio, no el general (prueba de backend y de la card).
+- [x] **1.** Un vendedor que entra a «Mi stock» ve una card por cada producto con piezas, con foto (o iniciales), nombre, su precio y «Cantidad N».
+- [x] **2.** Con 6 piezas dejadas y un precio propio, la card dice «Cantidad 6» y muestra el precio propio, no el general (prueba de backend y de la card).
 - [x] **3.** Sin precio propio (`vendor_stock.unit_price` en `null`), la card muestra el precio general.
 - [x] **4.** Ni la pantalla ni la respuesta de `GET /api/me/stock` contienen costo, costo con envío ni ganancia: cada producto trae solo `productId`, `name`, `image`, `units` y `price`.
 - [x] **5.** «Vender» lleva a `/vendedor/vender`. *(Retirado el 2026-11-04: el botón ya no existe, ver la nota del inicio.)*
@@ -195,7 +195,7 @@ Además:
 - **`features/my-stock/rules/my-stock.rules.spec.ts`:** `filterMyStockByName` («proteina» encuentra «Proteína») y `unitsLeftLabel` con 1, 2 y 6.
 - **`features/my-stock/services/my-stock.service.spec.ts`:** `load()` llama a `/api/me/stock`.
 - **Componentes:**
-  - `my-stock-card`: foto o iniciales, precio en pesos y «Me quedan N» / «Me queda 1».
+  - `my-stock-card`: foto o iniciales, precio en pesos y «Cantidad N» / «Me queda 1».
   - `my-stock-card-skeleton`: se renderiza.
 - **`features/my-stock/pages/my-stock-page/…spec.ts`:**
   - Los tres estados (cargando, vacío, error), y «Reintentar» llama de nuevo.

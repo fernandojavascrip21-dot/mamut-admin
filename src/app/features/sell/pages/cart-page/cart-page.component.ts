@@ -1,13 +1,11 @@
-import { CurrencyPipe, formatCurrency, getCurrencySymbol } from '@angular/common';
+import { formatCurrency, getCurrencySymbol } from '@angular/common';
 import { Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
-import { ButtonDirective } from 'primeng/button';
+import { Router } from '@angular/router';
 import { CartService } from '@core/cart/cart.service';
 import { ConfirmService } from '@core/confirm/confirm.service';
 import { unitsLabel } from '@shared/utils/units-label';
-import { CartLineComponent } from '../../components/cart-line/cart-line.component';
-import { SellProductCardSkeletonComponent } from '../../components/sell-product-card-skeleton/sell-product-card-skeleton.component';
+import { CartViewComponent } from '../../components/cart-view/cart-view.component';
 import { CART_PAGE_TEXTS, SELL_URL } from '../../constants/cart-page.constants';
 import { REPLAYED_QUERY_PARAM, SALE_SUMMARY_URL } from '../../constants/sales.constants';
 import type { SaleResult } from '../../interfaces/sale.models';
@@ -23,7 +21,7 @@ import { SellStockService } from '../../services/sell-stock.service';
 // ajustarse solo. «Confirmar venta» (HU-16) pide confirmación, manda el carrito con su `requestId`
 // guardado y, si queda registrada, vacía el carrito y abre «Venta confirmada».
 @Component({
-  imports: [CurrencyPipe, RouterLink, ButtonDirective, CartLineComponent, SellProductCardSkeletonComponent],
+  imports: [CartViewComponent],
   selector: 'app-cart-page',
   providers: [SaleSaveService],
   templateUrl: './cart-page.component.html',

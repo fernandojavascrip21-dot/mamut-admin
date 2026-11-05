@@ -5,6 +5,8 @@
 > **Fecha:** 2026-11-03
 > **Objetivo:** que el vendedor busque en su stock, agregue piezas a un carrito con tope en lo que tiene, y revise en «Carrito» las piezas, los subtotales y el total, sin costos y sin perder el carrito al salir o recargar.
 
+> **Nota (2026-11-04):** el carrito y «Venta confirmada» de los dos roles se pintan con los mismos componentes (`cart-view`, `sale-summary-view` y `sale-line` en `features/sell/components/`), con el diseño del administrador (dos columnas, panel de resumen fijo y «← Seguir vendiendo» arriba). Cada página pasa solo los datos de su rol: la ganancia, el titular y el desglose «antes → después» llegan solo al administrador (el vendedor nunca recibe costos). `admin-sale-line` ya no existe: la línea es `sale-line`.
+
 Fuentes:
 
 - **Jira:** historia `SCRUM-49 · HU-15`, épica `SCRUM-8 · M3 · Ventas`. Requerimientos RF-21, RF-10, RF-02, RNF-03, RNF-06. Talla S. La continúa HU-16 (`SCRUM-50`, confirmar la venta).

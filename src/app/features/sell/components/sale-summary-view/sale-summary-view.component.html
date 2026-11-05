@@ -1,0 +1,113 @@
+<div class="flex w-full flex-col px-5 py-6">
+  @switch (state()) {
+    @case ('ready') {
+      <header class="flex items-center gap-4">
+        <span
+          class="seal flex h-14 w-14 shrink-0 animate-rise-in items-center justify-center rounded-full border border-success-border bg-success-bg motion-reduce:animate-none"
+          aria-hidden="true"
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="stroke-success">
+            <path d="M5 12.5l4.5 4.5L19 7.5"></path>
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <h1 class="page-title">{{ texts().title }}</h1>
+          <p class="sold-at m-0 mt-0.5 font-mono text-sm text-muted">{{ sale()?.soldAt | date: 'dd/MM/yyyy · h:mm a' }}</p>
+          @if (holderName(); as holder) {
+            <p class="holder m-0 mt-0.5 text-sm font-semibold">{{ texts().soldFrom }} {{ holder }}</p>
+          }
+        </div>
+      </header>
+
+      @if (replayed()) {
+        <p
+          class="replayed mt-4 mb-0 rounded-xl border border-line-strong bg-accent-2-bg p-3.5 text-sm font-semibold text-accent-2-text"
+          role="status"
+        >
+          {{ texts().replayedNotice }}
+        </p>
+      }
+
+      @if (lowStockNotice(); as notice) {
+        <p class="low-stock-notice m-0 mt-4 flex items-start gap-2 alert-warning text-sm leading-snug" role="status">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-px shrink-0 stroke-warning">
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <span class="min-w-0 break-words">{{ notice }}</span>
+        </p>
+      }
+
+      <div class="mt-5 flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-6">
+        <ul class="lines m-0 grid list-none grid-cols-1 content-start gap-3 p-0 sm:grid-cols-2 lg:max-h-[calc(100dvh-13rem)] lg:overflow-y-auto lg:pr-1">
+          @for (line of sale()?.lines; track line.productId; let index = $index) {
+            <li
+              class="min-w-0 animate-rise-in motion-reduce:animate-none"
+              [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+            >
+              <app-sale-line [line]="line" [holderLabel]="holderLabel()" [profitText]="profitOf(line)" />
+            </li>
+          }
+        </ul>
+
+        <aside class="flex min-w-0 flex-col gap-3 lg:sticky lg:top-6">
+          <section class="summary flex flex-col gap-3 rounded-card bg-ink p-5 text-page shadow-card">
+            <p class="counts m-0 text-sm font-semibold text-faint">{{ countsLabel() }}</p>
+            <div class="flex items-baseline justify-between gap-3">
+              <p class="m-0 text-sm font-semibold text-faint">{{ texts().total }}</p>
+              <p class="total m-0 font-display text-[32px] leading-none font-extrabold tracking-[-0.02em]">
+                {{ totalAmount() | currency: 'MXN' : 'symbol-narrow' }}
+              </p>
+            </div>
+            @if (profitAmount() !== null) {
+              <div class="profit-summary flex items-baseline justify-between gap-3 border-t border-page/15 pt-3">
+                <p class="m-0 text-sm font-semibold text-faint">{{ texts().profit }}</p>
+                <p class="profit m-0 font-mono text-lg font-bold text-success-border">
+                  {{ profitAmount() | currency: 'MXN' : 'symbol-narrow' }}
+                </p>
+              </div>
+            }
+          </section>
+
+          <a pButton [routerLink]="links().sell" class="new-sale h-[52px] w-full text-sm">{{ texts().newSale }}</a>
+          <a pButton severity="secondary" [routerLink]="links().stock" class="view-stock h-[52px] w-full text-sm">
+            {{ texts().viewStock }}
+          </a>
+        </aside>
+      </div>
+    }
+    @case ('not-found') {
+      <div class="not-found flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+        <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 stroke-accent-2">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+        <h1 class="m-0 text-[17px] font-bold">{{ texts().notFoundTitle }}</h1>
+        <p class="m-0 text-sm text-muted">{{ texts().notFoundHint }}</p>
+        <a pButton [routerLink]="links().sell" class="go-sell mt-2 h-[52px] text-sm">{{ texts().notFoundAction }}</a>
+      </div>
+    }
+    @case ('error') {
+      <div class="flex flex-col items-center gap-2 alert-danger p-5 text-center" role="alert">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 stroke-danger">
+          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+        <p class="m-0 text-[15px] font-bold">{{ texts().errorTitle }}</p>
+        <p class="m-0 text-sm leading-snug">{{ texts().errorHint }}</p>
+        <button pButton severity="secondary" type="button" class="retry mt-2 h-11 px-4 text-sm" (click)="retry.emit()">
+          {{ texts().retry }}
+        </button>
+      </div>
+    }
+    @default {
+      <div class="loading flex flex-col gap-3" role="status">
+        <p class="m-0 text-sm font-semibold">{{ texts().loadingTitle }}</p>
+        <app-sell-product-card-skeleton />
+        <app-sell-product-card-skeleton />
+      </div>
+    }
+  }
+</div>

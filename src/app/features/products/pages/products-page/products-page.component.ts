@@ -19,7 +19,7 @@ import { ProductCardComponent } from '../../components/product-card/product-card
 import { ProductCardSkeletonComponent } from '../../components/product-card-skeleton/product-card-skeleton.component';
 import type { ProductsState } from '../../models/products-page.models';
 
-// Pantalla «Productos» (03): una tarjeta por producto activo, con los estados cargando, error
+// Pantalla «Productos» (03): una tarjeta por producto activo (o, con un vendedor en «Viendo», por producto de su stock), con los estados cargando, error
 // y catálogo vacío. La lista completa se pide una sola vez al entrar (o con «Reintentar»): ver
 // specs/M1-hu05-ver-y-buscar-productos/spec.md §2 y §5. Desde HU-17 cada tarjeta ofrece «Vender» con el
 // stock del titular de «Viendo»: el tope y el precio salen de su catálogo (GET /api/sales/catalog), no
@@ -42,10 +42,14 @@ export class ProductsPageComponent {
   // pantalla se deriva del status del recurso; volver a pedirla con la lista ya en pantalla (tras
   // dejar piezas, spec T-16) no cuenta como cargando, para que no parpadee detrás del pop-up.
   readonly productsResource = rxResource({ stream: () => this.productsService.listProducts() });
+  // Con un vendedor en «Viendo» la pantalla es la de su stock: no hay lista hasta tener también su
+  // catálogo (así no parpadea la de la bodega) y un fallo de cualquiera de los dos es el error.
   readonly state = computed<ProductsState>(() => {
-    const status = this.productsResource.status();
-    if (status === 'error') return 'error';
-    return this.productsResource.hasValue() ? 'ready' : 'loading';
+    const forSeller = this.viewing.selectedSellerId() !== null;
+    if (this.productsResource.status() === 'error') return 'error';
+    if (forSeller && this.catalogResource.status() === 'error') return 'error';
+    const catalogReady = !forSeller || this.catalog()?.holder?.id === this.viewing.selectedSellerId();
+    return this.productsResource.hasValue() && catalogReady ? 'ready' : 'loading';
   });
   readonly items = computed<ProductSummary[]>(() =>
     this.productsResource.hasValue() ? this.productsResource.value() : [],
@@ -66,7 +70,23 @@ export class ProductsPageComponent {
     () => new Map<number, SaleCatalogProduct>((this.catalog()?.products ?? []).map((p) => [p.productId, p])),
   );
 
-  // Primer nombre del vendedor en «Viendo» para la línea «Luis: N»; null con «Yo · bodega».
+  // Lo que se lista. Con «Yo · bodega», todos los productos activos. Con un vendedor, solo los que tiene
+  // o tuvo (su catálogo incluye los agotados), con SUS piezas y SU precio en lugar de los de la bodega,
+  // para que la tarjeta muestre lo que de verdad se vende desde su stock.
+  readonly listedItems = computed<ProductSummary[]>(() => {
+    if (this.viewing.selectedSellerId() === null) return this.items();
+    const byId = this.catalogById();
+    return this.items().flatMap((item) => {
+      const own = byId.get(item.id);
+      return own ? [{ ...item, stock: own.units, price: own.price }] : [];
+    });
+  });
+  // true con un vendedor en «Viendo» que aún no tiene ni ha tenido productos.
+  readonly sellerWithoutProducts = computed(
+    () => this.viewing.selectedSellerId() !== null && this.state() === 'ready' && this.listedItems().length === 0,
+  );
+
+  // Primer nombre del vendedor en «Viendo» para «con Luis»; null con «Yo · bodega».
   readonly holderLabel = computed(() => this.viewing.selectedSeller()?.fullName.split(' ')[0] ?? null);
   // El carrito es del titular de «Viendo» (o está vacío): solo entonces sus piezas se pintan en las tarjetas.
   private readonly cartIsHere = computed(
@@ -88,11 +108,12 @@ export class ProductsPageComponent {
 
   // Filtra en el cliente (criterio 2): la lista completa ya está en memoria, así que responde
   // sin otra llamada. La regla de comparación vive en product.rules.ts.
-  readonly visibleItems = computed(() => filterProductsByName(this.items(), this.searchQuery()));
+  readonly visibleItems = computed(() => filterProductsByName(this.listedItems(), this.searchQuery()));
 
   // Botón «Reintentar» del estado de error: vuelve a pedir la lista sin recargar la página.
   retry(): void {
     this.productsResource.reload();
+    this.catalogResource.reload();
   }
 
   // Botón «Limpiar búsqueda» del estado sin resultados: vacía el buscador y vuelve a mostrar

@@ -4,6 +4,8 @@
 > **Depende de:** M1-t03-tablas-productos-stock (`specs/M1-t03-tablas-productos-stock/spec.md`) — reusa `products` (`fractionable`, `parentProductId`); M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) — reemplaza la lista mínima de `/admin/productos` y extiende `GET /api/products`
 > **Fecha:** 2026-10-25
 > **Objetivo:** que el administrador vea en «Productos» una tarjeta por producto (foto, nombre, piezas en bodega, precio y etiquetas) y la filtre por nombre mientras escribe, sin distinguir mayúsculas ni acentos.
+>
+> **Nota (2026-11-04):** la card de «Productos» ahora muestra el nombre destacado y «Cantidad N» en lugar de «N en bodega» (decisión del usuario); con un vendedor en «Viendo» la cantidad es la de su stock.
 
 Fuentes: historia `SCRUM-22 · HU-05` del proyecto Jira `MammutSuplements` (espacio `SCRUM`), épica `SCRUM-6 · M1 · Productos y bodega`; página de Confluence «Mockups y flujo de pantallas · MVP v1» y su canvas «Mammut Inventario MVP» (tableros `Productos.dc.html` — pantalla 03 — y `EstadosProductos.dc.html` — sus estados cargando, vacío y error); la carpeta `references/MammutSuplents/mammoth/` (catálogo Vue: `componentes/TarjetaProducto.vue`, `EsqueletoTarjeta.vue`, `BarraBusqueda.vue`, `EstadoVacio.vue`, `utilidades/imagenes.js`, `utilidades/formato.js`); los tokens de `src/styles.css` y los patrones visuales ya usados en `login-page`, `nuevo-producto-page` y `admin-page`; specs previos `specs/M1-hu04-dar-de-alta-producto/spec.md` y `specs/M1-t03-tablas-productos-stock/spec.md`; y una consulta de solo lectura a `products` del 2026-10-25 (1 producto, activo, sin foto, sin bolsitas).
 

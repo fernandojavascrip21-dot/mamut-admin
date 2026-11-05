@@ -50,4 +50,44 @@ describe('SaleLineComponent', () => {
     create();
     expect(el().textContent!.toLowerCase()).not.toMatch(/costo|ganancia/);
   });
+
+  describe('vista del administrador (con titular)', () => {
+    const ADMIN_LINE: SaleLine = { ...LINE, stock: { before: 4, after: 2 }, stockLevel: 'low' };
+
+    function createAdmin(line: SaleLine, holderLabel: string, profitText: string | null = '619.00') {
+      TestBed.configureTestingModule({ imports: [SaleLineComponent] });
+      fixture = TestBed.createComponent(SaleLineComponent);
+      fixture.componentRef.setInput('line', line);
+      fixture.componentRef.setInput('holderLabel', holderLabel);
+      fixture.componentRef.setInput('profitText', profitText);
+      fixture.detectChanges();
+    }
+
+    it('muestra «Bodega: 4 → 2», la ganancia del renglón y no «Te quedan N»', () => {
+      createAdmin(ADMIN_LINE, 'Bodega');
+      expect(text('.stock-change')).toBe('Bodega: 4 → 2');
+      expect(text('.profit')).toBe('Ganancia $619.00');
+      expect(el().querySelector('.stock-left')).toBeNull();
+    });
+
+    it('con un vendedor muestra «Luis: 6 → 4» y «ok» no lleva etiqueta', () => {
+      createAdmin({ ...ADMIN_LINE, stock: { before: 6, after: 4 }, stockLevel: 'ok' }, 'Luis');
+      expect(text('.stock-change')).toBe('Luis: 6 → 4');
+      expect(el().querySelector('.level')).toBeNull();
+    });
+
+    it('«low» y «out» muestran su etiqueta', () => {
+      createAdmin(ADMIN_LINE, 'Bodega');
+      expect(text('.level')).toBe('Baja existencia');
+      TestBed.resetTestingModule();
+      createAdmin({ ...ADMIN_LINE, stock: { before: 3, after: 0 }, stockLevel: 'out' }, 'Luis');
+      expect(text('.level')).toBe('Agotado');
+    });
+
+    it('sin profitText (vista del vendedor) no muestra ganancia ni costo', () => {
+      createAdmin(ADMIN_LINE, 'Bodega', null);
+      expect(el().querySelector('.profit')).toBeNull();
+      expect(el().textContent).not.toContain('610');
+    });
+  });
 });

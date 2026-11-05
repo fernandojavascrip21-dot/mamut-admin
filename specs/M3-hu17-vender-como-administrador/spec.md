@@ -5,6 +5,8 @@
 > **Fecha:** 2026-11-04
 > **Objetivo:** que el administrador agregue productos al carrito desde «Productos», del stock del titular en «Viendo» (bodega o un vendedor), y confirme la venta viendo su total y su ganancia, sin vender del stock equivocado ni registrarla dos veces.
 
+> **Nota (2026-11-04):** el carrito y «Venta confirmada» de los dos roles se pintan con los mismos componentes (`cart-view`, `sale-summary-view` y `sale-line` en `features/sell/components/`), con el diseño del administrador (dos columnas, panel de resumen fijo y «← Seguir vendiendo» arriba). Cada página pasa solo los datos de su rol: la ganancia, el titular y el desglose «antes → después» llegan solo al administrador (el vendedor nunca recibe costos). `admin-sale-line` ya no existe: la línea es `sale-line`.
+
 Fuentes:
 
 - **Jira:** historia `SCRUM-51 · HU-17`, épica `SCRUM-8 · M3 · Ventas`. Requerimientos RF-10, RNF-04. Talla M. Depende de T-18 (`SCRUM-47`), HU-05, HU-10 y HU-13.
@@ -53,7 +55,6 @@ Fuentes:
 - Aviso de baja existencia (HU-18) y cortes (M4a/M4b).
 - Historial o lista de ventas.
 - Un carrito por titular: hay uno solo y guarda a qué titular pertenece.
-- Mostrar en «Productos» todo el stock del vendedor en lugar del de bodega (la card sigue diciendo «N en bodega»).
 - Cambios en `POST /api/sales`, `GET /api/sales/:requestId`, migraciones o `supabase/seed.sql`.
 - Cambios en la experiencia del vendedor (HU-15/HU-16), salvo que `cart-bar` se mueve a `shared/` sin cambiar cómo se ve.
 
@@ -343,7 +344,7 @@ Además:
 - **No:** una feature `admin-sell` aparte, que tendría que duplicar o mover a `shared/` lo común.
 - **Sí:** endpoint nuevo `GET /api/sales/catalog?holderId=` con piezas, precio y costo ya resueltos por titular (decisión del usuario). Una sola fuente para el tope, el precio y la ganancia, como `/api/me/stock` del vendedor.
 - **No:** agregar `unitCost` a `GET /api/products` y leer el stock del vendedor de `GET /api/sellers/:id`: dos caminos y rompe la regla de que la lista nunca trae costo.
-- **Sí:** la card de «Productos» sigue diciendo «N en bodega» y agrega «Agregar» y, con un vendedor, «Luis: N» (decisión del usuario).
+- **Sí (cambiado el 2026-11-04, decisión del usuario):** con «Yo · bodega» la card dice «Cantidad N» (piezas de la bodega) con «Dejar a vendedor» y «Agregar». Con un vendedor en «Viendo», «Productos» lista solo los productos que el vendedor tiene o tuvo (también agotados), con sus piezas («Cantidad N») y su precio (el propio o el general), sin «Dejar a vendedor» y solo con «Agregar»; hasta tener su catálogo la pantalla está cargando, y un vendedor sin productos ve «Luis no tiene productos». No hay cambios de backend: se usa `GET /api/sales/catalog?holderId=` (incluye agotados). Antes decía «Luis: N» sobre la lista completa de bodega.
 - **No:** cambiar toda la lista al stock del titular (toca HU-05 más a fondo).
 - **Sí:** «Agregar» agrega 1 pieza y se vuelve − N + con tope (decisión del usuario), como el catálogo del vendedor.
 - **No:** solo sumar una pieza por toque.

@@ -208,11 +208,12 @@ describe('ProductsPageComponent', () => {
       await loadWith(WAREHOUSE_CATALOG);
       expect(card(0).querySelector('button.sell')).not.toBeNull();
       expect(card(1).querySelector('button.sell')).toBeNull();
-      expect(card(0).querySelector('.holder-units')).toBeNull();
+      expect(card(0).querySelector('.holder-units')!.textContent!.trim()).toBe('Cantidad 10');
+      expect(card(0).querySelector('a.deliver')).not.toBeNull();
     });
 
     const tags = (index: number) =>
-      Array.from(card(index).querySelectorAll('.absolute span')).map((el) => (el as HTMLElement).textContent?.trim());
+      Array.from(card(index).querySelectorAll('.tags span')).map((el) => (el as HTMLElement).textContent?.trim());
 
     it('las etiquetas de existencia salen del catálogo del titular en «Viendo» (HU-18)', async () => {
       await loadWith(WAREHOUSE_CATALOG);
@@ -226,9 +227,10 @@ describe('ProductsPageComponent', () => {
       expect(tags(1)).toEqual(['Baja existencia', 'Fraccionado']);
     });
 
-    it('un producto que el vendedor nunca tuvo no lleva etiqueta', async () => {
+    it('un producto que el vendedor nunca tuvo no se lista', async () => {
       await loadWith({ holder: LUIS_CATALOG.holder, products: [LUIS_CATALOG.products[0]!] }, LUIS_ID);
-      expect(tags(1)).toEqual(['Fraccionado']);
+      expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(1);
+      expect(fixture.nativeElement.textContent).not.toContain('Creatina');
     });
 
     it('si el catálogo falla, con «Yo · bodega» se conserva el «Agotado» de HU-05 y no sale «Baja existencia»', async () => {
@@ -270,14 +272,48 @@ describe('ProductsPageComponent', () => {
       expect(card(0).querySelector('button.sell')).not.toBeNull();
     });
 
-    it('con un vendedor en «Viendo» pide su catálogo, muestra «Luis: N» y el tope es lo que tiene', async () => {
+    it('con un vendedor en «Viendo» lista sus productos (también agotados) con sus piezas y su precio, y el tope es lo que tiene', async () => {
       await loadWith(LUIS_CATALOG, LUIS_ID);
-      expect(card(0).querySelector('.holder-units')!.textContent!.trim()).toBe('Luis: 6');
-      expect(card(1).querySelector('.holder-units')!.textContent!.trim()).toBe('Luis: 0');
+      expect(card(0).querySelector('.holder-units')!.textContent!.trim()).toBe('Cantidad 6');
+      expect(card(0).textContent).toContain('6');
+      expect(card(0).textContent).toContain('$500.00');
+      expect(card(1).querySelector('.holder-units')!.textContent!.trim()).toBe('Cantidad 0');
+      expect(card(1).textContent).toContain('$350.00');
       expect(card(1).querySelector('button.sell')).toBeNull();
+      expect(fixture.nativeElement.querySelector('a.deliver')).toBeNull();
       click('button.sell', card(0));
       await settle();
       expect(cart.holderId()).toBe(LUIS_ID);
+    });
+
+    it('con un vendedor, el buscador filtra solo entre sus productos', async () => {
+      await loadWith(LUIS_CATALOG, LUIS_ID);
+      const input = fixture.nativeElement.querySelector('#product-search') as HTMLInputElement;
+      input.value = 'creat';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(1);
+    });
+
+    it('un vendedor sin productos muestra «Luis no tiene productos»', async () => {
+      await loadWith({ holder: LUIS_CATALOG.holder, products: [] }, LUIS_ID);
+      expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(0);
+      expect(fixture.nativeElement.querySelector('.seller-empty')!.textContent).toContain('Luis no tiene productos');
+    });
+
+    it('con un vendedor sigue cargando hasta que llega su catálogo (no muestra la lista de la bodega)', async () => {
+      viewing.select(LUIS_ID);
+      viewing.load();
+      httpMock.expectOne(SELLERS_URL).flush([{ id: LUIS_ID, fullName: 'Luis Vendedor' }]);
+      fixture.detectChanges();
+      httpMock.expectOne(PRODUCTS_URL).flush(PRODUCTS);
+      const req = httpMock.expectOne((r) => r.url === CATALOG_URL);
+      fixture.detectChanges(); // sin whenStable: el catálogo sigue en vuelo
+      expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(0);
+      expect(fixture.nativeElement.querySelector('[role="status"]')).not.toBeNull();
+      req.flush(LUIS_CATALOG);
+      await settle();
+      expect(fixture.nativeElement.querySelectorAll('app-product-card')).toHaveLength(2);
     });
 
     it('no muestra barra del carrito: el carrito se abre con el botón del menú', async () => {

@@ -80,9 +80,9 @@ describe('AdminSaleSummaryPageComponent', () => {
     await loaded();
     expect(text('h1')).toBe('Venta confirmada');
     expect(text('.holder')).toBe('Vendido de: Bodega');
-    expect(el().querySelectorAll('app-admin-sale-line')).toHaveLength(1);
+    expect(el().querySelectorAll('app-sale-line')).toHaveLength(1);
     expect(text('.stock-change')).toBe('Bodega: 4 → 2');
-    expect(text('app-admin-sale-line .profit')).toBe('Ganancia $619.00');
+    expect(text('app-sale-line .profit')).toBe('Ganancia $619.00');
     expect(text('.total')).toBe('$1,840.00');
     expect(text('.profit-summary .profit')).toBe('$619.00');
   });
@@ -145,6 +145,6 @@ describe('AdminSaleSummaryPageComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne(URL).flush({ sale: SALE, replayed: false });
     await settle();
-    expect(el().querySelectorAll('app-admin-sale-line')).toHaveLength(1);
+    expect(el().querySelectorAll('app-sale-line')).toHaveLength(1);
   });
 });

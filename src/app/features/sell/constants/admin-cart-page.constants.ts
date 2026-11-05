@@ -13,8 +13,5 @@ export const ADMIN_CART_PAGE_TEXTS = {
   emptyHint: 'Toca «Vender» en los productos para agregarlos.',
   emptyAction: 'Ir a productos',
   soldOutHint: 'Ya no quedan piezas. Quítalo del carrito.',
-  sellingFrom: 'Vendiendo de:',
   warehouse: 'Bodega',
-  profit: 'Ganancia de esta venta',
-  summaryTitle: 'Resumen de la venta',
 } as const;

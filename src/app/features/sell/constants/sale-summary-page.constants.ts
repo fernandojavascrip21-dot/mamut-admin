@@ -19,6 +19,10 @@ export const SALE_SUMMARY_TEXTS = {
   errorHint: 'Revisa tu conexión e inténtalo de nuevo.',
   retry: 'Reintentar',
   lowStockPrefix: 'Se avisó al administrador que te quedan pocas piezas de:',
+  soldFrom: 'Vendido de:',
+  profit: 'Ganancia',
+  productSingular: 'producto',
+  productPlural: 'productos',
 } as const;
 
 export const SALE_SUMMARY_LINKS = { sell: SELL_URL, stock: MY_STOCK_URL } as const;

@@ -21,10 +21,28 @@
     <p class="detail m-0 font-mono text-xs text-muted">
       {{ line().qty }} × {{ unitPrice() | currency: 'MXN' : 'symbol-narrow' }} {{ texts.each }}
     </p>
-    <p class="stock-left m-0 text-xs text-muted">{{ texts.stockLeft }} {{ line().stock.after }}</p>
+    @if (holderLabel(); as holder) {
+      <p class="stock-change m-0 text-xs text-muted">
+        {{ holder }}: {{ line().stock.before }} {{ texts.stockArrow }} {{ line().stock.after }}
+      </p>
+      @if (line().stockLevel === 'out') {
+        <p-tag class="level self-start" [value]="levelLabels.out" severity="contrast" />
+      } @else if (line().stockLevel === 'low') {
+        <p-tag class="level self-start" [value]="levelLabels.low" severity="warn" />
+      }
+    } @else {
+      <p class="stock-left m-0 text-xs text-muted">{{ texts.stockLeft }} {{ line().stock.after }}</p>
+    }
   </div>
 
-  <p class="subtotal m-0 self-center font-mono text-base font-bold whitespace-nowrap">
-    {{ subtotal() | currency: 'MXN' : 'symbol-narrow' }}
-  </p>
+  <div class="flex flex-col items-end justify-center gap-0.5 text-right">
+    <p class="subtotal m-0 font-mono text-base font-bold whitespace-nowrap">
+      {{ subtotal() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+    @if (profitText() !== null) {
+      <p class="profit m-0 font-mono text-xs font-semibold whitespace-nowrap text-success-text">
+        {{ texts.profit }} {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+      </p>
+    }
+  </div>
 </div>

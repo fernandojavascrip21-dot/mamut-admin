@@ -4,7 +4,7 @@
     [attr.aria-label]="'Editar ' + product().name"
     class="flex min-w-0 flex-1 gap-4 p-4 text-ink transition-colors duration-200 hover:bg-page focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
   >
-    <div class="relative h-24 w-24 flex-shrink-0">
+    <div class="h-24 w-24 flex-shrink-0">
       @if (showPhoto()) {
         <img
           [src]="product().image"
@@ -21,29 +21,36 @@
           {{ initial() }}
         </div>
       }
-
-      <div class="absolute top-1 left-1 flex flex-col gap-1">
-        @if (level() === 'out') {
-          <p-tag [value]="levelLabels.out" severity="contrast" />
-        } @else if (level() === 'low') {
-          <p-tag [value]="levelLabels.low" severity="warn" />
-        }
-        @if (product().fractionable) {
-          <p-tag value="Fraccionado" severity="secondary" />
-        }
-      </div>
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
-      <p class="m-0 text-sm font-bold leading-tight break-words">{{ product().name }}</p>
-      <p class="m-0">
-        <span class="font-mono text-[22px] font-bold">{{ product().stock }}</span>
-        <span class="ml-1 text-xs font-medium text-muted">en bodega</span>
+      <p class="m-0 font-display text-lg font-extrabold leading-tight break-words">{{ product().name }}</p>
+      <div class="tags flex flex-wrap gap-1">
+        @if (level() === 'out') {
+          <p-tag
+            class="out-tag [--p-tag-danger-background:var(--color-danger)] [--p-tag-danger-color:var(--color-white)]"
+            [value]="levelLabels.out"
+            severity="danger"
+          />
+        } @else if (level() === 'low') {
+          <p-tag
+            class="low-tag [--p-tag-warn-background:var(--color-warning)] [--p-tag-warn-color:var(--color-white)]"
+            [value]="levelLabels.low"
+            severity="warn"
+          />
+        }
+        @if (product().fractionable) {
+          <p-tag
+            class="fractionable-tag [--p-tag-info-background:var(--color-split-2)] [--p-tag-info-color:var(--color-white)]"
+            value="Fraccionado"
+            severity="info"
+          />
+        }
+      </div>
+      <p class="holder-units m-0 font-mono text-sm font-semibold text-muted">
+        {{ texts.quantity }} {{ product().stock }}
       </p>
-      @if (holderLabel() !== null && sellUnits() !== null) {
-        <p class="holder-units m-0 text-xs font-semibold text-muted">{{ holderLabel() }}: {{ sellUnits() }}</p>
-      }
-      <p class="m-0 font-mono text-sm font-bold">
+      <p class="m-0 font-mono text-sm font-semibold">
         {{ price() | currency: 'MXN' : 'symbol-narrow' }}
       </p>
     </div>
@@ -66,14 +73,14 @@
           <button
             pButton
             type="button"
-            class="sell h-11 px-4 text-sm"
+            class="sell ml-auto h-11 px-4 text-sm"
             [attr.aria-label]="texts.sellPrefix + ' ' + product().name + ' ' + texts.sellSuffix"
             (click)="sellAdd.emit()"
           >
             {{ texts.sell }}
           </button>
         } @else {
-          <div class="stepper flex items-center gap-2">
+          <div class="stepper ml-auto flex items-center gap-2">
             <button
               pButton
               severity="secondary"
