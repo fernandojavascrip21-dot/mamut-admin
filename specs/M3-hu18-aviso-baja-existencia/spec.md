@@ -1,6 +1,6 @@
 # Spec técnico — HU-18 · Recibir el aviso de baja o nula existencia
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — «Stock general» y `GET /api/stock`; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — «Mi stock» y `GET /api/me/stock`; M3-hu16-confirmar-venta (`specs/M3-hu16-confirmar-venta/spec.md`) — «Venta confirmada» del vendedor; M3-hu17-vender-como-administrador (`specs/M3-hu17-vender-como-administrador/spec.md`) — `GET /api/sales/catalog`, «Productos» con «Agregar» y «Venta confirmada» del administrador; M1-hu05-ver-y-buscar-productos (`specs/M1-hu05-ver-y-buscar-productos/spec.md`) — `product-card` y su etiqueta «Agotado»; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — `products.stock`, `vendor_stock.qty` y `stock_movements`
 > **Fecha:** 2026-11-04
 > **Objetivo:** que el administrador y cada vendedor vean dentro de la app qué productos quedaron con 2 piezas o menos, o agotados, en la bodega o con cada vendedor, para resurtir a tiempo. El administrador, además, los consulta con un botón «Baja existencia» dentro de «Stock general» que abre un pop-up con los productos del titular de «Viendo» (§10).
