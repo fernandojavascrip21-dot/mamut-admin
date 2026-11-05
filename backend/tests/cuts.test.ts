@@ -143,6 +143,15 @@ describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas re
     return productId
   }
 
+  // Producto con `qty` piezas en la bodega.
+  const newWarehouseProduct = async (label: string, qty: number) => {
+    const [product] = await db.insert(products).values({ name: productName(label), price: '50', unitCost: '20' }).returning()
+    await withTransaction((tx) => insertMovements(tx, [
+      { productId: product!.id, type: 'initial', qty, holderProfileId: null, createdBy: admin.id },
+    ]))
+    return product!.id
+  }
+
   const sellAs = (actor: { userId: string; role: string }, productId: number, qty: number) =>
     createSale({ requestId: randomUUID(), holderId: seller.id, lines: [{ productId, qty }] }, actor)
 
@@ -243,6 +252,61 @@ describe.skipIf(!hasServiceKey)('Corte: totales y desglose (T-20, con cuentas re
     await db.update(directSales).set({ voidedAt: new Date().toISOString() }).where(eq(directSales.id, sale.id))
     const cut = await todayCut()
     expect(cut.sales.some((item) => item.requestId === sale.requestId)).toBe(false)
+  })
+
+  // Vende una pieza y fija `sold_at` a un instante exacto (UTC); México es UTC-6 todo el año.
+  const sellAt = async (productId: number, soldAtUtc: string) => {
+    const { sale } = await sellAs(asSeller(), productId, 1)
+    await db.update(directSales).set({ soldAt: soldAtUtc }).where(eq(directSales.id, sale.id))
+    return sale.requestId
+  }
+  const idsOf = async (period: 'day' | 'week' | 'month', date: string) =>
+    (await getCashCut({ holderId: seller.id, period, date }, asAdmin())).sales.map((sale) => sale.requestId)
+
+  it('día: 23:59:59 hora de México cae en ese día y 00:00:00 del siguiente, no', async () => {
+    const productId = await productWithSeller('borde-dia', 4, '10', '4')
+    const late = await sellAt(productId, '2026-03-04T05:59:59Z') // 3 mar 23:59:59 local
+    const early = await sellAt(productId, '2026-03-04T06:00:00Z') // 4 mar 00:00:00 local
+    expect(await idsOf('day', '2026-03-03')).toEqual([late])
+    expect(await idsOf('day', '2026-03-04')).toEqual([early])
+  })
+
+  it('semana: el domingo cae en la semana del lunes anterior y el lunes siguiente, no', async () => {
+    const productId = await productWithSeller('borde-semana', 4, '10', '4')
+    const sunday = await sellAt(productId, '2027-03-08T05:59:59Z') // dom 7 mar 2027 23:59:59 local
+    const monday = await sellAt(productId, '2027-03-08T06:00:00Z') // lun 8 mar 2027 00:00:00 local
+    expect(await idsOf('week', '2027-03-03')).toEqual([sunday])
+    expect(await idsOf('week', '2027-03-07')).toEqual([sunday])
+    expect(await idsOf('week', '2027-03-08')).toEqual([monday])
+  })
+
+  it('mes: las ventas del 31 no entran al mes siguiente y viceversa', async () => {
+    const productId = await productWithSeller('borde-mes', 4, '10', '4')
+    const lastOfAugust = await sellAt(productId, '2027-09-01T05:59:59Z') // 31 ago 2027 23:59:59 local
+    const firstOfSeptember = await sellAt(productId, '2027-09-01T06:00:00Z') // 1 sep 2027 00:00:00 local
+    expect(await idsOf('month', '2027-08-15')).toEqual([lastOfAugust])
+    expect(await idsOf('month', '2027-09-15')).toEqual([firstOfSeptember])
+  })
+
+  it('un periodo futuro devuelve un corte vacío', async () => {
+    const cut = await getCashCut({ holderId: seller.id, period: 'month', date: '2099-01-01' }, asAdmin())
+    expect(cut.totals).toMatchObject({ salesCount: 0, units: 0, total: '0.00' })
+    expect(cut.sales).toEqual([])
+  })
+
+  it('bodega: solo cuenta ventas de titular null, y las de un vendedor no entran', async () => {
+    const warehouseProduct = await newWarehouseProduct('bodega', 4)
+    const sellerProduct = await productWithSeller('bodega-vendedor', 4, '10', '4')
+    const own = await createSale({ requestId: randomUUID(), holderId: null, lines: [{ productId: warehouseProduct, qty: 2 }] }, asAdmin())
+    const theirs = await sellAs(asSeller(), sellerProduct, 1)
+    // 2031 queda lejos de cualquier dato real de la base.
+    await db.update(directSales).set({ soldAt: '2031-06-15T18:00:00Z' }).where(eq(directSales.requestId, own.sale.requestId))
+    await db.update(directSales).set({ soldAt: '2031-06-15T18:00:00Z' }).where(eq(directSales.requestId, theirs.sale.requestId))
+    const cut = await getCashCut({ holderId: undefined, period: 'day', date: '2031-06-15' }, asAdmin())
+    expect(cut.holder).toBeNull()
+    const mine = cut.sales.filter((sale) => sale.soldBy.id === admin.id)
+    expect(mine.map((sale) => [sale.requestId, sale.registeredByAdmin])).toEqual([[own.sale.requestId, false]])
+    expect(cut.sales.some((sale) => sale.requestId === theirs.sale.requestId)).toBe(false)
   })
 
   it('el vendedor recibe el corte sin costo ni ganancia en ningún nivel', async () => {
