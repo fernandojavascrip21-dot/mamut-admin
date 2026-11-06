@@ -220,6 +220,19 @@ describe('SellerDetailPageComponent', () => {
     });
   });
 
+  describe('editar lo dejado', () => {
+    it('tocar una línea del stock abre la ventana de corrección de ese vendedor y producto', async () => {
+      await load(SELLER);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const button = fixture.nativeElement.querySelector('app-seller-stock-line .stock-line') as HTMLButtonElement;
+      button.click();
+      expect(router.navigate).toHaveBeenCalledWith([
+        '/admin',
+        { outlets: { ventana: ['editar', ID, SELLER.stock[0]!.productId] } },
+      ]);
+    });
+  });
+
   describe('retirar producto y últimos retiros (HU-12)', () => {
     it('«Retirar producto» abre la pantalla de retiro de ese vendedor', async () => {
       await load(SELLER);

@@ -59,3 +59,21 @@ export type DeliveryFailure = 'not-enough-units' | 'mismatch' | 'not-found' | 'i
 // Resultado de DeliverySaveService: la página decide qué pintar sin leer HttpErrorResponse.
 export type DeliveryResult =
   { ok: true; delivery: Delivery } | { ok: false; reason: DeliveryFailure; message?: string };
+
+// Cuerpo de PATCH /api/sellers/:id/stock/:productId: el total de piezas que debe tener el vendedor
+// (no la diferencia) y sus precios propios. null = usar el general.
+export interface HoldingUpdateInput {
+  qty: number;
+  unitPrice: string | null;
+  unitCostWithShipping: string | null;
+}
+
+// Valor que emite holding-edit-form al enviar: lo que escribió el administrador, ya sin espacios.
+export type HoldingFormValue = HoldingUpdateInput;
+
+// Por qué no se guardó la corrección. `message` trae el texto del backend en un 422.
+export type HoldingFailure = 'not-enough-units' | 'not-found' | 'invalid' | 'offline';
+
+// Resultado de HoldingSaveService: la página decide qué pintar sin leer HttpErrorResponse.
+export type HoldingResult =
+  { ok: true; holding: SellerHolding } | { ok: false; reason: HoldingFailure; message?: string };

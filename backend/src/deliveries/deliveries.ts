@@ -1,13 +1,15 @@
 import { getActiveSellerName, getSellerName } from '@accounts'
 import { isUniqueViolation } from '@db/errors'
-import { withTransaction } from '@db/transaction'
+import { vendorStock } from '@db/schema'
+import { lockRows, withTransaction } from '@db/transaction'
 import { findProduct, getProduct } from '@products'
 import {
   holdingOf, insertMovements, listDeliveries, movementsOfRequest, setHolderPrices,
   type DeliveryRow, type HolderHolding, type RequestMovements,
 } from '@stock'
+import { and, eq } from 'drizzle-orm'
 import { conflict, notFound, validation } from '@lib/errors'
-import { DELIVERY_MISMATCH, HISTORY_LIMIT, MAX_QTY } from './constants'
+import { DELIVERY_MISMATCH, HISTORY_LIMIT, HOLDING_ADJUST_REASON, MAX_QTY } from './constants'
 
 export interface CreateDeliveryInput {
   requestId: string
@@ -127,4 +129,48 @@ export async function getSellerHolding(sellerId: string, productId: number): Pro
   await getActiveSellerName(sellerId)
   await findProduct(productId)
   return holdingOf(sellerId, productId)
+}
+
+export interface UpdateHoldingInput {
+  sellerId: string
+  productId: number
+  qty: number                         // total de piezas que debe tener el vendedor (≥ 0), no la diferencia
+  unitPrice: string | null            // null = usar el precio general
+  unitCostWithShipping: string | null // null = usar el costo de fábrica
+}
+
+// Corrige lo que ya se le dejó a un vendedor: sus piezas y su precio / costo con envío. Los precios
+// son un UPDATE de vendor_stock (no hay movimiento que registrar); las piezas se corrigen con un par
+// de movimientos `adjustment` (vendedor ±d, bodega ∓d) para que el total del negocio no cambie y el
+// historial lo conserve (los movimientos nunca se editan). Recibe el total final, no la diferencia,
+// así repetir la petición no mueve nada dos veces. La fila se bloquea para calcular la diferencia
+// contra el saldo real; subir más de lo que hay en bodega, o bajar a menos de 0, da 409.
+export async function updateSellerHolding(input: UpdateHoldingInput, updatedBy: string): Promise<HolderHolding> {
+  if (!Number.isSafeInteger(input.qty) || input.qty < 0) throw validation('El campo qty debe ser un entero de 0 o más')
+  if (input.qty > MAX_QTY) throw validation('El campo qty es demasiado grande')
+
+  await getActiveSellerName(input.sellerId)
+  await findProduct(input.productId)
+
+  await withTransaction(async (tx) => {
+    const [row] = await lockRows(tx, vendorStock, and(
+      eq(vendorStock.profileId, input.sellerId),
+      eq(vendorStock.productId, input.productId),
+    )!)
+    if (!row) throw notFound()
+
+    const delta = input.qty - row.qty
+    if (delta !== 0) {
+      await insertMovements(tx, [
+        { productId: input.productId, type: 'adjustment', qty: -delta, holderProfileId: null, createdBy: updatedBy, reason: HOLDING_ADJUST_REASON },
+        { productId: input.productId, type: 'adjustment', qty: delta, holderProfileId: input.sellerId, createdBy: updatedBy, reason: HOLDING_ADJUST_REASON },
+      ])
+    }
+    await setHolderPrices(tx, input.sellerId, input.productId, {
+      unitPrice: input.unitPrice,
+      unitCostWithShipping: input.unitCostWithShipping,
+    })
+  })
+
+  return holdingOf(input.sellerId, input.productId)
 }

@@ -1,13 +1,13 @@
 import { Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { LowStockNoticeService } from '@core/low-stock-notice/low-stock-notice.service';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
-import { deliveryModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, returnModalLink } from '@shared/utils/modal-links';
 import { unitsLabel } from '@shared/utils/units-label';
 import { LowStockAlertComponent } from '../../components/low-stock-alert/low-stock-alert.component';
 import type { LowStockAlertItem } from '../../components/low-stock-alert/low-stock-alert.models';
@@ -50,6 +50,7 @@ export class StockPageComponent {
   private readonly viewing = inject(ViewingService);
   private readonly stockChanges = inject(StockChangesService);
   private readonly lowStockNotice = inject(LowStockNoticeService);
+  private readonly router = inject(Router);
 
   // 2) Datos y estados. El estado se deriva del recurso; volver a pedir el stock con datos en
   // pantalla (tras «Dejar» o «Retirar») no cuenta como cargando, para que no parpadee detrás del pop-up.
@@ -189,6 +190,12 @@ export class StockPageComponent {
   private readonly lowButton = viewChild<ElementRef<HTMLButtonElement>>('lowButton');
 
   // 5) Acciones del usuario
+  // Con un vendedor en «Viendo», tocar una fila abre el pop-up para corregir lo que tiene de ese producto.
+  editSellerProduct(productId: number): void {
+    const seller = this.seller();
+    if (seller) void this.router.navigate(editHoldingModalLink(seller.id, productId));
+  }
+
   retry(): void {
     this.stockResource.reload();
   }

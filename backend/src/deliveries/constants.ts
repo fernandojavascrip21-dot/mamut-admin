@@ -6,3 +6,6 @@ export const HISTORY_LIMIT = 20
 
 // Máximo de un integer de Postgres: más piezas que eso no caben en stock_movements.qty.
 export const MAX_QTY = 2_147_483_647
+
+// Motivo de los movimientos `adjustment` con que se corrigen las piezas que tiene un vendedor.
+export const HOLDING_ADJUST_REASON = 'Corrección de piezas del vendedor'

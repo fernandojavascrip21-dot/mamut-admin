@@ -6,6 +6,7 @@ import {
   parseProductId,
   parseReturnTarget,
   previewBalances,
+  previewHoldingChange,
   profitPerUnit,
   returnUrl,
 } from './delivery.rules';
@@ -66,6 +67,22 @@ describe('previewBalances', () => {
   it('baja la bodega y sube al vendedor', () => {
     expect(previewBalances(10, 0, 6)).toEqual({ warehouse: 4, seller: 6 });
     expect(previewBalances(10, 4, 10)).toEqual({ warehouse: 0, seller: 14 });
+  });
+});
+
+describe('previewHoldingChange', () => {
+  it('subir las piezas las toma de la bodega y bajarlas las regresa', () => {
+    expect(previewHoldingChange(10, 3, 5)).toEqual({ warehouse: 8, seller: 5 });
+    expect(previewHoldingChange(10, 3, 0)).toEqual({ warehouse: 13, seller: 0 });
+  });
+
+  it('sin cambio deja los saldos igual', () => {
+    expect(previewHoldingChange(10, 3, 3)).toEqual({ warehouse: 10, seller: 3 });
+  });
+
+  it('null si la bodega no alcanza; justo lo que alcanza sí', () => {
+    expect(previewHoldingChange(2, 3, 6)).toBeNull();
+    expect(previewHoldingChange(2, 3, 5)).toEqual({ warehouse: 0, seller: 5 });
   });
 });
 

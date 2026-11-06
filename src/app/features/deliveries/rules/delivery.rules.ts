@@ -54,6 +54,17 @@ export function previewBalances(
   return { warehouse: warehouse - qty, seller: seller + qty };
 }
 
+// Saldos si el vendedor queda con `target` piezas: la diferencia sale de la bodega o vuelve a ella y
+// el total no cambia. null si la bodega no alcanza para subirle tantas.
+export function previewHoldingChange(
+  warehouse: number,
+  seller: number,
+  target: number,
+): { warehouse: number; seller: number } | null {
+  const delta = target - seller;
+  return warehouse - delta < 0 ? null : { warehouse: warehouse - delta, seller: target };
+}
+
 // Productos que se pueden dejar: activos (el backend ya los filtra) con piezas en la bodega, cuyo
 // nombre contiene la búsqueda sin distinguir mayúsculas ni acentos. Búsqueda vacía = todos.
 export function filterDeliverableProducts(

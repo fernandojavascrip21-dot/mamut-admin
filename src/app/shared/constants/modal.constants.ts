@@ -2,7 +2,8 @@
 // rutas viven en `core/layout/routes/admin.routes.ts`.
 export const MODAL_OUTLET = 'ventana';
 
-// Rutas del outlet: `dejar` (con los parámetros matriciales opcionales `vendedor` y `producto`) y
-// `retirar/:sellerId`.
+// Rutas del outlet: `dejar` (con los parámetros matriciales opcionales `vendedor` y `producto`),
+// `retirar/:sellerId` y `editar/:sellerId/:productId` (corregir lo ya dejado).
 export const MODAL_DELIVERY_PATH = 'dejar';
 export const MODAL_RETURN_PATH = 'retirar';
+export const MODAL_EDIT_HOLDING_PATH = 'editar';

@@ -237,6 +237,8 @@
                 [image]="row.image"
                 [units]="row.units"
                 [breakdown]="row.breakdown"
+                [editable]="seller() !== null"
+                (activated)="editSellerProduct(row.productId)"
               />
             </li>
           }

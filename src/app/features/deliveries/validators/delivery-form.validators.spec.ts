@@ -1,6 +1,6 @@
 import { FormControl } from '@angular/forms';
 import { MONEY_MAX } from '@shared/constants/money.constants';
-import { optionalMoney, positiveInteger } from './delivery-form.validators';
+import { nonNegativeInteger, optionalMoney, positiveInteger } from './delivery-form.validators';
 
 describe('positiveInteger', () => {
   it.each(['1', '6', ' 12 ', '2147483647'])('«%s» es válido', (value) => {
@@ -13,6 +13,16 @@ describe('positiveInteger', () => {
       expect(positiveInteger()(new FormControl(value))).toEqual({ positiveInteger: true });
     },
   );
+});
+
+describe('nonNegativeInteger', () => {
+  it.each(['0', '1', ' 12 ', '2147483647'])('«%s» es válido', (value) => {
+    expect(nonNegativeInteger()(new FormControl(value))).toBeNull();
+  });
+
+  it.each(['', '-2', '1.5', '1e3', 'abc', '2147483648', null])('«%s» no es válido', (value) => {
+    expect(nonNegativeInteger()(new FormControl(value))).toEqual({ nonNegativeInteger: true });
+  });
 });
 
 describe('optionalMoney', () => {
