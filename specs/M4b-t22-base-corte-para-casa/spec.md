@@ -25,7 +25,7 @@ Hoy `direct_sale_items.unit_cost` guarda un solo costo: el costo con envío del 
   - Archivo nuevo `backend/src/cuts/home-cut.ts` con el caso de uso `getHomeCut(input, actor)`, de solo lectura. Reusa `resolveCutPeriod`, `resolveCutHolder` y `salesOf` de `cuts.ts`.
   - Parámetro `type` (`prices` | `home`) en `GET /api/cuts`. La ruta elige `getCashCut` o `getHomeCut`.
   - El corte con precios agrega `type: 'prices'` a su respuesta. Nada más cambia en él.
-- **Pruebas** contra la base real: casos nuevos en `backend/tests/sales.test.ts` y archivo nuevo `backend/tests/home-cut.test.ts` (§7).
+- **Pruebas** contra la base real: archivos nuevos `backend/tests/sales-factory-cost.test.ts` y `backend/tests/home-cut.test.ts` (§7). Los tests que ya tienen commit no se tocan.
 
 **No entra en este spec:**
 
@@ -138,7 +138,7 @@ export interface HomeCut {
 ## 5. Plan de implementación
 
 1. **Migración y guardado al vender:** escribir `20261105000000_direct_sale_items_factory_unit_cost.sql` (§4) y correr `npm run db:reset`. Con `backend/.env` en LOCAL: `npm run db:pull`, los fixups y borrar los archivos de Drizzle. En `createSale`, `factoryUnitCost: product.unitCost` en cada renglón: sin esa línea la columna obligatoria rompe la venta y `type-check`. `npm run type-check` pasa.
-2. **Pruebas del guardado al vender:** casos nuevos en `backend/tests/sales.test.ts`: vendedor con costo con envío `700` sobre fábrica `600` guarda `700`/`600`; sin costo propio y en bodega, los dos iguales. La respuesta de la venta no trae `factoryUnitCost`.
+2. **Pruebas del guardado al vender:** archivo nuevo `backend/tests/sales-factory-cost.test.ts`: vendedor con costo con envío `700` sobre fábrica `600` guarda `700`/`600`; sin costo propio y en bodega, los dos iguales. La respuesta de la venta no trae `factoryUnitCost`.
 3. **Tipo de corte:** constantes, `CutType`, `parseCutType` y `type: 'prices'` en `getCashCut`. La ruta lee `type`; con `home` todavía responde lo mismo que hoy. Las pruebas de `cuts.test.ts` siguen pasando.
 4. **Esqueleto de `home-cut.ts`:** tipos, `getHomeCut` con el `403` para el vendedor, y titular y periodo resueltos con las funciones de `cuts.ts` (se exportan `salesOf` y lo que falte, sin cambiar su comportamiento). Reexportar en `index.ts`. La ruta llama a `getHomeCut` con `type=home`.
 5. **Totales y desglose por producto:** consultas con `sum()` agrupadas como en T-20, con `factoryCost`, `realProfit` y `shippingCover` según §3.
@@ -170,7 +170,7 @@ export interface HomeCut {
 
 Contra la base real, saltadas sin `SUPABASE_SERVICE_ROLE_KEY` como el resto:
 
-- **`backend/tests/sales.test.ts`** (casos nuevos, sin tocar los que existen): los dos costos guardados en los tres casos (vendedor con costo propio, vendedor sin él, bodega) y la respuesta sin `factoryUnitCost`.
+- **`backend/tests/sales-factory-cost.test.ts`** (nuevo; `sales.test.ts` no se toca porque ya tiene commit): los dos costos guardados en los tres casos (vendedor con costo propio, vendedor sin él, bodega) y la respuesta sin `factoryUnitCost`.
 - **`backend/tests/home-cut.test.ts`** (nuevo):
   - **Datos:** un vendedor `test-auth-` con piezas dejadas con costo con envío propio en un producto y sin él en otro, y ventas creadas con `createSale`. Para el redondeo y los bordes, se fijan `sold_at` y el `products.unit_cost` de productos de prueba.
   - **Casos:** permisos (`403` del vendedor, `404`, desactivado); bodega; cifras del ejemplo; redondeo una sola vez; identidad `profit + shippingCover = realProfit`; mismas ventas que el corte con precios; producto sin costo propio; llaves prohibidas; periodo vacío; `422` de `type`.
