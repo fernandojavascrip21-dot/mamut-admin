@@ -1,9 +1,11 @@
 # Spec técnico — T-22 · Base del corte para casa: costo de fábrica en cada venta (backend)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M3-t18-base-ventas (`specs/M3-t18-base-ventas/spec.md`) — `direct_sale_items` con precio y costo del momento, `createSale`; M4a-t20-base-cortes (`specs/M4a-t20-base-cortes/spec.md`) — `GET /api/cuts`, periodo, titular y redondeo; M4a-hu20-mi-corte-vendedor (`specs/M4a-hu20-mi-corte-vendedor/spec.md`) — el vendedor recibe costo y ganancia en el corte con precios; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto y redondeo una sola vez; M2-t10-base-vendedores (`specs/M2-t10-base-vendedores/spec.md`) — `vendor_stock.unit_cost_with_shipping`
 > **Fecha:** 2026-11-05
 > **Objetivo:** que cada venta guarde también el costo de fábrica del momento y que `GET /api/cuts?type=home` calcule para el administrador el corte para casa de un titular: vendido, costo de fábrica, ganancia real y «para cubrir envíos», con las mismas ventas del corte con precios.
+>
+> **Nota (2026-11-05):** implementado en el PR #51. Queda pendiente el criterio de producción de §6: aplicar la migración y correr las dos consultas de revisión antes de desplegar el backend.
 
 Fuentes:
 
@@ -147,24 +149,24 @@ export interface HomeCut {
 
 ## 6. Criterios de aceptación
 
-- [ ] Tras `npm run db:reset`, `direct_sale_items.factory_unit_cost` existe como `numeric(10,4) not null` con `check (factory_unit_cost >= 0)`.
+- [x] Tras `npm run db:reset`, `direct_sale_items.factory_unit_cost` existe como `numeric(10,4) not null` con `check (factory_unit_cost >= 0)`.
 - [ ] Tras aplicar la migración a producción, dan `0` las dos consultas de revisión: filas de bodega con `factory_unit_cost <> unit_cost`, y filas de vendedores con `factory_unit_cost <>` el `products.unit_cost` de su producto.
-- [ ] Un vendedor con costo con envío `700` vende un producto con costo de fábrica `600`: el renglón guarda `unit_cost = 700.0000` y `factory_unit_cost = 600.0000`.
-- [ ] Sin costo con envío propio, y en las ventas de la bodega, el renglón guarda `unit_cost = factory_unit_cost`.
-- [ ] La respuesta de `POST /api/sales` no contiene la llave `factoryUnitCost`.
-- [ ] `GET /api/cuts?type=home` como administrador con el `holderId` de un vendedor devuelve `200` con `type: "home"`, `holder`, `period`, `totals`, `products` y `sales` en la forma de §4.
-- [ ] La respuesta con `type=home` no contiene las llaves `cost` ni `profit` en ningún nivel (se revisa el JSON completo).
-- [ ] Ejemplo de cifras: 2 piezas a `920.00`, con costo con envío `700.0000` y de fábrica `600.0000`, dan `total "1840.00"`, `factoryCost "1200.00"`, `realProfit "640.00"` y `shippingCover "200.00"`.
-- [ ] Un costo de fábrica de 4 decimales se redondea una sola vez: 3 piezas a `0.3335` dan `factoryCost "1.00"`.
-- [ ] Para el mismo titular y periodo, `profit` del corte con precios `+ shippingCover` del corte para casa `= realProfit`, al centavo, en los totales y en cada renglón del desglose.
-- [ ] Para el mismo titular y periodo, los dos cortes tienen los mismos `salesCount`, `units`, `total`, renglones de producto (`productId`, `unitPrice`, `units`, `total`) y `requestId` de ventas.
-- [ ] Un producto sin costo con envío propio suma `0.00` a `shippingCover`.
-- [ ] Sin `holderId`, el corte para casa es solo de la bodega (`holder: null`), con `shippingCover "0.00"`.
-- [ ] Un vendedor que pide `type=home` recibe `403`, con o sin `holderId`.
-- [ ] `type=otro` da `422`. Sin `type`, la respuesta es el corte con precios con `type: "prices"`.
-- [ ] Un periodo sin ventas devuelve, con `type=home`, totales en cero y listas vacías con `200`.
-- [ ] El administrador recibe el corte para casa de un vendedor desactivado. Un `holderId` que no es de un vendedor da `404`.
-- [ ] `npm run type-check`, `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`), `tests/cuts.test.ts` sin cambios y `tests/architecture.test.ts` pasan.
+- [x] Un vendedor con costo con envío `700` vende un producto con costo de fábrica `600`: el renglón guarda `unit_cost = 700.0000` y `factory_unit_cost = 600.0000`.
+- [x] Sin costo con envío propio, y en las ventas de la bodega, el renglón guarda `unit_cost = factory_unit_cost`.
+- [x] La respuesta de `POST /api/sales` no contiene la llave `factoryUnitCost`.
+- [x] `GET /api/cuts?type=home` como administrador con el `holderId` de un vendedor devuelve `200` con `type: "home"`, `holder`, `period`, `totals`, `products` y `sales` en la forma de §4.
+- [x] La respuesta con `type=home` no contiene las llaves `cost` ni `profit` en ningún nivel (se revisa el JSON completo).
+- [x] Ejemplo de cifras: 2 piezas a `920.00`, con costo con envío `700.0000` y de fábrica `600.0000`, dan `total "1840.00"`, `factoryCost "1200.00"`, `realProfit "640.00"` y `shippingCover "200.00"`.
+- [x] Un costo de fábrica de 4 decimales se redondea una sola vez: 3 piezas a `0.3335` dan `factoryCost "1.00"`.
+- [x] Para el mismo titular y periodo, `profit` del corte con precios `+ shippingCover` del corte para casa `= realProfit`, al centavo, en los totales y en cada renglón del desglose.
+- [x] Para el mismo titular y periodo, los dos cortes tienen los mismos `salesCount`, `units`, `total`, renglones de producto (`productId`, `unitPrice`, `units`, `total`) y `requestId` de ventas.
+- [x] Un producto sin costo con envío propio suma `0.00` a `shippingCover`.
+- [x] Sin `holderId`, el corte para casa es solo de la bodega (`holder: null`), con `shippingCover "0.00"`.
+- [x] Un vendedor que pide `type=home` recibe `403`, con o sin `holderId`.
+- [x] `type=otro` da `422`. Sin `type`, la respuesta es el corte con precios con `type: "prices"`.
+- [x] Un periodo sin ventas devuelve, con `type=home`, totales en cero y listas vacías con `200`.
+- [x] El administrador recibe el corte para casa de un vendedor desactivado. Un `holderId` que no es de un vendedor da `404`.
+- [x] `npm run type-check`, `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`), `tests/cuts.test.ts` sin cambios y `tests/architecture.test.ts` pasan.
 
 ## 7. Plan de pruebas
 
