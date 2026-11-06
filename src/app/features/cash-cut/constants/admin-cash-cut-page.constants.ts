@@ -29,8 +29,8 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
 } as const;
 
 export const CUT_TYPE_OPTIONS: CutTypeOption[] = [
-  { value: 'seller', label: 'Corte con precios (para vendedor)', disabled: false },
-  { value: 'home', label: 'Corte (para casa)', disabled: false },
+  { value: 'seller', label: 'Corte del vendedor', disabled: false },
+  { value: 'home', label: 'Corte de casa', disabled: false },
 ];
 
 export const DEFAULT_CUT_TYPE: CutTypeValue = 'seller';

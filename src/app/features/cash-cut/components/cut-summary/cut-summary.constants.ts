@@ -11,5 +11,4 @@ export const CUT_SUMMARY_TEXTS = {
   amountToDeliver: 'Total a entregar',
   factoryCost: 'Costo de fábrica',
   realProfit: 'Ganancia real',
-  shippingCover: 'Para cubrir envíos',
 } as const;
