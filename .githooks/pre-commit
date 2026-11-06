@@ -1,0 +1,23 @@
+#!/bin/sh
+# Protección de tests: rechaza el commit si un test que ya existía se MODIFICA, BORRA o RENOMBRA.
+# Los tests nuevos (A) sí pueden entrar. Salida a propósito: ALLOW_TEST_CHANGES=1 git commit ...
+if [ "$ALLOW_TEST_CHANGES" = "1" ]; then
+  exit 0
+fi
+
+protected=$(git diff --cached --name-only --diff-filter=MDR -- \
+  ':(glob)**/*.spec.ts' \
+  ':(glob)**/*.test.ts' \
+  'backend/tests/' \
+  'src/test-setup.ts' \
+  'backend/vitest.config.ts')
+
+if [ -n "$protected" ]; then
+  echo "✋ Commit rechazado: se modifican, borran o renombran tests protegidos:" >&2
+  echo "$protected" | sed 's/^/   - /' >&2
+  echo "" >&2
+  echo "Los tests son la especificación: se corrige el código, no el test." >&2
+  echo "Si el cambio al test es intencional y aprobado: ALLOW_TEST_CHANGES=1 git commit ..." >&2
+  exit 1
+fi
+exit 0
