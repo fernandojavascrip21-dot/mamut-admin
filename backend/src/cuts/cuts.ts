@@ -148,14 +148,19 @@ export async function resolveCutHolder(
   return getSellerName(actor.userId)
 }
 
-// Ventas vigentes del titular dentro del periodo: `null` = bodega. El rango es [inicio, fin) en
-// instantes, así que una venta a las 00:00:00 del día siguiente queda fuera. Las anuladas no cuentan.
+// Condiciones de periodo de las ventas vigentes: el rango es [inicio, fin) en instantes, así que una
+// venta a las 00:00:00 del día siguiente queda fuera. Las anuladas no cuentan. Se extrae para que el
+// resumen del negocio (HU-22), que agrupa por titular, vea exactamente las mismas ventas.
+export const salesInPeriod = (period: ResolvedPeriod) => sql`
+  ds.voided_at is null
+  and ds.sold_at >= ${period.startsAt}::timestamptz
+  and ds.sold_at < ${period.endsAt}::timestamptz`
+
+// Ventas vigentes del titular dentro del periodo: `null` = bodega.
 // Lo comparten el corte con precios y el corte para casa (T-22), así los dos ven las mismas ventas.
 export const salesOf = (holder: { id: string } | null, period: ResolvedPeriod) => sql`
   ${holder ? sql`ds.holder_profile_id = ${holder.id}::uuid` : sql`ds.holder_profile_id is null`}
-  and ds.voided_at is null
-  and ds.sold_at >= ${period.startsAt}::timestamptz
-  and ds.sold_at < ${period.endsAt}::timestamptz`
+  and ${salesInPeriod(period)}`
 
 type TotalsRow = {
   sales_count: number

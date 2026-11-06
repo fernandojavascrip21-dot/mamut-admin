@@ -24,3 +24,18 @@ export const DEFAULT_CUT_TYPE = 'prices'
 
 // 422 cuando `type` no es prices ni home.
 export const INVALID_CUT_TYPE = 'El tipo de corte debe ser prices o home'
+
+// Alcance del corte (HU-22): el de un titular o el resumen de todo el negocio.
+export const CUT_SCOPES = ['holder', 'business'] as const
+
+// Alcance cuando la petición no trae `scope`.
+export const DEFAULT_CUT_SCOPE = 'holder'
+
+// 422 cuando `scope` no es holder ni business.
+export const INVALID_CUT_SCOPE = 'El alcance del corte debe ser holder o business'
+
+// 422 cuando se pide el resumen del negocio sin type=home.
+export const BUSINESS_REQUIRES_HOME = 'El resumen del negocio solo existe en el corte para casa'
+
+// 422 cuando se pide el resumen del negocio con holderId.
+export const BUSINESS_WITHOUT_HOLDER = 'El resumen del negocio no lleva holderId'
