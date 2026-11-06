@@ -11,25 +11,62 @@
       <p class="sold-caption m-0 text-sm text-line">{{ soldCaption() }}</p>
     </div>
 
-    @if (totals().cost !== undefined) {
-      <div>
-        <p class="cost-label m-0 text-xs font-semibold text-line">{{ costLabel() }}</p>
-        <p class="cost m-0 font-mono text-lg font-bold">
-          {{ cost() | currency: 'MXN' : 'symbol-narrow' }}
-        </p>
-      </div>
-    }
-    @if (totals().profit !== undefined) {
-      <div>
-        <p class="m-0 text-xs font-semibold text-line">{{ texts.profit }}</p>
-        <p
-          class="profit m-0 font-mono text-lg font-bold"
-          [class.text-success-border]="!profitIsNegative()"
-          [class.text-danger-border]="profitIsNegative()"
-        >
-          {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
-        </p>
-      </div>
+    @if (isHome()) {
+      @if (totals().factoryCost !== undefined) {
+        <div>
+          <p class="factory-cost-label m-0 text-xs font-semibold text-line">
+            {{ texts.factoryCost }}
+          </p>
+          <p class="factory-cost m-0 font-mono text-lg font-bold">
+            {{ factoryCost() | currency: 'MXN' : 'symbol-narrow' }}
+          </p>
+        </div>
+      }
+      @if (totals().realProfit !== undefined) {
+        <div>
+          <p class="real-profit-label m-0 text-xs font-semibold text-line">
+            {{ texts.realProfit }}
+          </p>
+          <p
+            class="real-profit m-0 font-mono text-lg font-bold"
+            [class.text-success-border]="!realProfitIsNegative()"
+            [class.text-danger-border]="realProfitIsNegative()"
+          >
+            {{ realProfit() | currency: 'MXN' : 'symbol-narrow' }}
+          </p>
+        </div>
+      }
+      @if (showShippingCover()) {
+        <div>
+          <p class="shipping-cover-label m-0 text-xs font-semibold text-line">
+            {{ texts.shippingCover }}
+          </p>
+          <p class="shipping-cover m-0 font-mono text-lg font-bold">
+            {{ shippingCover() | currency: 'MXN' : 'symbol-narrow' }}
+          </p>
+        </div>
+      }
+    } @else {
+      @if (totals().cost !== undefined) {
+        <div>
+          <p class="cost-label m-0 text-xs font-semibold text-line">{{ costLabel() }}</p>
+          <p class="cost m-0 font-mono text-lg font-bold">
+            {{ cost() | currency: 'MXN' : 'symbol-narrow' }}
+          </p>
+        </div>
+      }
+      @if (totals().profit !== undefined) {
+        <div>
+          <p class="m-0 text-xs font-semibold text-line">{{ texts.profit }}</p>
+          <p
+            class="profit m-0 font-mono text-lg font-bold"
+            [class.text-success-border]="!profitIsNegative()"
+            [class.text-danger-border]="profitIsNegative()"
+          >
+            {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+          </p>
+        </div>
+      }
     }
   </section>
 </p-card>

@@ -21,7 +21,13 @@
     <p class="detail m-0 font-mono text-xs text-muted">
       {{ line().units }} × {{ unitPrice() | currency: 'MXN' : 'symbol-narrow' }}
     </p>
-    @if (line().cost !== undefined) {
+    @if (isHome()) {
+      @if (line().factoryCost !== undefined) {
+        <p class="factory-cost m-0 font-mono text-xs text-muted">
+          {{ factoryCostLabel }} {{ factoryCost() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      }
+    } @else if (line().cost !== undefined) {
       <p class="cost m-0 font-mono text-xs text-muted">
         {{ costLabel() }} {{ cost() | currency: 'MXN' : 'symbol-narrow' }}
       </p>
@@ -32,7 +38,18 @@
     <p class="total m-0 font-mono text-base font-bold whitespace-nowrap">
       {{ total() | currency: 'MXN' : 'symbol-narrow' }}
     </p>
-    @if (line().profit !== undefined) {
+    @if (isHome()) {
+      @if (line().realProfit !== undefined) {
+        <p
+          class="real-profit m-0 font-mono text-xs font-semibold whitespace-nowrap"
+          [class.text-success-text]="!realProfitIsNegative()"
+          [class.text-danger-text]="realProfitIsNegative()"
+        >
+          {{ realProfitIsNegative() ? '' : '+'
+          }}{{ realProfit() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      }
+    } @else if (line().profit !== undefined) {
       <p
         class="profit m-0 font-mono text-xs font-semibold whitespace-nowrap"
         [class.text-success-text]="!profitIsNegative()"

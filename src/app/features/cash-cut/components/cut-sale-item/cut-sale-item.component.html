@@ -16,7 +16,17 @@
       <span class="total font-mono text-base font-bold whitespace-nowrap">
         {{ total() | currency: 'MXN' : 'symbol-narrow' }}
       </span>
-      @if (sale().profit !== undefined) {
+      @if (isHome()) {
+        @if (sale().realProfit !== undefined) {
+          <span
+            class="real-profit font-mono text-xs font-semibold whitespace-nowrap"
+            [class.text-success-text]="!realProfitIsNegative()"
+            [class.text-danger-text]="realProfitIsNegative()"
+          >
+            {{ texts.realProfit }} {{ realProfit() | currency: 'MXN' : 'symbol-narrow' }}
+          </span>
+        }
+      } @else if (sale().profit !== undefined) {
         <span
           class="profit font-mono text-xs font-semibold whitespace-nowrap"
           [class.text-success-text]="!profitIsNegative()"
@@ -60,7 +70,13 @@
             <span class="line-subtotal font-mono font-bold whitespace-nowrap">
               {{ lineUnitPrice(line.subtotal) | currency: 'MXN' : 'symbol-narrow' }}
             </span>
-            @if (line.profit !== undefined) {
+            @if (isHome()) {
+              @if (line.realProfit !== undefined) {
+                <span class="line-real-profit font-mono text-xs text-muted whitespace-nowrap">
+                  {{ lineUnitPrice(line.realProfit) | currency: 'MXN' : 'symbol-narrow' }}
+                </span>
+              }
+            } @else if (line.profit !== undefined) {
               <span class="line-profit font-mono text-xs text-muted whitespace-nowrap">
                 {{ lineUnitPrice(line.profit) | currency: 'MXN' : 'symbol-narrow' }}
               </span>

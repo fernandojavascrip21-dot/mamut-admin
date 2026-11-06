@@ -3,4 +3,5 @@
 export const CUT_PRODUCT_LINE_TEXTS = {
   costWithShipping: 'costo con envío',
   cost: 'costo',
+  factoryCost: 'costo de fábrica',
 } as const;

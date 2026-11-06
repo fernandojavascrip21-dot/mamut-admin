@@ -3,7 +3,7 @@ import { Component, computed, input } from '@angular/core';
 import { Card } from 'primeng/card';
 import { CUT_CARD_PASS_THROUGH } from '../../constants/cash-cut.constants';
 import { unitsLabel } from '@shared/utils/units-label';
-import type { CashCut, CutPerspective } from '../../interfaces/cash-cut.models';
+import type { CashCut, CutPerspective, CutTypeValue } from '../../interfaces/cash-cut.models';
 import { CUT_SUMMARY_TEXTS } from './cut-summary.constants';
 
 // Resumen del corte: vendido, costo y ganancia (HU-19). Las cifras son las de `totals` tal como las
@@ -24,6 +24,9 @@ export class CutSummaryComponent {
   readonly periodText = input.required<string>();
   // 'seller' (HU-20): «Vendí…» y «Total a entregar»; 'admin' conserva los textos de HU-19.
   readonly perspective = input<CutPerspective>('admin');
+  // 'home' (HU-21): muestra costo de fábrica, ganancia real y «para cubrir envíos» en vez de costo y ganancia.
+  readonly cutType = input<CutTypeValue>('seller');
+  readonly isHome = computed(() => this.cutType() === 'home');
 
   // «Vendió Luis · 2 al 8 nov · 5 piezas» o «Mis ventas desde bodega · … · N piezas».
   readonly soldCaption = computed(() => {
@@ -44,6 +47,16 @@ export class CutSummaryComponent {
   readonly total = computed(() => Number(this.totals().total));
   readonly cost = computed(() => Number(this.totals().cost));
   readonly profit = computed(() => Number(this.totals().profit));
+  readonly factoryCost = computed(() => Number(this.totals().factoryCost));
+  readonly realProfit = computed(() => Number(this.totals().realProfit));
+  readonly shippingCover = computed(() => Number(this.totals().shippingCover));
+  // La bodega no tiene envíos que cubrir: sin titular la cifra no se muestra.
+  readonly showShippingCover = computed(
+    () => !!this.holderName() && this.totals().shippingCover !== undefined,
+  );
+  readonly realProfitIsNegative = computed(
+    () => this.totals().realProfit?.startsWith('-') ?? false,
+  );
   // El signo menos del texto decide el color; no se compara como número.
   readonly profitIsNegative = computed(() => this.totals().profit?.startsWith('-') ?? false);
 }
