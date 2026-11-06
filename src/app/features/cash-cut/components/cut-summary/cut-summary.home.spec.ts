@@ -32,7 +32,7 @@ describe('CutSummaryComponent · corte para casa', () => {
 
   beforeEach(() => TestBed.configureTestingModule({ imports: [CutSummaryComponent] }));
 
-  it('con un vendedor muestra las cuatro cifras del backend con sus etiquetas', () => {
+  it('con un vendedor muestra las tres cifras del backend con sus etiquetas', () => {
     render(TOTALS, 'Luis');
     expect(text('.sold')).toBe('$1,840.00');
     expect(text('.sold-caption')).toBe('Vendió Luis · 2 al 8 nov · 2 piezas');
@@ -40,8 +40,8 @@ describe('CutSummaryComponent · corte para casa', () => {
     expect(text('.factory-cost')).toBe('$1,200.00');
     expect(text('.real-profit-label')).toBe('Ganancia real');
     expect(text('.real-profit')).toBe('$640.00');
-    expect(text('.shipping-cover-label')).toBe('Para cubrir envíos');
-    expect(text('.shipping-cover')).toBe('$200.00');
+    expect(el().querySelector('.shipping-cover')).toBeNull();
+    expect(allText()).not.toContain('Para cubrir envíos');
   });
 
   it('no muestra «costo con envío» ni las cifras del corte con precios', () => {
@@ -53,7 +53,7 @@ describe('CutSummaryComponent · corte para casa', () => {
     expect(allText()).not.toContain('$440.00');
   });
 
-  it('con la bodega oculta «Para cubrir envíos» y conserva las otras tres cifras', () => {
+  it('con la bodega conserva las tres cifras y no muestra «Para cubrir envíos»', () => {
     render({ ...TOTALS, shippingCover: '0.00' }, null);
     expect(text('.sold-caption')).toBe('Mis ventas desde bodega · 2 al 8 nov · 2 piezas');
     expect(text('.factory-cost')).toBe('$1,200.00');
@@ -68,9 +68,9 @@ describe('CutSummaryComponent · corte para casa', () => {
     expect(el().querySelector('.real-profit')?.classList.contains('text-danger-border')).toBe(true);
   });
 
-  it('un «para cubrir envíos» negativo se muestra con signo menos', () => {
+  it('un «para cubrir envíos» que mande el backend no se muestra', () => {
     render({ ...TOTALS, shippingCover: '-15.00' }, 'Luis');
-    expect(text('.shipping-cover')).toBe('-$15.00');
+    expect(el().querySelector('.shipping-cover')).toBeNull();
   });
 
   it('sin cutType (corte con precios) ignora las llaves del corte para casa', () => {

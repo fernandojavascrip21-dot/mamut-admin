@@ -17,8 +17,8 @@ const CUTS_URL = `${API_BASE_URL}/api/cuts`;
 const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez' };
 const PRICES_HELP = 'Usa los precios y el costo con envío que le pusiste a cada vendedor.';
 const HOME_HELP = 'Usa el costo de fábrica guardado en cada venta.';
-const HOME_OPTION = 'Corte (para casa)';
-const PRICES_OPTION = 'Corte con precios (para vendedor)';
+const HOME_OPTION = 'Corte de casa';
+const PRICES_OPTION = 'Corte del vendedor';
 
 // Corte para casa de Luis en la semana del 2 al 8 nov: 2 piezas a $920, costo con envío $700 y de
 // fábrica $600 (criterio 3). Trae solo las llaves del corte para casa, como T-22.
@@ -204,7 +204,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     httpMock.verify();
   });
 
-  it('al entrar está elegido «Corte con precios» y «Corte (para casa)» se puede elegir', async () => {
+  it('al entrar está elegido «Corte del vendedor» y «Corte de casa» se puede elegir', async () => {
     expect(text('p-select.cut-type')).toContain(PRICES_OPTION);
     expect(selectionText()).toContain(PRICES_HELP);
 
@@ -250,7 +250,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     expect(text('app-cut-summary .sold')).toBe('$1,840.00');
     expect(text('app-cut-summary .factory-cost')).toBe('$1,200.00');
     expect(text('app-cut-summary .real-profit')).toBe('$640.00');
-    expect(text('app-cut-summary .shipping-cover')).toBe('$200.00');
+    expect(el().querySelector('app-cut-summary .shipping-cover')).toBeNull();
     expect(text('.products app-cut-product-line .factory-cost')).toBe('costo de fábrica $1,200.00');
     expect(text('.products app-cut-product-line .real-profit')).toBe('+$640.00');
     expect(text('.sales app-cut-sale-item .real-profit')).toBe('Ganancia real $640.00');
