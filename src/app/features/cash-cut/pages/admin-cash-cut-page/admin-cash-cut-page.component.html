@@ -184,19 +184,32 @@
           @if (isBusiness()) {
             <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
               <section class="holders" aria-labelledby="cut-holders-title">
-                <h3
-                  id="cut-holders-title"
-                  class="holders-title m-0 px-4 pt-3 pb-1.5 text-[15px] font-bold"
-                >
-                  {{ texts.holdersTitle }}
-                </h3>
-                <ul class="m-0 list-none p-0">
-                  @for (h of cut.holders ?? []; track h.holder?.id ?? 'warehouse') {
-                    <li class="min-w-0 border-t border-line">
-                      <app-cut-holder-line [holder]="h" />
-                    </li>
-                  }
-                </ul>
+                <div class="flex items-baseline justify-between gap-2 px-4 pt-3 pb-1.5">
+                  <div class="min-w-0">
+                    <h3 id="cut-holders-title" class="holders-title m-0 text-[15px] font-bold">
+                      {{ texts.holdersTitle }}
+                    </h3>
+                    <p class="m-0 text-xs text-muted">{{ texts.holdersSubtitle }}</p>
+                  </div>
+                  <span class="shrink-0 text-xs text-muted">{{ texts.holdersColumns }}</span>
+                </div>
+                @if (cut.holders?.length) {
+                  <ul
+                    class="holders-list m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                    tabindex="0"
+                    aria-labelledby="cut-holders-title"
+                  >
+                    @for (h of cut.holders; track h.holder?.id ?? 'warehouse') {
+                      <li class="min-w-0 border-t border-line">
+                        <app-cut-holder-line [holder]="h" />
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="holders-empty m-0 px-4 py-4 text-sm text-muted">
+                    {{ texts.holdersEmpty }}
+                  </p>
+                }
               </section>
             </p-card>
           } @else {

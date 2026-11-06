@@ -27,6 +27,9 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
   productsColumns: 'vendido · ganancia',
   salesTitle: 'Ventas',
   holdersTitle: 'Por titular',
+  holdersSubtitle: 'Bodega y vendedores con ventas en el periodo',
+  holdersColumns: 'vendido · ganancia',
+  holdersEmpty: 'Ningún titular con ventas en este periodo.',
 } as const;
 
 export const CUT_TYPE_OPTIONS: CutTypeOption[] = [
