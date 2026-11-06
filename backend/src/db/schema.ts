@@ -215,6 +215,7 @@ export const directSaleItems = pgTable("direct_sale_items", {
 	unitPrice: numeric("unit_price", { precision: 10, scale:  2 }).notNull(),
 	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	factoryUnitCost: numeric("factory_unit_cost", { precision: 10, scale:  4 }).notNull(),
 }, (table) => [
 	index("direct_sale_items_direct_sale_id_idx").using("btree", table.directSaleId.asc().nullsLast().op("int8_ops")),
 	index("direct_sale_items_product_id_idx").using("btree", table.productId.asc().nullsLast().op("int8_ops")),
@@ -231,6 +232,7 @@ export const directSaleItems = pgTable("direct_sale_items", {
 	unique("direct_sale_items_sale_product_key").on(table.directSaleId, table.productId),
 	check("direct_sale_items_qty_check", sql`qty > 0`),
 	check("direct_sale_items_unit_price_check", sql`unit_price >= (0)::numeric`),
+	check("direct_sale_items_factory_unit_cost_check", sql`factory_unit_cost >= (0)::numeric`),
 ]);
 
 export const products = pgTable("products", {

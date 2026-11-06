@@ -2,9 +2,12 @@ import { sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { getSellerName } from '@accounts'
 import { forbidden, validation } from '@lib/errors'
-import { CUT_PERIODS, CUT_TIME_ZONE, INVALID_DATE, INVALID_PERIOD, ISO_DATE } from './constants'
+import { CUT_PERIODS, CUT_TIME_ZONE, CUT_TYPES, INVALID_CUT_TYPE, INVALID_DATE, INVALID_PERIOD, ISO_DATE } from './constants'
 
 export type CutPeriodKind = 'day' | 'week' | 'month'
+
+// Con precios (T-20) o para casa (T-22, solo administrador).
+export type CutType = 'prices' | 'home'
 
 export interface CashCutInput {
   holderId: string | null | undefined // null/undefined = bodega (admin) o "yo" (vendedor)
@@ -44,6 +47,7 @@ export interface CutSale {
 }
 
 export interface CashCut {
+  type: 'prices'
   holder: { id: string; fullName: string } | null
   period: { kind: CutPeriodKind; from: string; to: string; timeZone: string }
   totals: { salesCount: number; units: number; total: string; cost: string; profit: string }
@@ -65,6 +69,12 @@ export interface ResolvedPeriod {
 export function parseCutPeriod(period: string): CutPeriodKind {
   if (!(CUT_PERIODS as readonly string[]).includes(period)) throw validation(INVALID_PERIOD)
   return period as CutPeriodKind
+}
+
+// `type` debe ser prices o home (T-22); cualquier otro valor es un 422 y no llega a la base.
+export function parseCutType(type: string): CutType {
+  if (!(CUT_TYPES as readonly string[]).includes(type)) throw validation(INVALID_CUT_TYPE)
+  return type as CutType
 }
 
 // Formato YYYY-MM-DD *y* fecha real: 2026-02-30 pasa la expresión regular pero Date la desplaza
@@ -140,7 +150,8 @@ export async function resolveCutHolder(
 
 // Ventas vigentes del titular dentro del periodo: `null` = bodega. El rango es [inicio, fin) en
 // instantes, así que una venta a las 00:00:00 del día siguiente queda fuera. Las anuladas no cuentan.
-const salesOf = (holder: { id: string } | null, period: ResolvedPeriod) => sql`
+// Lo comparten el corte con precios y el corte para casa (T-22), así los dos ven las mismas ventas.
+export const salesOf = (holder: { id: string } | null, period: ResolvedPeriod) => sql`
   ${holder ? sql`ds.holder_profile_id = ${holder.id}::uuid` : sql`ds.holder_profile_id is null`}
   and ds.voided_at is null
   and ds.sold_at >= ${period.startsAt}::timestamptz
@@ -305,6 +316,7 @@ export async function getCashCut(input: CashCutInput, actor: CutActor): Promise<
     querySales(holder, period),
   ])
   return {
+    type: 'prices',
     holder,
     period: { kind: period.kind, from: period.from, to: period.to, timeZone: period.timeZone },
     totals,
