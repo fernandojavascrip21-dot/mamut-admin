@@ -75,20 +75,6 @@ const WAREHOUSE_HOME_CUT: CashCut = {
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
   totals: { ...HOME_CUT.totals, shippingCover: '0.00' },
 };
-const BUSINESS_CUT: CashCut = {
-  ...WAREHOUSE_HOME_CUT,
-  holders: [
-    {
-      holder: null,
-      salesCount: 1,
-      units: 2,
-      total: '1840.00',
-      factoryCost: '1200.0000',
-      realProfit: '640.00',
-      shippingCover: '0.00',
-    },
-  ],
-};
 const SELLER_CUT: CashCut = {
   holder: null,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -271,19 +257,19 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     expect(text('.result')).not.toContain('Costo con envío');
   });
 
-  it('con «Yo · bodega» y «Corte de casa» pide el resumen del negocio y no muestra «Para cubrir envíos»', async () => {
+  it('con «Yo · bodega» y «Corte de casa» con el interruptor apagado pide la bodega sola y no muestra «Para cubrir envíos»', async () => {
     await pickCutType(HOME_OPTION);
     click('.generate');
 
-    const params = await answer(cutRequest(), BUSINESS_CUT);
+    const params = await answer(cutRequest(), WAREHOUSE_HOME_CUT);
     expect(params.get('type')).toBe('home');
-    expect(params.get('scope')).toBe('business');
+    expect(params.has('scope')).toBe(false);
     expect(params.has('holderId')).toBe(false);
     expect(params.get('period')).toBe('day');
     expect(params.get('date')).toBe('2026-11-04');
 
     expect(text('.result-title')).toBe('Corte para casa');
-    expect(text('app-cut-summary .sold-caption')).toContain('Todo el negocio');
+    expect(text('app-cut-summary .sold-caption')).toContain('Mis ventas desde bodega');
     expect(text('app-cut-summary .profit')).toBe('$640.00');
     expect(el().querySelector('app-cut-summary .shipping-cover')).toBeNull();
   });

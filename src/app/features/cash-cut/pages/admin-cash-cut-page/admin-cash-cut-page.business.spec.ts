@@ -221,9 +221,16 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
     await settle();
     return params;
   }
-  // «Yo · bodega» + «Corte de casa» + «Generar corte», respondido con `cut`.
+  // El interruptor «Incluir a mis vendedores» (p-toggleswitch): solo existe con «Yo · bodega» y
+  // «Corte de casa», así que se enciende después de elegir ese tipo.
+  async function turnOnSellers() {
+    (el().querySelector('p-toggleswitch.sellers-toggle input') as HTMLElement).click();
+    await settle();
+  }
+  // «Yo · bodega» + «Corte de casa» + interruptor encendido + «Generar corte», respondido con `cut`.
   async function generateBusiness(cut: CashCut) {
     await pickCutType(HOME_OPTION);
+    await turnOnSellers();
     click('.generate');
     return answer(cutRequest(), cut);
   }
@@ -270,6 +277,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
     it('con «Yo · bodega» y «Corte de casa» llama a getBusiness() y no a getHome() ni a get()', async () => {
       await pickWeek();
       await pickCutType(HOME_OPTION);
+      await turnOnSellers();
       click('.generate');
 
       const params = await answer(cutRequest(), BUSINESS_CUT);
@@ -437,6 +445,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
 
     it('una respuesta tardía del resumen no se muestra después de cambiar el tipo', async () => {
       await pickCutType(HOME_OPTION);
+      await turnOnSellers();
       click('.generate');
       const late = cutRequest();
       const lateParams = late.request.params;
@@ -470,6 +479,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
 
     it('«Reintentar» tras un error vuelve a pedir el resumen del negocio', async () => {
       await pickCutType(HOME_OPTION);
+      await turnOnSellers();
       click('.generate');
       const failed = cutRequest();
       const failedParams = failed.request.params;
@@ -491,6 +501,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
   describe('estados', () => {
     it('mientras carga muestra «Calculando el corte…»', async () => {
       await pickCutType(HOME_OPTION);
+      await turnOnSellers();
       click('.generate');
       fixture.detectChanges();
       expect(text('.loading')).toContain('Calculando el corte…');
@@ -502,6 +513,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
 
     it('sin conexión muestra «No se pudo generar el corte» con «Reintentar»', async () => {
       await pickCutType(HOME_OPTION);
+      await turnOnSellers();
       click('.generate');
       const failed = cutRequest();
       const failedParams = failed.request.params;
@@ -516,6 +528,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
 
     it('un error del servidor muestra «No se pudo generar el corte» con «Reintentar»', async () => {
       await pickCutType(HOME_OPTION);
+      await turnOnSellers();
       click('.generate');
       const failed = cutRequest();
       const failedParams = failed.request.params;
