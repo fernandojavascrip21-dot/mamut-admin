@@ -15,3 +15,12 @@ export const INVALID_PERIOD = 'El periodo debe ser day, week o month'
 
 // 422 cuando `date` no es una fecha YYYY-MM-DD real.
 export const INVALID_DATE = 'La fecha debe tener el formato YYYY-MM-DD y existir'
+
+// Tipos de corte (T-22): con precios (el del vendedor, T-20) y para casa (costo de fábrica).
+export const CUT_TYPES = ['prices', 'home'] as const
+
+// Tipo cuando la petición no trae `type`: el corte con precios de siempre.
+export const DEFAULT_CUT_TYPE = 'prices'
+
+// 422 cuando `type` no es prices ni home.
+export const INVALID_CUT_TYPE = 'El tipo de corte debe ser prices o home'
