@@ -5,6 +5,9 @@ export type CutPeriodKind = 'day' | 'week' | 'month';
 // Quién lee el corte: cambia solo los textos de los componentes compartidos (HU-19 / HU-20).
 export type CutPerspective = 'admin' | 'seller';
 
+// Clase de corte: con precios del vendedor o «para casa» (costo de fábrica y ganancia real).
+export type CutTypeValue = 'seller' | 'home';
+
 // Petición del corte. `holderId` null = bodega (no se manda al backend); `date` es 'YYYY-MM-DD'.
 export interface CashCutQuery {
   holderId: string | null;
@@ -15,7 +18,16 @@ export interface CashCutQuery {
 export interface CashCut {
   holder: { id: string; fullName: string } | null;
   period: { kind: CutPeriodKind; from: string; to: string; timeZone: string };
-  totals: { salesCount: number; units: number; total: string; cost?: string; profit?: string };
+  totals: {
+    salesCount: number;
+    units: number;
+    total: string;
+    cost?: string;
+    profit?: string;
+    factoryCost?: string;
+    realProfit?: string;
+    shippingCover?: string;
+  };
   products: CutProductLine[];
   sales: CutSale[];
 }
@@ -29,6 +41,9 @@ export interface CutProductLine {
   total: string;
   cost?: string;
   profit?: string;
+  factoryCost?: string;
+  realProfit?: string;
+  shippingCover?: string;
 }
 
 export interface CutSaleLine {
@@ -39,6 +54,8 @@ export interface CutSaleLine {
   subtotal: string;
   unitCost?: string;
   profit?: string;
+  factoryUnitCost?: string;
+  realProfit?: string;
 }
 
 export interface CutSale {
@@ -48,5 +65,7 @@ export interface CutSale {
   soldBy: { id: string; fullName: string };
   total: string;
   profit?: string;
+  realProfit?: string;
+  shippingCover?: string;
   lines: CutSaleLine[];
 }

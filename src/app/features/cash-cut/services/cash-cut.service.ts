@@ -20,4 +20,17 @@ export class CashCutService {
       .get<{ cut: CashCut }>(`${API_BASE_URL}/api/cuts`, { params })
       .pipe(map((r) => r.cut));
   }
+
+  // Pide el corte para casa (costo de fábrica, ganancia real y cobertura de envío) con `type=home`.
+  // Misma regla que `get()`: `holderId` se omite para la bodega.
+  getHome(query: CashCutQuery): Observable<CashCut> {
+    let params = new HttpParams()
+      .set('type', 'home')
+      .set('period', query.period)
+      .set('date', query.date);
+    if (query.holderId !== null) params = params.set('holderId', query.holderId);
+    return this.http
+      .get<{ cut: CashCut }>(`${API_BASE_URL}/api/cuts`, { params })
+      .pipe(map((r) => r.cut));
+  }
 }

@@ -1,4 +1,4 @@
-import type { CutPeriodKind } from '../interfaces/cash-cut.models';
+import type { CashCutQuery, CutPeriodKind, CutTypeValue } from '../interfaces/cash-cut.models';
 
 // Periodo elegido: la clase y cuántos periodos atrás (0 = el actual, -1 = el anterior).
 export interface CutSelection {
@@ -11,7 +11,10 @@ export interface CutSelection {
 export type CashCutPageState = 'idle' | 'loading' | 'error' | 'empty' | 'ready';
 
 export interface CutTypeOption {
-  value: 'seller' | 'home';
+  value: CutTypeValue;
   label: string;
   disabled: boolean;
 }
+
+// Petición del corte con su clase: la página decide entre get() y getHome() según `cutType`.
+export type CutRequest = CashCutQuery & { cutType: CutTypeValue };
