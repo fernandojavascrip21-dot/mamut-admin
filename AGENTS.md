@@ -95,9 +95,19 @@ tests/        Vitest against the real DB; architecture.test.ts checks module bou
 
 ### Specs workflow
 
-Specs are written with `/spec` and implemented with `/spec-impl` (Claude Code skills); `specs/.spec-config.yml` (`AutoCreateBranch`) controls the automatic `spec-<slug>` branch. `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, cross-spec relationships): update it in the same change whenever a spec is created, changes status or affects another one. Older specs cite pre-reorganization paths; the old → new table is the last bullet of its «Relaciones» section.
+Specs are written with `/spec` and implemented with `/spec-impl` (Claude Code skills); `specs/.spec-config.yml` (`AutoCreateBranch`) controls whether the spec branch is created automatically; its name follows «Convenciones Git» (`<tipo>/<descripcion-corta>`, type chosen from the spec's content). `specs/README.md` is the spec index (type, Jira key, status, dependencies, objective, cross-spec relationships): update it in the same change whenever a spec is created, changes status or affects another one. Older specs cite pre-reorganization paths; the old → new table is the last bullet of its «Relaciones» section.
 
 **Jira sync** (when a spec maps to a user story `HU-NN`): while implementing, comment progress on the issue (current step of the plan and ✅/❌/⏳ per acceptance criterion; pattern of `SCRUM-17`) and move it En curso → In review → Finalizada as the work advances; Finalizada only when every criterion is checked, tests pass and the user reviewed.
+
+## Convenciones Git
+
+- **Tipos permitidos:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
+- **Ramas:** `<tipo>/<descripcion-corta>`, en minúsculas, con guiones y de 5 palabras como máximo (`feat/corte-para-casa`). Se sale de `main`; no se hace commit directo en `main`.
+- **Commits:** `<tipo>(<área>): <descripción>`. Descripción en español, en infinitivo, sin punto final y de 72 caracteres como máximo (`feat(cuts): calcular el corte para casa`). El área va en minúsculas y con guiones.
+- **Hook:** `.githooks/commit-msg` rechaza los mensajes que no cumplen el formato; solo deja pasar los merge y revert automáticos de git. En un clon nuevo se activa con `git config core.hooksPath .githooks`.
+- **PRs:** título con el mismo formato que un commit; el cuerpo sigue `.github/pull_request_template.md`.
+- **Ramas de specs:** al crear la rama de un spec (`/spec-impl`), el tipo se elige por el contenido del spec, no siempre `feat`: una funcionalidad nueva es `feat`, una corrección `fix`, una reorganización sin cambio de comportamiento `refactor`, solo pruebas `test`, solo documentación `docs`, y configuración o mantenimiento `chore`. Este formato reemplaza el `spec-NN-slug` por omisión de la skill.
+- No hacer commit ni push si no se pide. Para crear un PR usa `gh pr create` con la plantilla. Solo cuando te lo pida, igual que push.
 
 ## Buenas prácticas de código
 
@@ -158,7 +168,3 @@ Todo formulario reactivo sigue este patrón (ejemplos: `features/products/compon
 
 - Antes de crear una pantalla nueva, usar definir estilo, paleta y reglas de UX (en Claude Code, la skill ui-ux-pro-max); después trabajar el acabado visual (la skill frontend-design). No aplicar este flujo a cambios menores ni a lógica sin interfaz.
 - Mantener los colores, tipografías y componentes ya definidos en el sistema de diseño del proyecto.
-
-## Git
-
-- Don't commit or push unless asked; branch off `main` rather than committing to it.

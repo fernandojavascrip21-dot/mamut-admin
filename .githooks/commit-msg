@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Rechaza mensajes de commit que no siguen la convención del proyecto (CLAUDE.md, «Convenciones Git»):
+#   <tipo>(<área>): <descripción>
+# tipo ∈ feat|fix|refactor|test|docs|chore; área en minúsculas con guiones; descripción en
+# infinitivo, sin punto final y de 72 caracteres como máximo. Los merge y revert que escribe git
+# pasan sin revisar. Se activa con: git config core.hooksPath .githooks
+set -euo pipefail
+
+# Locale UTF-8 para contar caracteres (no bytes) y aceptar acentos en las expresiones regulares.
+export LC_ALL=en_US.UTF-8
+
+types='feat|fix|refactor|test|docs|chore'
+max_length=72
+
+# Primera línea con texto que no es comentario: es el encabezado que se valida.
+header=$(grep -v '^#' "$1" | grep -m1 -v '^[[:space:]]*$' || true)
+
+# Mensajes automáticos de git: «Merge branch …», «Merge pull request …», «Revert "…"».
+if [[ $header =~ ^Merge\  ]] || [[ $header =~ ^Revert\ \" ]]; then
+  exit 0
+fi
+
+fail() {
+  {
+    echo "✖ Mensaje de commit rechazado: $1"
+    echo "  Recibido: $header"
+    echo "  Formato:  <tipo>(<área>): <descripción>"
+    echo "  Tipos:    ${types//|/, }"
+    echo "  Ejemplo:  feat(cuts): calcular el corte para casa"
+  } >&2
+  exit 1
+}
+
+[[ -n $header ]] || fail 'el mensaje está vacío'
+
+pattern="^($types)\(([a-z0-9]+(-[a-z0-9]+)*)\): (.+)$"
+[[ $header =~ $pattern ]] || fail 'no sigue <tipo>(<área>): <descripción> (tipo y área en minúsculas)'
+description=${BASH_REMATCH[4]}
+
+(( $(printf '%s' "$description" | wc -m) <= max_length )) || fail "la descripción pasa de $max_length caracteres"
+[[ $description != *. ]] || fail 'la descripción termina en punto'
+
+# La primera palabra debe ser un infinitivo (-ar, -er, -ir, con o sin pronombre: «agregarle»).
+first_word=$(printf '%s' "${description%% *}" | tr '[:upper:]' '[:lower:]')
+infinitive='^[a-záéíóúüñ]+(ar|er|ir|ír)(me|te|se|nos|lo|la|los|las|le|les)?$'
+[[ $first_word =~ $infinitive ]] || fail "la descripción debe empezar con un verbo en infinitivo (llegó «${first_word}»)"
