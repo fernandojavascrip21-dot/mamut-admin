@@ -33,6 +33,15 @@ describe('DeliveriesService', () => {
     req.flush({});
   });
 
+  it('updateHolding() hace PATCH a /api/sellers/:id/stock/:productId con el total y los precios', () => {
+    const input = { qty: 5, unitPrice: '520.00', unitCostWithShipping: null };
+    service.updateHolding('v-1', 10, input).subscribe();
+    const req = httpMock.expectOne(`${API_BASE_URL}/api/sellers/v-1/stock/10`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual(input);
+    req.flush({});
+  });
+
   it('get() pide /api/deliveries/:requestId', () => {
     service.get('r-1').subscribe();
     const req = httpMock.expectOne(`${API_BASE_URL}/api/deliveries/r-1`);

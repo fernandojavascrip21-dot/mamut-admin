@@ -11,7 +11,12 @@ import { MODAL_RETURN_PATH } from '@shared/constants/modal.constants';
 import { initialsOf } from '@shared/utils/initials';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
-import { deliveryModalLink, openModalPath, returnModalLink } from '@shared/utils/modal-links';
+import {
+  deliveryModalLink,
+  editHoldingModalLink,
+  openModalPath,
+  returnModalLink,
+} from '@shared/utils/modal-links';
 import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
 import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
@@ -80,6 +85,11 @@ export class SellerDetailPageComponent {
   );
   readonly deliveryLink = computed(() => deliveryModalLink({ sellerId: this.sellerId() }));
   readonly returnLink = computed(() => returnModalLink(this.sellerId()));
+
+  // «Editar» de una línea del stock: abre la ventana de corrección de ese producto.
+  editHolding(productId: number): void {
+    void this.router.navigate(editHoldingModalLink(this.sellerId(), productId));
+  }
 
   // El botón naranja (principal) es el de la ventana abierta: «Retirar» mientras su ventana está
   // abierta y «Dejar» en cualquier otro caso (sin ventana o con la de «Dejar»).

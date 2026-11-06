@@ -79,7 +79,7 @@
       <ng-template #list>
         <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
           @for (line of seller.stock; track line.productId) {
-            <li><app-seller-stock-line [line]="line" /></li>
+            <li><app-seller-stock-line [line]="line" (edit)="editHolding($event)" /></li>
           }
         </ul>
       </ng-template>

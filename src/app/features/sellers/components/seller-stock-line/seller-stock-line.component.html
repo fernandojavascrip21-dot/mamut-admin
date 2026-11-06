@@ -1,4 +1,12 @@
-<div class="flex items-center gap-3 surface-card p-3">
+<div
+  class="stock-line flex cursor-pointer items-center gap-3 surface-card p-3 hover:border-accent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent"
+  role="button"
+  tabindex="0"
+  [attr.aria-label]="'Editar ' + line().name"
+  (click)="edit.emit(line().productId)"
+  (keydown.enter)="edit.emit(line().productId)"
+  (keydown.space)="onSpace($event)"
+>
   @if (showPhoto()) {
     <img
       [src]="line().image"

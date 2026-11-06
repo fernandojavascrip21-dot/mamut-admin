@@ -2,7 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
-import type { Delivery, NewDeliveryInput, SellerHolding } from '../interfaces/delivery.models';
+import type {
+  Delivery,
+  HoldingUpdateInput,
+  NewDeliveryInput,
+  SellerHolding,
+} from '../interfaces/delivery.models';
 
 // Cliente HTTP de las entregas a vendedores (HU-11). El Bearer token lo agrega authInterceptor.
 @Injectable({
@@ -31,6 +36,19 @@ export class DeliveriesService {
   holding(sellerId: string, productId: number): Observable<SellerHolding> {
     return this.http.get<SellerHolding>(
       `${API_BASE_URL}/api/sellers/${encodeURIComponent(sellerId)}/stock/${productId}`,
+    );
+  }
+
+  // Corrige lo ya dejado: fija el total de piezas y los precios propios del vendedor. Es idempotente
+  // porque manda el total final, no la diferencia: repetirlo no mueve piezas dos veces.
+  updateHolding(
+    sellerId: string,
+    productId: number,
+    input: HoldingUpdateInput,
+  ): Observable<SellerHolding> {
+    return this.http.patch<SellerHolding>(
+      `${API_BASE_URL}/api/sellers/${encodeURIComponent(sellerId)}/stock/${productId}`,
+      input,
     );
   }
 }

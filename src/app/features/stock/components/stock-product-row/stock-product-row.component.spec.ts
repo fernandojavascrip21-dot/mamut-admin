@@ -62,4 +62,32 @@ describe('StockProductRowComponent', () => {
     fixture.detectChanges();
     expect(el().querySelector('.out')).toBeNull();
   });
+
+  it('sin `editable` la fila no es un botón ni emite', () => {
+    const activated: number[] = [];
+    fixture.componentInstance.activated.subscribe(() => activated.push(1));
+    fixture.detectChanges();
+    const row = el().firstElementChild as HTMLElement;
+    expect(row.getAttribute('role')).toBeNull();
+    row.click();
+    expect(activated).toEqual([]);
+  });
+
+  it('con `editable` la fila se activa con clic, Enter y Espacio', () => {
+    fixture.componentRef.setInput('editable', true);
+    const activated: number[] = [];
+    fixture.componentInstance.activated.subscribe(() => activated.push(1));
+    fixture.detectChanges();
+    const row = el().firstElementChild as HTMLElement;
+    expect(row.getAttribute('role')).toBe('button');
+    expect(row.getAttribute('tabindex')).toBe('0');
+    expect(row.getAttribute('aria-label')).toBe('Editar Proteína Whey');
+
+    row.click();
+    row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    const space = new KeyboardEvent('keydown', { key: ' ', cancelable: true });
+    row.dispatchEvent(space);
+    expect(activated).toHaveLength(3);
+    expect(space.defaultPrevented).toBe(true);
+  });
 });

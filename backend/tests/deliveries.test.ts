@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GET as getDeliveryRoute } from '@api/deliveries/[requestId]/route'
 import { GET as historyRoute, POST as postDeliveryRoute } from '@api/sellers/[id]/deliveries/route'
-import { GET as holdingRoute } from '@api/sellers/[id]/stock/[productId]/route'
+import { GET as holdingRoute, PATCH as patchHoldingRoute } from '@api/sellers/[id]/stock/[productId]/route'
 import { GET as sellerDetailRoute } from '@api/sellers/[id]/route'
 import { db, sql } from '@db/client'
 import { products, stockMovements, vendorStock } from '@db/schema'
@@ -285,5 +285,94 @@ describe.skipIf(!hasServiceKey)('Dejar a vendedor (HU-11, con cuentas reales)', 
     for (const res of await Promise.all(calls(seller.token))) expect(res.status).toBe(403)
     for (const res of await Promise.all(calls(undefined))) expect(res.status).toBe(401)
     expect(await countMovements(body.requestId)).toBe(0)
+  })
+
+  describe('Editar lo dejado (PATCH /api/sellers/:id/stock/:productId)', () => {
+    const patchAs = (token: string | undefined, sellerId: string, productId: number | string, body: Record<string, unknown>) =>
+      patchHoldingRoute(
+        new Request('http://api.test/x', { method: 'PATCH', headers: headers(token), body: JSON.stringify(body) }),
+        { params: Promise.resolve({ id: sellerId, productId: String(productId) }) },
+      )
+    const patch = (productId: number | string, body: Record<string, unknown>, sellerId = seller.id) =>
+      patchAs(admin.token, sellerId, productId, body)
+
+    it('cambia precio y costo con envío sin mover piezas ni crear movimientos', async () => {
+      const productId = await newProduct('edit-precios')
+      await deliver(productId, 4, { unitPrice: '500', unitCostWithShipping: '310' })
+      const before = (await db.select().from(stockMovements).where(eq(stockMovements.productId, productId))).length
+
+      const res = await patch(productId, { qty: 4, unitPrice: '520.5', unitCostWithShipping: 315.25 })
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({ units: 4, unitPrice: '520.50', unitCostWithShipping: '315.2500' })
+      expect((await db.select().from(stockMovements).where(eq(stockMovements.productId, productId))).length).toBe(before)
+
+      await patch(productId, { qty: 4, unitPrice: null, unitCostWithShipping: null })
+      expect((await stockOf(productId)).held).toMatchObject({ unitPrice: null, unitCostWithShipping: null })
+    })
+
+    it('subir las piezas las toma de la bodega con un par de adjustment', async () => {
+      const productId = await newProduct('edit-sube', 10)
+      await deliver(productId, 3)
+      const res = await patch(productId, { qty: 5, unitPrice: null, unitCostWithShipping: null })
+      expect(res.status).toBe(200)
+      expect(await stockOf(productId)).toMatchObject({ warehouse: 5, seller: 5 })
+
+      const adjustments = await db.select().from(stockMovements)
+        .where(eq(stockMovements.productId, productId))
+      const rows = adjustments.filter((row) => row.type === 'adjustment')
+      expect(rows.map((row) => [row.qty, row.holderProfileId]).sort()).toEqual([[-2, null], [2, seller.id]].sort())
+      expect(rows.every((row) => row.createdBy === admin.id && row.reason)).toBe(true)
+    })
+
+    it('bajar las piezas las regresa a la bodega, incluso hasta 0', async () => {
+      const productId = await newProduct('edit-baja', 10)
+      await deliver(productId, 6)
+      await patch(productId, { qty: 2, unitPrice: null, unitCostWithShipping: null })
+      expect(await stockOf(productId)).toMatchObject({ warehouse: 8, seller: 2 })
+      await patch(productId, { qty: 0, unitPrice: null, unitCostWithShipping: null })
+      expect(await stockOf(productId)).toMatchObject({ warehouse: 10, seller: 0 })
+    })
+
+    it('repetir la misma petición no vuelve a mover piezas', async () => {
+      const productId = await newProduct('edit-idem', 10)
+      await deliver(productId, 3)
+      const body = { qty: 5, unitPrice: null, unitCostWithShipping: null }
+      await patch(productId, body)
+      await patch(productId, body)
+      expect(await stockOf(productId)).toMatchObject({ warehouse: 5, seller: 5 })
+    })
+
+    it('más piezas que las de la bodega da 409 y no cambia nada, ni los precios', async () => {
+      const productId = await newProduct('edit-409', 4)
+      await deliver(productId, 3, { unitPrice: '500', unitCostWithShipping: '310' })
+      const res = await patch(productId, { qty: 9, unitPrice: '999', unitCostWithShipping: '999' })
+      expect(res.status).toBe(409)
+      expect(await stockOf(productId)).toMatchObject({ warehouse: 1, seller: 3 })
+      expect((await stockOf(productId)).held).toMatchObject({ unitPrice: '500.00', unitCostWithShipping: '310.0000' })
+    })
+
+    it('422 con qty inválida o dinero mal formado; 404 sin fila, producto o vendedor inactivo', async () => {
+      const productId = await newProduct('edit-422')
+      await deliver(productId, 2)
+      const ok = { unitPrice: null, unitCostWithShipping: null }
+      for (const qty of [-1, 1.5, '3', null]) expect((await patch(productId, { ...ok, qty })).status).toBe(422)
+      expect((await patch(productId, { qty: 2, unitPrice: '10.999', unitCostWithShipping: null })).status).toBe(422)
+      expect((await patch(productId, { qty: 2, unitCostWithShipping: null })).status).toBe(422)
+      expect((await patch(productId, { qty: 2, unitPrice: null, unitCostWithShipping: '' })).status).toBe(422)
+
+      const never = await newProduct('edit-sin-fila')
+      expect((await patch(never, { qty: 1, ...ok })).status).toBe(404)
+      expect((await patch(999999999, { qty: 1, ...ok })).status).toBe(404)
+      expect((await patch(productId, { qty: 1, ...ok }, inactiveSeller.id)).status).toBe(404)
+    })
+
+    it('responde 403 a un vendedor y 401 sin token', async () => {
+      const productId = await newProduct('edit-permisos')
+      await deliver(productId, 2)
+      const body = { qty: 1, unitPrice: null, unitCostWithShipping: null }
+      expect((await patchAs(seller.token, seller.id, productId, body)).status).toBe(403)
+      expect((await patchAs(undefined, seller.id, productId, body)).status).toBe(401)
+      expect(await stockOf(productId)).toMatchObject({ seller: 2 })
+    })
   })
 })

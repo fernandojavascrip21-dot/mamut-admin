@@ -6,7 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { deliveryModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, returnModalLink } from '@shared/utils/modal-links';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import { StockPageComponent } from './stock-page.component';
@@ -372,6 +372,14 @@ describe('StockPageComponent', () => {
       const row = el().querySelector('.rows li')!;
       expect(row.querySelector('.units')?.textContent?.trim()).toBe('6 piezas');
       expect(row.querySelector('.breakdown')).toBeNull();
+    });
+
+    it('tocar una fila abre el pop-up para editar lo de ese producto del vendedor', () => {
+      const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = el().querySelector('.rows li app-stock-product-row > div') as HTMLElement;
+      expect(row.getAttribute('role')).toBe('button');
+      row.click();
+      expect(navigate).toHaveBeenCalledWith(editHoldingModalLink(LUIS, 2));
     });
 
     it('ofrece «Dejar más a Luis» y «Retirarle producto» con él fijo', () => {

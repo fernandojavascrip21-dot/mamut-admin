@@ -72,4 +72,19 @@ describe('SellerStockLineComponent', () => {
     expect(fixture.nativeElement.querySelector('.own-price')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.own-cost')).toBeNull();
   });
+
+  it('la tarjeta se activa con clic, Enter y Espacio y emite el productId', () => {
+    fixture.componentRef.setInput('line', { productId: 7, name: 'Whey', image: null, units: 2, ...PRICES });
+    const edited: number[] = [];
+    fixture.componentInstance.edit.subscribe((id) => edited.push(id));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.stock-line') as HTMLElement;
+    expect(card.getAttribute('role')).toBe('button');
+    expect(card.getAttribute('aria-label')).toBe('Editar Whey');
+    card.click();
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(edited).toEqual([7, 7, 7]);
+  });
 });

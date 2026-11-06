@@ -1,4 +1,17 @@
-<div class="flex items-center gap-3 surface-card p-3">
+<div
+  class="flex items-center gap-3 surface-card p-3"
+  [class]="
+    editable()
+      ? 'editable cursor-pointer hover:border-accent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent'
+      : ''
+  "
+  [attr.role]="editable() ? 'button' : null"
+  [attr.tabindex]="editable() ? 0 : null"
+  [attr.aria-label]="editable() ? 'Editar ' + name() : null"
+  (click)="activate()"
+  (keydown.enter)="activate()"
+  (keydown.space)="onSpace($event)"
+>
   @if (showPhoto()) {
     <img
       [src]="image()"

@@ -23,6 +23,7 @@ describe('LoginPageComponent', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     TestBed.configureTestingModule({
       imports: [LoginPageComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
@@ -37,6 +38,7 @@ describe('LoginPageComponent', () => {
   afterEach(() => {
     httpMock.verify();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   const emailInput = () => fixture.nativeElement.querySelector('#email') as HTMLInputElement;
@@ -59,6 +61,33 @@ describe('LoginPageComponent', () => {
     expect(panel).not.toBeNull();
     expect(panel.querySelector('app-login-background [aria-hidden="true"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('h2').textContent).toContain('Inicia sesión');
+  });
+
+  it('muestra la casilla «Recordarme» desmarcada por defecto', () => {
+    const checkbox = fixture.nativeElement.querySelector('#remember') as HTMLInputElement;
+    expect(checkbox).not.toBeNull();
+    expect(checkbox.checked).toBe(false);
+    expect(fixture.nativeElement.querySelector('label[for="remember"]').textContent).toContain(
+      'Recordarme',
+    );
+  });
+
+  it('sin marcar «Recordarme» la sesión queda solo en sessionStorage', () => {
+    fillAndSubmit('ana@mammut.local', 'secreta');
+    httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
+
+    expect(sessionStorage.getItem('mamut.refreshToken')).toBe('r1');
+    expect(localStorage.getItem('mamut.refreshToken')).toBeNull();
+  });
+
+  it('marcando «Recordarme» la sesión queda en localStorage', () => {
+    (fixture.nativeElement.querySelector('#remember') as HTMLInputElement).click();
+    fixture.detectChanges();
+    fillAndSubmit('ana@mammut.local', 'secreta');
+    httpMock.expectOne(LOGIN_URL).flush(ADMIN_SESSION);
+
+    expect(localStorage.getItem('mamut.refreshToken')).toBe('r1');
+    expect(sessionStorage.getItem('mamut.refreshToken')).toBeNull();
   });
 
   it('el botón de ojo muestra y oculta la contraseña sin cambiar su valor', () => {

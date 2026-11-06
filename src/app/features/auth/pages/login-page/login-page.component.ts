@@ -1,4 +1,5 @@
 import { ButtonDirective } from 'primeng/button';
+import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
 import { Component, DestroyRef, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -16,6 +17,7 @@ import {
   HIDE_PASSWORD_LABEL,
   LOGIN_HINT,
   LOGIN_TITLE,
+  REMEMBER_ME_LABEL,
   SHOW_PASSWORD_LABEL,
 } from '../../constants/login-page.constants';
 import type { LoginFormGroup, LoginPayload, LoginState } from '../../models/login-page.models';
@@ -25,7 +27,7 @@ import { LoginBrandPanelComponent } from './ui/login-brand-panel/login-brand-pan
 // Pantalla dividida: el panel de la marca (ui/login-brand-panel) es decorativo; aquí vive el
 // formulario con su lógica.
 @Component({
-  imports: [ButtonDirective, InputText, ReactiveFormsModule, LoginBrandPanelComponent],
+  imports: [ButtonDirective, Checkbox, InputText, ReactiveFormsModule, LoginBrandPanelComponent],
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
 })
@@ -51,6 +53,7 @@ export class LoginPageComponent implements OnInit {
   readonly title = LOGIN_TITLE;
   readonly hint = LOGIN_HINT;
   readonly capsLockWarning = CAPS_LOCK_WARNING;
+  readonly rememberLabel = REMEMBER_ME_LABEL;
   readonly formEntranceDelay = FORM_ENTRANCE_DELAY_SECONDS;
 
   private readonly emailInput = viewChild.required<ElementRef<HTMLInputElement>>('emailInput');
@@ -75,6 +78,7 @@ export class LoginPageComponent implements OnInit {
     return this.formBuilder.group({
       email: this.formBuilder.control('', notBlank()),
       password: this.formBuilder.control('', notBlank()),
+      remember: this.formBuilder.control(false),
     });
   }
 
@@ -113,8 +117,8 @@ export class LoginPageComponent implements OnInit {
   // hace que Supabase lo trate como un correo distinto y responda igual que una contraseña
   // incorrecta. La contraseña se manda tal cual se escribió.
   private prepareLoginPayload(): LoginPayload {
-    const { email, password } = this.form.getRawValue();
-    return { email: email.trim(), password };
+    const { email, password, remember } = this.form.getRawValue();
+    return { email: email.trim(), password, remember };
   }
 
   // Intento real de login contra el backend; ignora un segundo envío mientras el primero sigue
@@ -123,7 +127,10 @@ export class LoginPageComponent implements OnInit {
   private attempt(payload: LoginPayload): void {
     if (this.state() === 'loading') return;
     this.startLoading();
-    this.auth.login(payload.email, payload.password).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.auth
+      .login(payload.email, payload.password, payload.remember)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       // Al navegar, la pantalla se destruye con «Entrando…»; si la navegación no ocurre, se
       // cierra la espera para no dejar el formulario bloqueado.
       next: (result) => {

@@ -12,6 +12,15 @@ export function positiveInteger(): ValidatorFn {
   };
 }
 
+// Piezas que debe tener el vendedor tras corregirlo: entero de 0 o más (0 = no se queda con nada).
+export function nonNegativeInteger(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const text = String(control.value ?? '').trim();
+    const valid = /^\d+$/.test(text) && Number(text) <= MAX_QTY;
+    return valid ? null : { nonNegativeInteger: true };
+  };
+}
+
 // Monto opcional (precio y costo propios del vendedor, RF-26 y RF-27): vacío = usar el general, así
 // que es válido. Si se escribe, tiene que ser decimal mayor a 0 (`notPositive`), con a lo más `scale`
 // decimales (`maxDecimals`) y dentro de la columna (`maxMoney`). Nunca se redondea en silencio (T-08).

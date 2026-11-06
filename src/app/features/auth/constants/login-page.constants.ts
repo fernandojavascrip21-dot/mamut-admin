@@ -10,6 +10,9 @@ export const EMPTY_PASSWORD_MESSAGE = 'Escribe tu contraseña';
 export const SHOW_PASSWORD_LABEL = 'Mostrar contraseña';
 export const HIDE_PASSWORD_LABEL = 'Ocultar contraseña';
 
+// Casilla que mantiene la sesión al cerrar el navegador.
+export const REMEMBER_ME_LABEL = 'Recordarme';
+
 // Aviso cuando Bloq Mayús está activo al escribir la contraseña.
 export const CAPS_LOCK_WARNING = 'Bloq Mayús está activado';
 

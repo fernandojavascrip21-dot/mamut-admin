@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
-import { MODAL_DELIVERY_PATH, MODAL_OUTLET, MODAL_RETURN_PATH } from '@shared/constants/modal.constants';
+import {
+  MODAL_DELIVERY_PATH,
+  MODAL_EDIT_HOLDING_PATH,
+  MODAL_OUTLET,
+  MODAL_RETURN_PATH,
+} from '@shared/constants/modal.constants';
 import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
 
 const comingSoon = () =>
@@ -57,6 +62,17 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.ReturnUnitsPageComponent,
       ),
     data: { title: 'Retirar producto' },
+  },
+  // Corregir lo ya dejado a un vendedor (piezas, precio y costo con envío): ventana `editar`.
+  {
+    path: `${MODAL_EDIT_HOLDING_PATH}/:sellerId/:productId`,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [modalSavingGuard],
+    loadComponent: () =>
+      import('@features/deliveries/pages/edit-holding-page/edit-holding-page.component').then(
+        (m) => m.EditHoldingPageComponent,
+      ),
+    data: { title: 'Editar lo dejado' },
   },
   {
     path: 'vendedores',

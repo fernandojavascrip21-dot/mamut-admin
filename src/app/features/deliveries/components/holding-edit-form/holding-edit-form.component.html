@@ -1,0 +1,191 @@
+<form [formGroup]="form" class="flex flex-col gap-5" (ngSubmit)="onSubmit()" novalidate>
+  <!-- Vendedor y producto: solo lectura -->
+  <section class="product-card flex flex-col gap-3 surface-card p-4" aria-label="Producto">
+    <p class="seller m-0 text-xs font-semibold text-muted">
+      Vendedor: <span class="text-ink">{{ sellerName() }}</span>
+    </p>
+    <div class="flex items-center gap-3">
+      @if (product().image && !productImageBroken()) {
+        <img
+          [src]="product().image"
+          [alt]="product().name"
+          (error)="productImageBroken.set(true)"
+          class="h-16 w-16 flex-shrink-0 rounded-md object-cover"
+        />
+      } @else {
+        <span
+          class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line text-base font-bold"
+          aria-hidden="true"
+          >{{ productInitials() }}</span
+        >
+      }
+      <div class="min-w-0 flex-1">
+        <p class="m-0 text-[15px] leading-tight font-bold break-words">{{ product().name }}</p>
+        <p class="m-0 mt-1 text-sm text-muted">
+          <span class="font-mono font-bold text-ink">{{ warehouseUnits() }}</span> en bodega
+        </p>
+      </div>
+    </div>
+    <dl class="m-0 grid grid-cols-2 gap-3 border-t border-line pt-3">
+      <div>
+        <dt class="text-xs font-semibold text-muted">Costo de fábrica</dt>
+        <dd class="factory-cost m-0 font-mono text-base font-bold">
+          {{ product().unitCost | currency: 'MXN' : 'symbol-narrow' : '1.2-4' }}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold text-muted">Precio general</dt>
+        <dd class="general-price m-0 font-mono text-base font-bold">
+          {{ product().price | currency: 'MXN' : 'symbol-narrow' }}
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- Piezas -->
+  <div class="flex flex-col gap-1.5">
+    <label for="qty" class="field-label">Piezas que tiene el vendedor</label>
+    <input
+      pInputText
+      id="qty"
+      name="qty"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      #qtyInput
+      formControlName="qty"
+      [attr.aria-invalid]="qtyError() ? 'true' : null"
+      [attr.aria-describedby]="qtyError() ? 'qty-error' : null"
+      [invalid]="!!qtyError()"
+      class="h-[52px] min-w-0 font-mono"
+    />
+    @if (qtyError()) {
+      <p id="qty-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ qtyError() }}
+      </p>
+    }
+  </div>
+
+  <!-- Vista previa de saldos: la diferencia sale de la bodega o vuelve a ella; el total no cambia -->
+  <div class="flex flex-col gap-2" aria-live="polite">
+    <div class="grid grid-cols-2 gap-3">
+      <div class="balance-warehouse flex flex-col gap-1 surface-card p-3.5">
+        <span class="text-xs font-semibold text-muted">Bodega</span>
+        <span class="font-mono text-xl font-bold">
+          {{ warehouseUnits() }}
+          @if (preview(); as moved) {
+            <span class="text-muted" aria-hidden="true">→</span> {{ moved.warehouse }}
+          }
+        </span>
+      </div>
+      <div
+        class="balance-seller flex flex-col gap-1 rounded-card border border-accent-2/40 bg-accent-2-bg p-3.5"
+      >
+        <span class="truncate text-xs font-semibold text-accent-2-text">{{ sellerName() }}</span>
+        <span class="font-mono text-xl font-bold text-accent-2-text">
+          {{ sellerUnits() }}
+          @if (preview(); as moved) {
+            <span aria-hidden="true">→</span> {{ moved.seller }}
+          }
+        </span>
+      </div>
+    </div>
+    @if (preview(); as moved) {
+      <p class="preview-text m-0 text-sm text-muted">
+        Bodega: {{ warehouseUnits() }} → {{ moved.warehouse }} · {{ sellerName() }}:
+        {{ sellerUnits() }} → {{ moved.seller }}. El total del negocio no cambia.
+      </p>
+    }
+  </div>
+
+  <!-- Precio y costo del vendedor -->
+  <fieldset class="m-0 flex flex-col gap-4 surface-card border-line p-4">
+    <legend class="px-1 text-sm font-bold">Para este vendedor</legend>
+    <p class="m-0 text-sm text-muted">
+      Déjalos vacíos para usar el costo de fábrica y el precio general.
+    </p>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="unit-cost" class="field-label">Otro costo para el vendedor (con envío)</label>
+      <input
+        pInputText
+        id="unit-cost"
+        name="unit-cost"
+        type="text"
+        inputmode="decimal"
+        autocomplete="off"
+        #unitCostInput
+        formControlName="unitCostWithShipping"
+        [attr.aria-invalid]="unitCostError() ? 'true' : null"
+        [attr.aria-describedby]="unitCostError() ? 'unit-cost-error' : null"
+        [invalid]="!!unitCostError()"
+        class="h-[52px] min-w-0 font-mono"
+      />
+      @if (unitCostError()) {
+        <p
+          id="unit-cost-error"
+          class="field-error m-0 text-[13px] font-semibold text-danger"
+          role="alert"
+        >
+          {{ unitCostError() }}
+        </p>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="unit-price" class="field-label">Otro precio de venta para el vendedor</label>
+      <input
+        pInputText
+        id="unit-price"
+        name="unit-price"
+        type="text"
+        inputmode="decimal"
+        autocomplete="off"
+        #unitPriceInput
+        formControlName="unitPrice"
+        [attr.aria-invalid]="unitPriceError() || belowCost() ? 'true' : null"
+        [attr.aria-describedby]="
+          unitPriceError() ? 'unit-price-error' : belowCost() ? 'below-cost' : null
+        "
+        [invalid]="!!unitPriceError()"
+        class="h-[52px] min-w-0 font-mono"
+      />
+      @if (unitPriceError()) {
+        <p
+          id="unit-price-error"
+          class="field-error m-0 text-[13px] font-semibold text-danger"
+          role="alert"
+        >
+          {{ unitPriceError() }}
+        </p>
+      }
+    </div>
+
+    <div class="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+      <span class="text-sm font-semibold">Ganancia por pieza</span>
+      <span class="profit font-mono text-lg font-bold" [class.text-danger]="belowCost()">
+        {{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+      </span>
+    </div>
+    @if (belowCost()) {
+      <p id="below-cost" class="below-cost m-0 alert-danger text-sm font-semibold" role="status">
+        El precio es menor que el costo
+      </p>
+    }
+  </fieldset>
+
+  <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+    <button pButton severity="secondary" type="button" class="h-[52px] text-[15px] cancel" [disabled]="saving()" (click)="cancelled.emit()">
+      Cancelar
+    </button>
+    <button pButton type="submit" class="h-[52px] text-[17px] save" [disabled]="!canSubmit()">
+      @if (saving()) {
+        Guardando…
+      } @else if (belowCost()) {
+        Guardar de todos modos
+      } @else {
+        Guardar cambios
+      }
+    </button>
+  </div>
+</form>
