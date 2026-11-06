@@ -11,11 +11,25 @@ export type CutLayout = 'classic' | 'overview';
 // Clase de corte: con precios del vendedor o «para casa» (costo de fábrica y ganancia real).
 export type CutTypeValue = 'seller' | 'home';
 
+// Alcance del corte para casa: un titular (HU-21) o todo el negocio (HU-22).
+export type CutScope = 'holder' | 'business';
+
 // Petición del corte. `holderId` null = bodega (no se manda al backend); `date` es 'YYYY-MM-DD'.
 export interface CashCutQuery {
   holderId: string | null;
   period: CutPeriodKind;
   date: string;
+}
+
+// Renglón por titular del resumen del negocio (HU-22); `holder` null = bodega.
+export interface BusinessCutHolder {
+  holder: { id: string; fullName: string; active: boolean } | null;
+  salesCount: number;
+  units: number;
+  total: string;
+  factoryCost: string;
+  realProfit: string;
+  shippingCover: string;
 }
 
 export interface CashCut {
@@ -33,6 +47,8 @@ export interface CashCut {
   };
   products: CutProductLine[];
   sales: CutSale[];
+  // Solo con `scope=business` (HU-22): un renglón por titular.
+  holders?: BusinessCutHolder[];
 }
 
 export interface CutProductLine {
