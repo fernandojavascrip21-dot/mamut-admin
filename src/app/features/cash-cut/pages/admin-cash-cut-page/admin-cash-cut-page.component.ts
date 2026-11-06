@@ -8,6 +8,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { httpErrorMessage, isOffline } from '@shared/utils/http-errors';
 import { CutPeriodPickerComponent } from '../../components/cut-period-picker/cut-period-picker.component';
+import { CutHolderLineComponent } from '../../components/cut-holder-line/cut-holder-line.component';
 import { CutProductLineComponent } from '../../components/cut-product-line/cut-product-line.component';
 import { CutSaleItemComponent } from '../../components/cut-sale-item/cut-sale-item.component';
 import { CutSummaryComponent } from '../../components/cut-summary/cut-summary.component';
@@ -41,6 +42,8 @@ import { CashCutService } from '../../services/cash-cut.service';
 // vendedor o «Yo · bodega») para un día, semana o mes. Nada se calcula hasta tocar «Generar corte», y
 // cualquier cambio de periodo o de titular quita el resultado para no mostrar el corte de otra selección.
 // Las cifras vienen tal cual del backend (T-20): aquí no se suma ni se resta dinero.
+// Con «Corte de casa» y «Yo · bodega» se pide el resumen del negocio (HU-22): todo el negocio, con un
+// renglón por titular en lugar del desglose por producto y las ventas.
 @Component({
   imports: [
     FormsModule,
@@ -50,6 +53,7 @@ import { CashCutService } from '../../services/cash-cut.service';
     Skeleton,
     CutPeriodPickerComponent,
     CutSummaryComponent,
+    CutHolderLineComponent,
     CutProductLineComponent,
     CutSaleItemComponent,
   ],
@@ -110,8 +114,16 @@ export class AdminCashCutPageComponent {
   readonly generatedAt = signal<Date | null>(null);
   readonly cutResource = rxResource({
     params: () => this.request(),
-    stream: ({ params }) =>
-      params.cutType === 'home' ? this.service.getHome(params) : this.service.get(params),
+    // El resumen del negocio es el corte de casa sin titular; con vendedor sigue siendo `getHome`.
+    stream: ({ params }) => {
+      if (params.cutType !== 'home') return this.service.get(params);
+      return params.holderId === null ? this.service.getBusiness(params) : this.service.getHome(params);
+    },
+  });
+  // Decide por la petición generada, no por el selector, para que el resultado no cambie al tocarlo.
+  readonly isBusiness = computed(() => {
+    const request = this.request();
+    return request?.cutType === 'home' && request.holderId === null;
   });
   readonly cut = computed<CashCut | null>(() =>
     this.cutResource.hasValue() ? this.cutResource.value() : null,

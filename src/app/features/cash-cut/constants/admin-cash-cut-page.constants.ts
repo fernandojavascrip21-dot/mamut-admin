@@ -26,6 +26,7 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
   productsOfWarehouse: 'Lo que vendí',
   productsColumns: 'vendido · ganancia',
   salesTitle: 'Ventas',
+  holdersTitle: 'Por titular',
 } as const;
 
 export const CUT_TYPE_OPTIONS: CutTypeOption[] = [
