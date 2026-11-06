@@ -1,6 +1,6 @@
 # Spec técnico — HU-22 · Ver el resumen del negocio en el corte para casa con «Yo»
 
-> **Estado:** Aprovado
+> **Estado:** Aprobado
 > **Depende de:** M4b-t22-base-corte-para-casa (`specs/M4b-t22-base-corte-para-casa/spec.md`) — `getHomeCut`, totales del corte para casa y su redondeo; M4b-hu21-corte-para-casa (`specs/M4b-hu21-corte-para-casa/spec.md`) — «Corte de casa» en `/admin/corte`, `getHome()`, inputs `cutType` y `layout="overview"`; M4a-t20-base-cortes (`specs/M4a-t20-base-cortes/spec.md`) — `GET /api/cuts`, periodo y `salesOf`; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — «Yo · bodega»; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-06
 > **Objetivo:** que el administrador, con «Yo · bodega» y «Corte de casa», genere el resumen de todo el negocio en el periodo (vendido y ganancia real de la bodega y de todos los vendedores) con un desglose por titular calculado en el backend.
