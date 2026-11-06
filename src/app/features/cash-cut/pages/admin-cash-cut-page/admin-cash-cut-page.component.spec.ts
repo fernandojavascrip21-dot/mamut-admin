@@ -160,12 +160,12 @@ describe('AdminCashCutPageComponent', () => {
     expect(cutRequests()).toHaveLength(0);
   });
 
-  it('el tipo de corte «para casa» está deshabilitado y «para vendedor» es el elegido', () => {
+  it('el tipo de corte «para casa» está habilitado y «para vendedor» es el elegido', () => {
     const options = fixture.componentInstance.cutTypeOptions;
     expect(options.find((o) => o.value === 'seller')?.disabled).toBe(false);
-    expect(options.find((o) => o.value === 'home')).toMatchObject({ disabled: true });
-    expect(options.find((o) => o.value === 'home')?.label).toContain('Próximamente');
-    expect(fixture.componentInstance.cutType).toBe('seller');
+    expect(options.find((o) => o.value === 'home')).toMatchObject({ disabled: false });
+    expect(options.find((o) => o.value === 'home')?.label).not.toContain('Próximamente');
+    expect(fixture.componentInstance.cutType()).toBe('seller');
   });
 
   it('pide el corte de un vendedor con holderId, period y date, y muestra resumen, desglose y ventas', async () => {
