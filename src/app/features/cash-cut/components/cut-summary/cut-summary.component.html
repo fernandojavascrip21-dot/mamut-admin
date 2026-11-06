@@ -2,41 +2,49 @@
   class="block min-w-0 overflow-hidden border border-ink [--p-card-background:var(--color-ink)] [--p-card-color:var(--color-white)]"
   [pt]="cardPassThrough"
 >
-  <section class="grid grid-cols-2 gap-x-4 gap-y-3 p-4">
-    <div class="col-span-2">
-      <p class="m-0 text-xs font-semibold text-line">{{ texts.sold }}</p>
-      <p class="sold m-0 font-mono text-[34px] leading-tight font-bold tracking-tight">
-        {{ total() | currency: 'MXN' : 'symbol-narrow' }}
+  @if (isOverview()) {
+    <section class="flex flex-col gap-3 p-4">
+      <p class="sold-caption m-0 border-b border-line/30 pb-3 text-sm text-line">
+        {{ soldCaption() }}
       </p>
-      <p class="sold-caption m-0 text-sm text-line">{{ soldCaption() }}</p>
-    </div>
-
-    @if (isHome()) {
-      @if (totals().factoryCost !== undefined) {
-        <div>
-          <p class="factory-cost-label m-0 text-xs font-semibold text-line">
-            {{ texts.factoryCost }}
-          </p>
-          <p class="factory-cost m-0 font-mono text-lg font-bold">
-            {{ factoryCost() | currency: 'MXN' : 'symbol-narrow' }}
-          </p>
-        </div>
-      }
-      @if (totals().realProfit !== undefined) {
-        <div>
-          <p class="real-profit-label m-0 text-xs font-semibold text-line">
-            {{ texts.realProfit }}
-          </p>
+      <div class="grid grid-cols-2 gap-x-4">
+        <div class="min-w-0">
+          <p class="m-0 text-xs font-semibold text-line">{{ texts.sold }}</p>
           <p
-            class="real-profit m-0 font-mono text-lg font-bold"
-            [class.text-success-border]="!realProfitIsNegative()"
-            [class.text-danger-border]="realProfitIsNegative()"
+            class="sold m-0 min-w-0 font-mono text-xl leading-tight font-bold tracking-tight sm:text-2xl"
           >
-            {{ realProfit() | currency: 'MXN' : 'symbol-narrow' }}
+            {{ total() | currency: 'MXN' : 'symbol-narrow' }}
           </p>
         </div>
-      }
-    } @else {
+        @if (hasOverviewProfit()) {
+          <div class="min-w-0">
+            <p class="profit-label m-0 text-xs font-semibold text-line">{{ texts.profit }}</p>
+            <p
+              class="profit m-0 min-w-0 font-mono text-xl leading-tight font-bold tracking-tight sm:text-2xl"
+              [class.text-success-border]="!overviewProfitIsNegative()"
+              [class.text-danger-border]="overviewProfitIsNegative()"
+            >
+              {{ overviewProfit() | currency: 'MXN' : 'symbol-narrow' }}
+            </p>
+          </div>
+        }
+      </div>
+    </section>
+    <div
+      class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-line/30 px-4 py-2 text-[13px] text-line"
+    >
+      <ng-content />
+    </div>
+  } @else {
+    <section class="grid grid-cols-2 gap-x-4 gap-y-3 p-4">
+      <div class="col-span-2">
+        <p class="m-0 text-xs font-semibold text-line">{{ texts.sold }}</p>
+        <p class="sold m-0 font-mono text-[34px] leading-tight font-bold tracking-tight">
+          {{ total() | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+        <p class="sold-caption m-0 text-sm text-line">{{ soldCaption() }}</p>
+      </div>
+
       @if (totals().cost !== undefined) {
         <div>
           <p class="cost-label m-0 text-xs font-semibold text-line">{{ costLabel() }}</p>
@@ -57,6 +65,6 @@
           </p>
         </div>
       }
-    }
-  </section>
+    </section>
+  }
 </p-card>

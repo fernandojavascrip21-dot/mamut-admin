@@ -5,6 +5,9 @@ export type CutPeriodKind = 'day' | 'week' | 'month';
 // Quién lee el corte: cambia solo los textos de los componentes compartidos (HU-19 / HU-20).
 export type CutPerspective = 'admin' | 'seller';
 
+// Disposición de los componentes del corte: 'classic' (HU-19/HU-20) o 'overview' (HU-21, administrador).
+export type CutLayout = 'classic' | 'overview';
+
 // Clase de corte: con precios del vendedor o «para casa» (costo de fábrica y ganancia real).
 export type CutTypeValue = 'seller' | 'home';
 

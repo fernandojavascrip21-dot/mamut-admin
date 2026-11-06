@@ -9,6 +9,4 @@ export const CUT_SUMMARY_TEXTS = {
   sellerSold: 'Vendió',
   mySold: 'Vendí',
   amountToDeliver: 'Total a entregar',
-  factoryCost: 'Costo de fábrica',
-  realProfit: 'Ganancia real',
 } as const;
