@@ -7,6 +7,7 @@ import type {
   CashCut,
   CutLayout,
   CutPerspective,
+  CutScope,
   CutTypeValue,
 } from '../../interfaces/cash-cut.models';
 import { CUT_SUMMARY_TEXTS } from './cut-summary.constants';
@@ -33,16 +34,20 @@ export class CutSummaryComponent {
   readonly cutType = input<CutTypeValue>('seller');
   // 'overview' (HU-21): franja, Vendido y Ganancia sin costos, y pie proyectado; 'classic' no cambia.
   readonly layout = input<CutLayout>('classic');
+  // 'business' (HU-22): la leyenda dice «Todo el negocio» porque las cifras no son de un titular; 'holder' no cambia.
+  readonly scope = input<CutScope>('holder');
   readonly isOverview = computed(() => this.layout() === 'overview');
 
   // «Vendió Luis · 2 al 8 nov · 5 piezas» o «Mis ventas desde bodega · … · N piezas».
   readonly soldCaption = computed(() => {
     const who =
-      this.perspective() === 'seller'
-        ? this.texts.mySold
-        : this.holderName()
-          ? `${this.texts.sellerSold} ${this.holderName()}`
-          : this.texts.warehouseSold;
+      this.scope() === 'business'
+        ? this.texts.businessSold
+        : this.perspective() === 'seller'
+          ? this.texts.mySold
+          : this.holderName()
+            ? `${this.texts.sellerSold} ${this.holderName()}`
+            : this.texts.warehouseSold;
     return `${who} · ${this.periodText()} · ${unitsLabel(this.totals().units)}`;
   });
   readonly costLabel = computed(() => {

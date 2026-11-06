@@ -7,6 +7,7 @@ export const CUT_SUMMARY_TEXTS = {
   profit: 'Ganancia',
   warehouseSold: 'Mis ventas desde bodega',
   sellerSold: 'Vendió',
+  businessSold: 'Todo el negocio',
   mySold: 'Vendí',
   amountToDeliver: 'Total a entregar',
 } as const;

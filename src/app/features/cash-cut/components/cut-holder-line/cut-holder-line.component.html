@@ -1,1 +1,24 @@
-<p>cut-holder-line works!</p>
+<div class="flex min-w-0 items-center gap-3 px-4 py-3">
+  <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+    <div class="flex min-w-0 items-center gap-2">
+      <p class="holder-name m-0 min-w-0 truncate text-sm leading-tight font-bold">{{ name() }}</p>
+      @if (isInactive()) {
+        <p-tag class="inactive-tag shrink-0" [value]="texts.inactive" severity="secondary" />
+      }
+    </div>
+    <p class="holder-meta m-0 font-mono text-xs text-muted">{{ meta() }}</p>
+  </div>
+
+  <div class="flex flex-col items-end justify-center gap-0.5 text-right">
+    <p class="sold m-0 font-mono text-base font-bold whitespace-nowrap">
+      {{ total() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+    <p
+      class="profit m-0 font-mono text-xs font-semibold whitespace-nowrap"
+      [class.text-success-text]="!profitIsNegative()"
+      [class.text-danger-text]="profitIsNegative()"
+    >
+      {{ profitIsNegative() ? '' : '+' }}{{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+  </div>
+</div>
