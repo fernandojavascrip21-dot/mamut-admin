@@ -52,6 +52,7 @@ npm run db:check | db:pull                 # sanity query / regenerate src/db/sc
 - `next dev` may exit right after start-up with a security-upgrade notice (exit 1): run `npm run dev` again. Upgrading Next is a separate, deliberate change.
 - Seed (fake): `admin@mammut.local` / `Admin-123456!`; `vendedor1@`, `vendedor2@mammut.local` / `Vendedor-123456!`; `inactivo@mammut.local` (deactivated, login must fail); sellers have 10-digit phones.
 - `supabase/migrations/20261024000000_baseline_schema.sql` only lets an empty DB replay every migration — never apply it to production. New migration: write the `.sql`, check it with `npm run db:reset`, then apply to production.
+- **Applying a migration to production is done by hand in the Supabase SQL Editor**, never with `supabase db push`. First run a read-only check (the column or table doesn't exist yet, the migrations it depends on are already there), then paste the migration inside `begin; … commit;`, then run the spec's verification queries. Production is the same Supabase project as the sibling repo, and its migration history holds that repo's versions (`20261007120001`…`010`), so `db push` stops with `DbPushMissingLocalError`. **Never run the `supabase migration repair` or `supabase db pull` it suggests**: they would rewrite the sibling repo's history in the shared database and overwrite `supabase/migrations/`.
 
 ## Architecture
 
