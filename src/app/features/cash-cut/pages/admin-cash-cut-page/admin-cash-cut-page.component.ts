@@ -17,8 +17,17 @@ import {
   DEFAULT_CUT_TYPE,
 } from '../../constants/admin-cash-cut-page.constants';
 import { CUT_CARD_PASS_THROUGH } from '../../constants/cash-cut.constants';
-import type { CashCut, CashCutQuery, CutPeriodKind } from '../../interfaces/cash-cut.models';
-import type { CashCutPageState, CutSelection } from '../../models/admin-cash-cut-page.models';
+import type {
+  CashCut,
+  CashCutQuery,
+  CutPeriodKind,
+  CutTypeValue,
+} from '../../interfaces/cash-cut.models';
+import type {
+  CashCutPageState,
+  CutRequest,
+  CutSelection,
+} from '../../models/admin-cash-cut-page.models';
 import {
   periodLabel,
   periodRange,
@@ -55,7 +64,7 @@ export class AdminCashCutPageComponent {
   readonly texts = ADMIN_CASH_CUT_PAGE_TEXTS;
   readonly cardPassThrough = CUT_CARD_PASS_THROUGH;
   readonly cutTypeOptions = CUT_TYPE_OPTIONS;
-  readonly cutType = DEFAULT_CUT_TYPE;
+  readonly cutType = signal<CutTypeValue>(DEFAULT_CUT_TYPE);
 
   // 2) Selección. «Hoy» se fija al entrar y es el de México, no el del dispositivo.
   private readonly today = todayInMexico(new Date());
@@ -86,12 +95,13 @@ export class AdminCashCutPageComponent {
   // 3) Corte. `generated` es la petición que el usuario pidió; `request` solo vale mientras siga
   // siendo la selección actual, así nunca se ve (ni se pide) un corte de otra selección. Al cambiar
   // `request`, rxResource cancela la petición anterior y descarta su respuesta tardía.
-  private readonly generated = signal<CashCutQuery | undefined>(undefined);
-  private readonly request = computed(() => {
+  private readonly generated = signal<CutRequest | undefined>(undefined);
+  private readonly request = computed<CutRequest | undefined>(() => {
     const generated = this.generated();
     const current = this.query();
     const same =
       generated !== undefined &&
+      generated.cutType === this.cutType() &&
       generated.holderId === current.holderId &&
       generated.period === current.period &&
       generated.date === current.date;
@@ -100,7 +110,8 @@ export class AdminCashCutPageComponent {
   readonly generatedAt = signal<Date | null>(null);
   readonly cutResource = rxResource({
     params: () => this.request(),
-    stream: ({ params }) => this.service.get(params),
+    stream: ({ params }) =>
+      params.cutType === 'home' ? this.service.getHome(params) : this.service.get(params),
   });
   readonly cut = computed<CashCut | null>(() =>
     this.cutResource.hasValue() ? this.cutResource.value() : null,
@@ -121,9 +132,16 @@ export class AdminCashCutPageComponent {
     return periodLabel(cut.period.kind, cut.period.from, cut.period.to, this.today);
   });
   readonly showSaleDate = computed(() => (this.cut()?.period.kind ?? 'day') !== 'day');
-  readonly resultTitle = computed(() =>
-    this.holderName() ? `${this.texts.resultTitle} · ${this.holderName()}` : this.texts.resultTitle,
+  // Tipo del corte ya generado (no el del selector) para que el resultado no cambie al tocar el selector.
+  readonly resultCutType = computed<CutTypeValue>(() => this.request()?.cutType ?? this.cutType());
+  readonly cutTypeHelp = computed(() =>
+    this.cutType() === 'home' ? this.texts.cutTypeHelpHome : this.texts.cutTypeHelp,
   );
+  readonly resultTitle = computed(() => {
+    const base =
+      this.resultCutType() === 'home' ? this.texts.resultTitleHome : this.texts.resultTitle;
+    return this.holderName() ? `${base} · ${this.holderName()}` : base;
+  });
   readonly productsTitle = computed(() =>
     this.holderName()
       ? `${this.texts.productsOfSeller} ${this.holderName()}`
@@ -154,6 +172,11 @@ export class AdminCashCutPageComponent {
     this.generated.set(undefined);
   }
 
+  selectCutType(cutType: CutTypeValue): void {
+    this.cutType.set(cutType);
+    this.generated.set(undefined);
+  }
+
   selectOffset(offset: number): void {
     this.selection.update((current) => ({ ...current, offset }));
     this.generated.set(undefined);
@@ -162,7 +185,7 @@ export class AdminCashCutPageComponent {
   generate(): void {
     if (this.viewingLoading()) return;
     this.generatedAt.set(new Date());
-    this.generated.set(this.query());
+    this.generated.set({ ...this.query(), cutType: this.cutType() });
   }
 
   // «Generar de nuevo» y «Reintentar» piden el mismo corte otra vez, con las ventas de ahora.

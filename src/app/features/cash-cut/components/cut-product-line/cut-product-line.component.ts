@@ -1,7 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { initialsOf } from '@shared/utils/initials';
-import type { CutProductLine } from '../../interfaces/cash-cut.models';
+import type { CutLayout, CutProductLine, CutTypeValue } from '../../interfaces/cash-cut.models';
 import { CUT_PRODUCT_LINE_TEXTS } from './cut-product-line.constants';
 
 // Un renglón del desglose del corte (HU-19): foto (o iniciales), nombre, «2 × $920.00», el costo, el
@@ -15,6 +15,11 @@ export class CutProductLineComponent {
   readonly line = input.required<CutProductLine>();
   // true con un vendedor («costo con envío»); false con la bodega («costo»).
   readonly withShipping = input.required<boolean>();
+  // 'home' (HU-21): en `overview` la ganancia sale de `realProfit` en vez de `profit`.
+  readonly cutType = input<CutTypeValue>('seller');
+  // 'overview' (HU-21): sin línea de costo; 'classic' (HU-19/HU-20) no cambia.
+  readonly layout = input<CutLayout>('classic');
+  readonly isOverview = computed(() => this.layout() === 'overview');
 
   // Si la URL de la foto no carga, cae a las iniciales en vez de dejar una imagen rota.
   private readonly imageBroken = signal(false);
@@ -30,6 +35,15 @@ export class CutProductLineComponent {
   readonly total = computed(() => Number(this.line().total));
   readonly cost = computed(() => Number(this.line().cost));
   readonly profit = computed(() => Number(this.line().profit));
+  // Ganancia del layout `overview`: la real con «Corte de casa», la del vendedor con el otro tipo.
+  private readonly overviewProfitText = computed(() =>
+    this.cutType() === 'home' ? this.line().realProfit : this.line().profit,
+  );
+  readonly hasOverviewProfit = computed(() => this.overviewProfitText() !== undefined);
+  readonly overviewProfit = computed(() => Number(this.overviewProfitText()));
+  readonly overviewProfitIsNegative = computed(
+    () => this.overviewProfitText()?.startsWith('-') ?? false,
+  );
   // El signo del texto decide el «+» y el color; no se compara como número.
   readonly profitIsNegative = computed(() => this.line().profit?.startsWith('-') ?? false);
 

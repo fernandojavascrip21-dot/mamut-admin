@@ -20,11 +20,12 @@
         optionLabel="label"
         optionValue="value"
         optionDisabled="disabled"
-        [ngModel]="cutType"
+        [ngModel]="cutType()"
+        (ngModelChange)="selectCutType($event)"
         [showClear]="false"
         [fluid]="true"
       />
-      <p class="m-0 text-xs leading-normal text-muted">{{ texts.cutTypeHelp }}</p>
+      <p class="m-0 text-xs leading-normal text-muted">{{ cutTypeHelp() }}</p>
     </div>
   </section>
 
@@ -155,21 +156,7 @@
     @case ('ready') {
       @if (cut(); as cut) {
         <section class="result flex animate-rise-in flex-col gap-4 motion-reduce:animate-none">
-          <div class="flex items-center justify-between gap-2">
-            <p class="generated-at m-0 text-[13px] text-muted">{{ generatedAtLabel() }}</p>
-            <button
-              pButton
-              severity="secondary"
-              [text]="true"
-              type="button"
-              class="regenerate h-11 px-2 text-sm"
-              (click)="reload()"
-            >
-              {{ texts.regenerate }}
-            </button>
-          </div>
-
-          <h2 class="result-title m-0 -mt-2 font-display text-xl font-extrabold tracking-tight">
+          <h2 class="result-title m-0 mt-1 font-display text-xl font-extrabold tracking-tight">
             {{ resultTitle() }}
           </h2>
 
@@ -177,7 +164,21 @@
             [totals]="cut.totals"
             [holderName]="holderName()"
             [periodText]="resultPeriodLabel()"
-          />
+            [cutType]="resultCutType()"
+            layout="overview"
+          >
+            <p class="generated-at m-0 whitespace-nowrap">{{ generatedAtLabel() }}</p>
+            <button
+              pButton
+              severity="secondary"
+              [text]="true"
+              type="button"
+              class="regenerate h-11 whitespace-nowrap px-2 text-sm text-white hover:bg-white/10 hover:text-white active:bg-white/10 active:text-white focus-visible:text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-page"
+              (click)="reload()"
+            >
+              {{ texts.regenerate }}
+            </button>
+          </app-cut-summary>
 
           <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
             <section aria-labelledby="cut-products-title">
@@ -194,7 +195,12 @@
               >
                 @for (line of cut.products; track $index) {
                   <li class="min-w-0 border-t border-line">
-                    <app-cut-product-line [line]="line" [withShipping]="holderName() !== null" />
+                    <app-cut-product-line
+                      [line]="line"
+                      [withShipping]="holderName() !== null"
+                      [cutType]="resultCutType()"
+                      layout="overview"
+                    />
                   </li>
                 }
               </ul>
@@ -216,7 +222,12 @@
               >
                 @for (sale of cut.sales; track sale.requestId) {
                   <li class="min-w-0 border-t border-line">
-                    <app-cut-sale-item [sale]="sale" [showDate]="showSaleDate()" />
+                    <app-cut-sale-item
+                      [sale]="sale"
+                      [showDate]="showSaleDate()"
+                      [cutType]="resultCutType()"
+                      layout="overview"
+                    />
                   </li>
                 }
               </ul>

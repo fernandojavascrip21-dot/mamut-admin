@@ -160,12 +160,12 @@ describe('AdminCashCutPageComponent', () => {
     expect(cutRequests()).toHaveLength(0);
   });
 
-  it('el tipo de corte «para casa» está deshabilitado y «para vendedor» es el elegido', () => {
+  it('el tipo de corte «para casa» está habilitado y «para vendedor» es el elegido', () => {
     const options = fixture.componentInstance.cutTypeOptions;
     expect(options.find((o) => o.value === 'seller')?.disabled).toBe(false);
-    expect(options.find((o) => o.value === 'home')).toMatchObject({ disabled: true });
-    expect(options.find((o) => o.value === 'home')?.label).toContain('Próximamente');
-    expect(fixture.componentInstance.cutType).toBe('seller');
+    expect(options.find((o) => o.value === 'home')).toMatchObject({ disabled: false });
+    expect(options.find((o) => o.value === 'home')?.label).not.toContain('Próximamente');
+    expect(fixture.componentInstance.cutType()).toBe('seller');
   });
 
   it('pide el corte de un vendedor con holderId, period y date, y muestra resumen, desglose y ventas', async () => {
@@ -185,7 +185,7 @@ describe('AdminCashCutPageComponent', () => {
     expect(text('.result-title')).toBe('Corte con precios · Luis');
     expect(text('.generated-at')).toMatch(/^Generado hoy a las \d{2}:\d{2}$/);
     expect(text('app-cut-summary .sold')).toBe('$2,300.00');
-    expect(text('app-cut-summary .cost-label')).toBe('Costo con envío');
+    expect(text('app-cut-summary .profit-label')).toBe('Ganancia');
     expect(text('.products-title')).toBe('Lo que vendió Luis');
     expect(el().querySelectorAll('.products app-cut-product-line')).toHaveLength(2);
     expect(text('.sales-title')).toBe('Ventas (2)');
@@ -204,7 +204,7 @@ describe('AdminCashCutPageComponent', () => {
     expect(text('.result-title')).toBe('Corte con precios');
     expect(text('.products-title')).toBe('Lo que vendí');
     expect(text('app-cut-summary .sold-caption')).toContain('Mis ventas desde bodega');
-    expect(text('app-cut-summary .cost-label')).toBe('Costo');
+    expect(text('app-cut-summary .profit-label')).toBe('Ganancia');
   });
 
   it('un periodo sin ventas muestra el estado vacío y no un corte en ceros', async () => {

@@ -2,7 +2,7 @@
 name: reviewer
 description: "Úsalo para revisar el diff antes de un commit. Solo lectura."
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: haiku
 hooks:
   PreToolUse:
     - matcher: "Bash"

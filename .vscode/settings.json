@@ -1,3 +1,8 @@
 {
-    "python.terminal.useEnvFile": true
+    "python.terminal.useEnvFile": true,
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "text": "Escribe el mensaje de commit en español, en una sola línea de título con este formato exacto: <tipo>(<área>): <descripción>. Tipos permitidos: feat (funcionalidad nueva), fix (corrección), refactor (reorganización sin cambio de comportamiento), test (solo pruebas), docs (solo documentación o specs), chore (configuración o mantenimiento). El área va en minúsculas y con guiones, y nombra la parte del proyecto que cambia (por ejemplo cash-cut, cuts, auth, specs, agents). La descripción empieza con un verbo en infinitivo (agregar, corregir, quitar, renombrar, simplificar...), va en minúsculas, sin punto final, y el título completo no debe pasar de 72 caracteres. Ejemplos: feat(cuts): calcular el corte para casa | fix(auth): rechazar cuentas desactivadas | docs(specs): definir la estructura nueva del resultado. No uses mayúscula inicial en la descripción, no uses emojis y no inventes cambios que no estén en el diff. Si hace falta explicar el porqué, agrégalo en un cuerpo aparte, separado por una línea en blanco."
+        }
+    ]
 }
