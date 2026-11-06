@@ -4,6 +4,8 @@
 > **Depende de:** M4b-t22-base-corte-para-casa (`specs/M4b-t22-base-corte-para-casa/spec.md`) — `GET /api/cuts?type=home` con `factoryCost`, `realProfit` y `shippingCover` (esta última ya no se pinta, §10); M4a-hu19-corte-administrador (`specs/M4a-hu19-corte-administrador/spec.md`) — página «Corte», selector «Tipo de corte» y componentes de `features/cash-cut`; M4a-hu20-mi-corte-vendedor (`specs/M4a-hu20-mi-corte-vendedor/spec.md`) — componentes compartidos con «Mi corte»; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — titular de «Viendo»; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-05
 > **Nota (2026-11-06):** el usuario decidió que el corte para casa **no muestra «Para cubrir envíos»**: el administrador ve la ganancia real (precio menos costo de fábrica) y el vendedor ve, en su corte con precios, la ganancia con el costo con envío que se le puso. El backend (T-22) conserva `shippingCover`; solo la pantalla deja de pintarlo. Cambia lo aprobado en los criterios 2, 3 y 5, en §2, §8 y §10, y en el paso 4. Además, el usuario pidió renombrar las opciones del selector «Tipo de corte»: «Corte del vendedor» (antes «Corte con precios (para vendedor)») y «Corte de casa» (antes «Corte (para casa)»). Los títulos del resultado no cambian.
+>
+> **Nota (2026-11-06, estructura del resultado):** el usuario pidió simplificar el resultado del administrador: solo «Vendido» y «Ganancia», sin costos; los datos del corte (quién vendió, cuándo, cuántas piezas) arriba en la tarjeta; y «Generado…» con «Generar de nuevo» al pie de la tarjeta. Aplica a «Corte de casa» y «Corte del vendedor», solo en la vista del administrador. «Mi corte» (HU-20) no cambia. Ver paso 4b y §5c.
 > **Objetivo:** que el administrador, en «Corte», elija «Corte de casa» y genere para el titular de «Viendo» el corte con costo de fábrica y ganancia real, sin costo de envío, con las mismas ventas, piezas y vendido que el corte con precios.
 
 Fuentes:
@@ -140,6 +142,15 @@ Al quitar «Para cubrir envíos» del corte para casa, cambian las aserciones qu
 - `pages/admin-cash-cut-page/admin-cash-cut-page.home.spec.ts`: la aserción de `.shipping-cover` = `$200.00` pasa a `toBeNull()`, y las constantes `HOME_OPTION` y `PRICES_OPTION` pasan a `'Corte de casa'` y `'Corte del vendedor'` (nombres nuevos del selector).
 - Los fixtures conservan `shippingCover` (el backend lo sigue mandando). `cut-product-line.home.spec.ts` y `cut-sale-item.home.spec.ts` no cambian.
 
+## 5c. Tercera excepción aprobada a la protección de tests (2026-11-06)
+
+La estructura nueva del resultado (paso 4b) cambia aserciones de tests con commit de esta rama y de la página de HU-19. Las edita el usuario con un script, en un commit propio con `ALLOW_TEST_CHANGES=1`. Contrato del layout `overview`: `.sold` y `.sold-caption` (mismo texto) se conservan; la ganancia es `.profit-label` («Ganancia») y `.profit` en el resumen, el renglón y la venta (con «Corte de casa» su valor es la ganancia real), `.line-profit` en los productos de una venta desplegada; no existen `.cost`, `.cost-label`, `.factory-cost*`, `.real-profit*` ni `.line-real-profit` con `layout="overview"`.
+
+- `components/cut-summary/cut-summary.home.spec.ts`, `cut-product-line/cut-product-line.home.spec.ts` y `cut-sale-item/cut-sale-item.home.spec.ts`: los casos de «Corte de casa» pasan a `layout="overview"` y a las clases de arriba. Los casos «sin cutType» no cambian.
+- `pages/admin-cash-cut-page/admin-cash-cut-page.component.spec.ts` (HU-19): dos aserciones de `app-cut-summary .cost-label` pasan a `.profit-label` = «Ganancia».
+- `pages/admin-cash-cut-page/admin-cash-cut-page.home.spec.ts`: las aserciones de `.factory-cost` y `.real-profit` pasan al contrato de arriba.
+- No cambian: los specs de HU-20, `seller-cash-cut-page` y los de componente de HU-19 (el valor por omisión de `layout` es `classic`, igual que hoy).
+
 ## 6. Plan de implementación
 
 Con `/spec-impl` en modo agentes, cada paso con pruebas sigue este orden:
@@ -185,6 +196,12 @@ Los pasos:
    - ui-ux-pro-max y luego frontend-design, solo para el resumen de tres cifras y los textos nuevos. Se respeta la tarjeta de HU-19, con tokens de `styles.css` y PrimeNG.
    - Se confirman los textos de §2.
    - Es un paso sin pruebas nuevas: `implementer` y luego `reviewer`.
+4b. **Estructura del resultado del administrador** (decisión del usuario del 2026-11-06).
+   - Cada uno de `cut-summary`, `cut-product-line` y `cut-sale-item` gana `layout = input<'classic' | 'overview'>('classic')`. La página del administrador pasa `layout="overview"`; «Mi corte» no lo pasa y queda igual. Se elimina la rama «home» del layout `classic` (queda solo `overview` para ambos tipos).
+   - **Resumen (`overview`):** arriba la franja con `.sold-caption` («Vendió Luis · 2 al 8 nov · 5 piezas»), luego «Vendido» y «Ganancia» lado a lado con el mismo peso (la ganancia en verde, o en rojo si es negativa), y al pie de la tarjeta «Generado hoy a las HH:MM» y «Generar de nuevo» (la página los proyecta con `ng-content`; conservan `.generated-at` y `.regenerate`). Sin costos.
+   - **Desglose:** «2 × $920.00», subtotal y «+ganancia», sin línea de costo. **Ventas:** «Ganancia $X» y, al desplegar, la ganancia de cada producto.
+   - Tests nuevos del `test-writer` en `*.overview.spec.ts` (con «Corte del vendedor» y «Corte de casa»); las ediciones de §5c las hace el usuario antes. Antes de implementar, ui-ux-pro-max y frontend-design para la franja, la pareja de cifras y el pie.
+
 5. **Verificación manual** contra la base local con el seed, en escritorio y a 375 px:
    - Darle a Víctor una pieza con costo con envío `700` sobre un costo de fábrica de `600`, venderla y generar «Para casa · Día». Las cifras coinciden con las del corte con precios: el mismo vendido, y la ganancia real mayor en `100.00` (la diferencia de costos), sin cifra de envíos.
    - La pantalla no muestra «Para cubrir envíos» con ningún producto, aunque el backend mande `shippingCover`.
@@ -220,6 +237,8 @@ Además (decisiones del 2026-11-05, §9):
 - [ ] Cada renglón del desglose muestra «costo de fábrica» y la ganancia real, sin «para cubrir envíos».
 - [ ] Cada venta de la lista muestra el total y la ganancia real, y al desplegarse cada producto muestra su ganancia real.
 - [ ] La ayuda del selector cambia con el tipo de corte.
+- [ ] El resultado del administrador (con los dos tipos de corte) muestra solo «Vendido» y «Ganancia», sin costos; arriba, quién vendió, cuándo y cuántas piezas; al pie, «Generado…» y «Generar de nuevo».
+- [ ] El desglose por producto y las ventas muestran la ganancia, sin línea de costo; «Mi corte» del vendedor no cambia.
 - [ ] «Mi corte» del vendedor no cambia: sus specs y los de HU-19 pasan sin modificarse, salvo el caso aprobado en §5.
 - [ ] El único test que ya tenía commit y cambia es el de §5, en un commit propio con `ALLOW_TEST_CHANGES=1`.
 - [ ] `features/cash-cut` no importa otras features. `npm run check:architecture`, `ng build` y `ng test` pasan.
