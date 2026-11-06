@@ -5,6 +5,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { httpErrorMessage, isOffline } from '@shared/utils/http-errors';
 import { CutPeriodPickerComponent } from '../../components/cut-period-picker/cut-period-picker.component';
@@ -22,6 +23,7 @@ import type {
   CashCut,
   CashCutQuery,
   CutPeriodKind,
+  CutScope,
   CutTypeValue,
 } from '../../interfaces/cash-cut.models';
 import type {
@@ -42,8 +44,9 @@ import { CashCutService } from '../../services/cash-cut.service';
 // vendedor o «Yo · bodega») para un día, semana o mes. Nada se calcula hasta tocar «Generar corte», y
 // cualquier cambio de periodo o de titular quita el resultado para no mostrar el corte de otra selección.
 // Las cifras vienen tal cual del backend (T-20): aquí no se suma ni se resta dinero.
-// Con «Corte de casa» y «Yo · bodega» se pide el resumen del negocio (HU-22): todo el negocio, con un
-// renglón por titular en lugar del desglose por producto y las ventas.
+// Con «Corte de casa» y «Yo · bodega» aparece el interruptor «Incluir a mis vendedores» (apagado por
+// defecto): apagado es el corte de la bodega sola; encendido pide el resumen del negocio (HU-22), con un
+// renglón por titular en lugar del desglose por producto y las ventas. Tocarlo descarta el corte.
 @Component({
   imports: [
     FormsModule,
@@ -51,6 +54,7 @@ import { CashCutService } from '../../services/cash-cut.service';
     Card,
     Select,
     Skeleton,
+    ToggleSwitch,
     CutPeriodPickerComponent,
     CutSummaryComponent,
     CutHolderLineComponent,
@@ -69,6 +73,18 @@ export class AdminCashCutPageComponent {
   readonly cardPassThrough = CUT_CARD_PASS_THROUGH;
   readonly cutTypeOptions = CUT_TYPE_OPTIONS;
   readonly cutType = signal<CutTypeValue>(DEFAULT_CUT_TYPE);
+  readonly includeSellers = signal(false);
+  // Solo el corte de casa de la bodega puede sumar a los vendedores; con un vendedor en «Viendo» no aplica.
+  readonly showSellersToggle = computed(
+    () => this.cutType() === 'home' && this.viewing.selectedSellerId() === null,
+  );
+  readonly sellersToggleHelp = computed(() =>
+    this.includeSellers() ? this.texts.sellersToggleHelpOn : this.texts.sellersToggleHelpOff,
+  );
+  // Alcance que pediría «Generar» ahora; también decide si el corte generado sigue vigente.
+  private readonly currentScope = computed<CutScope>(() =>
+    this.showSellersToggle() && this.includeSellers() ? 'business' : 'holder',
+  );
 
   // 2) Selección. «Hoy» se fija al entrar y es el de México, no el del dispositivo.
   private readonly today = todayInMexico(new Date());
@@ -106,6 +122,7 @@ export class AdminCashCutPageComponent {
     const same =
       generated !== undefined &&
       generated.cutType === this.cutType() &&
+      generated.scope === this.currentScope() &&
       generated.holderId === current.holderId &&
       generated.period === current.period &&
       generated.date === current.date;
@@ -114,17 +131,14 @@ export class AdminCashCutPageComponent {
   readonly generatedAt = signal<Date | null>(null);
   readonly cutResource = rxResource({
     params: () => this.request(),
-    // El resumen del negocio es el corte de casa sin titular; con vendedor sigue siendo `getHome`.
+    // El alcance de la petición generada manda: «business» es el resumen del negocio; si no, el tipo.
     stream: ({ params }) => {
-      if (params.cutType !== 'home') return this.service.get(params);
-      return params.holderId === null ? this.service.getBusiness(params) : this.service.getHome(params);
+      if (params.scope === 'business') return this.service.getBusiness(params);
+      return params.cutType === 'home' ? this.service.getHome(params) : this.service.get(params);
     },
   });
-  // Decide por la petición generada, no por el selector, para que el resultado no cambie al tocarlo.
-  readonly isBusiness = computed(() => {
-    const request = this.request();
-    return request?.cutType === 'home' && request.holderId === null;
-  });
+  // Decide por la petición generada, no por los controles, para que el resultado no cambie al tocarlos.
+  readonly isBusiness = computed(() => this.request()?.scope === 'business');
   readonly cut = computed<CashCut | null>(() =>
     this.cutResource.hasValue() ? this.cutResource.value() : null,
   );
@@ -189,6 +203,11 @@ export class AdminCashCutPageComponent {
     this.generated.set(undefined);
   }
 
+  selectIncludeSellers(value: boolean): void {
+    this.includeSellers.set(value);
+    this.generated.set(undefined);
+  }
+
   selectOffset(offset: number): void {
     this.selection.update((current) => ({ ...current, offset }));
     this.generated.set(undefined);
@@ -197,7 +216,7 @@ export class AdminCashCutPageComponent {
   generate(): void {
     if (this.viewingLoading()) return;
     this.generatedAt.set(new Date());
-    this.generated.set({ ...this.query(), cutType: this.cutType() });
+    this.generated.set({ ...this.query(), cutType: this.cutType(), scope: this.currentScope() });
   }
 
   // «Generar de nuevo» y «Reintentar» piden el mismo corte otra vez, con las ventas de ahora.

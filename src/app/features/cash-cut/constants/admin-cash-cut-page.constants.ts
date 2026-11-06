@@ -29,6 +29,9 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
   holdersTitle: 'Por titular',
   holdersSubtitle: 'Bodega y vendedores con ventas en el periodo',
   holdersColumns: 'vendido · ganancia',
+  sellersToggleLabel: 'Incluir a mis vendedores',
+  sellersToggleHelpOff: 'Solo lo que vendiste desde la bodega.',
+  sellersToggleHelpOn: 'Suma lo que vendieron tus vendedores.',
   holdersEmpty: 'Ningún titular con ventas en este periodo.',
 } as const;
 

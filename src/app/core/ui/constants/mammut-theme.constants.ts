@@ -8,6 +8,7 @@ import AuraInputText from '@primeuix/themes/aura/inputtext';
 import AuraSelect from '@primeuix/themes/aura/select';
 import AuraSkeleton from '@primeuix/themes/aura/skeleton';
 import AuraTag from '@primeuix/themes/aura/tag';
+import AuraToggleSwitch from '@primeuix/themes/aura/toggleswitch';
 import AuraToast from '@primeuix/themes/aura/toast';
 import type { Preset } from '@primeuix/themes/types';
 
@@ -155,6 +156,36 @@ export const MAMMUT_THEME = definePreset({
     inputtext: AuraInputText,
     select: AuraSelect,
     checkbox: AuraCheckbox,
+    // Interruptor «Incluir a mis vendedores»: apagado en gris medio (`muted`) porque `line-strong` casi
+    // se confunde con el fondo `page`; encendido en el acento. Manija blanca en ambos estados.
+    toggleswitch: {
+      ...AuraToggleSwitch,
+      root: {
+        ...AuraToggleSwitch.root,
+        background: 'var(--color-muted)',
+        hoverBackground: 'var(--color-ink)',
+        checkedBackground: 'var(--color-accent)',
+        checkedHoverBackground: 'var(--color-accent-hover)',
+        focusRing: {
+          width: '{focus.ring.width}',
+          style: '{focus.ring.style}',
+          color: 'var(--color-accent)',
+          offset: '{focus.ring.offset}',
+          shadow: 'none',
+        },
+      },
+      handle: {
+        ...AuraToggleSwitch.handle,
+        background: 'var(--color-white)',
+        hoverBackground: 'var(--color-white)',
+        checkedBackground: 'var(--color-white)',
+        checkedHoverBackground: 'var(--color-white)',
+        color: 'var(--color-muted)',
+        hoverColor: 'var(--color-muted)',
+        checkedColor: 'var(--color-accent)',
+        checkedHoverColor: 'var(--color-accent-hover)',
+      },
+    },
     // Solo se usan las severidades primaria, secundaria y de peligro (más `text` y `outlined.danger`); se omiten las demás de Aura.
     button: {
       root: {

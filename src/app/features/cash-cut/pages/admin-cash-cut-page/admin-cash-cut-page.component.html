@@ -27,6 +27,29 @@
       />
       <p class="m-0 text-xs leading-normal text-muted">{{ cutTypeHelp() }}</p>
     </div>
+
+    @if (showSellersToggle()) {
+      <div class="sellers-toggle-field flex flex-col gap-1.5">
+        <div class="flex min-h-11 items-center gap-3">
+          <p-toggleswitch
+            class="sellers-toggle"
+            inputId="sellers-toggle"
+            ariaLabelledBy="sellers-toggle-label"
+            [ngModel]="includeSellers()"
+            (ngModelChange)="selectIncludeSellers($event)"
+          />
+          <label
+            id="sellers-toggle-label"
+            class="sellers-toggle-label field-label cursor-pointer"
+            for="sellers-toggle"
+            >{{ texts.sellersToggleLabel }}</label
+          >
+        </div>
+        <p class="sellers-toggle-help m-0 text-xs leading-normal text-muted">
+          {{ sellersToggleHelp() }}
+        </p>
+      </div>
+    }
   </section>
 
   @switch (state()) {
