@@ -214,6 +214,8 @@ export async function createSale(
           qty: line.qty,
           unitPrice: held?.unitPrice ?? product.price,
           unitCost: held?.unitCostWithShipping ?? product.unitCost,
+          // Costo de fábrica del momento, aparte del costo con envío: lo usa el corte para casa (T-22).
+          factoryUnitCost: product.unitCost,
         }
       }))
 

@@ -137,8 +137,8 @@ export interface HomeCut {
 
 ## 5. Plan de implementación
 
-1. **Migración:** escribir `20261105000000_direct_sale_items_factory_unit_cost.sql` (§4) y correr `npm run db:reset`. Con `backend/.env` en LOCAL: `npm run db:pull`, los fixups y borrar los archivos de Drizzle. `npm run type-check` pasa.
-2. **Guardar al vender:** en `createSale`, `factoryUnitCost: product.unitCost` en cada renglón. Pruebas nuevas en `backend/tests/sales.test.ts`: vendedor con costo con envío `700` sobre fábrica `600` guarda `700`/`600`; sin costo propio y en bodega, los dos iguales. La respuesta de la venta no trae `factoryUnitCost`.
+1. **Migración y guardado al vender:** escribir `20261105000000_direct_sale_items_factory_unit_cost.sql` (§4) y correr `npm run db:reset`. Con `backend/.env` en LOCAL: `npm run db:pull`, los fixups y borrar los archivos de Drizzle. En `createSale`, `factoryUnitCost: product.unitCost` en cada renglón: sin esa línea la columna obligatoria rompe la venta y `type-check`. `npm run type-check` pasa.
+2. **Pruebas del guardado al vender:** casos nuevos en `backend/tests/sales.test.ts`: vendedor con costo con envío `700` sobre fábrica `600` guarda `700`/`600`; sin costo propio y en bodega, los dos iguales. La respuesta de la venta no trae `factoryUnitCost`.
 3. **Tipo de corte:** constantes, `CutType`, `parseCutType` y `type: 'prices'` en `getCashCut`. La ruta lee `type`; con `home` todavía responde lo mismo que hoy. Las pruebas de `cuts.test.ts` siguen pasando.
 4. **Esqueleto de `home-cut.ts`:** tipos, `getHomeCut` con el `403` para el vendedor, y titular y periodo resueltos con las funciones de `cuts.ts` (se exportan `salesOf` y lo que falte, sin cambiar su comportamiento). Reexportar en `index.ts`. La ruta llama a `getHomeCut` con `type=home`.
 5. **Totales y desglose por producto:** consultas con `sum()` agrupadas como en T-20, con `factoryCost`, `realProfit` y `shippingCover` según §3.
