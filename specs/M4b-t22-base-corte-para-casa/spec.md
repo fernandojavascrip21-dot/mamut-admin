@@ -5,7 +5,7 @@
 > **Fecha:** 2026-11-05
 > **Objetivo:** que cada venta guarde también el costo de fábrica del momento y que `GET /api/cuts?type=home` calcule para el administrador el corte para casa de un titular: vendido, costo de fábrica, ganancia real y «para cubrir envíos», con las mismas ventas del corte con precios.
 >
-> **Nota (2026-11-05):** implementado en el PR #51. Queda pendiente el criterio de producción de §6: aplicar la migración y correr las dos consultas de revisión antes de desplegar el backend.
+> **Nota (2026-11-05):** implementado en el PR #51. La migración se aplicó a producción a mano en el SQL Editor (`db push` no sirve, ver `CLAUDE.md`). Las dos consultas de revisión dieron `0`, y la columna quedó `not null`, `numeric(10,4)` y con su `check`.
 
 Fuentes:
 
@@ -150,7 +150,7 @@ export interface HomeCut {
 ## 6. Criterios de aceptación
 
 - [x] Tras `npm run db:reset`, `direct_sale_items.factory_unit_cost` existe como `numeric(10,4) not null` con `check (factory_unit_cost >= 0)`.
-- [ ] Tras aplicar la migración a producción, dan `0` las dos consultas de revisión: filas de bodega con `factory_unit_cost <> unit_cost`, y filas de vendedores con `factory_unit_cost <>` el `products.unit_cost` de su producto.
+- [x] Tras aplicar la migración a producción, dan `0` las dos consultas de revisión: filas de bodega con `factory_unit_cost <> unit_cost`, y filas de vendedores con `factory_unit_cost <>` el `products.unit_cost` de su producto.
 - [x] Un vendedor con costo con envío `700` vende un producto con costo de fábrica `600`: el renglón guarda `unit_cost = 700.0000` y `factory_unit_cost = 600.0000`.
 - [x] Sin costo con envío propio, y en las ventas de la bodega, el renglón guarda `unit_cost = factory_unit_cost`.
 - [x] La respuesta de `POST /api/sales` no contiene la llave `factoryUnitCost`.
