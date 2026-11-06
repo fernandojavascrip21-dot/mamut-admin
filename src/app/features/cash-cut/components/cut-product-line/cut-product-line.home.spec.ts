@@ -28,26 +28,28 @@ describe('CutProductLineComponent · corte para casa', () => {
     fixture = TestBed.createComponent(CutProductLineComponent);
     fixture.componentRef.setInput('line', line);
     fixture.componentRef.setInput('withShipping', true);
-    if (home) fixture.componentRef.setInput('cutType', 'home');
+    if (home) {
+      fixture.componentRef.setInput('cutType', 'home');
+      fixture.componentRef.setInput('layout', 'overview');
+    }
     fixture.detectChanges();
   }
 
   beforeEach(() => TestBed.configureTestingModule({ imports: [CutProductLineComponent] }));
 
-  it('muestra «2 × $920.00», «costo de fábrica $1,200.00», el subtotal y «+$640.00»', () => {
+  it('muestra «2 × $920.00», el subtotal y «+$640.00», sin línea de costo', () => {
     render(LINE);
     expect(text('.name')).toBe('Proteína Demo Whey');
     expect(text('.detail')).toBe('2 × $920.00');
-    expect(text('.factory-cost')).toBe('costo de fábrica $1,200.00');
+    expect(el().querySelector('.factory-cost')).toBeNull();
     expect(text('.total')).toBe('$1,840.00');
-    expect(text('.real-profit')).toBe('+$640.00');
+    expect(text('.profit')).toBe('+$640.00');
   });
 
   it('no muestra «costo con envío» ni el costo y la ganancia del corte con precios', () => {
     render(LINE);
     expect(allText()).not.toContain('costo con envío');
     expect(el().querySelector('.cost')).toBeNull();
-    expect(el().querySelector('.profit')).toBeNull();
     expect(allText()).not.toContain('$1,400.00');
     expect(allText()).not.toContain('$440.00');
   });
@@ -60,7 +62,7 @@ describe('CutProductLineComponent · corte para casa', () => {
 
   it('una ganancia real negativa lleva signo menos y no «+»', () => {
     render({ ...LINE, realProfit: '-40.00' });
-    expect(text('.real-profit')).toBe('-$40.00');
+    expect(text('.profit')).toBe('-$40.00');
   });
 
   it('sin cutType (corte con precios) ignora las llaves del corte para casa', () => {

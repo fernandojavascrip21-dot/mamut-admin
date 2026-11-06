@@ -39,7 +39,10 @@ describe('CutSaleItemComponent · corte para casa', () => {
     fixture = TestBed.createComponent(CutSaleItemComponent);
     fixture.componentRef.setInput('sale', sale);
     fixture.componentRef.setInput('showDate', showDate);
-    if (home) fixture.componentRef.setInput('cutType', 'home');
+    if (home) {
+      fixture.componentRef.setInput('cutType', 'home');
+      fixture.componentRef.setInput('layout', 'overview');
+    }
     fixture.detectChanges();
   }
 
@@ -50,11 +53,11 @@ describe('CutSaleItemComponent · corte para casa', () => {
 
   beforeEach(() => TestBed.configureTestingModule({ imports: [CutSaleItemComponent] }));
 
-  it('plegada muestra hora, total y «Ganancia real $640.00»', () => {
+  it('plegada muestra hora, total y «Ganancia $640.00»', () => {
     render(SALE);
     expect(text('.time')).toBe('12:42');
     expect(text('.total')).toBe('$1,840.00');
-    expect(text('.real-profit')).toBe('Ganancia real $640.00');
+    expect(text('.profit')).toBe('Ganancia $640.00');
   });
 
   it('con Semana o Mes muestra fecha y hora', () => {
@@ -64,7 +67,6 @@ describe('CutSaleItemComponent · corte para casa', () => {
 
   it('no muestra la ganancia del corte con precios ni «para cubrir envíos» por venta', () => {
     render(SALE);
-    expect(el().querySelector('.profit')).toBeNull();
     expect(allText()).not.toContain('$440.00');
     expect(allText()).not.toContain('envíos');
     expect(allText()).not.toContain('$200.00');
@@ -72,7 +74,7 @@ describe('CutSaleItemComponent · corte para casa', () => {
 
   it('una ganancia real negativa se muestra con signo menos', () => {
     render({ ...SALE, realProfit: '-40.00' });
-    expect(text('.real-profit')).toBe('Ganancia real -$40.00');
+    expect(text('.profit')).toBe('Ganancia -$40.00');
   });
 
   it('«Registrada por ti» con registeredByAdmin', () => {
@@ -80,14 +82,14 @@ describe('CutSaleItemComponent · corte para casa', () => {
     expect(text('.admin-tag')).toBe('Registrada por ti');
   });
 
-  it('al desplegarse cada producto muestra cantidad × precio, subtotal y su ganancia real', () => {
+  it('al desplegarse cada producto muestra cantidad × precio, subtotal y su ganancia', () => {
     render(SALE);
     expand();
     expect(text('.line-name')).toBe('Proteína Demo Whey');
     expect(text('.line-detail')).toBe('2 × $920.00');
     expect(text('.line-subtotal')).toBe('$1,840.00');
-    expect(text('.line-real-profit')).toBe('$640.00');
-    expect(el().querySelector('.line-profit')).toBeNull();
+    expect(text('.line-profit')).toBe('$640.00');
+    expect(el().querySelector('.line-real-profit')).toBeNull();
   });
 
   it('sin cutType (corte con precios) ignora las llaves del corte para casa', () => {

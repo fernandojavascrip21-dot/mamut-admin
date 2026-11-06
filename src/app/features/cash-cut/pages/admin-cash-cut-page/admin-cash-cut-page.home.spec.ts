@@ -248,12 +248,12 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
 
     expect(text('.result-title')).toBe('Corte para casa · Luis');
     expect(text('app-cut-summary .sold')).toBe('$1,840.00');
-    expect(text('app-cut-summary .factory-cost')).toBe('$1,200.00');
-    expect(text('app-cut-summary .real-profit')).toBe('$640.00');
+    expect(el().querySelector('app-cut-summary .factory-cost')).toBeNull();
+    expect(text('app-cut-summary .profit')).toBe('$640.00');
     expect(el().querySelector('app-cut-summary .shipping-cover')).toBeNull();
-    expect(text('.products app-cut-product-line .factory-cost')).toBe('costo de fábrica $1,200.00');
-    expect(text('.products app-cut-product-line .real-profit')).toBe('+$640.00');
-    expect(text('.sales app-cut-sale-item .real-profit')).toBe('Ganancia real $640.00');
+    expect(el().querySelector('.products app-cut-product-line .factory-cost')).toBeNull();
+    expect(text('.products app-cut-product-line .profit')).toBe('+$640.00');
+    expect(text('.sales app-cut-sale-item .profit')).toBe('Ganancia $640.00');
     expect(text('.result')).not.toContain('Costo con envío');
   });
 
@@ -269,7 +269,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
 
     expect(text('.result-title')).toBe('Corte para casa');
     expect(text('app-cut-summary .sold-caption')).toContain('Mis ventas desde bodega');
-    expect(text('app-cut-summary .factory-cost')).toBe('$1,200.00');
+    expect(text('app-cut-summary .profit')).toBe('$640.00');
     expect(el().querySelector('app-cut-summary .shipping-cover')).toBeNull();
   });
 

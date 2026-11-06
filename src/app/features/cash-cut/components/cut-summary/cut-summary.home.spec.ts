@@ -26,20 +26,23 @@ describe('CutSummaryComponent · corte para casa', () => {
     fixture.componentRef.setInput('totals', totals);
     fixture.componentRef.setInput('holderName', holderName);
     fixture.componentRef.setInput('periodText', '2 al 8 nov');
-    if (home) fixture.componentRef.setInput('cutType', 'home');
+    if (home) {
+      fixture.componentRef.setInput('cutType', 'home');
+      fixture.componentRef.setInput('layout', 'overview');
+    }
     fixture.detectChanges();
   }
 
   beforeEach(() => TestBed.configureTestingModule({ imports: [CutSummaryComponent] }));
 
-  it('con un vendedor muestra las tres cifras del backend con sus etiquetas', () => {
+  it('con un vendedor muestra Vendido y Ganancia con sus etiquetas, sin costos', () => {
     render(TOTALS, 'Luis');
     expect(text('.sold')).toBe('$1,840.00');
     expect(text('.sold-caption')).toBe('Vendió Luis · 2 al 8 nov · 2 piezas');
-    expect(text('.factory-cost-label')).toBe('Costo de fábrica');
-    expect(text('.factory-cost')).toBe('$1,200.00');
-    expect(text('.real-profit-label')).toBe('Ganancia real');
-    expect(text('.real-profit')).toBe('$640.00');
+    expect(text('.profit-label')).toBe('Ganancia');
+    expect(text('.profit')).toBe('$640.00');
+    expect(el().querySelector('.factory-cost')).toBeNull();
+    expect(el().querySelector('.cost')).toBeNull();
     expect(el().querySelector('.shipping-cover')).toBeNull();
     expect(allText()).not.toContain('Para cubrir envíos');
   });
@@ -48,24 +51,23 @@ describe('CutSummaryComponent · corte para casa', () => {
     render(TOTALS, 'Luis');
     expect(allText()).not.toContain('Costo con envío');
     expect(el().querySelector('.cost')).toBeNull();
-    expect(el().querySelector('.profit')).toBeNull();
     expect(allText()).not.toContain('$1,400.00');
     expect(allText()).not.toContain('$440.00');
   });
 
-  it('con la bodega conserva las tres cifras y no muestra «Para cubrir envíos»', () => {
+  it('con la bodega muestra Vendido y Ganancia y no muestra «Para cubrir envíos»', () => {
     render({ ...TOTALS, shippingCover: '0.00' }, null);
     expect(text('.sold-caption')).toBe('Mis ventas desde bodega · 2 al 8 nov · 2 piezas');
-    expect(text('.factory-cost')).toBe('$1,200.00');
-    expect(text('.real-profit')).toBe('$640.00');
+    expect(el().querySelector('.factory-cost')).toBeNull();
+    expect(text('.profit')).toBe('$640.00');
     expect(el().querySelector('.shipping-cover')).toBeNull();
     expect(allText()).not.toContain('Para cubrir envíos');
   });
 
   it('una ganancia real negativa se muestra con signo menos', () => {
     render({ ...TOTALS, realProfit: '-40.00' }, 'Luis');
-    expect(text('.real-profit')).toBe('-$40.00');
-    expect(el().querySelector('.real-profit')?.classList.contains('text-danger-border')).toBe(true);
+    expect(text('.profit')).toBe('-$40.00');
+    expect(el().querySelector('.profit')?.classList.contains('text-danger-border')).toBe(true);
   });
 
   it('un «para cubrir envíos» que mande el backend no se muestra', () => {
