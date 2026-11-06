@@ -221,6 +221,20 @@
           }
         </div>
 
+        <div class="flex min-h-11 items-center gap-3">
+          <p-checkbox
+            inputId="remember"
+            name="remember"
+            formControlName="remember"
+            [binary]="true"
+            size="large"
+            class="remember-checkbox shrink-0"
+          />
+          <label for="remember" class="field-label flex min-h-11 flex-1 cursor-pointer items-center">
+            {{ rememberLabel }}
+          </label>
+        </div>
+
         <button pButton
           type="submit"
           [disabled]="state() === 'loading'"

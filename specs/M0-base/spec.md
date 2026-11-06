@@ -158,7 +158,7 @@ El estado "sin conexión" (criterio 5 de HU-01) no es una respuesta del backend:
 **Frontend (`mamut-admin/src/app/`, todo nuevo salvo `app.routes.ts` y `app.config.ts` que ya existen vacíos):**
 
 - `auth/interfaces/auth.models.ts` — interfaces `AuthContext` y `SessionResult`, espejo de las del backend.
-- `auth/services/auth.service.ts` — `login()`, `logout()`, `refresh()`; signals `currentUser` e `isAuthenticated`; persiste `accessToken`, `refreshToken` y `user` en `localStorage` bajo las claves `mamut.accessToken`, `mamut.refreshToken` y `mamut.user`.
+- `auth/services/auth.service.ts` — `login()`, `logout()`, `refresh()`; signals `currentUser` e `isAuthenticated`; persiste `accessToken`, `refreshToken` y `user` en `localStorage` bajo las claves `mamut.accessToken`, `mamut.refreshToken` y `mamut.user`. Desde la casilla «Recordarme» del login, esas claves viven en `localStorage` si está marcada y en `sessionStorage` si no (por defecto); `refresh()` conserva el storage de origen y `clearSession()` limpia ambos.
 - `auth/services/auth.interceptor.ts` — agrega `Authorization: Bearer <accessToken>` a toda petición a la API; ante un 401 intenta `refresh()` una vez antes de forzar `logout()` y redirigir a `/login`.
 - `auth/guards/role.guard.ts` — `canMatch` que exige sesión válida y el rol permitido por la ruta; sin sesión redirige a `/login`, con el rol equivocado redirige a la home de su propio rol.
 - `pages/login-page/login-page.component.ts` (+ `.html`) — pantalla 01, con los 3 estados de la sección 3.1.
