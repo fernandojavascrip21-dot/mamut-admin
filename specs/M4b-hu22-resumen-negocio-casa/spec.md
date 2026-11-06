@@ -1,6 +1,6 @@
 # Spec técnico — HU-22 · Ver el resumen del negocio en el corte para casa con «Yo»
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M4b-t22-base-corte-para-casa (`specs/M4b-t22-base-corte-para-casa/spec.md`) — `getHomeCut`, totales del corte para casa y su redondeo; M4b-hu21-corte-para-casa (`specs/M4b-hu21-corte-para-casa/spec.md`) — «Corte de casa» en `/admin/corte`, `getHome()`, inputs `cutType` y `layout="overview"`; M4a-t20-base-cortes (`specs/M4a-t20-base-cortes/spec.md`) — `GET /api/cuts`, periodo y `salesOf`; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — «Yo · bodega»; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-06
 > **Nota (2026-11-06, interruptor):** al probar el resumen del negocio, el usuario vio que con «Yo · bodega» y «Corte de casa» ya no había forma de ver solo sus ventas: el resumen reemplazaba al corte de la bodega y la ganancia salía mezclada con la de los vendedores. Decidió un **interruptor** «Incluir a mis vendedores» que aparece solo con «Yo · bodega» y «Corte de casa»: apagado (valor inicial) es el corte para casa de la bodega de HU-21, y encendido es el resumen del negocio. Cambia lo aprobado en el objetivo, en §1, §2, §3, §4, §5, §6, §7, §9 y §10. El backend no cambia.
@@ -141,9 +141,17 @@ export const BUSINESS_WITHOUT_HOLDER = 'El resumen del negocio no lleva holderId
 
 // business-cut.ts
 export type CutScope = 'holder' | 'business';
-export interface BusinessCutHolder extends HomeCutTotals {
+// Es un `type` y no una `interface … extends HomeCutTotals`: los tests lo pasan a
+// `Record<string, unknown>` y una interface no es asignable ahí. Repite los 6 campos de `HomeCutTotals`.
+export type BusinessCutHolder = {
   holder: { id: string; fullName: string; active: boolean } | null; // null = bodega
-}
+  salesCount: number;
+  units: number;
+  total: string;
+  factoryCost: string;
+  realProfit: string;
+  shippingCover: string;
+};
 export interface BusinessCut {
   type: 'home';
   scope: 'business';
