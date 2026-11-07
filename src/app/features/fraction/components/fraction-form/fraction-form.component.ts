@@ -13,7 +13,7 @@ import type { SelectPassThrough } from 'primeng/types/select';
 import { PRICE_MAX, PRICE_SCALE, NO_UNITS_LABEL } from '../../constants/fraction-page.constants';
 import type { FractionOption } from '../../interfaces/fraction.models';
 import { fractionPreview } from '../../rules/fraction-preview.rules';
-import { portionsInRange, requiredMoney } from '../../validators/fraction-form.validators';
+import { notBlank, portionsInRange, requiredMoney } from '../../validators/fraction-form.validators';
 import {
   FRACTION_FORM_MESSAGES, FRACTION_FORM_TEXTS, FRACTION_SELECT_MOTION_OPTIONS,
 } from './fraction-form.constants';
@@ -70,6 +70,9 @@ export class FractionFormComponent implements OnInit {
   );
   // Error del servidor gana al local; ambos se pintan en el mismo campo.
   readonly productError = computed(() => this.liveServerErrors().product ?? this.fieldErrors().product ?? null);
+  readonly portionSizeError = computed(() => this.liveServerErrors().portionSize ?? this.fieldErrors().portionSize ?? null);
+  // Con bolsita existente la porción es la suya: se muestra y no se edita.
+  readonly portionSizeReadonly = computed(() => !!this.selectedOption()?.portionProduct);
   readonly portionsError = computed(() => this.liveServerErrors().portions ?? this.fieldErrors().portions ?? null);
   readonly priceError = computed(() => this.liveServerErrors().price ?? this.fieldErrors().price ?? null);
   // El entero sin piezas se marca como opción deshabilitada para lectores de pantalla (PrimeNG no lo pone).
@@ -88,12 +91,17 @@ export class FractionFormComponent implements OnInit {
   });
 
   private readonly productSelect = viewChild<Select>('productInput');
+  private readonly portionSizeInput = viewChild<ElementRef<HTMLInputElement>>('portionSizeInput');
   private readonly portionsInput = viewChild<ElementRef<HTMLInputElement>>('portionsInput');
   private readonly priceInput = viewChild<ElementRef<HTMLInputElement>>('priceInput');
 
   // --- Getters ---
   get productControl() {
     return this.form.controls.productId;
+  }
+
+  get portionSizeControl() {
+    return this.form.controls.portionSize;
   }
 
   get portionsControl() {
@@ -115,18 +123,22 @@ export class FractionFormComponent implements OnInit {
   private createEmptyForm(): FractionFormGroup {
     return this.formBuilder.group({
       productId: new FormControl<number | null>(null, Validators.required),
+      portionSize: this.formBuilder.control('', notBlank()),
       portions: this.formBuilder.control('', portionsInRange()),
       price: this.formBuilder.control('', requiredMoney(PRICE_SCALE, PRICE_MAX)),
     });
   }
 
-  // Escribir en un campo borra su error; elegir un entero prellena el precio de su bolsita.
+  // Escribir en un campo borra su error; elegir un entero prellena el precio y la porción de su bolsita.
   private listenToFieldChanges(): void {
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.syncPreview());
     this.productControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((productId) => {
       this.clearFieldError('product');
       this.prefillPrice(productId);
+      this.prefillPortionSize(productId);
     });
+    this.portionSizeControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearFieldError('portionSize'));
     this.portionsControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.clearFieldError('portions'));
     this.priceControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
@@ -145,6 +157,12 @@ export class FractionFormComponent implements OnInit {
     this.priceControl.setValue(option?.portionProduct?.price ?? '', options);
   }
 
+  // La porción sale de la bolsita si existe (no se edita); sin bolsita, la del entero, que se puede cambiar.
+  private prefillPortionSize(productId: number | null, options?: { emitEvent: boolean }): void {
+    const option = this.options().find((item) => item.productId === productId);
+    this.portionSizeControl.setValue(option?.portionProduct?.portionSize ?? option?.portionSize ?? '', options);
+  }
+
   // Con ?producto= válido el entero queda elegido; uno que no está en la lista se ignora. La carga
   // inicial es silenciosa: no es una edición del usuario y no debe borrar los errores del servidor.
   private loadInitialValue(): void {
@@ -153,6 +171,7 @@ export class FractionFormComponent implements OnInit {
     const silent = { emitEvent: false };
     this.productControl.setValue(productId, silent);
     this.prefillPrice(productId, silent);
+    this.prefillPortionSize(productId, silent);
     this.syncPreview();
   }
 
@@ -180,19 +199,25 @@ export class FractionFormComponent implements OnInit {
 
   // Bolsitas y precio se validan como texto (money.ts, sin redondeo silencioso) y solo después se
   // convierten; el valor ya pasó la validación, por eso no hace falta un caso para el null.
+  // La porción solo viaja con bolsita nueva: con una existente la base conserva la suya.
   private prepareSavePayload(): FractionFormSubmit {
     const raw = this.form.getRawValue();
-    return {
+    const payload: FractionFormSubmit = {
       productId: Number(raw.productId),
       portions: Number(raw.portions.trim()),
       price: raw.price.trim(),
     };
+    return this.selectedOption()?.portionProduct ? payload : { ...payload, portionSize: raw.portionSize.trim() };
   }
 
   private validationErrors(): Partial<Record<FractionFieldWithError, string>> {
     const errors: Partial<Record<FractionFieldWithError, string>> = {};
     if (this.productControl.invalid) errors.product = FRACTION_FORM_MESSAGES.productRequired;
     else if (this.selectedOption()?.warehouseUnits === 0) errors.product = NO_UNITS_LABEL;
+    // La porción sale del entero elegido: sin entero no hay de dónde tomarla y el error del producto basta.
+    if (this.productControl.valid && this.portionSizeControl.invalid) {
+      errors.portionSize = this.firstErrorMessage(this.portionSizeControl, FRACTION_FORM_MESSAGES.portionSize);
+    }
     if (this.portionsControl.invalid) {
       errors.portions = this.firstErrorMessage(this.portionsControl, FRACTION_FORM_MESSAGES.portions);
     }
@@ -210,6 +235,7 @@ export class FractionFormComponent implements OnInit {
 
   private focusFirstError(errors: Partial<Record<FractionFieldWithError, string>>): void {
     if (errors.product) this.productSelect()?.focus();
+    else if (errors.portionSize) this.portionSizeInput()?.nativeElement.focus();
     else if (errors.portions) this.portionsInput()?.nativeElement.focus();
     else this.priceInput()?.nativeElement.focus();
   }

@@ -53,6 +53,29 @@
   }
 
   <div class="flex flex-col gap-1.5">
+    <label for="portion-size" class="field-label">{{ texts.portionSizeInput }}</label>
+    <input
+      pInputText
+      id="portion-size"
+      name="portionSize"
+      type="text"
+      autocomplete="off"
+      #portionSizeInput
+      formControlName="portionSize"
+      [readonly]="portionSizeReadonly()"
+      [attr.aria-invalid]="portionSizeError() ? 'true' : null"
+      [attr.aria-describedby]="portionSizeError() ? 'portion-size-error' : null"
+      [invalid]="!!portionSizeError()"
+      class="h-[52px] min-w-0 w-full"
+    />
+    @if (portionSizeError()) {
+      <p id="portion-size-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ portionSizeError() }}
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5">
     <label for="portions" class="field-label">{{ texts.portions }}</label>
     <input
       pInputText

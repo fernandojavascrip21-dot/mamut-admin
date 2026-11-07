@@ -1,10 +1,5 @@
 import type { CardPassThrough } from 'primeng/types/card';
 
-// «Fraccionar» (HU-23) abre la pantalla del administrador con el entero ya elegido en `producto`.
-// Se repite la ruta aquí porque una feature no importa otra.
-export const FRACTION_URL = '/admin/fraccionar';
-export const FRACTION_QUERY_PARAM = 'producto';
-
 // El marco es `p-card`; su cuerpo y su contenido se estiran para que el enlace de edición ocupe el
 // alto de la tarjeta y «Dejar a vendedor» quede abajo, como antes con `surface-card`.
 export const PRODUCT_CARD_PASS_THROUGH = {

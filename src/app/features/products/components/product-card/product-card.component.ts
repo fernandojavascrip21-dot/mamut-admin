@@ -5,12 +5,10 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
-import { deliveryModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, fractionModalLink } from '@shared/utils/modal-links';
 import { STOCK_LEVEL_LABELS, type StockLevel } from '@shared/constants/stock-level.constants';
 import { initialsOf } from '@shared/utils/initials';
 import {
-  FRACTION_QUERY_PARAM,
-  FRACTION_URL,
   PRODUCT_CARD_FRACTION_TEXT,
   PRODUCT_CARD_PASS_THROUGH,
   PRODUCT_CARD_SELL_TEXTS,
@@ -70,9 +68,9 @@ export class ProductCardComponent {
   // «Fraccionar» (HU-23) solo con «Yo · bodega» y un producto fraccionable; aparece aunque no haya
   // piezas, porque la pantalla de fraccionar valida las piezas al enviar.
   readonly canFraction = computed(() => this.holderLabel() === null && this.product().fractionable);
-  readonly fractionUrl = FRACTION_URL;
   readonly fractionText = PRODUCT_CARD_FRACTION_TEXT;
-  readonly fractionQuery = computed(() => ({ [FRACTION_QUERY_PARAM]: this.product().id }));
+  // La ventana «Fraccionar» abre con el entero ya elegido (parámetro matricial `producto`).
+  readonly fractionLink = computed(() => fractionModalLink({ productId: this.product().id }));
   readonly showFooter = computed(() => this.canDeliver() || this.canFraction() || this.canSell());
   readonly deliveryLink = computed(() => deliveryModalLink({
     productId: this.product().id,

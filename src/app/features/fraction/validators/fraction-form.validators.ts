@@ -3,6 +3,11 @@ import { compareMoney, decimalPlaces, type MoneyScale } from '@shared/utils/mone
 import { WHOLE_NUMBER } from '../constants/fraction.constants';
 import { MAX_PORTIONS, MIN_PORTIONS } from '../constants/fraction-page.constants';
 
+// Texto obligatorio (la porción de la bolsita): vacío o solo espacios da error; se recorta antes de validar.
+export function notBlank(): ValidatorFn {
+  return (control) => (String(control.value ?? '').trim() === '' ? { required: true } : null);
+}
+
 // Bolsitas: entero de MIN_PORTIONS a MAX_PORTIONS. Se valida el texto antes de convertir, para que
 // «2.5» o «abc» den error de formato y no se redondeen en silencio.
 export function portionsInRange(): ValidatorFn {

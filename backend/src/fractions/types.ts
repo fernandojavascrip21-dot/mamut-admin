@@ -38,5 +38,5 @@ export interface FractionOption {
   warehouseUnits: number
   unitCost: string
   portionSize: string
-  portionProduct: { id: number; name: string; price: string; active: boolean } | null
+  portionProduct: { id: number; name: string; price: string; active: boolean; portionSize: string } | null
 }

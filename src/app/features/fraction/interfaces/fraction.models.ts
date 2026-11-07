@@ -6,7 +6,9 @@ export interface FractionOption {
   warehouseUnits: number;
   unitCost: string;
   portionSize: string;
-  portionProduct: { id: number; name: string; price: string; active: boolean } | null;
+  // Porción de la bolsita existente (solo lectura al fraccionar). Opcional para que los specs previos,
+  // que no la traen, sigan compilando; el backend siempre la manda.
+  portionProduct: { id: number; name: string; price: string; active: boolean; portionSize?: string } | null;
 }
 
 export interface Fraction {
@@ -20,11 +22,13 @@ export interface Fraction {
   portionProduct: { id: number; name: string; created: boolean; price: string; stock: number };
 }
 
+// portionSize solo va cuando la bolsita es nueva; con una existente se omite.
 export interface CreateFractionPayload {
   requestId: string;
   productId: number;
   portions: number;
   price: string;
+  portionSize?: string;
 }
 
 export type FractionFailureReason =

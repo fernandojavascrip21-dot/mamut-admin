@@ -78,6 +78,9 @@
       <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
       <a pButton [routerLink]="newProductUrl" class="mt-2 h-[52px] text-sm">{{ texts.emptyAction }}</a>
     </div>
+    <div class="mt-4">
+      <app-stock-quick-actions [actions]="quickActions()" />
+    </div>
   } @else {
     @if (seller(); as current) {
       <section class="seller-card mt-5 surface-card p-5">

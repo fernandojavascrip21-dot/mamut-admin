@@ -266,7 +266,7 @@ export async function listFractionOptions(): Promise<FractionOption[]> {
       unitCost: whole.unitCost,
       portionSize: whole.portionSize ?? '',
       portionProduct: bag
-        ? { id: bag.id, name: bag.name, price: bag.price, active: bag.active }
+        ? { id: bag.id, name: bag.name, price: bag.price, active: bag.active, portionSize: bag.portionSize ?? '' }
         : null,
     }
   })

@@ -8,6 +8,7 @@ export const FRACTION_SELECT_MOTION_OPTIONS = { safe: true } satisfies MotionOpt
 export const FRACTION_FORM_TEXTS = {
   product: 'Producto a abrir',
   placeholder: 'Elige un entero',
+  portionSizeInput: 'Gramos de cada bolsita',
   portions: 'Bolsitas que salieron',
   price: 'Precio de venta de la bolsita',
   portionSize: 'Porción',
@@ -21,6 +22,9 @@ export const FRACTION_FORM_TEXTS = {
 export const FRACTION_FORM_MESSAGES = {
   productRequired: 'Elige el entero a fraccionar',
   invalid: 'Revisa este campo',
+  portionSize: {
+    required: 'Escribe los gramos de cada bolsita',
+  },
   portions: {
     required: 'Escribe cuántas bolsitas salen',
     integer: 'Las bolsitas deben ser un número entero',
