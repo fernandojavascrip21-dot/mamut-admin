@@ -45,7 +45,7 @@ describe('CutProductLineComponent · layout overview', () => {
 
   beforeEach(() => TestBed.configureTestingModule({ imports: [CutProductLineComponent] }));
 
-  it('con «Corte del vendedor» muestra nombre, «2 × $920.00», subtotal y «+$440.00», sin costo', () => {
+  it('con «Ganancia del vendedor» muestra nombre, «2 × $920.00», subtotal y «+$440.00», sin costo', () => {
     render(LINE, 'seller');
     expect(text('.name')).toBe('Proteína Demo Whey');
     expect(text('.detail')).toBe('2 × $920.00');
@@ -54,7 +54,7 @@ describe('CutProductLineComponent · layout overview', () => {
     expectNoCostLine();
   });
 
-  it('con «Corte de casa» la ganancia del renglón sale de line.realProfit: «+$640.00»', () => {
+  it('con «Ganancia real» la ganancia del renglón sale de line.realProfit: «+$640.00»', () => {
     render(LINE, 'home');
     expect(text('.name')).toBe('Proteína Demo Whey');
     expect(text('.detail')).toBe('2 × $920.00');
@@ -70,12 +70,12 @@ describe('CutProductLineComponent · layout overview', () => {
     expectNoCostLine();
   });
 
-  it('con «Corte del vendedor» una ganancia negativa lleva signo menos y no «+»', () => {
+  it('con «Ganancia del vendedor» una ganancia negativa lleva signo menos y no «+»', () => {
     render({ ...LINE, profit: '-40.00' }, 'seller');
     expect(text('.profit')).toBe('-$40.00');
   });
 
-  it('con «Corte de casa» una ganancia real negativa lleva signo menos y no «+»', () => {
+  it('con «Ganancia real» una ganancia real negativa lleva signo menos y no «+»', () => {
     render({ ...LINE, realProfit: '-40.00' }, 'home');
     expect(text('.profit')).toBe('-$40.00');
   });

@@ -19,8 +19,8 @@ const LUIS: ViewingSeller = {
   fullName: 'Luis Vendedor',
 };
 const ANA_ID = '7a2b3c4d-5e6f-4a70-8b9c-0d1e2f3a4b5c';
-const HOME_OPTION = 'Corte de casa';
-const PRICES_OPTION = 'Corte del vendedor';
+const HOME_OPTION = 'Ganancia real';
+const PRICES_OPTION = 'Ganancia del vendedor';
 
 // Resumen del negocio del 2 al 8 nov (HU-22): bodega $500, Luis $1,840 y Ana (desactivada) $500.
 // Los totales ya vienen sumados por el backend; la pantalla solo los pinta. Trae `products` y `sales`
@@ -129,7 +129,7 @@ const EMPTY_BUSINESS_CUT: CashCut = {
   products: [],
   sales: [],
 };
-// Corte para casa de Luis solo (HU-21): con desglose por producto y ventas, sin `holders`.
+// Ganancia real de Luis solo (HU-21): con desglose por producto y ventas, sin `holders`.
 const LUIS_HOME_CUT: CashCut = {
   holder: LUIS,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -222,12 +222,12 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
     return params;
   }
   // El interruptor «Incluir a mis vendedores» (p-toggleswitch): solo existe con «Yo · bodega» y
-  // «Corte de casa», así que se enciende después de elegir ese tipo.
+  // «Ganancia real», así que se enciende después de elegir ese tipo.
   async function turnOnSellers() {
     (el().querySelector('p-toggleswitch.sellers-toggle input') as HTMLElement).click();
     await settle();
   }
-  // «Yo · bodega» + «Corte de casa» + interruptor encendido + «Generar corte», respondido con `cut`.
+  // «Yo · bodega» + «Ganancia real» + interruptor encendido + «Generar corte», respondido con `cut`.
   async function generateBusiness(cut: CashCut) {
     await pickCutType(HOME_OPTION);
     await turnOnSellers();
@@ -274,7 +274,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
   });
 
   describe('qué corte se pide', () => {
-    it('con «Yo · bodega» y «Corte de casa» llama a getBusiness() y no a getHome() ni a get()', async () => {
+    it('con «Yo · bodega» y «Ganancia real» llama a getBusiness() y no a getHome() ni a get()', async () => {
       await pickWeek();
       await pickCutType(HOME_OPTION);
       await turnOnSellers();
@@ -293,7 +293,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
       expect(service.get).not.toHaveBeenCalled();
     });
 
-    it('con un vendedor en «Viendo» y «Corte de casa» llama a getHome() con holderId y sin scope', async () => {
+    it('con un vendedor en «Viendo» y «Ganancia real» llama a getHome() con holderId y sin scope', async () => {
       seller.set(LUIS);
       await settle();
       await pickCutType(HOME_OPTION);
@@ -310,26 +310,27 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
       expect(service.get).not.toHaveBeenCalled();
     });
 
-    it('con «Corte del vendedor» y «Yo · bodega» llama a get() sin type ni scope', async () => {
+    it('con «Yo · bodega» «Ganancia del vendedor» no se puede elegir y «Generar corte» llama a getHome() sin scope', async () => {
+      await pickCutType(PRICES_OPTION);
       click('.generate');
 
-      const params = await answer(cutRequest(), WAREHOUSE_SELLER_CUT);
-      expect(params.has('type')).toBe(false);
+      const params = await answer(cutRequest(), LUIS_HOME_CUT);
+      expect(params.get('type')).toBe('home');
       expect(params.has('scope')).toBe(false);
       expect(params.has('holderId')).toBe(false);
-      expect(service.get).toHaveBeenCalledWith(
+      expect(service.getHome).toHaveBeenCalledWith(
         expect.objectContaining({ holderId: null, period: 'day', date: '2026-11-04' }),
       );
       expect(service.getBusiness).not.toHaveBeenCalled();
-      expect(service.getHome).not.toHaveBeenCalled();
+      expect(service.get).not.toHaveBeenCalled();
     });
   });
 
   describe('resultado del resumen', () => {
-    it('muestra «Corte para casa», «Todo el negocio» y los totales del negocio sin costos ni envíos', async () => {
+    it('muestra «Ganancia real», «Todo el negocio» y los totales del negocio sin costos ni envíos', async () => {
       await generateBusiness(BUSINESS_DAY_CUT);
 
-      expect(text('.result-title')).toBe('Corte para casa');
+      expect(text('.result-title')).toBe('Ganancia real');
       expect(text('app-cut-summary .sold-caption')).toContain('Todo el negocio');
       expect(text('app-cut-summary .sold')).toBe('$2,840.00');
       expect(text('app-cut-summary .profit')).toBe('$1,027.50');
@@ -385,7 +386,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
       click('.generate');
       await answer(cutRequest(), LUIS_HOME_CUT);
 
-      expect(text('.result-title')).toBe('Corte para casa · Luis');
+      expect(text('.result-title')).toBe('Ganancia real · Luis');
       expect(el().querySelector('.products app-cut-product-line')).not.toBeNull();
       expect(el().querySelector('.sales app-cut-sale-item')).not.toBeNull();
       expect(el().querySelector('.holders')).toBeNull();
@@ -404,7 +405,7 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
       const params = await generateBusiness(BUSINESS_WITHOUT_HOLDERS);
 
       expect(params.get('scope')).toBe('business');
-      expect(text('.result-title')).toBe('Corte para casa');
+      expect(text('.result-title')).toBe('Ganancia real');
       expect(text('app-cut-summary .sold')).toBe('$2,840.00');
       expect(el().querySelector('app-cut-holder-line')).toBeNull();
       expect(el().querySelector('.products')).toBeNull();
@@ -412,14 +413,14 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
   });
 
   describe('descartar el resultado', () => {
-    it('cambiar el tipo de corte quita el resumen', async () => {
+    it('con «Yo · bodega» elegir «Ganancia del vendedor» no cambia nada y el resumen se conserva', async () => {
       const params = await generateBusiness(BUSINESS_DAY_CUT);
       expect(params.get('scope')).toBe('business');
       expect(el().querySelector('.result')).not.toBeNull();
 
       await pickCutType(PRICES_OPTION);
-      expect(el().querySelector('.result')).toBeNull();
-      expect(el().querySelector('.idle')).not.toBeNull();
+      expect(el().querySelector('.result')).not.toBeNull();
+      expect(el().querySelector('.idle')).toBeNull();
     });
 
     it('cambiar el periodo a «Semana» quita el resumen', async () => {
@@ -443,14 +444,15 @@ describe('AdminCashCutPageComponent · resumen del negocio', () => {
       expect(el().querySelector('.idle')).not.toBeNull();
     });
 
-    it('una respuesta tardía del resumen no se muestra después de cambiar el tipo', async () => {
+    it('una respuesta tardía del resumen no se muestra después de cambiar el titular', async () => {
       await pickCutType(HOME_OPTION);
       await turnOnSellers();
       click('.generate');
       const late = cutRequest();
       const lateParams = late.request.params;
 
-      pickCutTypeWhileLoading(PRICES_OPTION);
+      seller.set(LUIS);
+      fixture.detectChanges();
       // Si la petición sigue en vuelo, su respuesta llega tarde y debe ignorarse; si ya se canceló, no llega.
       if (!late.cancelled) late.flush({ cut: BUSINESS_DAY_CUT });
       await new Promise((resolve) => setTimeout(resolve));

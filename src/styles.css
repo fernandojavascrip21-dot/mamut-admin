@@ -210,6 +210,14 @@
     cursor: wait;
   }
 
+  /* Opción deshabilitada de un `p-select` (p. ej. «Corte del vendedor» con «Yo · bodega»): el tema
+     deja `disabledOpacity` en 1, así que se atenúa aparte para que se note que no se puede elegir. */
+  .p-select-option.p-disabled {
+    color: var(--color-faint);
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   /* El menú tiene una sola parada de Tab y mueve el foco con flechas: la opción enfocada se
      marca con el mismo anillo de antes (dentro de la celda, sobre fondo oscuro). */
   /* Pop-up `ventana` (modal-panel): pantalla completa en celular; desde `sm`, centrado con ancho

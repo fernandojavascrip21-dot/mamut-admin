@@ -59,7 +59,7 @@ export class CutSummaryComponent {
   readonly total = computed(() => Number(this.totals().total));
   readonly cost = computed(() => Number(this.totals().cost));
   readonly profit = computed(() => Number(this.totals().profit));
-  // Ganancia del layout `overview`: la real con «Corte de casa», la del vendedor con el otro tipo.
+  // Ganancia del layout `overview`: la real con «Ganancia real», la del vendedor con el otro tipo.
   private readonly overviewProfitText = computed(() =>
     this.cutType() === 'home' ? this.totals().realProfit : this.totals().profit,
   );

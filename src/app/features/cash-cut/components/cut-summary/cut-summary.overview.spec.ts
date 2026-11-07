@@ -92,7 +92,7 @@ describe('CutSummaryComponent · layout overview', () => {
     }),
   );
 
-  it('con «Corte del vendedor» y un vendedor muestra solo Vendido y Ganancia, sin costos', () => {
+  it('con «Ganancia del vendedor» y un vendedor muestra solo Vendido y Ganancia, sin costos', () => {
     render(TOTALS, 'Luis', 'seller');
     expect(text('.sold')).toBe('$1,840.00');
     expect(text('.sold-caption')).toBe('Vendió Luis · 2 al 8 nov · 2 piezas');
@@ -102,7 +102,7 @@ describe('CutSummaryComponent · layout overview', () => {
     expectNoCosts();
   });
 
-  it('con «Corte de casa» y un vendedor la ganancia sale de totals.realProfit', () => {
+  it('con «Ganancia real» y un vendedor la ganancia sale de totals.realProfit', () => {
     render(TOTALS, 'Luis', 'home');
     expect(text('.sold')).toBe('$1,840.00');
     expect(text('.sold-caption')).toBe('Vendió Luis · 2 al 8 nov · 2 piezas');
@@ -113,7 +113,7 @@ describe('CutSummaryComponent · layout overview', () => {
     expectNoCosts();
   });
 
-  it('con «Corte del vendedor» y la bodega: «Mis ventas desde bodega» y Ganancia, sin costos', () => {
+  it('con «Ganancia del vendedor» y la bodega: «Mis ventas desde bodega» y Ganancia, sin costos', () => {
     render({ ...TOTALS, units: 1 }, null, 'seller');
     expect(text('.sold-caption')).toBe('Mis ventas desde bodega · 2 al 8 nov · 1 pieza');
     expect(text('.profit-label')).toBe('Ganancia');
@@ -121,7 +121,7 @@ describe('CutSummaryComponent · layout overview', () => {
     expectNoCosts();
   });
 
-  it('con «Corte de casa» y la bodega: «Mis ventas desde bodega» y la ganancia real, sin costos', () => {
+  it('con «Ganancia real» y la bodega: «Mis ventas desde bodega» y la ganancia real, sin costos', () => {
     render({ ...TOTALS, shippingCover: '0.00' }, null, 'home');
     expect(text('.sold-caption')).toBe('Mis ventas desde bodega · 2 al 8 nov · 2 piezas');
     expect(text('.profit-label')).toBe('Ganancia');
@@ -135,7 +135,7 @@ describe('CutSummaryComponent · layout overview', () => {
     expect(comesBefore('.sold-caption', '.profit')).toBe(true);
   });
 
-  it('con «Corte del vendedor» una ganancia negativa lleva signo menos y va en rojo', () => {
+  it('con «Ganancia del vendedor» una ganancia negativa lleva signo menos y va en rojo', () => {
     render({ ...TOTALS, profit: '-40.00' }, 'Luis', 'seller');
     expect(text('.profit')).toBe('-$40.00');
     const profit = el().querySelector('.profit');
@@ -143,7 +143,7 @@ describe('CutSummaryComponent · layout overview', () => {
     expect(profit?.classList.contains('text-success-border')).toBe(false);
   });
 
-  it('con «Corte de casa» una ganancia real negativa lleva signo menos y va en rojo', () => {
+  it('con «Ganancia real» una ganancia real negativa lleva signo menos y va en rojo', () => {
     render({ ...TOTALS, realProfit: '-40.00' }, 'Luis', 'home');
     expect(text('.profit')).toBe('-$40.00');
     const profit = el().querySelector('.profit');

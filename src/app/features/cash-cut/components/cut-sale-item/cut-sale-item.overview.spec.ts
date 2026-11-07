@@ -52,7 +52,7 @@ describe('CutSaleItemComponent · layout overview', () => {
 
   beforeEach(() => TestBed.configureTestingModule({ imports: [CutSaleItemComponent] }));
 
-  it('con «Corte del vendedor» plegada muestra hora, total y «Ganancia $440.00»', () => {
+  it('con «Ganancia del vendedor» plegada muestra hora, total y «Ganancia $440.00»', () => {
     render(SALE, 'seller');
     expect(text('.time')).toBe('12:42');
     expect(text('.total')).toBe('$1,840.00');
@@ -61,7 +61,7 @@ describe('CutSaleItemComponent · layout overview', () => {
     expect(el().querySelector('.lines')).toBeNull();
   });
 
-  it('con «Corte de casa» plegada muestra «Ganancia $640.00» (sale.realProfit), sin «Ganancia real»', () => {
+  it('con «Ganancia real» plegada muestra «Ganancia $640.00» (sale.realProfit), sin «Ganancia real»', () => {
     render(SALE, 'home');
     expect(text('.time')).toBe('12:42');
     expect(text('.total')).toBe('$1,840.00');
@@ -76,12 +76,12 @@ describe('CutSaleItemComponent · layout overview', () => {
     expect(text('.time')).toBe('4 nov · 12:42');
   });
 
-  it('con «Corte del vendedor» una ganancia negativa se muestra «Ganancia -$40.00»', () => {
+  it('con «Ganancia del vendedor» una ganancia negativa se muestra «Ganancia -$40.00»', () => {
     render({ ...SALE, profit: '-40.00' }, 'seller');
     expect(text('.profit')).toBe('Ganancia -$40.00');
   });
 
-  it('con «Corte de casa» una ganancia real negativa se muestra «Ganancia -$40.00»', () => {
+  it('con «Ganancia real» una ganancia real negativa se muestra «Ganancia -$40.00»', () => {
     render({ ...SALE, realProfit: '-40.00' }, 'home');
     expect(text('.profit')).toBe('Ganancia -$40.00');
   });
@@ -91,7 +91,7 @@ describe('CutSaleItemComponent · layout overview', () => {
     expect(text('.admin-tag')).toBe('Registrada por ti');
   });
 
-  it('con «Corte del vendedor» al desplegarse cada producto muestra cantidad × precio, subtotal y su ganancia', () => {
+  it('con «Ganancia del vendedor» al desplegarse cada producto muestra cantidad × precio, subtotal y su ganancia', () => {
     render(SALE, 'seller');
     expand();
     expect(text('.line-name')).toBe('Proteína Demo Whey');
@@ -101,7 +101,7 @@ describe('CutSaleItemComponent · layout overview', () => {
     expect(el().querySelector('.line-real-profit')).toBeNull();
   });
 
-  it('con «Corte de casa» al desplegarse la ganancia de cada producto sale de line.realProfit', () => {
+  it('con «Ganancia real» al desplegarse la ganancia de cada producto sale de line.realProfit', () => {
     render(SALE, 'home');
     expand();
     expect(text('.line-name')).toBe('Proteína Demo Whey');
