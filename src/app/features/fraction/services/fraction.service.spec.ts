@@ -63,9 +63,9 @@ describe('FractionService', () => {
   it('traduce cada error del backend a su motivo', () => {
     const cases: [number, string, string, FractionResult][] = [
       [409, 'CONFLICT', 'No hay piezas suficientes', { ok: false, reason: 'no-units', message: 'No hay piezas suficientes' }],
-      [422, 'PRICE_BELOW_COST', 'Precio bajo el costo', { ok: false, reason: 'price-below-cost', message: 'Precio bajo el costo' }],
-      [422, 'PORTION_COST_ZERO', 'Costo en cero', { ok: false, reason: 'portions-invalid', message: 'Costo en cero' }],
-      [422, 'PORTIONS_OUT_OF_RANGE', 'Fuera de rango', { ok: false, reason: 'portions-invalid', message: 'Fuera de rango' }],
+      [422, 'validation', 'El precio no puede ser menor que el costo', { ok: false, reason: 'price-below-cost', message: 'El precio no puede ser menor que el costo' }],
+      [422, 'validation', 'El costo por bolsita es demasiado bajo', { ok: false, reason: 'portions-invalid', message: 'El costo por bolsita es demasiado bajo' }],
+      [422, 'validation', 'Las bolsitas van de 2 a 1000', { ok: false, reason: 'portions-invalid', message: 'Las bolsitas van de 2 a 1000' }],
       [422, 'NOT_FRACTIONABLE', 'No se fracciona', { ok: false, reason: 'conflict', message: 'No se fracciona' }],
       [409, 'FRACTION_MISMATCH', 'Otra operación', { ok: false, reason: 'conflict', message: 'Otra operación' }],
       [409, 'CONFLICT', 'Nombre ocupado', { ok: false, reason: 'conflict', message: 'Nombre ocupado' }],

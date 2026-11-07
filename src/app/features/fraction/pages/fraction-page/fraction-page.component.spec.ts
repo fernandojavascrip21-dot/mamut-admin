@@ -195,8 +195,8 @@ describe('FractionPageComponent', () => {
     await setup({ producto: '10' });
     await load();
     fillAndSubmit();
-    await fail(422, 'PRICE_BELOW_COST', 'El precio queda por debajo del costo');
-    expect(text()).toContain('El precio queda por debajo del costo');
+    await fail(422, 'validation', 'El precio no puede ser menor que el costo');
+    expect(text()).toContain('El precio no puede ser menor que el costo');
     expect(root().querySelector('#price')!.getAttribute('aria-describedby')).toBe('price-error');
   });
 
@@ -204,8 +204,8 @@ describe('FractionPageComponent', () => {
     await setup({ producto: '10' });
     await load();
     fillAndSubmit();
-    await fail(422, 'PORTION_COST_ZERO', 'Demasiadas bolsitas para ese costo');
-    expect(text()).toContain('Demasiadas bolsitas para ese costo');
+    await fail(422, 'validation', 'El costo por bolsita es demasiado bajo');
+    expect(text()).toContain('El costo por bolsita es demasiado bajo');
     expect(root().querySelector('#portions')!.getAttribute('aria-describedby')).toBe('portions-error');
   });
 
