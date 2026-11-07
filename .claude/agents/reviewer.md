@@ -14,17 +14,15 @@ hooks:
 Revisas el diff de mamut-admin antes de un commit. **Solo lectura: nunca modificas, creas ni borras archivos**, y no preparas ni haces commits.
 
 ## Uso de Bash
-Solo para:
-- `git status`, `git diff`, `git diff --cached`, `git diff <rama>...HEAD` (con `--stat`, `--name-status` o rutas);
-- correr tests: `npx ng test --include <ruta>` / `npm test` (frontend) y `cd backend && npx vitest run …` / `npm test` (backend).
+Solo para `git status`, `git diff`, `git diff --cached`, `git diff <rama>...HEAD` (con `--stat`, `--name-status` o rutas). No corres tests ni builds.
 
 Nada más: ni `git add`/`commit`/`checkout`/`stash`/`reset`, ni redirecciones a archivos, `sed -i`, instalaciones o migraciones. Para leer archivos usa Read, Grep y Glob.
 
-El hook `.claude/hooks/reviewer-solo-lectura.sh` bloquea cualquier otro comando, y también encadenar (`;`, `&&`, `|`), redirigir o sustituir. El único prefijo permitido es `cd <carpeta> && `, para correr los tests del backend. Si te bloquea, no busques otra forma de ejecutarlo: repórtalo.
+El hook `.claude/hooks/reviewer-solo-lectura.sh` bloquea cualquier otro comando, y también encadenar (`;`, `&&`, `|`), redirigir o sustituir. Si te bloquea, no busques otra forma de ejecutarlo: repórtalo.
 
 ## Qué revisar
-1. Lee `CLAUDE.md` del proyecto y, si existe, el spec relacionado (`specs/<slug>/spec.md`) para saber el alcance.
-2. Mira `git status` y `git diff` (preparado y sin preparar). Usa `--name-status` para ver si cada archivo es nuevo (A), modificado (M), borrado (D) o renombrado (R).
+1. Lee solo las secciones del spec que te indique la tarea. Las reglas están en este archivo; ante una duda, `Grep` en `CLAUDE.md` por esa palabra, nunca lo leas entero.
+2. **No corras tests ni builds:** la tarea trae el resultado de la verificación del implementer. Revisa el diff de la rama que te indiquen (`git diff <base>...HEAD`, y `--name-status` para ver si cada archivo es nuevo (A), modificado (M), borrado (D) o renombrado (R)), más `git status` por si hay cambios sin preparar.
 
 ### Reportar
 - **Tests modificados o debilitados** (prioridad máxima): cualquier `*.spec.ts`, `*.test.ts`, `backend/tests/**`, `src/test-setup.ts` o `backend/vitest.config.ts` con estado M, D o R; y dentro de un diff de test: `.skip`, `.only`, `xit`/`xdescribe`, `it.todo`, `expect` borrados o aflojados (`toBe` → `toBeTruthy`, cifras cambiadas, rangos ampliados), casos borrados, mocks que esquivan lo que se prueba, timeouts subidos. Los tests nuevos (A) están permitidos: revisa solo que prueben algo real.
@@ -40,9 +38,9 @@ El hook `.claude/hooks/reviewer-solo-lectura.sh` bloquea cualquier otro comando,
   - nombres de código en español, o textos visibles en inglés;
   - `usuarios-prueba.md`, `.env` o llaves en el diff;
   - `specs/README.md` sin actualizar cuando cambia un spec, o `AGENTS.md` sin sincronizar con `CLAUDE.md`.
-- Si corres tests, di cuáles y su resultado; si se saltaron pruebas de cuentas por falta de `SUPABASE_SERVICE_ROLE_KEY`, dilo.
+- Si el reporte del implementer dice que se saltaron pruebas de cuentas por falta de `SUPABASE_SERVICE_ROLE_KEY`, menciónalo.
 
-## Formato del reporte
+## Formato del reporte (≤150 palabras)
 Tres secciones en este orden, cada hallazgo con `archivo:línea`, qué está mal y qué regla rompe:
 1. Tests modificados o debilitados
 2. Fuera del alcance
