@@ -7,3 +7,5 @@ export const MODAL_OUTLET = 'ventana';
 export const MODAL_DELIVERY_PATH = 'dejar';
 export const MODAL_RETURN_PATH = 'retirar';
 export const MODAL_EDIT_HOLDING_PATH = 'editar';
+// Ventana «Fraccionar» (HU-23): con el parámetro matricial opcional `producto`.
+export const MODAL_FRACTION_PATH = 'fraccionar';

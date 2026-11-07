@@ -1,6 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import type { Fraction } from '../../interfaces/fraction.models';
@@ -10,7 +9,7 @@ import { FRACTION_RESULT_TEXTS } from './fraction-result.constants';
 // Resultado de «Fraccionar» (HU-23): muestra lo que devolvió el backend, sin calcular dinero.
 // Bodega antes → después; con `replayed` el «antes» no es fiable, así que solo va el después.
 @Component({
-  imports: [CurrencyPipe, ButtonDirective, RouterLink, Tag],
+  imports: [CurrencyPipe, ButtonDirective, Tag],
   selector: 'app-fraction-result',
   templateUrl: './fraction-result.component.html',
 })
@@ -18,6 +17,8 @@ export class FractionResultComponent {
   readonly fraction = input.required<Fraction>();
   readonly replayed = input(false);
   readonly again = output<void>();
+  // «Ver stock general»: la página decide cerrar el pop-up; este componente no navega.
+  readonly viewStock = output<void>();
   readonly texts = FRACTION_RESULT_TEXTS;
 
   private readonly stock = computed(() => fractionBeforeAfter(this.fraction(), this.replayed()));

@@ -41,6 +41,6 @@
     <button pButton type="button" severity="secondary" class="h-11 min-w-11 px-4" (click)="again.emit()">
       {{ texts.again }}
     </button>
-    <a pButton routerLink="/admin/stock" class="h-11 min-w-11 px-4">{{ texts.stock }}</a>
+    <button pButton type="button" class="h-11 min-w-11 px-4" (click)="viewStock.emit()">{{ texts.stock }}</button>
   </div>
 </section>
