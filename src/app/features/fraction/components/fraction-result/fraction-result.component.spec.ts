@@ -83,11 +83,15 @@ describe('FractionResultComponent', () => {
     expect(again).toHaveBeenCalledTimes(1);
   });
 
-  it('«Ver stock general» enlaza a /admin/stock', () => {
+  it('«Ver stock general» es un botón que emite viewStock', () => {
     render();
-    const link = Array.from(fixture.nativeElement.querySelectorAll('a')).find((a) =>
-      (a as HTMLElement).textContent!.includes('Ver stock general'),
-    ) as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe('/admin/stock');
+    const viewStock = vi.fn();
+    fixture.componentInstance.viewStock.subscribe(viewStock);
+    const button = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+      (b as HTMLElement).textContent!.includes('Ver stock general'),
+    ) as HTMLButtonElement;
+    button.click();
+    expect(viewStock).toHaveBeenCalledTimes(1);
   });
+
 });

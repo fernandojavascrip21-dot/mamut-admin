@@ -37,7 +37,7 @@ describe('FractionPageComponent', () => {
   let httpMock: HttpTestingController;
   let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
-  const root = () => fixture.nativeElement as HTMLElement;
+  const root = () => document.body;
   const text = () => (root().textContent ?? '').replace(/\s+/g, ' ');
 
   const settle = async () => {
@@ -54,7 +54,7 @@ describe('FractionPageComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(query) } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(query) } } },
         { provide: ToastService, useValue: toast },
       ],
     }).compileComponents();
