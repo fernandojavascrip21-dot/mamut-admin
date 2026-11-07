@@ -19,7 +19,7 @@ import {
   PRODUCT_NAME_CONSTRAINT,
   WHOLE_UNITS_PER_FRACTION,
 } from './constants'
-import type { CreateFractionInput, Fraction, FractionActor, FractionRow, ProductRow } from './types'
+import type { CreateFractionInput, Fraction, FractionActor, FractionOption, FractionRow, ProductRow } from './types'
 
 // Nombre de la bolsita: el del entero más su porción (spec T-24 §3).
 const portionProductName = (wholeName: string, portionSize: string) => `${wholeName} · bolsita ${portionSize}`
@@ -218,4 +218,9 @@ export async function getFraction(requestId: string): Promise<Fraction> {
   const [row] = await db.select().from(fractions).where(eq(fractions.requestId, requestId))
   if (!row) throw notFound()
   return toFraction(row)
+}
+
+// Esqueleto de HU-23: lista los enteros fraccionables con su bolsita. Sin implementar.
+export async function listFractionOptions(): Promise<FractionOption[]> {
+  throw new Error('listFractionOptions sin implementar')
 }
