@@ -34,6 +34,15 @@ export function fromMinorUnits(units: number, scale: MoneyScale): string {
   return `${sign}${digits.slice(0, -scale)}.${digits.slice(-scale)}`
 }
 
+// value ÷ divisor a la misma escala, en unidades enteras y redondeado una sola vez, mitad hacia
+// arriba (spec T-24: costo por bolsita). Solo para montos >= 0, donde «mitad hacia arriba» y
+// «mitad lejos de cero» coinciden. Lanza si el divisor no es un entero >= 1.
+export function divideMoney(value: string, scale: MoneyScale, divisor: number): string {
+  if (!Number.isInteger(divisor) || divisor < 1) throw new Error(`Divisor inválido: ${divisor}`)
+  const units = toMinorUnits(value, scale)
+  return fromMinorUnits(Math.floor((2 * units + divisor) / (2 * divisor)), scale)
+}
+
 // Compara dos montos de cualquier escala llevándolos a escala 4: -1, 0 o 1.
 export function compareMoney(a: string, aScale: MoneyScale, b: string, bScale: MoneyScale): -1 | 0 | 1 {
   const left = toMinorUnits(a, aScale) * 10 ** (4 - aScale)
