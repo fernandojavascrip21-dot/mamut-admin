@@ -144,12 +144,13 @@ describe('StockPageComponent', () => {
       expect(whey.querySelector('.breakdown')?.textContent?.trim()).toBe('Bodega 4 · Luis 6');
     });
 
-    it('ofrece los cuatro movimientos rápidos con sus destinos', () => {
-      expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Vender', 'Nuevo producto']);
+    it('ofrece los cinco movimientos rápidos con sus destinos', () => {
+      expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Vender', 'Fraccionar', 'Nuevo producto']);
       expect(actionHrefs()).toEqual([
         '/admin/entrada',
         hrefOf(deliveryModalLink()),
         '/admin/productos',
+        '/admin/fraccionar',
         '/admin/productos/nuevo',
       ]);
     });
