@@ -1,4 +1,14 @@
-// Forma del formulario: las bolsitas van como texto y se validan como entero 2..1000.
+import type { FormControl, FormGroup } from '@angular/forms';
+
+// Forma del formulario, separada del payload: las bolsitas y el precio van como texto (se validan
+// antes de convertir) y el entero es su id o null si todavía no se eligió.
+export type FractionFormGroup = FormGroup<{
+  productId: FormControl<number | null>;
+  portions: FormControl<string>;
+  price: FormControl<string>;
+}>;
+
+// Valor del formulario tal como lo escribe el usuario.
 export interface FractionFormValue {
   productId: number | null;
   portions: string;
@@ -12,9 +22,19 @@ export interface FractionServerErrors {
   price?: string | null;
 }
 
+// Campos que pueden mostrar un error al enviar.
+export type FractionFieldWithError = 'product' | 'portions' | 'price';
+
 // Lo que emite el formulario; el requestId lo agrega la página.
 export interface FractionFormSubmit {
   productId: number;
   portions: number;
   price: string;
+}
+
+// Opción del selector: los enteros sin piezas salen deshabilitados.
+export interface FractionProductOption {
+  value: number;
+  label: string;
+  disabled: boolean;
 }

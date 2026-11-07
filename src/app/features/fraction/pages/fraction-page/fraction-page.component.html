@@ -1,1 +1,37 @@
-<h1 class="page-title">Fraccionar</h1>
+<section class="mx-auto flex w-full max-w-xl flex-col gap-5">
+  <header class="flex flex-col gap-1">
+    <h1 class="page-title">{{ texts.title }}</h1>
+    <p class="m-0 text-sm font-semibold text-muted">{{ texts.subtitle }}</p>
+  </header>
+
+  @if (optionsResource.error() && !optionsResource.hasValue()) {
+    <div class="surface-card flex flex-col gap-3 p-5">
+      <p class="alert-danger m-0 text-sm font-semibold" role="alert">{{ texts.loadError }}</p>
+      <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="optionsResource.reload()">
+        {{ texts.retry }}
+      </button>
+    </div>
+  } @else if (!optionsResource.hasValue()) {
+    <div class="surface-card flex flex-col gap-3 p-5" aria-live="polite">
+      <p class="m-0 text-sm font-semibold text-muted">{{ texts.loading }}</p>
+      <p-skeleton height="52px" />
+      <p-skeleton height="52px" />
+    </div>
+  } @else if (products().length === 0) {
+    <div class="surface-card flex flex-col gap-3 p-5">
+      <p class="m-0 font-semibold">{{ texts.empty }}</p>
+      <a pButton routerLink="/admin/productos" class="h-11 min-w-11 w-fit px-4">{{ texts.emptyLink }}</a>
+    </div>
+  } @else if (outcome(); as done) {
+    <app-fraction-result [fraction]="done.fraction" [replayed]="done.replayed" (again)="onAgain()" />
+  } @else {
+    <app-fraction-form
+      [options]="products()"
+      [initialProductId]="preselectedId()"
+      [saving]="saving()"
+      [serverErrors]="serverErrors()"
+      [notice]="notice()"
+      (submitted)="onSubmitted($event)"
+    />
+  }
+</section>
