@@ -4,6 +4,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { db, sql } from '@db/client'
 import { products, stockMovements } from '@db/schema'
 import { createProduct } from '@products'
+import { withTransaction } from '@db/transaction'
+import { insertMovements } from '@stock'
 import { createFraction, getFraction, type CreateFractionInput } from '@fractions'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
@@ -31,16 +33,22 @@ describe.skipIf(!hasServiceKey)('Fraccionar un entero en bolsitas (T-24, base re
   let seller: TestUser
 
   const newWhole = async (opts: { qty?: number; fractionable?: boolean; unitCost?: string; price?: string } = {}) => {
+    // Con 0 piezas no se puede crear (el movimiento initial debe ser > 0): se crea con 1 y se da de baja la pieza con una merma.
     const created = await createProduct({
       name: productName('entero'),
       categoryId: null,
       price: opts.price ?? '900.00',
       unitCost: opts.unitCost ?? '450.0000',
-      initialQty: opts.qty ?? 3,
+      initialQty: opts.qty === 0 ? 1 : opts.qty ?? 3,
       fractionable: opts.fractionable ?? true,
       portionSize: opts.fractionable === false ? null : '250 g',
       image: null,
     }, admin.id)
+    if (opts.qty === 0) {
+      await withTransaction((tx) => insertMovements(tx, [{
+        productId: created.id as number, type: 'shrinkage', qty: -1, holderProfileId: null, createdBy: admin.id,
+      }]))
+    }
     return created.id as number
   }
 
@@ -136,7 +144,10 @@ describe.skipIf(!hasServiceKey)('Fraccionar un entero en bolsitas (T-24, base re
     await expect(createFraction(input(id), asAdmin())).rejects.toMatchObject({
       code: 'conflict', message: 'No hay piezas suficientes',
     })
-    expect(await countRows(id)).toEqual({ fractions: 0, movements: 0, bag: 0 })
+    // Solo cuentan los movimientos de fraccionado: la merma del setup no es parte del caso.
+    const fractionMovements = (await movementsOf(id)).filter((m) => m.type.startsWith('fraction_'))
+    expect(fractionMovements).toHaveLength(0)
+    expect(await countRows(id)).toMatchObject({ fractions: 0, bag: 0 })
   })
 
   it('422 si el producto no es fraccionable', async () => {

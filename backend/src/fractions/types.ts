@@ -1,3 +1,5 @@
+import type { fractions, products } from '@db/schema'
+
 export interface CreateFractionInput {
   requestId: string
   productId: number
@@ -20,3 +22,7 @@ export interface Fraction {
   product: { id: number; name: string; stock: number }
   portionProduct: { id: number; name: string; created: boolean; price: string; stock: number }
 }
+
+// Filas de la base que usa el caso de uso (typeof del esquema de Drizzle).
+export type FractionRow = typeof fractions.$inferSelect
+export type ProductRow = typeof products.$inferSelect

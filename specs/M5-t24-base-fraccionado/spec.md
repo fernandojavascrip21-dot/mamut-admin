@@ -1,9 +1,11 @@
 # Spec técnico — T-24 · Base del fraccionado: fraccionar un entero en bolsitas en una transacción (backend)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M1-t03-tablas-productos-stock (`specs/M1-t03-tablas-productos-stock/spec.md`) — `products.fractionable`, `portion_size`, `parent_product_id` (una bolsita por entero) y los tipos `fraction_out`/`fraction_in`; M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — saldos por trigger, `insertMovements` y signos; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto, `money.ts`, sin redondeo silencioso; M3-t18-base-ventas (`specs/M3-t18-base-ventas/spec.md`) — patrón de idempotencia con `request_id` y tabla propia ligada a los movimientos
 > **Fecha:** 2026-11-07
 > **Objetivo:** que `POST /api/fractions` registre en una sola transacción que se abrió 1 entero de la bodega y salieron N bolsitas (crea o reusa la bolsita, le pone su costo por bolsita y su precio) y que reintentar la misma petición no fraccione dos veces.
+>
+> **Nota (2026-11-07):** implementado. La migración se aplicó a producción a mano en el SQL Editor y `db:pull` se corrió contra producción. `npm run type-check` y `npm test` pasan (335 pruebas, con `SUPABASE_SERVICE_ROLE_KEY`). Los `403`, `404` y `422` y el `GET` se probaron en el caso de uso; las rutas `app/api/fractions/**` solo se revisaron con `type-check` (§7). Un reintento sin `price` se acepta (§9, opción A).
 
 Fuentes:
 
@@ -69,8 +71,8 @@ El patrón de idempotencia de las entregas no sirve tal cual: el índice `stock_
   - `fraction_in`, `qty = +portions`, en la bolsita.
 - **Idempotencia (`requestId`, UUID, patrón de ventas):**
   - Primera vez → `201`.
-  - Mismo `requestId` con el mismo `productId`, `portions` y `price` (o `price` ausente en los dos) → `200` con el mismo fraccionado y `replayed: true`; no se mueve nada.
-  - Mismo `requestId` con otros datos → `409` «Este fraccionado ya se registró con otros datos.».
+  - Mismo `requestId` con el mismo `productId` y `portions` → `200` con el mismo fraccionado y `replayed: true`; no se mueve nada. Si la repetición trae `price`, debe ser igual al `portion_price` guardado; si no lo trae, no se compara (la tabla guarda el precio que quedó, no el que mandó el cliente).
+  - Mismo `requestId` con otro `productId`, otras `portions` u otro `price` (cuando viene) → `409` «Este fraccionado ya se registró con otros datos.».
   - Dos peticiones iguales a la vez: el índice único de `fractions.request_id` deja pasar una; la otra cae en la respuesta de repetición.
 - **Concurrencia:** el entero se bloquea con `lockRows` (`select … for update`) antes de buscar o crear la bolsita, así que dos primeros fraccionados del mismo entero no crean dos bolsitas.
 
@@ -157,18 +159,18 @@ Constantes nuevas en `backend/src/fractions/constants.ts`: `MIN_PORTIONS = 2`, `
 
 ## 6. Criterios de aceptación
 
-- [ ] La migración pasa con `npm run db:reset` y en producción deja `fractions` con `fractions_request_id_key` y `stock_movements.fraction_id` con `stock_movements_fraction_type_check`.
-- [ ] Fraccionar un entero con 3 piezas en bodega en 7 bolsitas deja el entero en 2 y la bolsita en +7, con un `fraction_out` (`-1`) y un `fraction_in` (`+7`), los dos de la bodega y con el mismo `fraction_id` (criterio 1 de `SCRUM-62`).
-- [ ] Con `unitCost = 450.0000` y 7 bolsitas, la respuesta trae `portionUnitCost = "64.2857"` y la bolsita queda con `unit_cost = 64.2857` (criterio 2).
-- [ ] El primer fraccionado crea la bolsita «<entero> · bolsita <porción>» con la categoría, la foto y la porción del entero, `fractionable = false`, `parent_product_id = entero` y `portionProduct.created = true`.
-- [ ] Un segundo fraccionado del mismo entero reusa la misma bolsita (`created = false`), sobrescribe su costo con el nuevo y, sin `price`, conserva el precio anterior (criterio 3).
-- [ ] Una bolsita desactivada se reactiva al fraccionar su entero.
-- [ ] Entero con 0 piezas en bodega → `409` sin filas nuevas en `fractions`, `stock_movements` ni `products` (criterio 4).
-- [ ] Producto con `fractionable = false` → `422`; producto inexistente o desactivado → `404`; vendedor → `403` (criterio 4).
-- [ ] `portions` de `1`, `1001` o `2.5` → `422`; sin `price` al crear la bolsita → `422`; precio menor que el costo por bolsita → `422`; costo por bolsita `0.0000` → `422`; nombre de bolsita ocupado por otro producto → `409`.
-- [ ] Reintentar con el mismo `requestId` y los mismos datos responde `200`, `replayed: true` y no mueve piezas; con otros datos responde `409` (criterio 5).
-- [ ] `GET /api/fractions/[requestId]` devuelve el fraccionado; uno inexistente da `404`.
-- [ ] `npm run type-check`, `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) y `tests/architecture.test.ts` pasan.
+- [x] La migración pasa con `npm run db:reset` y en producción deja `fractions` con `fractions_request_id_key` y `stock_movements.fraction_id` con `stock_movements_fraction_type_check`.
+- [x] Fraccionar un entero con 3 piezas en bodega en 7 bolsitas deja el entero en 2 y la bolsita en +7, con un `fraction_out` (`-1`) y un `fraction_in` (`+7`), los dos de la bodega y con el mismo `fraction_id` (criterio 1 de `SCRUM-62`).
+- [x] Con `unitCost = 450.0000` y 7 bolsitas, la respuesta trae `portionUnitCost = "64.2857"` y la bolsita queda con `unit_cost = 64.2857` (criterio 2).
+- [x] El primer fraccionado crea la bolsita «<entero> · bolsita <porción>» con la categoría, la foto y la porción del entero, `fractionable = false`, `parent_product_id = entero` y `portionProduct.created = true`.
+- [x] Un segundo fraccionado del mismo entero reusa la misma bolsita (`created = false`), sobrescribe su costo con el nuevo y, sin `price`, conserva el precio anterior (criterio 3).
+- [x] Una bolsita desactivada se reactiva al fraccionar su entero.
+- [x] Entero con 0 piezas en bodega → `409` sin filas nuevas en `fractions`, `stock_movements` ni `products` (criterio 4).
+- [x] Producto con `fractionable = false` → `422`; producto inexistente o desactivado → `404`; vendedor → `403` (criterio 4).
+- [x] `portions` de `1`, `1001` o `2.5` → `422`; sin `price` al crear la bolsita → `422`; precio menor que el costo por bolsita → `422`; costo por bolsita `0.0000` → `422`; nombre de bolsita ocupado por otro producto → `409`.
+- [x] Reintentar con el mismo `requestId` y los mismos datos responde `200`, `replayed: true` y no mueve piezas; con otros datos responde `409` (criterio 5).
+- [x] `GET /api/fractions/[requestId]` devuelve el fraccionado; uno inexistente da `404`.
+- [x] `npm run type-check`, `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) y `tests/architecture.test.ts` pasan.
 
 ## 7. Plan de pruebas
 
@@ -191,6 +193,7 @@ Contra la base real, saltadas sin `SUPABASE_SERVICE_ROLE_KEY` como el resto:
 | Sobrescribir el costo de la bolsita cambia el costo de las piezas que ya había | Es la decisión tomada (§9). Las ventas ya hechas guardaron su costo del momento; solo cambian las futuras. |
 | Dos primeros fraccionados simultáneos del mismo entero | `lockRows` del entero los serializa; además `products_parent_product_id_key` impide una segunda bolsita. |
 | Nombre de la bolsita ya usado por otro producto | `409` con el nombre en el mensaje; el administrador renombra el otro producto. |
+| Un reintento sin `price` de un fraccionado que sí lo mandó se acepta (§3 pedía `409`) | `fractions` guarda el precio que quedó, no el que mandó el cliente. Distinguirlo pide una columna y otra migración en producción, por un borde casi inexistente; se acepta la diferencia (§9). Con `price`, la comparación sí se hace. |
 | `@fractions` sin revisión en `architecture.test.ts` | Los imports se escriben con el alias igual; se pide aprobación para agregarlo al mapa. |
 
 ## 9. Decisiones
@@ -214,6 +217,9 @@ Contra la base real, saltadas sin `SUPABASE_SERVICE_ROLE_KEY` como el resto:
 - **Sí:** la bolsita copia categoría, foto y porción del entero al crearse y no se resincroniza después (decisión del usuario). Cierra el «Por decidir» de la porción; se edita con HU-06.
 - **Sí:** costo por bolsita `0.0000` → `422`. Un producto con costo 0 rompería la regla de HU-04 (`unitCost > 0`).
 - **Sí:** `stock` de la respuesta es el saldo de la bodega al responder. No se guardan saldos en `fractions` (los mantiene el trigger).
+- **Sí:** un reintento sin `price` se acepta si coinciden entero y bolsitas; con `price`, debe coincidir con el guardado (decisión del usuario, opción A, 2026-11-07). Es más laxo que lo que pedía §3 en su primera versión.
+- **No:** columna `price_given` en `fractions` para distinguirlo. Otra migración en producción para un caso casi inexistente.
+- **Sí:** `backend/src/products/index.ts` reexporta `PRICE_BELOW_COST` para que `fractions` lo use sin importar internos de `products`.
 - **Sí:** `divideMoney` solo en el backend. El frontend pinta el costo que manda el backend (HU-23 lo dice así).
 
 ## Lo que **no** entra en este spec
