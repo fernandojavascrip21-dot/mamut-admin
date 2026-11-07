@@ -1,12 +1,13 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
-import { httpErrorCode, httpErrorMessage, httpStatus, isOffline } from '@shared/utils/http-errors';
+import { httpErrorMessage, httpStatus, isOffline } from '@shared/utils/http-errors';
 import {
   FRACTIONS_URL,
   NO_UNITS_MESSAGE,
-  PORTIONS_INVALID_CODES,
-  PRICE_BELOW_COST_CODE,
+  PORTION_COST_ZERO_MESSAGE,
+  PORTIONS_OUT_OF_RANGE_MESSAGE,
+  PRICE_BELOW_COST_MESSAGE,
 } from '../constants/fraction.constants';
 import type {
   CreateFractionPayload,
@@ -50,16 +51,18 @@ function toFailure(error: unknown): FractionResult {
   }
   return {
     ok: false,
-    reason: failureReason(status, httpErrorCode(error), httpErrorMessage(error)),
+    reason: failureReason(status, httpErrorMessage(error)),
     message: httpErrorMessage(error),
   };
 }
 
-// Motivo de un 4xx: el código decide el campo; el 409 de «sin piezas» se reconoce por su mensaje
-// porque comparte código con los demás conflictos.
-function failureReason(status: number, code: string | null, message: string | null): FractionFailureReason {
+// Motivo de un 4xx. El 409 de «sin piezas» se reconoce por su mensaje porque comparte status con los
+// demás conflictos; los 422 de precio y bolsitas también, porque el backend los manda como `validation`.
+function failureReason(status: number, message: string | null): FractionFailureReason {
   if (status === 409 && message === NO_UNITS_MESSAGE) return 'no-units';
-  if (code === PRICE_BELOW_COST_CODE) return 'price-below-cost';
-  if (code !== null && PORTIONS_INVALID_CODES.includes(code)) return 'portions-invalid';
+  if (status === 422 && message === PRICE_BELOW_COST_MESSAGE) return 'price-below-cost';
+  if (status === 422 && (message === PORTION_COST_ZERO_MESSAGE || message === PORTIONS_OUT_OF_RANGE_MESSAGE)) {
+    return 'portions-invalid';
+  }
   return 'conflict';
 }

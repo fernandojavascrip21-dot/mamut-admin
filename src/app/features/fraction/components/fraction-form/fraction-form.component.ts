@@ -1,6 +1,6 @@
 import { CurrencyPipe } from '@angular/common';
 import {
-  Component, DestroyRef, ElementRef, OnInit, computed, inject, input, output, signal, viewChild,
+  Component, DestroyRef, ElementRef, OnInit, computed, inject, input, linkedSignal, output, signal, viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -50,6 +50,9 @@ export class FractionFormComponent implements OnInit {
   readonly selectedProductId = signal<number | null>(null);
   readonly portionsCount = signal<number | null>(null);
   private readonly fieldErrors = signal<Partial<Record<FractionFieldWithError, string>>>({});
+  // Copia de los errores del servidor que se borra al cambiar ese campo; vuelve a llenarse cuando la
+  // página manda errores nuevos (input nuevo).
+  private readonly liveServerErrors = linkedSignal<FractionServerErrors>(() => this.serverErrors());
 
   readonly selectedOption = computed(() =>
     this.options().find((option) => option.productId === this.selectedProductId()) ?? null,
@@ -66,9 +69,9 @@ export class FractionFormComponent implements OnInit {
     }),
   );
   // Error del servidor gana al local; ambos se pintan en el mismo campo.
-  readonly productError = computed(() => this.serverErrors().product ?? this.fieldErrors().product ?? null);
-  readonly portionsError = computed(() => this.serverErrors().portions ?? this.fieldErrors().portions ?? null);
-  readonly priceError = computed(() => this.serverErrors().price ?? this.fieldErrors().price ?? null);
+  readonly productError = computed(() => this.liveServerErrors().product ?? this.fieldErrors().product ?? null);
+  readonly portionsError = computed(() => this.liveServerErrors().portions ?? this.fieldErrors().portions ?? null);
+  readonly priceError = computed(() => this.liveServerErrors().price ?? this.fieldErrors().price ?? null);
   // El entero sin piezas se marca como opción deshabilitada para lectores de pantalla (PrimeNG no lo pone).
   readonly productPassThrough = computed<SelectPassThrough>(() => ({
     label: {
@@ -137,16 +140,20 @@ export class FractionFormComponent implements OnInit {
   }
 
   // Bolsita existente: el precio arranca con el suyo (se puede cambiar). Sin bolsita empieza vacío.
-  private prefillPrice(productId: number | null): void {
+  private prefillPrice(productId: number | null, options?: { emitEvent: boolean }): void {
     const option = this.options().find((item) => item.productId === productId);
-    this.priceControl.setValue(option?.portionProduct?.price ?? '');
+    this.priceControl.setValue(option?.portionProduct?.price ?? '', options);
   }
 
-  // Con ?producto= válido el entero queda elegido; uno que no está en la lista se ignora.
+  // Con ?producto= válido el entero queda elegido; uno que no está en la lista se ignora. La carga
+  // inicial es silenciosa: no es una edición del usuario y no debe borrar los errores del servidor.
   private loadInitialValue(): void {
     const productId = this.initialProductId();
     if (productId === null || !this.options().some((option) => option.productId === productId)) return;
-    this.productControl.setValue(productId);
+    const silent = { emitEvent: false };
+    this.productControl.setValue(productId, silent);
+    this.prefillPrice(productId, silent);
+    this.syncPreview();
   }
 
   // --- Controles que cambia el usuario ---
@@ -207,8 +214,10 @@ export class FractionFormComponent implements OnInit {
     else this.priceInput()?.nativeElement.focus();
   }
 
+  // Al cambiar un campo se borran su error local y el del servidor: el valor nuevo ya no es el rechazado.
   private clearFieldError(field: FractionFieldWithError): void {
     if (this.fieldErrors()[field]) this.fieldErrors.update((errors) => ({ ...errors, [field]: undefined }));
+    if (this.liveServerErrors()[field]) this.liveServerErrors.update((errors) => ({ ...errors, [field]: null }));
   }
 }
 

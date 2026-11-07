@@ -33,10 +33,3 @@ export function httpErrorMessage(error: unknown): string | null {
   if (detail === null || !('message' in detail)) return null;
   return typeof detail.message === 'string' ? detail.message : null;
 }
-
-// Código que mandó el backend (`error.code`), o null. Para distinguir errores del mismo status.
-export function httpErrorCode(error: unknown): string | null {
-  const detail = backendErrorDetail(error);
-  if (detail === null || !('code' in detail)) return null;
-  return typeof detail.code === 'string' ? detail.code : null;
-}
