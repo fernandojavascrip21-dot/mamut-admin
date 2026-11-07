@@ -145,7 +145,7 @@ describe('FractionPageComponent', () => {
     const req = await created();
     expect(req.request.body).toMatchObject({ productId: 10, portions: 7, price: '85.00' });
     expect(req.request.body.requestId).toMatch(/^[0-9a-f-]{36}$/);
-    req.flush(FRACTION, { status: 201, statusText: 'Created' });
+    req.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     await settle();
   });
 
@@ -158,7 +158,7 @@ describe('FractionPageComponent', () => {
     expect(root().querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
     expect(text()).toContain('Fraccionando…');
     httpMock.expectNone(CREATE_URL);
-    req.flush(FRACTION, { status: 201, statusText: 'Created' });
+    req.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     await settle();
   });
 
@@ -176,24 +176,25 @@ describe('FractionPageComponent', () => {
     fixture.detectChanges();
     const second = httpMock.expectOne(CREATE_URL);
     expect(second.request.body.requestId).toBe(requestId);
-    second.flush(FRACTION, { status: 201, statusText: 'Created' });
+    second.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     await settle();
   });
 
   it('409 de piezas pinta «Sin piezas en bodega» en el producto y recarga las opciones', async () => {
     await setup({ producto: '10' });
     await load();
-    await created();
-    await fail(409, 'CONFLICT', 'No hay piezas suficientes');
-    expect(root().querySelector('.field-error')!.textContent).toContain('Sin piezas en bodega');
+    fillAndSubmit();
+    httpMock.expectOne(CREATE_URL).flush({ error: { code: 'CONFLICT', message: 'No hay piezas suficientes' } }, { status: 409, statusText: 'Error' });
+    fixture.detectChanges(); // rxResource pide las opciones en su effect, no al recibir el error
     httpMock.expectOne(OPTIONS_URL).flush({ products: [WHOLE] });
     await settle();
+    expect(root().querySelector('.field-error')!.textContent).toContain('Sin piezas en bodega');
   });
 
   it('422 PRICE_BELOW_COST pinta el mensaje del backend en el campo precio', async () => {
     await setup({ producto: '10' });
     await load();
-    await created();
+    fillAndSubmit();
     await fail(422, 'PRICE_BELOW_COST', 'El precio queda por debajo del costo');
     expect(text()).toContain('El precio queda por debajo del costo');
     expect(root().querySelector('#price')!.getAttribute('aria-describedby')).toBe('price-error');
@@ -202,7 +203,7 @@ describe('FractionPageComponent', () => {
   it('422 PORTION_COST_ZERO pinta el mensaje en el campo bolsitas', async () => {
     await setup({ producto: '10' });
     await load();
-    await created();
+    fillAndSubmit();
     await fail(422, 'PORTION_COST_ZERO', 'Demasiadas bolsitas para ese costo');
     expect(text()).toContain('Demasiadas bolsitas para ese costo');
     expect(root().querySelector('#portions')!.getAttribute('aria-describedby')).toBe('portions-error');
@@ -211,18 +212,19 @@ describe('FractionPageComponent', () => {
   it('409 de conflicto muestra el aviso alert-danger con el mensaje y recarga las opciones', async () => {
     await setup({ producto: '10' });
     await load();
-    await created();
-    await fail(409, 'FRACTION_MISMATCH', 'Esa operación ya se usó con otros datos');
-    expect(root().querySelector('.alert-danger')!.textContent).toContain('Esa operación ya se usó con otros datos');
+    fillAndSubmit();
+    httpMock.expectOne(CREATE_URL).flush({ error: { code: 'FRACTION_MISMATCH', message: 'Esa operación ya se usó con otros datos' } }, { status: 409, statusText: 'Error' });
+    fixture.detectChanges(); // rxResource pide las opciones en su effect, no al recibir el error
     httpMock.expectOne(OPTIONS_URL).flush({ products: [WHOLE] });
     await settle();
+    expect(root().querySelector('.alert-danger')!.textContent).toContain('Esa operación ya se usó con otros datos');
   });
 
   it('al fraccionar muestra el toast y el resultado con el costo por bolsita del backend', async () => {
     await setup({ producto: '10' });
     await load();
     const req = await created();
-    req.flush(FRACTION, { status: 201, statusText: 'Created' });
+    req.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     await settle();
     expect(toast.success).toHaveBeenCalledWith('Fraccionado registrado');
     expect(text()).toContain('Fraccionado listo');
@@ -235,7 +237,7 @@ describe('FractionPageComponent', () => {
     await load();
     const first = await created();
     const firstId = first.request.body.requestId;
-    first.flush(FRACTION, { status: 201, statusText: 'Created' });
+    first.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     await settle();
 
     Array.from(root().querySelectorAll('button')).find((b) => b.textContent!.includes('Fraccionar otro'))!.click();
@@ -251,7 +253,7 @@ describe('FractionPageComponent', () => {
     await settle();
     const second = await created();
     expect(second.request.body.requestId).not.toBe(firstId);
-    second.flush(FRACTION, { status: 201, statusText: 'Created' });
+    second.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     await settle();
   });
 });
