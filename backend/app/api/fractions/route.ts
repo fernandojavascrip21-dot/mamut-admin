@@ -29,8 +29,8 @@ export const POST = handle(async (request) => {
   return Response.json({ fraction, replayed }, { status: replayed ? 200 : 201 })
 })
 
-// Historial de fraccionados (HU-24). Esqueleto: aún sin implementar.
-export const GET = handle(async () => {
-  await listFractions()
-  return Response.json({ fractions: [] })
+// Historial de fraccionados (HU-24): solo administrador; el caso de uso ya limita y ordena.
+export const GET = handle(async (request) => {
+  await requireRole(request, 'admin')
+  return Response.json({ fractions: await listFractions() })
 })

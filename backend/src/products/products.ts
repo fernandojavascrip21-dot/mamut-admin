@@ -1,4 +1,4 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { isForeignKeyViolation, isUniqueViolation } from '@db/errors'
 import { products } from '@db/schema'
@@ -34,7 +34,8 @@ const priceBelowCost = (input: { price: string; unitCost: string }) =>
   compareMoney(input.price, 2, input.unitCost, 4) < 0
 
 // Lista para la pantalla 03: solo productos activos, y nunca unitCost (RNF-04), aunque
-// hoy el endpoint ya es solo para administrador.
+// hoy el endpoint ya es solo para administrador. portionUnitCost (HU-24) es el costo por bolsita:
+// solo una bolsita tiene parentProductId, así que el costo se expone solo en ese caso y null en el resto.
 export function listProducts() {
   return db
     .select({
@@ -45,6 +46,8 @@ export function listProducts() {
       stock: products.stock,
       fractionable: products.fractionable,
       image: products.image,
+      parentProductId: products.parentProductId,
+      portionUnitCost: sql<string | null>`case when ${products.parentProductId} is not null then ${products.unitCost} end`,
     })
     .from(products)
     .where(eq(products.active, true))
