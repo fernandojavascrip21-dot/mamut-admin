@@ -221,8 +221,8 @@ describe('ProductFormComponent', () => {
       expect(fixture.componentInstance.form.controls.categoryId.value).toBe('');
     });
 
-    it('la porción está oculta sin fraccionar; al marcarlo aparece y es obligatoria', () => {
-      expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
+    it('la porción siempre está visible y solo es obligatoria al marcar «producto para fraccionar»', () => {
+      expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(false);
       fill();
       setFractionable(true);
       expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(false);
@@ -252,7 +252,7 @@ describe('ProductFormComponent', () => {
       setFractionable(true);
       type('#portion-size', '30 g');
       setFractionable(false);
-      expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
+      expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(false);
       expect(el<HTMLInputElement>('#portion-size').value).toBe('30 g');
       submit();
       expect(submitted.at(-1)).toMatchObject({ fractionable: false, portionSize: null });
