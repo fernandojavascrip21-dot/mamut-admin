@@ -17,13 +17,26 @@ export function isNotFound(error: unknown): boolean {
   return httpStatus(error) === 404;
 }
 
-// Mensaje que mandó el backend en su formato `{ error: { code, message } }`, o null si la
-// respuesta no lo trae (sin red, otro formato). Sirve para mostrar un 422 tal cual lo redactó.
-export function httpErrorMessage(error: unknown): string | null {
+// Objeto `error` del formato del backend (`{ error: { code, message } }`), o null si la respuesta
+// no lo trae (sin red, otro formato).
+function backendErrorDetail(error: unknown): object | null {
   if (!(error instanceof HttpErrorResponse)) return null;
   const body: unknown = error.error;
   if (typeof body !== 'object' || body === null || !('error' in body)) return null;
   const detail: unknown = body.error;
-  if (typeof detail !== 'object' || detail === null || !('message' in detail)) return null;
+  return typeof detail === 'object' && detail !== null ? detail : null;
+}
+
+// Mensaje que mandó el backend, o null. Sirve para mostrar un 422 tal cual lo redactó.
+export function httpErrorMessage(error: unknown): string | null {
+  const detail = backendErrorDetail(error);
+  if (detail === null || !('message' in detail)) return null;
   return typeof detail.message === 'string' ? detail.message : null;
+}
+
+// Código que mandó el backend (`error.code`), o null. Para distinguir errores del mismo status.
+export function httpErrorCode(error: unknown): string | null {
+  const detail = backendErrorDetail(error);
+  if (detail === null || !('code' in detail)) return null;
+  return typeof detail.code === 'string' ? detail.code : null;
 }

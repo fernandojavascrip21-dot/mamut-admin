@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { isUniqueViolation, pgConstraintName } from '@db/errors'
 import { fractions, products } from '@db/schema'
@@ -220,7 +220,35 @@ export async function getFraction(requestId: string): Promise<Fraction> {
   return toFraction(row)
 }
 
-// Esqueleto de HU-23: lista los enteros fraccionables con su bolsita. Sin implementar.
+// Enteros activos que se fraccionan, con sus piezas en bodega y su bolsita si ya existe. La bolsita se
+// busca por parent_product_id (único) y se incluye aunque esté desactivada: createFraction la reactiva.
+// Solo lee; los saldos vienen del trigger de stock, nunca se suman aquí.
 export async function listFractionOptions(): Promise<FractionOption[]> {
-  throw new Error('listFractionOptions sin implementar')
+  const wholes = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.fractionable, true), eq(products.active, true), isNotNull(products.portionSize)))
+    .orderBy(asc(sql`lower(${products.name})`))
+  if (wholes.length === 0) return []
+
+  const bags = await db
+    .select()
+    .from(products)
+    .where(inArray(products.parentProductId, wholes.map((whole) => whole.id)))
+  const bagByParent = new Map(bags.map((bag) => [bag.parentProductId, bag]))
+
+  return wholes.map((whole) => {
+    const bag = bagByParent.get(whole.id)
+    return {
+      productId: whole.id,
+      name: whole.name,
+      image: whole.image || null,
+      warehouseUnits: whole.stock,
+      unitCost: whole.unitCost,
+      portionSize: whole.portionSize ?? '',
+      portionProduct: bag
+        ? { id: bag.id, name: bag.name, price: bag.price, active: bag.active }
+        : null,
+    }
+  })
 }

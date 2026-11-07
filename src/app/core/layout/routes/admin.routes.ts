@@ -38,6 +38,10 @@ export const ADMIN_ROUTES: Routes = [
     loadChildren: () => import('@features/cash-cut/cash-cut.routes').then((m) => m.ADMIN_CASH_CUT_ROUTES),
   },
   {
+    path: 'fraccionar',
+    loadChildren: () => import('@features/fraction/fraction.routes').then((m) => m.FRACTION_ROUTES),
+  },
+  {
     path: 'entregas',
     loadChildren: () => import('@features/deliveries/deliveries.routes').then((m) => m.DELIVERY_ROUTES),
   },
