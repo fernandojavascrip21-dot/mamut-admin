@@ -10,8 +10,8 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
   generate: 'Generar corte',
   regenerate: 'Generar de nuevo',
   cutTypeLabel: 'Tipo de corte',
-  cutTypeHelp: 'Usa los precios y el costo con envío que le pusiste a cada vendedor.',
-  cutTypeHelpHome: 'Usa el costo de fábrica guardado en cada venta.',
+  cutTypeHelp: 'Con el costo con envío que le pusiste a cada vendedor.',
+  cutTypeHelpHome: 'Con el costo de fábrica de cada venta.',
   loadingTitle: 'Calculando el corte…',
   loadingHint: 'Sumando las ventas del periodo.',
   emptyTitle: 'No hay ventas en este periodo',
@@ -19,8 +19,8 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
   errorTitle: 'No se pudo generar el corte',
   errorHint: 'Revisa tu conexión e inténtalo de nuevo.',
   retry: 'Reintentar',
-  resultTitle: 'Corte con precios',
-  resultTitleHome: 'Corte para casa',
+  resultTitle: 'Ganancia del vendedor',
+  resultTitleHome: 'Ganancia real',
   generatedAt: 'Generado hoy a las',
   productsOfSeller: 'Lo que vendió',
   productsOfWarehouse: 'Lo que vendí',
@@ -36,8 +36,8 @@ export const ADMIN_CASH_CUT_PAGE_TEXTS = {
 } as const;
 
 export const CUT_TYPE_OPTIONS: CutTypeOption[] = [
-  { value: 'seller', label: 'Corte del vendedor', disabled: false },
-  { value: 'home', label: 'Corte de casa', disabled: false },
+  { value: 'seller', label: 'Ganancia del vendedor', disabled: false },
+  { value: 'home', label: 'Ganancia real', disabled: false },
 ];
 
 export const DEFAULT_CUT_TYPE: CutTypeValue = 'seller';

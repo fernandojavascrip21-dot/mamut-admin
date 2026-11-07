@@ -19,12 +19,12 @@ import { AdminCashCutPageComponent } from './admin-cash-cut-page.component';
 
 const CUTS_URL = `${API_BASE_URL}/api/cuts`;
 const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez' };
-const PRICES_HELP = 'Usa los precios y el costo con envío que le pusiste a cada vendedor.';
-const HOME_HELP = 'Usa el costo de fábrica guardado en cada venta.';
-const HOME_OPTION = 'Corte de casa';
+const PRICES_HELP = 'Con el costo con envío que le pusiste a cada vendedor.';
+const HOME_HELP = 'Con el costo de fábrica de cada venta.';
+const HOME_OPTION = 'Ganancia real';
 const GENERATED_AT = /^Generado hoy a las \d{2}:\d{2}$/;
 
-// Corte del vendedor de Luis en el día: 2 piezas a $920 con costo con envío $700.
+// Ganancia del vendedor de Luis en el día: 2 piezas a $920 con costo con envío $700.
 const SELLER_CUT: CashCut = {
   holder: LUIS,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -63,7 +63,7 @@ const SELLER_CUT: CashCut = {
     },
   ],
 };
-// Corte de casa de Luis en el día: la misma venta con costo de fábrica $600 (criterio 3).
+// Ganancia real de Luis en el día: la misma venta con costo de fábrica $600 (criterio 3).
 const HOME_CUT: CashCut = {
   holder: LUIS,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -216,21 +216,21 @@ describe('AdminCashCutPageComponent · layout overview', () => {
     httpMock.verify();
   });
 
-  it('con «Corte del vendedor» pasa layout="overview" al resumen, al desglose y a las ventas', async () => {
+  it('con «Ganancia del vendedor» pasa layout="overview" al resumen, al desglose y a las ventas', async () => {
     await generateFor('seller');
     expect(layoutsOf(CutSummaryComponent)).toEqual(['overview']);
     expect(layoutsOf(CutProductLineComponent)).toEqual(['overview']);
     expect(layoutsOf(CutSaleItemComponent)).toEqual(['overview']);
   });
 
-  it('con «Corte de casa» pasa layout="overview" al resumen, al desglose y a las ventas', async () => {
+  it('con «Ganancia real» pasa layout="overview" al resumen, al desglose y a las ventas', async () => {
     await generateFor('home');
     expect(layoutsOf(CutSummaryComponent)).toEqual(['overview']);
     expect(layoutsOf(CutProductLineComponent)).toEqual(['overview']);
     expect(layoutsOf(CutSaleItemComponent)).toEqual(['overview']);
   });
 
-  it('con «Corte del vendedor» el resultado muestra solo Vendido y Ganancia, sin costos', async () => {
+  it('con «Ganancia del vendedor» el resultado muestra solo Vendido y Ganancia, sin costos', async () => {
     await generateFor('seller');
     expect(text('app-cut-summary .sold')).toBe('$1,840.00');
     expect(text('app-cut-summary .sold-caption')).toBe('Vendió Luis · mié 4 nov · 2 piezas');
@@ -245,7 +245,7 @@ describe('AdminCashCutPageComponent · layout overview', () => {
     expect(allText('.result')).not.toContain('costo con envío');
   });
 
-  it('con «Corte de casa» el resultado muestra solo Vendido y la ganancia real como «Ganancia», sin costos', async () => {
+  it('con «Ganancia real» el resultado muestra solo Vendido y la ganancia real como «Ganancia», sin costos', async () => {
     await generateFor('home');
     expect(text('app-cut-summary .sold')).toBe('$1,840.00');
     expect(text('app-cut-summary .profit-label')).toBe('Ganancia');
@@ -257,10 +257,10 @@ describe('AdminCashCutPageComponent · layout overview', () => {
     expect(text('.products app-cut-product-line .profit')).toBe('+$640.00');
     expect(text('.sales app-cut-sale-item .profit')).toBe('Ganancia $640.00');
     expect(allText('.result')).not.toContain('Costo de fábrica');
-    expect(allText('.result')).not.toContain('Ganancia real');
+    expect(allText('app-cut-summary')).not.toContain('Ganancia real');
   });
 
-  it('con «Corte del vendedor» «Generado…» y «Generar de nuevo» van al pie de la tarjeta del resumen, debajo del título', async () => {
+  it('con «Ganancia del vendedor» «Generado…» y «Generar de nuevo» van al pie de la tarjeta del resumen, debajo del título', async () => {
     await generateFor('seller');
     expect(el().querySelectorAll('.generated-at')).toHaveLength(1);
     expect(el().querySelectorAll('.regenerate')).toHaveLength(1);
@@ -270,7 +270,7 @@ describe('AdminCashCutPageComponent · layout overview', () => {
     expect(comesBefore('app-cut-summary .profit', 'app-cut-summary .generated-at')).toBe(true);
   });
 
-  it('con «Corte de casa» «Generado…» y «Generar de nuevo» van al pie de la tarjeta del resumen, debajo del título', async () => {
+  it('con «Ganancia real» «Generado…» y «Generar de nuevo» van al pie de la tarjeta del resumen, debajo del título', async () => {
     await generateFor('home');
     expect(el().querySelectorAll('.generated-at')).toHaveLength(1);
     expect(el().querySelectorAll('.regenerate')).toHaveLength(1);
@@ -308,13 +308,13 @@ describe('AdminCashCutPageComponent · layout overview', () => {
 
   it('el título del resultado y la ayuda del selector no cambian con el layout nuevo', async () => {
     await generateFor('seller');
-    expect(text('.result-title')).toBe('Corte con precios · Luis');
+    expect(text('.result-title')).toBe('Ganancia del vendedor · Luis');
     expect(selectionText()).toContain(PRICES_HELP);
 
     await pickCutType(HOME_OPTION);
     click('.generate');
     await answer(cutRequest(), HOME_CUT);
-    expect(text('.result-title')).toBe('Corte para casa · Luis');
+    expect(text('.result-title')).toBe('Ganancia real · Luis');
     expect(selectionText()).toContain(HOME_HELP);
   });
 });

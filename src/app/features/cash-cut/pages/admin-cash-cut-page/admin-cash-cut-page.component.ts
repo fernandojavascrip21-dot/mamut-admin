@@ -44,7 +44,7 @@ import { CashCutService } from '../../services/cash-cut.service';
 // vendedor o «Yo · bodega») para un día, semana o mes. Nada se calcula hasta tocar «Generar corte», y
 // cualquier cambio de periodo o de titular quita el resultado para no mostrar el corte de otra selección.
 // Las cifras vienen tal cual del backend (T-20): aquí no se suma ni se resta dinero.
-// Con «Corte de casa» y «Yo · bodega» aparece el interruptor «Incluir a mis vendedores» (apagado por
+// Con «Ganancia real» y «Yo · bodega» aparece el interruptor «Incluir a mis vendedores» (apagado por
 // defecto): apagado es el corte de la bodega sola; encendido pide el resumen del negocio (HU-22), con un
 // renglón por titular en lugar del desglose por producto y las ventas. Tocarlo descarta el corte.
 @Component({
@@ -71,9 +71,19 @@ export class AdminCashCutPageComponent {
 
   readonly texts = ADMIN_CASH_CUT_PAGE_TEXTS;
   readonly cardPassThrough = CUT_CARD_PASS_THROUGH;
+  // «Ganancia del vendedor» solo se puede elegir con un vendedor en «Viendo»; con «Yo · bodega» queda deshabilitado.
   readonly cutTypeOptions = CUT_TYPE_OPTIONS;
+  readonly availableCutTypeOptions = computed(() =>
+    CUT_TYPE_OPTIONS.map((option) =>
+      option.value === 'seller'
+        ? { ...option, disabled: this.viewing.selectedSellerId() === null }
+        : option,
+    ),
+  );
   readonly cutType = signal<CutTypeValue>(DEFAULT_CUT_TYPE);
   readonly includeSellers = signal(false);
+  // «Ganancia real» puesto por la página (no por el administrador) al quedarse sin vendedor en «Viendo».
+  private homeWasForced = false;
   // Solo el corte de casa de la bodega puede sumar a los vendedores; con un vendedor en «Viendo» no aplica.
   readonly showSellersToggle = computed(
     () => this.cutType() === 'home' && this.viewing.selectedSellerId() === null,
@@ -186,9 +196,21 @@ export class AdminCashCutPageComponent {
   constructor() {
     // Cambiar el titular en la barra «Viendo» quita el resultado. El cambio de periodo lo quita
     // `selectKind()`/`selectOffset()`; `request` ya impide mostrar un corte de otra selección.
+    // «Ganancia del vendedor» solo existe con un vendedor en «Viendo»: sin él («Yo · bodega») el tipo pasa a
+    // «Ganancia real»; si fue la página quien lo cambió, al llegar a un vendedor vuelve a «Corte del
+    // vendedor». Un «Ganancia real» que eligió el administrador se conserva.
     effect(() => {
-      this.viewing.selectedSellerId();
-      untracked(() => this.generated.set(undefined));
+      const sellerId = this.viewing.selectedSellerId();
+      untracked(() => {
+        this.generated.set(undefined);
+        if (sellerId === null && this.cutType() === 'seller') {
+          this.cutType.set('home');
+          this.homeWasForced = true;
+        } else if (sellerId !== null && this.homeWasForced) {
+          this.cutType.set('seller');
+          this.homeWasForced = false;
+        }
+      });
     });
   }
 
@@ -199,6 +221,7 @@ export class AdminCashCutPageComponent {
   }
 
   selectCutType(cutType: CutTypeValue): void {
+    this.homeWasForced = false;
     this.cutType.set(cutType);
     this.generated.set(undefined);
   }

@@ -79,6 +79,33 @@ const SELLER_CUT: CashCut = {
   ],
 };
 const WAREHOUSE_CUT: CashCut = { ...SELLER_CUT, holder: null };
+// Ganancia real de la bodega: con «Yo · bodega» es el único tipo que se puede generar.
+const WAREHOUSE_HOME_CUT: CashCut = {
+  holder: null,
+  period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
+  totals: {
+    salesCount: 1,
+    units: 2,
+    total: '1840.00',
+    factoryCost: '1200.0000',
+    realProfit: '640.00',
+    shippingCover: '0.00',
+  },
+  products: [
+    {
+      productId: 3,
+      name: 'Proteína Whey',
+      image: null,
+      unitPrice: '920.00',
+      units: 2,
+      total: '1840.00',
+      factoryCost: '1200.0000',
+      realProfit: '640.00',
+      shippingCover: '0.00',
+    },
+  ],
+  sales: [],
+};
 const EMPTY_CUT: CashCut = {
   holder: LUIS,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -160,12 +187,23 @@ describe('AdminCashCutPageComponent', () => {
     expect(cutRequests()).toHaveLength(0);
   });
 
-  it('el tipo de corte «para casa» está habilitado y «para vendedor» es el elegido', () => {
+  it('el tipo de corte «para casa» está habilitado y «para vendedor» es el elegido con un vendedor', async () => {
+    seller.set(LUIS);
+    await settle();
     const options = fixture.componentInstance.cutTypeOptions;
     expect(options.find((o) => o.value === 'seller')?.disabled).toBe(false);
     expect(options.find((o) => o.value === 'home')).toMatchObject({ disabled: false });
     expect(options.find((o) => o.value === 'home')?.label).not.toContain('Próximamente');
     expect(fixture.componentInstance.cutType()).toBe('seller');
+    const available = fixture.componentInstance.availableCutTypeOptions();
+    expect(available.find((o) => o.value === 'seller')?.disabled).toBe(false);
+  });
+
+  it('con «Yo · bodega» «para vendedor» está deshabilitado y «para casa» es el elegido', () => {
+    const available = fixture.componentInstance.availableCutTypeOptions();
+    expect(available.find((o) => o.value === 'seller')?.disabled).toBe(true);
+    expect(available.find((o) => o.value === 'home')?.disabled).toBe(false);
+    expect(fixture.componentInstance.cutType()).toBe('home');
   });
 
   it('pide el corte de un vendedor con holderId, period y date, y muestra resumen, desglose y ventas', async () => {
@@ -182,7 +220,7 @@ describe('AdminCashCutPageComponent', () => {
     req.flush({ cut: SELLER_CUT });
     await settle();
 
-    expect(text('.result-title')).toBe('Corte con precios · Luis');
+    expect(text('.result-title')).toBe('Ganancia del vendedor · Luis');
     expect(text('.generated-at')).toMatch(/^Generado hoy a las \d{2}:\d{2}$/);
     expect(text('app-cut-summary .sold')).toBe('$2,300.00');
     expect(text('app-cut-summary .profit-label')).toBe('Ganancia');
@@ -198,10 +236,11 @@ describe('AdminCashCutPageComponent', () => {
     fixture.detectChanges();
     const req = httpMock.expectOne((r) => r.url === CUTS_URL);
     expect(req.request.params.has('holderId')).toBe(false);
-    req.flush({ cut: WAREHOUSE_CUT });
+    expect(req.request.params.get('type')).toBe('home');
+    req.flush({ cut: WAREHOUSE_HOME_CUT });
     await settle();
 
-    expect(text('.result-title')).toBe('Corte con precios');
+    expect(text('.result-title')).toBe('Ganancia real');
     expect(text('.products-title')).toBe('Lo que vendí');
     expect(text('app-cut-summary .sold-caption')).toContain('Mis ventas desde bodega');
     expect(text('app-cut-summary .profit-label')).toBe('Ganancia');

@@ -40,7 +40,7 @@ export class CutSaleItemComponent {
   // `Number()` solo para pasar el monto al pipe `currency` al mostrarlo.
   readonly total = computed(() => Number(this.sale().total));
   readonly profit = computed(() => Number(this.sale().profit));
-  // Ganancia de la venta en `overview`: la real con «Corte de casa», la del vendedor con el otro tipo.
+  // Ganancia de la venta en `overview`: la real con «Ganancia real», la del vendedor con el otro tipo.
   private readonly overviewProfitText = computed(() =>
     this.cutType() === 'home' ? this.sale().realProfit : this.sale().profit,
   );

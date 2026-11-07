@@ -18,8 +18,8 @@ const LUIS: ViewingSeller = {
   id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b',
   fullName: 'Luis Vendedor',
 };
-const HOME_OPTION = 'Corte de casa';
-const PRICES_OPTION = 'Corte del vendedor';
+const HOME_OPTION = 'Ganancia real';
+const PRICES_OPTION = 'Ganancia del vendedor';
 const TOGGLE_LABEL = 'Incluir a mis vendedores';
 const HELP_OFF = 'Solo lo que vendiste desde la bodega.';
 const HELP_ON = 'Suma lo que vendieron tus vendedores.';
@@ -59,7 +59,7 @@ const SALES: CashCut['sales'] = [
     ],
   },
 ];
-// Corte para casa de la bodega sola (HU-21, interruptor apagado): $500 vendidos, sin `holders`.
+// Ganancia real de la bodega sola (HU-21, interruptor apagado): $500 vendidos, sin `holders`.
 const WAREHOUSE_HOME_CUT: CashCut = {
   holder: null,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -125,7 +125,7 @@ const EMPTY_BUSINESS_CUT: CashCut = {
   products: [],
   sales: [],
 };
-// Corte para casa de Luis solo (HU-21): sin `holders`.
+// Ganancia real de Luis solo (HU-21): sin `holders`.
 const LUIS_HOME_CUT: CashCut = {
   holder: LUIS,
   period: { kind: 'day', from: '2026-11-04', to: '2026-11-04', timeZone: 'America/Mexico_City' },
@@ -259,13 +259,21 @@ describe('AdminCashCutPageComponent · interruptor «Incluir a mis vendedores»'
   });
 
   describe('cuándo aparece', () => {
-    it('no existe al entrar, con «Corte del vendedor» y «Yo · bodega»', () => {
+    it('al entrar con «Yo · bodega» está elegido «Ganancia real» y el interruptor existe', () => {
       expect(el().querySelector('p-select.cut-type')).not.toBeNull();
+      expect(text('p-select.cut-type')).toContain(HOME_OPTION);
+      expect(toggleField()).not.toBeNull();
+    });
+
+    it('no existe al entrar con un vendedor en «Viendo» y «Ganancia del vendedor»', async () => {
+      seller.set(LUIS);
+      await settle();
+      expect(text('p-select.cut-type')).toContain(PRICES_OPTION);
       expect(toggleField()).toBeNull();
       expect(el().querySelector('p-toggleswitch.sellers-toggle')).toBeNull();
     });
 
-    it('aparece al elegir «Corte de casa» con «Yo · bodega»', async () => {
+    it('aparece al elegir «Ganancia real» con «Yo · bodega»', async () => {
       await pickCutType(HOME_OPTION);
 
       expect(toggleField()).not.toBeNull();
@@ -273,15 +281,17 @@ describe('AdminCashCutPageComponent · interruptor «Incluir a mis vendedores»'
       expect(text('.sellers-toggle-label')).toBe(TOGGLE_LABEL);
     });
 
-    it('desaparece al volver a «Corte del vendedor»', async () => {
+    it('desaparece al elegir un vendedor, que vuelve a «Ganancia del vendedor»', async () => {
       await pickCutType(HOME_OPTION);
       expect(toggleField()).not.toBeNull();
 
-      await pickCutType(PRICES_OPTION);
+      seller.set(LUIS);
+      await settle();
+      expect(text('p-select.cut-type')).toContain(PRICES_OPTION);
       expect(toggleField()).toBeNull();
     });
 
-    it('no existe con un vendedor en «Viendo» aunque esté «Corte de casa»', async () => {
+    it('no existe con un vendedor en «Viendo» aunque esté «Ganancia real»', async () => {
       await pickCutType(HOME_OPTION);
       expect(toggleField()).not.toBeNull();
 
@@ -290,7 +300,7 @@ describe('AdminCashCutPageComponent · interruptor «Incluir a mis vendedores»'
       expect(toggleField()).toBeNull();
     });
 
-    it('reaparece al volver a «Yo · bodega» con «Corte de casa»', async () => {
+    it('reaparece al volver a «Yo · bodega» con «Ganancia real»', async () => {
       seller.set(LUIS);
       await settle();
       await pickCutType(HOME_OPTION);
@@ -500,31 +510,33 @@ describe('AdminCashCutPageComponent · interruptor «Incluir a mis vendedores»'
   });
 
   describe('si el interruptor desaparece encendido', () => {
-    it('al cambiar a «Corte del vendedor» se oculta y se pide get() sin type ni scope', async () => {
-      await pickCutType(HOME_OPTION);
-      await toggleSellers();
-      expect(toggleInput()?.checked).toBe(true);
-
-      await pickCutType(PRICES_OPTION);
-      expect(toggleField()).toBeNull();
-      click('.generate');
-
-      const params = await answer(cutRequest(), WAREHOUSE_SELLER_CUT);
-      expect(params.has('type')).toBe(false);
-      expect(params.has('scope')).toBe(false);
-      expect(params.has('holderId')).toBe(false);
-      expect(service.get).toHaveBeenCalled();
-      expect(service.getBusiness).not.toHaveBeenCalled();
-      expect(service.getHome).not.toHaveBeenCalled();
-    });
-
-    it('con un vendedor en «Viendo» y «Corte de casa» se pide getHome() con holderId y sin scope', async () => {
+    it('al elegir un vendedor vuelve a «Ganancia del vendedor», se oculta y se pide get() sin type ni scope', async () => {
       await pickCutType(HOME_OPTION);
       await toggleSellers();
       expect(toggleInput()?.checked).toBe(true);
 
       seller.set(LUIS);
       await settle();
+      expect(toggleField()).toBeNull();
+      click('.generate');
+
+      const params = await answer(cutRequest(), WAREHOUSE_SELLER_CUT);
+      expect(params.has('type')).toBe(false);
+      expect(params.has('scope')).toBe(false);
+      expect(params.get('holderId')).toBe(LUIS.id);
+      expect(service.get).toHaveBeenCalled();
+      expect(service.getBusiness).not.toHaveBeenCalled();
+      expect(service.getHome).not.toHaveBeenCalled();
+    });
+
+    it('con un vendedor en «Viendo» y «Ganancia real» se pide getHome() con holderId y sin scope', async () => {
+      await pickCutType(HOME_OPTION);
+      await toggleSellers();
+      expect(toggleInput()?.checked).toBe(true);
+
+      seller.set(LUIS);
+      await settle();
+      await pickCutType(HOME_OPTION);
       expect(toggleField()).toBeNull();
       click('.generate');
 

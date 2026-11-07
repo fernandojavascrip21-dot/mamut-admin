@@ -15,12 +15,12 @@ import { AdminCashCutPageComponent } from './admin-cash-cut-page.component';
 
 const CUTS_URL = `${API_BASE_URL}/api/cuts`;
 const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez' };
-const PRICES_HELP = 'Usa los precios y el costo con envío que le pusiste a cada vendedor.';
-const HOME_HELP = 'Usa el costo de fábrica guardado en cada venta.';
-const HOME_OPTION = 'Corte de casa';
-const PRICES_OPTION = 'Corte del vendedor';
+const PRICES_HELP = 'Con el costo con envío que le pusiste a cada vendedor.';
+const HOME_HELP = 'Con el costo de fábrica de cada venta.';
+const HOME_OPTION = 'Ganancia real';
+const PRICES_OPTION = 'Ganancia del vendedor';
 
-// Corte para casa de Luis en la semana del 2 al 8 nov: 2 piezas a $920, costo con envío $700 y de
+// Ganancia real de Luis en la semana del 2 al 8 nov: 2 piezas a $920, costo con envío $700 y de
 // fábrica $600 (criterio 3). Trae solo las llaves del corte para casa, como T-22.
 const HOME_CUT: CashCut = {
   holder: LUIS,
@@ -204,7 +204,18 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     httpMock.verify();
   });
 
-  it('al entrar está elegido «Corte del vendedor» y «Corte de casa» se puede elegir', async () => {
+  it('con «Yo · bodega» al entrar está elegido «Ganancia real» y «Ganancia del vendedor» está deshabilitado', async () => {
+    expect(text('p-select.cut-type')).toContain(HOME_OPTION);
+    expect(selectionText()).toContain(HOME_HELP);
+
+    await openCutType();
+    const prices = cutTypeOptions().find((o) => o.textContent?.includes(PRICES_OPTION));
+    expect(prices?.classList.contains('p-disabled')).toBe(true);
+  });
+
+  it('con un vendedor en «Viendo» al entrar está elegido «Ganancia del vendedor» y «Ganancia real» se puede elegir', async () => {
+    seller.set(LUIS);
+    await settle();
     expect(text('p-select.cut-type')).toContain(PRICES_OPTION);
     expect(selectionText()).toContain(PRICES_HELP);
 
@@ -217,6 +228,8 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
   });
 
   it('la ayuda del selector cambia con el tipo de corte', async () => {
+    seller.set(LUIS);
+    await settle();
     await pickCutType(HOME_OPTION);
     expect(text('p-select.cut-type')).toContain(HOME_OPTION);
     expect(selectionText()).toContain(HOME_HELP);
@@ -246,7 +259,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     );
     expect(service.get).not.toHaveBeenCalled();
 
-    expect(text('.result-title')).toBe('Corte para casa · Luis');
+    expect(text('.result-title')).toBe('Ganancia real · Luis');
     expect(text('app-cut-summary .sold')).toBe('$1,840.00');
     expect(el().querySelector('app-cut-summary .factory-cost')).toBeNull();
     expect(text('app-cut-summary .profit')).toBe('$640.00');
@@ -257,7 +270,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     expect(text('.result')).not.toContain('Costo con envío');
   });
 
-  it('con «Yo · bodega» y «Corte de casa» con el interruptor apagado pide la bodega sola y no muestra «Para cubrir envíos»', async () => {
+  it('con «Yo · bodega» y «Ganancia real» con el interruptor apagado pide la bodega sola y no muestra «Para cubrir envíos»', async () => {
     await pickCutType(HOME_OPTION);
     click('.generate');
 
@@ -268,13 +281,15 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     expect(params.get('period')).toBe('day');
     expect(params.get('date')).toBe('2026-11-04');
 
-    expect(text('.result-title')).toBe('Corte para casa');
+    expect(text('.result-title')).toBe('Ganancia real');
     expect(text('app-cut-summary .sold-caption')).toContain('Mis ventas desde bodega');
     expect(text('app-cut-summary .profit')).toBe('$640.00');
     expect(el().querySelector('app-cut-summary .shipping-cover')).toBeNull();
   });
 
   it('cambiar el tipo de corte quita el resultado y al generar pide el nuevo tipo', async () => {
+    seller.set(LUIS);
+    await settle();
     click('.generate');
     const first = await answer(cutRequest(), SELLER_CUT);
     expect(first.has('type')).toBe(false);
@@ -290,6 +305,8 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
   });
 
   it('una respuesta tardía del corte para casa no se muestra después de cambiar el tipo', async () => {
+    seller.set(LUIS);
+    await settle();
     await pickCutType(HOME_OPTION);
     click('.generate');
     const late = cutRequest();
@@ -315,7 +332,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     const params = await answer(cutRequest(), WAREHOUSE_HOME_CUT);
     expect(params.get('type')).toBe('home');
     expect(params.get('date')).toBe('2026-11-04');
-    expect(text('.result-title')).toBe('Corte para casa');
+    expect(text('.result-title')).toBe('Ganancia real');
   });
 
   it('un error muestra «No se pudo generar el corte» y «Reintentar» vuelve a pedir el corte para casa', async () => {
@@ -333,7 +350,7 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     fixture.detectChanges();
     const params = await answer(cutRequest(), WAREHOUSE_HOME_CUT);
     expect(params.get('type')).toBe('home');
-    expect(text('.result-title')).toBe('Corte para casa');
+    expect(text('.result-title')).toBe('Ganancia real');
   });
 
   it('un periodo sin ventas del corte para casa muestra el estado vacío y no un corte en ceros', async () => {
