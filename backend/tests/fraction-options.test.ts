@@ -111,7 +111,10 @@ describe.skipIf(!hasServiceKey)('Opciones para fraccionar (HU-23, base real)', (
     const ids = (await mine()).map((o) => o.productId)
     expect(ids).not.toContain(notFractionable)
     expect(ids).not.toContain(inactive)
-    expect((await mine()).some((o) => o.name.includes('bolsita'))).toBe(false)
+    const options = await mine()
+    const bagIds = options.flatMap((o) => (o.portionProduct ? [o.portionProduct.id] : []))
+    expect(bagIds.length).toBeGreaterThan(0)
+    expect(ids.some((id) => bagIds.includes(id))).toBe(false)
   })
 
   it('ordena por nombre sin importar mayúsculas', async () => {

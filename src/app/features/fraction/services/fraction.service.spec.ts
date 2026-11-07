@@ -47,16 +47,16 @@ describe('FractionService', () => {
     const req = httpMock.expectOne(URL);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(PAYLOAD);
-    req.flush(FRACTION, { status: 201, statusText: 'Created' });
+    req.flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
   });
 
   it('201 es un fraccionado nuevo y 200 es una repetición (replayed)', () => {
     const first = create();
-    httpMock.expectOne(URL).flush(FRACTION, { status: 201, statusText: 'Created' });
+    httpMock.expectOne(URL).flush({ fraction: FRACTION, replayed: false }, { status: 201, statusText: 'Created' });
     expect(first.result()).toEqual({ ok: true, fraction: FRACTION, replayed: false });
 
     const second = create();
-    httpMock.expectOne(URL).flush(FRACTION, { status: 200, statusText: 'OK' });
+    httpMock.expectOne(URL).flush({ fraction: FRACTION, replayed: true }, { status: 200, statusText: 'OK' });
     expect(second.result()).toEqual({ ok: true, fraction: FRACTION, replayed: true });
   });
 
