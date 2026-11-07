@@ -174,7 +174,7 @@ describe('FractionFormComponent', () => {
     type('#portions', '7');
     type('#price', '85.50');
     submit();
-    expect(submitted).toEqual([{ productId: 12, portions: 7, price: '85.50' }]);
+    expect(submitted).toEqual([{ productId: 12, portions: 7, price: '85.50', portionSize: '50 g' }]);
   });
 
   it('pinta los errores del servidor en el campo que toca', async () => {

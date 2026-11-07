@@ -158,9 +158,11 @@ export class FractionFormComponent implements OnInit {
   }
 
   // La porción sale de la bolsita si existe (no se edita); sin bolsita, la del entero, que se puede cambiar.
+  // Una bolsita sin porción guardada (cadena vacía) cae a la del entero, no deja el campo vacío.
   private prefillPortionSize(productId: number | null, options?: { emitEvent: boolean }): void {
     const option = this.options().find((item) => item.productId === productId);
-    this.portionSizeControl.setValue(option?.portionProduct?.portionSize ?? option?.portionSize ?? '', options);
+    const bagSize = option?.portionProduct?.portionSize?.trim() ?? '';
+    this.portionSizeControl.setValue(bagSize || option?.portionSize || '', options);
   }
 
   // Con ?producto= válido el entero queda elegido; uno que no está en la lista se ignora. La carga
@@ -215,7 +217,8 @@ export class FractionFormComponent implements OnInit {
     if (this.productControl.invalid) errors.product = FRACTION_FORM_MESSAGES.productRequired;
     else if (this.selectedOption()?.warehouseUnits === 0) errors.product = NO_UNITS_LABEL;
     // La porción sale del entero elegido: sin entero no hay de dónde tomarla y el error del producto basta.
-    if (this.productControl.valid && this.portionSizeControl.invalid) {
+    // Con bolsita existente la porción es solo informativa: su validez no bloquea el envío.
+    if (!this.portionSizeReadonly() && this.productControl.valid && this.portionSizeControl.invalid) {
       errors.portionSize = this.firstErrorMessage(this.portionSizeControl, FRACTION_FORM_MESSAGES.portionSize);
     }
     if (this.portionsControl.invalid) {

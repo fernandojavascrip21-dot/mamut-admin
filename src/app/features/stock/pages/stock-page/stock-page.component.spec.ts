@@ -6,7 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { deliveryModalLink, editHoldingModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, fractionModalLink, returnModalLink } from '@shared/utils/modal-links';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import { StockPageComponent } from './stock-page.component';
@@ -150,7 +150,7 @@ describe('StockPageComponent', () => {
         '/admin/entrada',
         hrefOf(deliveryModalLink()),
         '/admin/productos',
-        '/admin/fraccionar',
+         hrefOf(fractionModalLink()),
         '/admin/productos/nuevo',
       ]);
     });

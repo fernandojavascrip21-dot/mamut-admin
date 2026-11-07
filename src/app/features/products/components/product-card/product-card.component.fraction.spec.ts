@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
 import { ProductCardComponent } from './product-card.component';
+import { fractionModalLink } from '@shared/utils/modal-links';
 
 const WHOLE: ProductSummary = {
   id: 7,
@@ -38,7 +39,11 @@ describe('ProductCardComponent · Fraccionar (HU-23)', () => {
 
   it('con «Yo» y un entero fraccionable muestra «Fraccionar» hacia /admin/fraccionar?producto=<id>', async () => {
     await render(WHOLE);
-    expect(fractionLink()!.getAttribute('href')).toBe('/admin/fraccionar?producto=7');
+    const router = TestBed.inject(Router);
+    expect(fractionLink()!.getAttribute('href')).toBe(
+      router.serializeUrl(router.createUrlTree(fractionModalLink({ productId: 7 }))),
+    );
+
   });
 
   it('aparece aunque el entero tenga 0 piezas', async () => {
