@@ -163,6 +163,8 @@ export const MAMMUT_THEME = definePreset({
       root: {
         ...AuraToggleSwitch.root,
         background: 'var(--color-muted)',
+        // Deshabilitado con los tokens del tema: el de Aura apunta a `surface.600`, que no definimos.
+        disabledBackground: '{form.field.disabled.background}',
         hoverBackground: 'var(--color-ink)',
         checkedBackground: 'var(--color-accent)',
         checkedHoverBackground: 'var(--color-accent-hover)',
@@ -177,6 +179,7 @@ export const MAMMUT_THEME = definePreset({
       handle: {
         ...AuraToggleSwitch.handle,
         background: 'var(--color-white)',
+        disabledBackground: '{form.field.disabled.color}',
         hoverBackground: 'var(--color-white)',
         checkedBackground: 'var(--color-white)',
         checkedHoverBackground: 'var(--color-white)',
