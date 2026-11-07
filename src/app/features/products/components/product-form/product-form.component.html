@@ -219,14 +219,15 @@
       class="shrink-0"
     />
     <label for="fractionable" class="field-label flex min-h-11 flex-1 cursor-pointer items-center">
-      Se fracciona en bolsitas
+      {{ fractionableLabel }}
     </label>
   </div>
 
-  <!-- Se oculta con una clase en vez de un @if para conservar lo escrito al desmarcar y volver
-       a marcar «se fracciona». -->
-  <div class="flex flex-col gap-1.5" [class.hidden]="!fractionable()">
-    <label for="portion-size" class="field-label">Porción</label>
+  <!-- Siempre visible: aparecer solo al marcar la casilla hacía parecer que se pedían los gramos del
+       producto. Solo es obligatoria si la casilla está marcada. -->
+  <div class="flex flex-col gap-1.5">
+    <label for="portion-size" class="field-label">{{ portionLabel }}</label>
+    <p id="portion-size-hint" class="m-0 text-sm text-muted">{{ portionHint }}</p>
     <input
       pInputText
       id="portion-size"
@@ -236,7 +237,7 @@
       #portionSizeInput
       formControlName="portionSize"
       [attr.aria-invalid]="portionSizeError() ? 'true' : null"
-      [attr.aria-describedby]="portionSizeError() ? 'portion-size-error' : null"
+      [attr.aria-describedby]="portionSizeError() ? 'portion-size-hint portion-size-error' : 'portion-size-hint'"
       [invalid]="!!portionSizeError()"
       class="h-[52px] min-w-0 w-full"
     />
