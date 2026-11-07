@@ -33,13 +33,7 @@ const duplicatePortionName = (name: string) => `Ya existe un producto con el nom
 async function toFraction(row: FractionRow): Promise<Fraction> {
   const whole = await findProduct(row.productId)
   const bag = await findProduct(row.portionProductId)
-  // El fraccionado más antiguo de la bolsita es el que la creó.
-  const [oldest] = await db
-    .select({ id: fractions.id })
-    .from(fractions)
-    .where(eq(fractions.portionProductId, row.portionProductId))
-    .orderBy(asc(fractions.id))
-    .limit(1)
+  const creatorId = await creatorFractionId(row.portionProductId)
   return {
     id: row.id,
     requestId: row.requestId,
@@ -51,21 +45,44 @@ async function toFraction(row: FractionRow): Promise<Fraction> {
     portionProduct: {
       id: bag.id,
       name: bag.name,
-      created: oldest?.id === row.id,
+      created: creatorId === row.id,
       price: row.portionPrice,
       stock: bag.stock,
     },
   }
 }
 
-// Si el requestId ya existe, responde ese fraccionado. Con el mismo entero y porciones, y el mismo
-// precio si se mandó uno, es una repetición; con otros datos, 409. Sin `price` no hay con qué comparar
-// el precio, porque la tabla guarda el precio tras el fraccionado y no el que se mandó.
+// El fraccionado más antiguo de una bolsita es el que la creó; solo ese guardó la porción de la petición.
+async function creatorFractionId(portionProductId: number): Promise<number | undefined> {
+  const [oldest] = await db
+    .select({ id: fractions.id })
+    .from(fractions)
+    .where(eq(fractions.portionProductId, portionProductId))
+    .orderBy(asc(fractions.id))
+    .limit(1)
+  return oldest?.id
+}
+
+// La porción solo se compara si la petición la trae y el fraccionado creó la bolsita. En una bolsita
+// reusada la porción se ignora, así que repetir esa petición no debe dar 409. Se compara con la
+// porción guardada en la bolsita.
+async function samePortionSize(row: FractionRow, portionSize: string | null | undefined): Promise<boolean> {
+  if (portionSize === undefined || portionSize === null) return true
+  if ((await creatorFractionId(row.portionProductId)) !== row.id) return true
+  const bag = await findProduct(row.portionProductId)
+  return bag.portionSize === portionSize
+}
+
+// Si el requestId ya existe, responde ese fraccionado. Con el mismo entero y porciones, el mismo
+// precio si se mandó uno y la misma porción si aplica, es una repetición; con otros datos, 409. Sin
+// `price` no hay con qué comparar el precio, porque la tabla guarda el precio tras el fraccionado y no
+// el que se mandó.
 async function findReplay(input: CreateFractionInput): Promise<Fraction | null> {
   const [row] = await db.select().from(fractions).where(eq(fractions.requestId, input.requestId))
   if (!row) return null
   const samePrice = input.price === null || compareMoney(input.price, 2, row.portionPrice, 2) === 0
-  if (row.productId !== input.productId || row.portions !== input.portions || !samePrice) {
+  const sameSize = await samePortionSize(row, input.portionSize)
+  if (row.productId !== input.productId || row.portions !== input.portions || !samePrice || !sameSize) {
     throw conflict(FRACTION_MISMATCH)
   }
   return toFraction(row)
@@ -119,10 +136,12 @@ async function writeFraction(tx: Tx, input: CreateFractionInput, actor: Fraction
   const [whole] = await lockRows(tx, products, eq(products.id, input.productId))
   if (!whole || !whole.active) throw notFound()
   // Sin porción definida no hay nombre para la bolsita; se trata igual que un producto no fraccionable.
-  const portionSize = whole.portionSize
-  if (!whole.fractionable || !portionSize) throw validation(NOT_FRACTIONABLE)
+  const wholePortionSize = whole.portionSize
+  if (!whole.fractionable || !wholePortionSize) throw validation(NOT_FRACTIONABLE)
 
   const [bag] = await tx.select().from(products).where(eq(products.parentProductId, whole.id))
+  // Solo la bolsita nueva usa la porción de la petición; si ya existe, su porción no cambia.
+  const portionSize = input.portionSize ?? wholePortionSize
 
   // Costo por bolsita en unidades enteras, redondeado una sola vez (450.0000 ÷ 7 = 64.2857).
   const portionUnitCost = divideMoney(whole.unitCost, 4, input.portions)

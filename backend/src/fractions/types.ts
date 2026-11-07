@@ -5,6 +5,9 @@ export interface CreateFractionInput {
   productId: number
   portions: number
   price: string | null
+  // Porción de la bolsita nueva (texto libre). Ausente o null: se usa la del entero. Con bolsita ya
+  // existente se ignora.
+  portionSize?: string | null
 }
 
 export interface FractionActor {

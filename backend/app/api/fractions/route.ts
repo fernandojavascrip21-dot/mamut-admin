@@ -1,12 +1,13 @@
 import { requireRole } from '@auth'
 import { createFraction } from '@fractions'
 import { validation } from '@lib/errors'
-import { handle, readJson, requireMoney, requireNumber } from '@lib/handler'
+import { handle, optionalText, readJson, requireMoney, requireNumber } from '@lib/handler'
 import { UUID } from '@lib/constants'
 
 // Fraccionar un entero en bolsitas (T-24): 201 la primera vez, 200 si es una repetición del mismo
 // requestId. Solo administrador. `price` es obligatorio solo cuando la bolsita todavía no existe; la
-// validación de esa regla vive en el caso de uso.
+// validación de esa regla vive en el caso de uso. `portionSize` es la porción de la bolsita nueva: si
+// la bolsita ya existe, el caso de uso lo ignora.
 export const POST = handle(async (request) => {
   const actor = await requireRole(request, 'admin')
   const body = await readJson(request)
@@ -23,6 +24,7 @@ export const POST = handle(async (request) => {
     productId: requireNumber(body, 'productId', { integer: true }),
     portions: requireNumber(body, 'portions', { integer: true }),
     price,
+    portionSize: optionalText(body, 'portionSize'),
   }, actor)
   return Response.json({ fraction, replayed }, { status: replayed ? 200 : 201 })
 })
