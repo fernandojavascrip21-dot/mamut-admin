@@ -257,12 +257,13 @@ describe('AdminCashCutPageComponent · corte para casa', () => {
     expect(text('.result')).not.toContain('Costo con envío');
   });
 
-  it('con «Yo · bodega» y «Para casa» no manda holderId y no muestra «Para cubrir envíos»', async () => {
+  it('con «Yo · bodega» y «Corte de casa» con el interruptor apagado pide la bodega sola y no muestra «Para cubrir envíos»', async () => {
     await pickCutType(HOME_OPTION);
     click('.generate');
 
     const params = await answer(cutRequest(), WAREHOUSE_HOME_CUT);
     expect(params.get('type')).toBe('home');
+    expect(params.has('scope')).toBe(false);
     expect(params.has('holderId')).toBe(false);
     expect(params.get('period')).toBe('day');
     expect(params.get('date')).toBe('2026-11-04');

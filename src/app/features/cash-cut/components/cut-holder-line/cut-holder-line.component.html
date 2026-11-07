@@ -1,0 +1,59 @@
+<div class="flex min-w-0 items-center gap-3 px-4 py-3">
+  @if (isWarehouse()) {
+    <div
+      class="holder-badge flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-ink text-white"
+      aria-hidden="true"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 9.5 12 4l9 5.5" />
+        <path d="M5 9v11h14V9" />
+        <path d="M9 20v-6h6v6" />
+      </svg>
+    </div>
+  } @else {
+    <div
+      class="holder-badge flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-line text-sm font-bold text-ink"
+      aria-hidden="true"
+    >
+      {{ initials() }}
+    </div>
+  }
+  <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+    <div class="flex min-w-0 items-center gap-2">
+      <p
+        class="holder-name m-0 min-w-0 truncate text-sm leading-tight font-bold"
+        [class.text-muted]="isInactive()"
+        [attr.title]="name()"
+      >
+        {{ name() }}
+      </p>
+      @if (isInactive()) {
+        <p-tag class="inactive-tag shrink-0" [value]="texts.inactive" severity="secondary" />
+      }
+    </div>
+    <p class="holder-meta m-0 font-mono text-xs text-muted">{{ meta() }}</p>
+  </div>
+
+  <div class="flex shrink-0 flex-col items-end justify-center gap-0.5 text-right">
+    <p class="sold m-0 font-mono text-base font-bold whitespace-nowrap">
+      {{ total() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+    <p
+      class="profit m-0 font-mono text-xs font-semibold whitespace-nowrap"
+      [class.text-success-text]="!profitIsNegative()"
+      [class.text-danger-text]="profitIsNegative()"
+    >
+      {{ profitIsNegative() ? '' : '+' }}{{ profit() | currency: 'MXN' : 'symbol-narrow' }}
+    </p>
+  </div>
+</div>

@@ -8,8 +8,8 @@ model: haiku
 Implementas en mamut-admin (Angular 22 + backend Next.js) el código que hace pasar tests que **ya tienen commit**. Los tests son la especificación: se corrige el código, nunca un test existente.
 
 ## Antes de empezar
-1. Lee `CLAUDE.md` del proyecto, el spec que te pasen (`specs/<slug>/spec.md`) y los tests que debes hacer pasar.
-2. Corre esos tests y anota cuáles fallan y con qué mensaje. Frontend: `npx ng test --include <ruta>`; backend: `cd backend && npx vitest run tests/<archivo>.test.ts` (base real; sin `SUPABASE_SERVICE_ROLE_KEY` las pruebas de cuentas se saltan: dilo, una corrida en verde así no prueba nada).
+1. Lee solo los archivos y las secciones del spec que te indique la tarea y los tests que debes hacer pasar. Las reglas están en este archivo; ante una duda, `Grep` en `CLAUDE.md` por esa palabra, nunca lo leas entero.
+2. Si la tarea trae la lista de casos en rojo, **no corras los tests al empezar**. Si no la trae, córrelos una vez. Frontend: `npx ng test --include <ruta>`; backend: `cd backend && npx vitest run tests/<archivo>.test.ts` (base real; sin `SUPABASE_SERVICE_ROLE_KEY` las pruebas de cuentas se saltan: dilo, una corrida en verde así no prueba nada).
 
 ## Protocolo de corrección de errores (de `~/.claude/CLAUDE.md`)
 1. **PROHIBIDO** modificar, borrar, saltar (`skip`/`xfail`/`.only`) o debilitar tests que ya tienen commit. Sí puedes escribir tests nuevos para funcionalidad nueva.
@@ -34,6 +34,6 @@ Implementas en mamut-admin (Angular 22 + backend Next.js) el código que hace pa
 - Haz solo lo que piden los tests y el spec; no refactorices fuera del alcance.
 
 ## Al terminar
-1. Corre los tests afectados, `npx ng build` y `npm run check:architecture` (y `cd backend && npm run type-check` si tocaste el backend).
+1. Corre **una sola vez** los tests afectados, `npx ng build` y `npm run check:architecture` (y `cd backend && npm run type-check` si tocaste el backend). Eres el único que verifica: nadie más lo repite.
 2. No hagas commit.
-3. Entrega: archivos cambiados, tests que pasan y fallan (con salida resumida) y cualquier decisión o duda que el usuario deba revisar.
+3. Entrega en **≤150 palabras**: archivos cambiados, conteos de tests (pasan/fallan), y solo las decisiones o dudas que el usuario deba revisar. Sin repetir el spec.

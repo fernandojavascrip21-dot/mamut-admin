@@ -33,4 +33,17 @@ export class CashCutService {
       .get<{ cut: CashCut }>(`${API_BASE_URL}/api/cuts`, { params })
       .pipe(map((r) => r.cut));
   }
+
+  // Pide el resumen del negocio (corte para casa de todos los titulares, `scope=business`).
+  // Nunca manda `holderId`: el alcance es todo el negocio y el backend lo rechazaría.
+  getBusiness(query: Pick<CashCutQuery, 'period' | 'date'>): Observable<CashCut> {
+    const params = new HttpParams()
+      .set('type', 'home')
+      .set('scope', 'business')
+      .set('period', query.period)
+      .set('date', query.date);
+    return this.http
+      .get<{ cut: CashCut }>(`${API_BASE_URL}/api/cuts`, { params })
+      .pipe(map((r) => r.cut));
+  }
 }

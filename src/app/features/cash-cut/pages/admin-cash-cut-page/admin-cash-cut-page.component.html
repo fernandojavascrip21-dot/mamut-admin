@@ -27,6 +27,29 @@
       />
       <p class="m-0 text-xs leading-normal text-muted">{{ cutTypeHelp() }}</p>
     </div>
+
+    @if (showSellersToggle()) {
+      <div class="sellers-toggle-field flex flex-col gap-1.5">
+        <div class="flex min-h-11 items-center gap-3">
+          <p-toggleswitch
+            class="sellers-toggle"
+            inputId="sellers-toggle"
+            ariaLabelledBy="sellers-toggle-label"
+            [ngModel]="includeSellers()"
+            (ngModelChange)="selectIncludeSellers($event)"
+          />
+          <label
+            id="sellers-toggle-label"
+            class="sellers-toggle-label field-label cursor-pointer"
+            for="sellers-toggle"
+            >{{ texts.sellersToggleLabel }}</label
+          >
+        </div>
+        <p class="sellers-toggle-help m-0 text-xs leading-normal text-muted">
+          {{ sellersToggleHelp() }}
+        </p>
+      </div>
+    }
   </section>
 
   @switch (state()) {
@@ -165,6 +188,7 @@
             [holderName]="holderName()"
             [periodText]="resultPeriodLabel()"
             [cutType]="resultCutType()"
+            [scope]="isBusiness() ? 'business' : 'holder'"
             layout="overview"
           >
             <p class="generated-at m-0 whitespace-nowrap">{{ generatedAtLabel() }}</p>
@@ -180,59 +204,92 @@
             </button>
           </app-cut-summary>
 
-          <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
-            <section aria-labelledby="cut-products-title">
-              <div class="flex items-baseline justify-between gap-2 px-4 pt-3 pb-1.5">
-                <h3 id="cut-products-title" class="products-title m-0 text-[15px] font-bold">
-                  {{ productsTitle() }}
-                </h3>
-                <span class="text-xs text-muted">{{ texts.productsColumns }}</span>
-              </div>
-              <ul
-                class="products m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
-                tabindex="0"
-                aria-labelledby="cut-products-title"
-              >
-                @for (line of cut.products; track $index) {
-                  <li class="min-w-0 border-t border-line">
-                    <app-cut-product-line
-                      [line]="line"
-                      [withShipping]="holderName() !== null"
-                      [cutType]="resultCutType()"
-                      layout="overview"
-                    />
-                  </li>
+          @if (isBusiness()) {
+            <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+              <section class="holders" aria-labelledby="cut-holders-title">
+                <div class="flex items-baseline justify-between gap-2 px-4 pt-3 pb-1.5">
+                  <div class="min-w-0">
+                    <h3 id="cut-holders-title" class="holders-title m-0 text-[15px] font-bold">
+                      {{ texts.holdersTitle }}
+                    </h3>
+                    <p class="m-0 text-xs text-muted">{{ texts.holdersSubtitle }}</p>
+                  </div>
+                  <span class="shrink-0 text-xs text-muted">{{ texts.holdersColumns }}</span>
+                </div>
+                @if (cut.holders?.length) {
+                  <ul
+                    class="holders-list m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                    tabindex="0"
+                    aria-labelledby="cut-holders-title"
+                  >
+                    @for (h of cut.holders; track h.holder?.id ?? 'warehouse') {
+                      <li class="min-w-0 border-t border-line">
+                        <app-cut-holder-line [holder]="h" />
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="holders-empty m-0 px-4 py-4 text-sm text-muted">
+                    {{ texts.holdersEmpty }}
+                  </p>
                 }
-              </ul>
-            </section>
-          </p-card>
+              </section>
+            </p-card>
+          } @else {
+            <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+              <section aria-labelledby="cut-products-title">
+                <div class="flex items-baseline justify-between gap-2 px-4 pt-3 pb-1.5">
+                  <h3 id="cut-products-title" class="products-title m-0 text-[15px] font-bold">
+                    {{ productsTitle() }}
+                  </h3>
+                  <span class="text-xs text-muted">{{ texts.productsColumns }}</span>
+                </div>
+                <ul
+                  class="products m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                  tabindex="0"
+                  aria-labelledby="cut-products-title"
+                >
+                  @for (line of cut.products; track $index) {
+                    <li class="min-w-0 border-t border-line">
+                      <app-cut-product-line
+                        [line]="line"
+                        [withShipping]="holderName() !== null"
+                        [cutType]="resultCutType()"
+                        layout="overview"
+                      />
+                    </li>
+                  }
+                </ul>
+              </section>
+            </p-card>
 
-          <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
-            <section aria-labelledby="cut-sales-title">
-              <h3
-                id="cut-sales-title"
-                class="sales-title m-0 px-4 pt-3 pb-1.5 text-[15px] font-bold"
-              >
-                {{ texts.salesTitle }} ({{ cut.sales.length }})
-              </h3>
-              <ul
-                class="sales m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
-                tabindex="0"
-                aria-labelledby="cut-sales-title"
-              >
-                @for (sale of cut.sales; track sale.requestId) {
-                  <li class="min-w-0 border-t border-line">
-                    <app-cut-sale-item
-                      [sale]="sale"
-                      [showDate]="showSaleDate()"
-                      [cutType]="resultCutType()"
-                      layout="overview"
-                    />
-                  </li>
-                }
-              </ul>
-            </section>
-          </p-card>
+            <p-card class="block min-w-0 overflow-hidden border border-line" [pt]="cardPassThrough">
+              <section aria-labelledby="cut-sales-title">
+                <h3
+                  id="cut-sales-title"
+                  class="sales-title m-0 px-4 pt-3 pb-1.5 text-[15px] font-bold"
+                >
+                  {{ texts.salesTitle }} ({{ cut.sales.length }})
+                </h3>
+                <ul
+                  class="sales m-0 list-none p-0 max-h-[22rem] overflow-y-auto overscroll-contain focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-accent"
+                  tabindex="0"
+                  aria-labelledby="cut-sales-title"
+                >
+                  @for (sale of cut.sales; track sale.requestId) {
+                    <li class="min-w-0 border-t border-line">
+                      <app-cut-sale-item
+                        [sale]="sale"
+                        [showDate]="showSaleDate()"
+                        [cutType]="resultCutType()"
+                        layout="overview"
+                      />
+                    </li>
+                  }
+                </ul>
+              </section>
+            </p-card>
+          }
         </section>
       }
     }
