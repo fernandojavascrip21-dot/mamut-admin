@@ -40,3 +40,17 @@ export interface FractionOption {
   portionSize: string
   portionProduct: { id: number; name: string; price: string; active: boolean; portionSize: string } | null
 }
+
+// Fila del historial de fraccionados (HU-24): el entero, la bolsita y quién lo hizo.
+export interface FractionHistoryItem {
+  id: number
+  requestId: string
+  createdAt: string
+  portions: number
+  wholeUnitCost: string     // escala 4
+  portionUnitCost: string   // escala 4
+  portionPrice: string      // escala 2
+  product: { id: number; name: string }
+  portionProduct: { id: number; name: string }
+  createdBy: { id: string; name: string }
+}

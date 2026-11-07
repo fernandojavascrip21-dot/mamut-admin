@@ -1,5 +1,5 @@
 import { requireRole } from '@auth'
-import { createFraction } from '@fractions'
+import { createFraction, listFractions } from '@fractions'
 import { validation } from '@lib/errors'
 import { handle, optionalText, readJson, requireMoney, requireNumber } from '@lib/handler'
 import { UUID } from '@lib/constants'
@@ -27,4 +27,10 @@ export const POST = handle(async (request) => {
     portionSize: optionalText(body, 'portionSize'),
   }, actor)
   return Response.json({ fraction, replayed }, { status: replayed ? 200 : 201 })
+})
+
+// Historial de fraccionados (HU-24). Esqueleto: aún sin implementar.
+export const GET = handle(async () => {
+  await listFractions()
+  return Response.json({ fractions: [] })
 })

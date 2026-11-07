@@ -19,7 +19,9 @@ import {
   PRODUCT_NAME_CONSTRAINT,
   WHOLE_UNITS_PER_FRACTION,
 } from './constants'
-import type { CreateFractionInput, Fraction, FractionActor, FractionOption, FractionRow, ProductRow } from './types'
+import type {
+  CreateFractionInput, Fraction, FractionActor, FractionHistoryItem, FractionOption, FractionRow, ProductRow,
+} from './types'
 
 // Nombre de la bolsita: el del entero más su porción (spec T-24 §3).
 const portionProductName = (wholeName: string, portionSize: string) => `${wholeName} · bolsita ${portionSize}`
@@ -270,4 +272,9 @@ export async function listFractionOptions(): Promise<FractionOption[]> {
         : null,
     }
   })
+}
+
+// Esqueleto de HU-24: aún sin implementar (los tests de fraction-history están en rojo).
+export async function listFractions(): Promise<FractionHistoryItem[]> {
+  throw new Error('listFractions pendiente de implementar')
 }

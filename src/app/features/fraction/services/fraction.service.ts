@@ -13,6 +13,7 @@ import type {
   CreateFractionPayload,
   Fraction,
   FractionFailureReason,
+  FractionHistoryItem,
   FractionOption,
   FractionResult,
 } from '../interfaces/fraction.models';
@@ -29,6 +30,11 @@ export class FractionService {
     return this.http
       .get<{ products: FractionOption[] }>(`${FRACTIONS_URL}/options`)
       .pipe(map((body) => body.products));
+  }
+
+  // Esqueleto de HU-24: aún no pide GET /api/fractions.
+  getHistory(): Observable<FractionHistoryItem[]> {
+    return of([]);
   }
 
   // Registra el fraccionado. El backend responde { fraction, replayed }: replayed es true cuando es una

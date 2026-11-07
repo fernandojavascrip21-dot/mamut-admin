@@ -98,9 +98,9 @@ describe('ProductCardComponent', () => {
     });
   });
 
-  it('muestra "Fraccionado" solo cuando fractionable es true', async () => {
+  it('muestra "Se fracciona" solo cuando fractionable es true', async () => {
     await render({ ...PRODUCT, fractionable: true });
-    expect(fixture.nativeElement.textContent).toContain('Fraccionado');
+    expect(fixture.nativeElement.textContent).toContain('Se fracciona');
   });
 
   it('con stock 0 y fractionable true muestra las dos etiquetas, "Agotado" primero', async () => {
@@ -108,7 +108,7 @@ describe('ProductCardComponent', () => {
     const labels = Array.from(
       fixture.nativeElement.querySelectorAll('.tags span'),
     ).map((el) => (el as HTMLElement).textContent?.trim());
-    expect(labels).toEqual(['Agotado', 'Fraccionado']);
+    expect(labels).toEqual(['Agotado', 'Se fracciona']);
   });
 
   it('con image vacía muestra la inicial en vez de una foto', async () => {
