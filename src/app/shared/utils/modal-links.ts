@@ -2,6 +2,7 @@ import type { UrlSegmentGroup, UrlTree } from '@angular/router';
 import {
   MODAL_DELIVERY_PATH,
   MODAL_EDIT_HOLDING_PATH,
+  MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
 } from '../constants/modal.constants';
@@ -20,6 +21,13 @@ export function returnModalLink(sellerId: string): unknown[] {
 
 export function editHoldingModalLink(sellerId: string, productId: number): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_EDIT_HOLDING_PATH, sellerId, productId] } }];
+}
+
+// Igual que «dejar»: el producto va como parámetro matricial y la ruta primaria se conserva.
+export function fractionModalLink(params: { productId?: number } = {}): unknown[] {
+  const matrix: Record<string, number> = {};
+  if (params.productId !== undefined) matrix['producto'] = params.productId;
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_FRACTION_PATH, matrix] } }];
 }
 
 export function closeModalLink(): unknown[] {

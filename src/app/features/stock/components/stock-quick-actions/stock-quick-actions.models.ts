@@ -1,5 +1,5 @@
 // Iconos de los movimientos rápidos de «Stock general» (HU-13).
-export type StockQuickActionIcon = 'entry' | 'deliver' | 'return' | 'sell' | 'new';
+export type StockQuickActionIcon = 'entry' | 'deliver' | 'return' | 'sell' | 'new' | 'fraction';
 
 // Un movimiento rápido: el enlace ya viene armado desde la página (ruta o ventana `ventana`).
 export interface StockQuickAction {

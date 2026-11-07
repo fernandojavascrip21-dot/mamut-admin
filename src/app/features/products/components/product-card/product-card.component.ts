@@ -5,10 +5,14 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
-import { deliveryModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, fractionModalLink } from '@shared/utils/modal-links';
 import { STOCK_LEVEL_LABELS, type StockLevel } from '@shared/constants/stock-level.constants';
 import { initialsOf } from '@shared/utils/initials';
-import { PRODUCT_CARD_PASS_THROUGH, PRODUCT_CARD_SELL_TEXTS } from './product-card.constants';
+import {
+  PRODUCT_CARD_FRACTION_TEXT,
+  PRODUCT_CARD_PASS_THROUGH,
+  PRODUCT_CARD_SELL_TEXTS,
+} from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
 // "Agotado"/"Baja existencia"/"Fraccionado" encima, nombre, «Cantidad N» y precio. La parte de arriba abre la
@@ -61,7 +65,13 @@ export class ProductCardComponent {
   readonly canSell = computed(() => this.inCart() || (this.sellUnits() ?? 0) > 0);
   // El «+» se deshabilita en el tope: las piezas del titular.
   readonly canIncrement = computed(() => this.unitsInCart() < (this.sellUnits() ?? 0));
-  readonly showFooter = computed(() => this.canDeliver() || this.canSell());
+  // «Fraccionar» (HU-23) solo con «Yo · bodega» y un producto fraccionable; aparece aunque no haya
+  // piezas, porque la pantalla de fraccionar valida las piezas al enviar.
+  readonly canFraction = computed(() => this.holderLabel() === null && this.product().fractionable);
+  readonly fractionText = PRODUCT_CARD_FRACTION_TEXT;
+  // La ventana «Fraccionar» abre con el entero ya elegido (parámetro matricial `producto`).
+  readonly fractionLink = computed(() => fractionModalLink({ productId: this.product().id }));
+  readonly showFooter = computed(() => this.canDeliver() || this.canFraction() || this.canSell());
   readonly deliveryLink = computed(() => deliveryModalLink({
     productId: this.product().id,
     sellerId: this.sellerId() ?? undefined,

@@ -18,3 +18,6 @@ export const PRODUCT_CARD_SELL_TEXTS = {
   unitsInCartSuffix: 'en el carrito',
   quantity: 'Cantidad',
 } as const;
+
+// Texto del enlace «Fraccionar» en el pie de la tarjeta (HU-23).
+export const PRODUCT_CARD_FRACTION_TEXT = 'Fraccionar';

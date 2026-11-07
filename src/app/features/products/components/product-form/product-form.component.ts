@@ -18,7 +18,7 @@ import {
 } from '../../validators/product-form.validators';
 import type { Category, Product, ProductFormValue } from '../../interfaces/product.models';
 import {
-  CATEGORY_SELECT_MOTION_OPTIONS, FIELD_MESSAGES, MONEY_MESSAGES, NO_CATEGORY_OPTION,
+  CATEGORY_SELECT_MOTION_OPTIONS, FIELD_MESSAGES, FRACTIONABLE_LABEL, MONEY_MESSAGES, NO_CATEGORY_OPTION, PORTION_HINT, PORTION_LABEL,
 } from './product-form.constants';
 import type { FieldWithError, ProductFormGroup } from './product-form.models';
 
@@ -70,6 +70,9 @@ export class ProductFormComponent implements OnInit {
     },
   }));
   readonly categoryMotionOptions = CATEGORY_SELECT_MOTION_OPTIONS;
+  readonly fractionableLabel = FRACTIONABLE_LABEL;
+  readonly portionLabel = PORTION_LABEL;
+  readonly portionHint = PORTION_HINT;
   // Impide seleccionar una opción que aún permanezca en el panel mientras termina de cerrarse.
   readonly isCategoryOptionDisabled = () => this.busy();
   readonly unitCostError = computed(() => this.fieldErrors().unitCost ?? null);

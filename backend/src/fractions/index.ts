@@ -1,6 +1,6 @@
 // API pública del módulo de fraccionados (T-24). Las constantes de nombres de índice quedan internas.
 export * from './fractions'
-export type { CreateFractionInput, Fraction, FractionActor } from './types'
+export type { CreateFractionInput, Fraction, FractionActor, FractionOption } from './types'
 export {
   FRACTION_MISMATCH,
   MAX_PORTIONS,

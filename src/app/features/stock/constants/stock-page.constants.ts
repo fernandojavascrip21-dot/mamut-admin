@@ -1,4 +1,4 @@
-import { deliveryModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, fractionModalLink } from '@shared/utils/modal-links';
 import type { StockQuickAction } from '../components/stock-quick-actions/stock-quick-actions.models';
 
 // Etiquetas fijas de la barra dividida y del reparto por producto (HU-13).
@@ -25,6 +25,7 @@ export const YO_QUICK_ACTIONS: StockQuickAction[] = [
   { label: 'Entrada a bodega', link: WAREHOUSE_ENTRY_URL, icon: 'entry' },
   { label: 'Dejar a vendedor', link: deliveryModalLink(), icon: 'deliver' },
   { label: 'Vender', link: SELL_URL, icon: 'sell' },
+  { label: 'Fraccionar', link: fractionModalLink(), icon: 'fraction' }, // HU-23: abre la ventana, solo con «Yo · bodega»
   { label: 'Nuevo producto', link: NEW_PRODUCT_URL, icon: 'new' },
 ];
 

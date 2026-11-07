@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { isUniqueViolation, pgConstraintName } from '@db/errors'
 import { fractions, products } from '@db/schema'
@@ -19,7 +19,7 @@ import {
   PRODUCT_NAME_CONSTRAINT,
   WHOLE_UNITS_PER_FRACTION,
 } from './constants'
-import type { CreateFractionInput, Fraction, FractionActor, FractionRow, ProductRow } from './types'
+import type { CreateFractionInput, Fraction, FractionActor, FractionOption, FractionRow, ProductRow } from './types'
 
 // Nombre de la bolsita: el del entero más su porción (spec T-24 §3).
 const portionProductName = (wholeName: string, portionSize: string) => `${wholeName} · bolsita ${portionSize}`
@@ -33,13 +33,7 @@ const duplicatePortionName = (name: string) => `Ya existe un producto con el nom
 async function toFraction(row: FractionRow): Promise<Fraction> {
   const whole = await findProduct(row.productId)
   const bag = await findProduct(row.portionProductId)
-  // El fraccionado más antiguo de la bolsita es el que la creó.
-  const [oldest] = await db
-    .select({ id: fractions.id })
-    .from(fractions)
-    .where(eq(fractions.portionProductId, row.portionProductId))
-    .orderBy(asc(fractions.id))
-    .limit(1)
+  const creatorId = await creatorFractionId(row.portionProductId)
   return {
     id: row.id,
     requestId: row.requestId,
@@ -51,21 +45,44 @@ async function toFraction(row: FractionRow): Promise<Fraction> {
     portionProduct: {
       id: bag.id,
       name: bag.name,
-      created: oldest?.id === row.id,
+      created: creatorId === row.id,
       price: row.portionPrice,
       stock: bag.stock,
     },
   }
 }
 
-// Si el requestId ya existe, responde ese fraccionado. Con el mismo entero y porciones, y el mismo
-// precio si se mandó uno, es una repetición; con otros datos, 409. Sin `price` no hay con qué comparar
-// el precio, porque la tabla guarda el precio tras el fraccionado y no el que se mandó.
+// El fraccionado más antiguo de una bolsita es el que la creó; solo ese guardó la porción de la petición.
+async function creatorFractionId(portionProductId: number): Promise<number | undefined> {
+  const [oldest] = await db
+    .select({ id: fractions.id })
+    .from(fractions)
+    .where(eq(fractions.portionProductId, portionProductId))
+    .orderBy(asc(fractions.id))
+    .limit(1)
+  return oldest?.id
+}
+
+// La porción solo se compara si la petición la trae y el fraccionado creó la bolsita. En una bolsita
+// reusada la porción se ignora, así que repetir esa petición no debe dar 409. Se compara con la
+// porción guardada en la bolsita.
+async function samePortionSize(row: FractionRow, portionSize: string | null | undefined): Promise<boolean> {
+  if (portionSize === undefined || portionSize === null) return true
+  if ((await creatorFractionId(row.portionProductId)) !== row.id) return true
+  const bag = await findProduct(row.portionProductId)
+  return bag.portionSize === portionSize
+}
+
+// Si el requestId ya existe, responde ese fraccionado. Con el mismo entero y porciones, el mismo
+// precio si se mandó uno y la misma porción si aplica, es una repetición; con otros datos, 409. Sin
+// `price` no hay con qué comparar el precio, porque la tabla guarda el precio tras el fraccionado y no
+// el que se mandó.
 async function findReplay(input: CreateFractionInput): Promise<Fraction | null> {
   const [row] = await db.select().from(fractions).where(eq(fractions.requestId, input.requestId))
   if (!row) return null
   const samePrice = input.price === null || compareMoney(input.price, 2, row.portionPrice, 2) === 0
-  if (row.productId !== input.productId || row.portions !== input.portions || !samePrice) {
+  const sameSize = await samePortionSize(row, input.portionSize)
+  if (row.productId !== input.productId || row.portions !== input.portions || !samePrice || !sameSize) {
     throw conflict(FRACTION_MISMATCH)
   }
   return toFraction(row)
@@ -119,10 +136,12 @@ async function writeFraction(tx: Tx, input: CreateFractionInput, actor: Fraction
   const [whole] = await lockRows(tx, products, eq(products.id, input.productId))
   if (!whole || !whole.active) throw notFound()
   // Sin porción definida no hay nombre para la bolsita; se trata igual que un producto no fraccionable.
-  const portionSize = whole.portionSize
-  if (!whole.fractionable || !portionSize) throw validation(NOT_FRACTIONABLE)
+  const wholePortionSize = whole.portionSize
+  if (!whole.fractionable || !wholePortionSize) throw validation(NOT_FRACTIONABLE)
 
   const [bag] = await tx.select().from(products).where(eq(products.parentProductId, whole.id))
+  // Solo la bolsita nueva usa la porción de la petición; si ya existe, su porción no cambia.
+  const portionSize = input.portionSize ?? wholePortionSize
 
   // Costo por bolsita en unidades enteras, redondeado una sola vez (450.0000 ÷ 7 = 64.2857).
   const portionUnitCost = divideMoney(whole.unitCost, 4, input.portions)
@@ -218,4 +237,37 @@ export async function getFraction(requestId: string): Promise<Fraction> {
   const [row] = await db.select().from(fractions).where(eq(fractions.requestId, requestId))
   if (!row) throw notFound()
   return toFraction(row)
+}
+
+// Enteros activos que se fraccionan, con sus piezas en bodega y su bolsita si ya existe. La bolsita se
+// busca por parent_product_id (único) y se incluye aunque esté desactivada: createFraction la reactiva.
+// Solo lee; los saldos vienen del trigger de stock, nunca se suman aquí.
+export async function listFractionOptions(): Promise<FractionOption[]> {
+  const wholes = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.fractionable, true), eq(products.active, true), isNotNull(products.portionSize)))
+    .orderBy(asc(sql`lower(${products.name})`))
+  if (wholes.length === 0) return []
+
+  const bags = await db
+    .select()
+    .from(products)
+    .where(inArray(products.parentProductId, wholes.map((whole) => whole.id)))
+  const bagByParent = new Map(bags.map((bag) => [bag.parentProductId, bag]))
+
+  return wholes.map((whole) => {
+    const bag = bagByParent.get(whole.id)
+    return {
+      productId: whole.id,
+      name: whole.name,
+      image: whole.image || null,
+      warehouseUnits: whole.stock,
+      unitCost: whole.unitCost,
+      portionSize: whole.portionSize ?? '',
+      portionProduct: bag
+        ? { id: bag.id, name: bag.name, price: bag.price, active: bag.active, portionSize: bag.portionSize ?? '' }
+        : null,
+    }
+  })
 }

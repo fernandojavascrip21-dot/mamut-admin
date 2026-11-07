@@ -5,6 +5,9 @@ export interface CreateFractionInput {
   productId: number
   portions: number
   price: string | null
+  // Porción de la bolsita nueva (texto libre). Ausente o null: se usa la del entero. Con bolsita ya
+  // existente se ignora.
+  portionSize?: string | null
 }
 
 export interface FractionActor {
@@ -26,3 +29,14 @@ export interface Fraction {
 // Filas de la base que usa el caso de uso (typeof del esquema de Drizzle).
 export type FractionRow = typeof fractions.$inferSelect
 export type ProductRow = typeof products.$inferSelect
+
+// Un entero que se puede abrir en bolsitas, con lo que la pantalla de fraccionar necesita (HU-23).
+export interface FractionOption {
+  productId: number
+  name: string
+  image: string | null
+  warehouseUnits: number
+  unitCost: string
+  portionSize: string
+  portionProduct: { id: number; name: string; price: string; active: boolean; portionSize: string } | null
+}

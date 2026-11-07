@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {
   MODAL_DELIVERY_PATH,
   MODAL_EDIT_HOLDING_PATH,
+  MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
 } from '@shared/constants/modal.constants';
@@ -73,6 +74,17 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.EditHoldingPageComponent,
       ),
     data: { title: 'Editar lo dejado' },
+  },
+  // «Fraccionar» (HU-23): pop-up en el outlet `ventana`; el entero llega como parámetro `producto`.
+  {
+    path: MODAL_FRACTION_PATH,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [modalSavingGuard],
+    loadComponent: () =>
+      import('@features/fraction/pages/fraction-page/fraction-page.component').then(
+        (m) => m.FractionPageComponent,
+      ),
+    data: { title: 'Fraccionar' },
   },
   {
     path: 'vendedores',
