@@ -49,3 +49,6 @@ Thumbs.db
 # Licencia de PrimeNG: configuración local y exportación generada antes de compilar
 /.env
 /src/app/core/ui/constants/primeng-license.generated.ts
+
+# Desbloqueos de tests por rama (los controla solo Fernando)
+/.claude/desbloqueos/

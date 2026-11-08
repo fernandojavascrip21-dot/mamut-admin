@@ -1,0 +1,8 @@
+#!/bin/sh
+# Vuelve a congelar los tests de la rama actual: borra su archivo de desbloqueos.
+# Solo lo corre Fernando.
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+branch=$(git rev-parse --abbrev-ref HEAD)
+rm -f ".claude/desbloqueos/$(printf '%s' "$branch" | sed 's#/#__#g').txt"
+echo "Tests congelados en $branch"

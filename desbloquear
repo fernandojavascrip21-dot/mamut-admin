@@ -1,0 +1,31 @@
+#!/bin/sh
+# Desbloquea los specs con commit de un componente para la rama actual (modo «cambio de comportamiento»).
+# Uso: ./desbloquear <nombre>   (ej. ./desbloquear product-card)
+# Escribe las rutas en .claude/desbloqueos/<rama>.txt (/ de la rama → __); el hook y el pre-commit las leen.
+# Solo lo corre Fernando: los hooks de Claude bloquean cualquier intento de tocarlo.
+name="$1"
+if [ -z "$name" ]; then
+  echo "Uso: ./desbloquear <nombre>   (ej. ./desbloquear product-card)" >&2
+  exit 1
+fi
+
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+branch=$(git rev-parse --abbrev-ref HEAD)
+file=".claude/desbloqueos/$(printf '%s' "$branch" | sed 's#/#__#g').txt"
+
+# Solo specs con seguimiento (los nuevos ya son libres).
+found=$(git ls-files -- '*.spec.ts' '*.test.ts' | grep -F -- "$name")
+if [ -z "$found" ]; then
+  echo "No hay *.spec.ts ni *.test.ts con seguimiento cuya ruta contenga «$name»." >&2
+  exit 1
+fi
+
+mkdir -p .claude/desbloqueos
+touch "$file"
+printf '%s\n' "$found" | while IFS= read -r path; do
+  grep -Fxq -- "$path" "$file" || printf '%s\n' "$path" >> "$file"
+done
+
+echo "Desbloqueados en la rama $branch:"
+printf '%s\n' "$found" | sed 's/^/  - /'
