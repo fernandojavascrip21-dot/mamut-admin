@@ -20,8 +20,6 @@ export const FRACTION_PAGE_TEXTS = {
   historyLink: 'Ver fraccionados',
 };
 
-// Historial de fraccionados (HU-24): destino del enlace «Ver fraccionados» del pop-up.
-export const FRACTION_HISTORY_URL = '/admin/fraccionados';
 
 // Avisos de la página cuando el backend rechaza el fraccionado sin mensaje propio.
 export const FRACTION_PAGE_MESSAGES = {

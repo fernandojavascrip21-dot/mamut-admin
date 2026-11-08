@@ -1,10 +1,8 @@
 <div class="flex w-full flex-col px-5 py-6">
   <h1 class="page-title">{{ texts.title }}</h1>
-  <p class="m-0 mt-1 text-sm font-semibold text-muted">{{ texts.subtitle }}</p>
 
   @if (state() === 'loading') {
-    <div class="mt-6 flex flex-col gap-3" role="status" aria-live="polite">
-      <p class="m-0 text-sm font-semibold text-muted">{{ texts.loading }}</p>
+    <div class="mt-6 flex flex-col gap-3" aria-busy="true">
       <p-skeleton height="88px" />
       <p-skeleton height="88px" />
       <p-skeleton height="88px" />
@@ -12,7 +10,6 @@
   } @else if (state() === 'error') {
     <div class="mt-6 flex flex-col gap-3 alert-danger p-5" role="alert">
       <p class="m-0 text-[15px] font-bold">{{ texts.loadError }}</p>
-      <p class="m-0 text-sm leading-snug">{{ texts.loadErrorHint }}</p>
       <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="retry()">
         {{ texts.retry }}
       </button>
@@ -20,7 +17,6 @@
   } @else if (!hasItems()) {
     <div class="mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
       <p class="m-0 text-[17px] font-bold">{{ texts.empty }}</p>
-      <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
       <a pButton [text]="true" [routerLink]="stockUrl" class="mt-2 h-11 min-w-11 px-4">{{ texts.emptyLink }}</a>
     </div>
   } @else {
@@ -31,7 +27,6 @@
         id="fraction-search"
         type="search"
         class="h-11 min-w-0 w-full"
-        [placeholder]="texts.searchPlaceholder"
         [value]="query()"
         (input)="onSearch($event)"
       />
@@ -43,9 +38,6 @@
       <div class="mt-4 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
         <p class="m-0 text-[17px] font-bold">{{ texts.noMatch }}</p>
         <p class="m-0 text-sm text-muted">{{ texts.noMatchHint }}</p>
-        <button pButton type="button" severity="secondary" class="mt-2 h-11 min-w-11 px-4" (click)="clearSearch()">
-          {{ texts.clearSearch }}
-        </button>
       </div>
     } @else {
       <ul class="m-0 mt-4 flex list-none flex-col gap-3 p-0">

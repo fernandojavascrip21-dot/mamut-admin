@@ -48,10 +48,6 @@ export class FractionHistoryPageComponent {
     this.query.set((event.target as HTMLInputElement).value);
   }
 
-  clearSearch(): void {
-    this.query.set('');
-  }
-
   retry(): void {
     this.historyResource.reload();
   }
