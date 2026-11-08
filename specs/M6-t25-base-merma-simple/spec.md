@@ -5,7 +5,7 @@
 > **Fecha:** 2026-11-07
 > **Objetivo:** que `POST /api/shrinkages` dé de baja en una sola fila de movimiento N piezas de un producto del stock de un vendedor activo o de la bodega, con uno de cuatro motivos, y que reintentar la misma petición no registre la merma dos veces.
 >
-> **Nota (2026-11-08):** código y pruebas listos en la rama `feat/base-merma-simple`. La migración pasa con `npm run db:reset`; `npm run type-check` y `npm test` pasan contra la base local (385 pruebas, con `SUPABASE_SERVICE_ROLE_KEY`). **Falta:** aplicar la migración a producción a mano en el SQL Editor y correr `db:pull` contra producción (paso 1). Las rutas `app/api/shrinkages/**` solo se revisaron con `type-check`; el `403` y los `422` se prueban en el caso de uso.
+> **Nota (2026-11-08):** implementado. La migración se aplicó a producción a mano en el SQL Editor y `db:pull` se corrió contra producción (el único cambio en `schema.ts` es `stock_movements_shrinkage_reason_check`). `npm run type-check` y `npm test` pasan contra la base local (385 pruebas, con `SUPABASE_SERVICE_ROLE_KEY`). Las rutas `app/api/shrinkages/**` solo se revisaron con `type-check`; el `403` y los `422` se prueban en el caso de uso.
 
 Fuentes:
 
@@ -152,7 +152,7 @@ Constantes en `backend/src/shrinkage/constants.ts`: `SHRINKAGE_REASONS` (código
 
 ## 6. Criterios de aceptación
 
-- [ ] La migración pasa con `npm run db:reset` y en producción deja `stock_movements_shrinkage_reason_check`.
+- [x] La migración pasa con `npm run db:reset` y en producción deja `stock_movements_shrinkage_reason_check`.
 - [x] Con Luis (vendedor activo) con 6 piezas de un producto, una merma de 2 con motivo `damaged` inserta una fila `shrinkage` con `qty = -2`, `holder_profile_id` = Luis, `reason = 'damaged'` y el `request_id` de la petición; Luis queda en 4, la bodega no cambia y el total baja 2 (criterio 1 de `SCRUM-65`).
 - [x] Con 10 piezas en bodega, una merma de 3 con `holderProfileId = null` deja la bodega en 7 y el total baja 3 (criterio 2).
 - [x] La respuesta del `POST` trae `qty`, `reason`, `reasonLabel` («Dañado»), `holder` (`null` para la bodega), `product` y `stock: { before, after }` correctos (6 → 4; 10 → 7).
