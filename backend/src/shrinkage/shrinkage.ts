@@ -6,7 +6,7 @@ import { findProduct } from '@products'
 import { insertMovements, movementOfShrinkage, type ShrinkageMovement } from '@stock'
 import { conflict, forbidden, notFound, validation } from '@lib/errors'
 import { INVALID_REASON, MAX_QTY, SHRINKAGE_MISMATCH, SHRINKAGE_REASONS } from './constants'
-import type { CreateShrinkageInput, Shrinkage, ShrinkageActor, ShrinkageReason } from './types'
+import type { CreateShrinkageInput, Shrinkage, ShrinkageActor, ShrinkageOptions, ShrinkageReason } from './types'
 
 const isReason = (value: string): value is ShrinkageReason => Object.hasOwn(SHRINKAGE_REASONS, value)
 
@@ -106,4 +106,11 @@ export async function getShrinkage(requestId: string, actor: ShrinkageActor): Pr
   const moved = await movementOfShrinkage(requestId)
   if (!moved) throw notFound()
   return toShrinkage(moved)
+}
+
+// Esqueleto (HU-25): opciones del pop-up «Registrar merma». Sin implementar.
+export async function listShrinkageOptions(sellerId: string | null, actor: ShrinkageActor): Promise<ShrinkageOptions> {
+  void sellerId
+  void actor
+  throw new Error('listShrinkageOptions no está implementado')
 }

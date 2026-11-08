@@ -9,3 +9,5 @@ export const MODAL_RETURN_PATH = 'retirar';
 export const MODAL_EDIT_HOLDING_PATH = 'editar';
 // Ventana «Fraccionar» (HU-23): con el parámetro matricial opcional `producto`.
 export const MODAL_FRACTION_PATH = 'fraccionar';
+// Ventana «Registrar merma» (HU-25): con el parámetro matricial opcional `vendedor`.
+export const MODAL_SHRINKAGE_PATH = 'merma';

@@ -28,3 +28,22 @@ export interface Shrinkage {
   product: { id: number; name: string; image: string | null }
   stock: { before: number; after: number }
 }
+
+// Esqueleto (HU-25): contrato de GET /api/shrinkages/options.
+export interface ShrinkageOption {
+  productId: number
+  name: string
+  image: string | null
+  units: number // piezas del titular
+}
+
+export interface ShrinkageReasonOption {
+  code: ShrinkageReason
+  label: string
+}
+
+export interface ShrinkageOptions {
+  holder: { id: string; fullName: string } | null // null = bodega
+  products: ShrinkageOption[]
+  reasons: ShrinkageReasonOption[]
+}

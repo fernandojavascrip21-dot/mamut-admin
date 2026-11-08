@@ -5,6 +5,7 @@ import {
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
+  MODAL_SHRINKAGE_PATH,
 } from '../constants/modal.constants';
 
 // Solo modifica el outlet de admin: conserva la ruta primaria y encapsula sus parámetros.
@@ -28,6 +29,13 @@ export function fractionModalLink(params: { productId?: number } = {}): unknown[
   const matrix: Record<string, number> = {};
   if (params.productId !== undefined) matrix['producto'] = params.productId;
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_FRACTION_PATH, matrix] } }];
+}
+
+// Esqueleto (HU-25): el titular va como parámetro matricial `vendedor`; sin él, la bodega.
+export function shrinkageModalLink(params: { sellerId?: string } = {}): unknown[] {
+  void params;
+  void MODAL_SHRINKAGE_PATH;
+  return [];
 }
 
 export function closeModalLink(): unknown[] {
