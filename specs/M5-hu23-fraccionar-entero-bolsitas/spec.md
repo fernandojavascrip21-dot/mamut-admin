@@ -1,6 +1,6 @@
 # Spec técnico — HU-23 · Fraccionar un producto entero en bolsitas (administrador)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M5-t24-base-fraccionado (`specs/M5-t24-base-fraccionado/spec.md`) — `POST /api/fractions`, módulo `@fractions`, reglas del fraccionado y respuesta `Fraction`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — movimientos rápidos de «Stock general»; M1-hu05-ver-y-buscar-productos (`specs/M1-hu05-ver-y-buscar-productos/spec.md`) — card de «Productos»; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — «Yo · bodega»; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-07
 > **Objetivo:** que el administrador abra en `/admin/fraccionar` un entero fraccionable de la bodega, escriba cuántas bolsitas salieron y su precio, confirme una sola vez y vea el costo por bolsita y la bodega antes → después que le devuelve el backend.
@@ -183,21 +183,21 @@ Cambios fuera de la feature:
 
 ## 6. Criterios de aceptación
 
-- [ ] `GET /api/fractions/options` devuelve los enteros activos fraccionables con piezas en bodega, porción, costo y bolsita (o `null`), ordenados por nombre; no lista bolsitas ni productos desactivados; un vendedor recibe `403`.
-- [ ] «Fraccionar» aparece en los movimientos rápidos de «Stock general» y en la card de un entero fraccionable solo con «Yo · bodega», y lleva a `/admin/fraccionar` (la card, con ese entero ya elegido).
-- [ ] Elijo un entero con piezas, escribo las bolsitas y el precio, y confirmo (criterio 1 de `SCRUM-63`).
-- [ ] Tras confirmar, el resultado muestra el entero con 1 pieza menos y la bolsita con N más en la bodega, y «Stock general» lo refleja (criterio 2).
-- [ ] El resultado muestra el costo por bolsita que manda el backend (`450.0000 ÷ 7` → $64.29 en pantalla) sin que el frontend calcule dinero (criterio 3).
-- [ ] Un entero con 0 piezas se ve deshabilitado; si llega elegido por la URL o el backend responde `409` de piezas, el campo producto muestra «Sin piezas en bodega» y no se guarda nada (criterio 4).
-- [ ] Bolsitas vacías, `1`, `1001` o `2.5`, y precio vacío, `0`, con 3 decimales o con letras muestran error de campo al enviar y no mandan la petición (criterio 4).
-- [ ] Un precio menor que el costo por bolsita muestra el error del backend en el campo precio, sin guardar (criterio 4).
-- [ ] Mientras el envío está en curso, el botón está deshabilitado y un segundo clic no manda otra petición (criterio 5).
-- [ ] Si el envío falla sin conexión, reintentar manda el mismo `requestId` y no fracciona dos veces.
-- [ ] Con bolsita existente, el precio se prellena con el suyo; con bolsita nueva, empieza vacío y se ve el nombre que tendrá.
-- [ ] «Fraccionar otro» deja el formulario vacío con un `requestId` nuevo y opciones recargadas.
-- [ ] Con un vendedor en «Viendo», `/admin/fraccionar` fracciona de la bodega y lo dice.
-- [ ] `ng build`, `npm test`, `npm run check:architecture`, y en `backend/` `npm run type-check` y `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) pasan.
-- [ ] La pantalla se usa sin desplazamiento horizontal a 375 px.
+- [x] `GET /api/fractions/options` devuelve los enteros activos fraccionables con piezas en bodega, porción, costo y bolsita (o `null`), ordenados por nombre; no lista bolsitas ni productos desactivados; un vendedor recibe `403`.
+- [x] «Fraccionar» aparece en los movimientos rápidos de «Stock general» y en la card de un entero fraccionable solo con «Yo · bodega», y lleva a `/admin/fraccionar` (la card, con ese entero ya elegido). **Actualizado por `M5-hu24`:** el botón de la card se retiró; «Fraccionar» queda solo en los movimientos rápidos de «Stock general».
+- [x] Elijo un entero con piezas, escribo las bolsitas y el precio, y confirmo (criterio 1 de `SCRUM-63`).
+- [x] Tras confirmar, el resultado muestra el entero con 1 pieza menos y la bolsita con N más en la bodega, y «Stock general» lo refleja (criterio 2).
+- [x] El resultado muestra el costo por bolsita que manda el backend (`450.0000 ÷ 7` → $64.29 en pantalla) sin que el frontend calcule dinero (criterio 3).
+- [x] Un entero con 0 piezas se ve deshabilitado; si llega elegido por la URL o el backend responde `409` de piezas, el campo producto muestra «Sin piezas en bodega» y no se guarda nada (criterio 4).
+- [x] Bolsitas vacías, `1`, `1001` o `2.5`, y precio vacío, `0`, con 3 decimales o con letras muestran error de campo al enviar y no mandan la petición (criterio 4).
+- [x] Un precio menor que el costo por bolsita muestra el error del backend en el campo precio, sin guardar (criterio 4).
+- [x] Mientras el envío está en curso, el botón está deshabilitado y un segundo clic no manda otra petición (criterio 5).
+- [x] Si el envío falla sin conexión, reintentar manda el mismo `requestId` y no fracciona dos veces.
+- [x] Con bolsita existente, el precio se prellena con el suyo; con bolsita nueva, empieza vacío y se ve el nombre que tendrá.
+- [x] «Fraccionar otro» deja el formulario vacío con un `requestId` nuevo y opciones recargadas.
+- [x] Con un vendedor en «Viendo», `/admin/fraccionar` fracciona de la bodega y lo dice.
+- [x] `ng build`, `npm test`, `npm run check:architecture`, y en `backend/` `npm run type-check` y `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) pasan.
+- [x] La pantalla se usa sin desplazamiento horizontal a 375 px.
 
 ## 7. Riesgos
 
