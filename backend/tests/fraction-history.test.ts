@@ -103,14 +103,22 @@ describe.skipIf(!hasServiceKey)('Historial de fraccionados (HU-24, base real)', 
   it('devuelve como máximo FRACTION_HISTORY_LIMIT y deja fuera al más viejo', async () => {
     const id = await newWhole()
     const { fraction: oldest } = await fraction(id)
-    for (let i = 0; i < FRACTION_HISTORY_LIMIT; i += 1) {
-      await sql`
-        insert into fractions (request_id, product_id, portion_product_id, portions, whole_unit_cost, portion_unit_cost, portion_price, created_by, created_at)
-        values (${randomUUID()}, ${id}, ${oldest.portionProduct.id}, 2, '450.0000', '225.0000', '300.00', ${admin.id}, now() + (${i + 1} * interval '1 minute') + interval '10 days')`
+    const inserted: string[] = []
+    try {
+      for (let i = 0; i < FRACTION_HISTORY_LIMIT; i += 1) {
+        const requestId = randomUUID()
+        inserted.push(requestId)
+        await sql`
+          insert into fractions (request_id, product_id, portion_product_id, portions, whole_unit_cost, portion_unit_cost, portion_price, created_by, created_at)
+          values (${requestId}, ${id}, ${oldest.portionProduct.id}, 2, '450.0000', '225.0000', '300.00', ${admin.id}, now() + (${i + 1} * interval '1 minute') + interval '10 days')`
+      }
+      const items = await listFractions()
+      expect(items).toHaveLength(FRACTION_HISTORY_LIMIT)
+      expect(items.map((row) => row.id)).not.toContain(oldest.id)
+    } finally {
+      // Las filas con fecha futura llenarían el top 50 de los `it` siguientes: se borran al terminar.
+      await sql`delete from fractions where request_id = any(${inserted})`
     }
-    const items = await listFractions()
-    expect(items).toHaveLength(FRACTION_HISTORY_LIMIT)
-    expect(items.map((row) => row.id)).not.toContain(oldest.id)
   })
 
   it('incluye fraccionados de productos desactivados', async () => {

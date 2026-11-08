@@ -1,6 +1,6 @@
 # Spec técnico — HU-24 · Ver las bolsitas y su costo en el inventario (administrador)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M5-hu23-fraccionar-entero-bolsitas (`specs/M5-hu23-fraccionar-entero-bolsitas/spec.md`) — pop-up «Fraccionar» y bolsita creada; M5-t24-base-fraccionado (`specs/M5-t24-base-fraccionado/spec.md`) — tabla `fractions`, módulo `@fractions`, `parent_product_id`; M1-hu05-ver-y-buscar-productos (`specs/M1-hu05-ver-y-buscar-productos/spec.md`) — card y `GET /api/products`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — «Stock general»; M2-hu11-dejar-a-vendedor y M3-hu17-vender-como-administrador — flujos que la bolsita usa sin cambios
 > **Fecha:** 2026-11-07
 > **Objetivo:** que el administrador distinga la bolsita en «Productos» con la etiqueta «Fraccionado», su costo y su precio, y consulte en `/admin/fraccionados` los últimos fraccionados.
@@ -24,7 +24,7 @@ Fuentes:
   - Caso de uso `listFractions()` en `backend/src/fractions/` y `GET /api/fractions` (solo administrador): los 50 fraccionados más recientes.
 - **Historial `/admin/fraccionados`:** página nueva en `features/fraction/` con buscador por nombre del entero o de la bolsita. Se enlaza desde el pop-up «Fraccionar» (formulario y resultado) y desde «Stock general» con «Yo · bodega».
 - **Verificación** de que la bolsita cuenta en «Stock general» y «Viendo», se deja, se retira y se vende sin cambios en esos flujos (prueba nueva de backend).
-- **Pruebas** nuevas (§8) y el cambio aprobado de tres tests con commit de `product-card` (§8).
+- **Pruebas** nuevas (§8) y el cambio aprobado de tests con commit de `product-card`, `products-page` y `fraction-history` (§8).
 - Actualizar `specs/README.md` y sincronizar `SCRUM-64`.
 
 **No entra en este spec:**
@@ -100,7 +100,7 @@ Constante nueva en `backend/src/fractions/constants.ts`: `FRACTION_HISTORY_LIMIT
 
 Frontend:
 
-- `features/products/interfaces/product.models.ts`: `ProductSummary` suma `parentProductId: number | null` y `portionUnitCost: string | null`.
+- `features/products/interfaces/product.models.ts`: `ProductSummary` suma `parentProductId?: number | null` y `portionUnitCost?: string | null`, opcionales en el tipo para que los fixtures de specs previos sigan compilando; el backend siempre los manda.
 - `features/fraction/interfaces/fraction.models.ts`: `FractionHistoryItem` (mismo contrato).
 - Estructura nueva en `features/fraction/`:
 
@@ -131,19 +131,19 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 
 ## 6. Criterios de aceptación
 
-- [ ] Tras fraccionar, la bolsita aparece en «Productos» con la etiqueta «Fraccionado», «Costo $X» y su precio (criterio 1 de `SCRUM-64`); con `450.0000 ÷ 7` se ve «Costo $64.29».
-- [ ] Solo la bolsita muestra «Fraccionado»; el entero fraccionable y un producto normal no muestran ninguna etiqueta de fraccionado.
-- [ ] Con un vendedor en «Viendo», la card de la bolsita no muestra el costo.
-- [ ] La card ya no tiene el botón «Fraccionar»; «Fraccionar» sigue en los movimientos rápidos de «Stock general».
-- [ ] `GET /api/products` trae `parentProductId` y `portionUnitCost` (no `null` solo en bolsitas) y sigue sin `unitCost`.
-- [ ] «Stock general» refleja el entero que bajó y las bolsitas que subieron (criterio 2).
-- [ ] La bolsita se deja a un vendedor, se retira y se vende sin cambios en esos flujos (criterio 3; prueba de backend).
-- [ ] `/admin/fraccionados` lista los fraccionados más recientes primero (máx. 50) con fecha, entero → bolsita, N bolsitas, costo por bolsita, precio y quién lo hizo (criterio 4).
-- [ ] El buscador filtra por entero o bolsita sin acentos ni mayúsculas; muestra los estados de carga, error con «Reintentar», vacío y sin resultados.
-- [ ] `GET /api/fractions` da `403` a un vendedor y `401` sin sesión.
-- [ ] «Ver fraccionados» lleva a `/admin/fraccionados` desde el pop-up y desde «Stock general» (solo con «Yo · bodega»); «Stock general» sigue con cinco movimientos rápidos.
-- [ ] `ng build`, `npm test`, `npm run check:architecture`, y en `backend/` `npm run type-check` y `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) pasan.
-- [ ] `/admin/fraccionados` se usa sin desplazamiento horizontal a 375 px.
+- [x] Tras fraccionar, la bolsita aparece en «Productos» con la etiqueta «Fraccionado», «Costo $X» y su precio (criterio 1 de `SCRUM-64`); con `450.0000 ÷ 7` se ve «Costo $64.29».
+- [x] Solo la bolsita muestra «Fraccionado»; el entero fraccionable y un producto normal no muestran ninguna etiqueta de fraccionado.
+- [x] Con un vendedor en «Viendo», la card de la bolsita no muestra el costo.
+- [x] La card ya no tiene el botón «Fraccionar»; «Fraccionar» sigue en los movimientos rápidos de «Stock general».
+- [x] `GET /api/products` trae `parentProductId` y `portionUnitCost` (no `null` solo en bolsitas) y sigue sin `unitCost`.
+- [x] «Stock general» refleja el entero que bajó y las bolsitas que subieron (criterio 2).
+- [x] La bolsita se deja a un vendedor, se retira y se vende sin cambios en esos flujos (criterio 3; prueba de backend).
+- [x] `/admin/fraccionados` lista los fraccionados más recientes primero (máx. 50) con fecha, entero → bolsita, N bolsitas, costo por bolsita, precio y quién lo hizo (criterio 4).
+- [x] El buscador filtra por entero o bolsita sin acentos ni mayúsculas; muestra los estados de carga, error con «Reintentar», vacío y sin resultados.
+- [x] `GET /api/fractions` da `403` a un vendedor y `401` sin sesión.
+- [x] «Ver fraccionados» lleva a `/admin/fraccionados` desde el pop-up y desde «Stock general» (solo con «Yo · bodega»); «Stock general» sigue con cinco movimientos rápidos.
+- [x] `ng build`, `npm test`, `npm run check:architecture`, y en `backend/` `npm run type-check` y `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) pasan.
+- [x] `/admin/fraccionados` se usa sin desplazamiento horizontal a 375 px.
 
 ## 7. Riesgos
 
@@ -151,7 +151,7 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 | --- | --- |
 | Un test con commit además de los tres aprobados se rompe | Se detiene y se pide aprobación (`CLAUDE.md` global). Solo los tres de §8 están aprobados. |
 | `portionUnitCost` se confunde con un costo visible al vendedor | `GET /api/products` es solo de administrador y la card lo oculta con un vendedor en «Viendo»; el vendedor usa `GET /api/me/stock`, que no cambia. |
-| Agregar campos a `ProductSummary` rompe fixtures de pruebas de `products`/`sell` | Los campos son nuevos y obligatorios en el tipo; los fixtures de tests con commit que no compilen se señalan antes de tocarlos (los nuevos usan su propio fixture). |
+| Agregar campos a `ProductSummary` rompe fixtures de pruebas de `products`/`sell` | Los campos son nuevos y opcionales en el tipo (el backend siempre los manda); los fixtures de tests con commit que no compilen se señalan antes de tocarlos (los nuevos usan su propio fixture). |
 | El historial crece y 50 no alcanza | Decisión aceptada (§9); la paginación queda fuera. |
 | Un flujo existente trata mal a la bolsita (criterio 3) | La prueba del paso 3 lo detecta; corregirlo sería un cambio aparte que se consulta. |
 
@@ -161,17 +161,19 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
   - `products-portion.test.ts`: bolsita con `parentProductId` y `portionUnitCost`; entero y producto normal con `null`; sin `unitCost`.
   - `fraction-history.test.ts`: orden, tope de 50 (`FRACTION_HISTORY_LIMIT`), campos y nombre de quien lo hizo, producto desactivado incluido, `401`/`403`.
   - `fraction-inventory.test.ts`: criterio 3 de punta a punta.
-- **Frontend** (Vitest, archivos nuevos): `product-card.component.portion.spec.ts` (etiquetas, costo con y sin «Viendo», sin botón), `fraction-history.rules.spec.ts`, `fraction.service.history.spec.ts`, `fraction-history-line.component.spec.ts`, `fraction-history-page.component.spec.ts` (estados y buscador), y specs nuevos de los enlaces del pop-up y de «Stock general».
+- **Frontend** (Vitest, archivos nuevos de esta rama; `product-card.component.portion.spec.ts` y `fraction-history.test.ts` ya se commitearon antes del ajuste de abajo): `product-card.component.portion.spec.ts` (etiquetas, costo con y sin «Viendo», sin botón), `fraction-history.rules.spec.ts`, `fraction.service.history.spec.ts`, `fraction-history-line.component.spec.ts`, `fraction-history-page.component.spec.ts` (estados y buscador), y specs nuevos de los enlaces del pop-up y de «Stock general».
 - **Tests con commit cuyo cambio aprobó el usuario el 2026-11-07** (no se toca ningún otro):
   - `product-card.component.fraction.spec.ts` y `product-card.component.fraction-modal.spec.ts`: se borran (prueban el botón que se quita).
   - `product-card.component.spec.ts`: los tres `it` que esperan «Se fracciona» (junto a «Baja existencia», solo, y junto a «Agotado») pasan a esperar solo «Baja existencia», ninguna etiqueta y solo «Agotado».
   - `product-card.component.portion.spec.ts`: el `it` del entero pasa a exigir que no lleve ninguna etiqueta de fraccionado.
-  - Cambio aprobado por el usuario el 2026-11-08, que revierte «Se fracciona».
+  - `products-page.component.spec.ts`: tres `it` cuyo fixture es un entero fraccionable dejan de esperar `'Fraccionado'`: «las etiquetas de existencia salen del catálogo del titular en «Viendo» (HU-18)» (`['Agotado']`), «con un vendedor en «Viendo» la etiqueta es la de sus piezas, no la de la bodega» (`['Baja existencia']`) y «si el catálogo falla, con «Yo · bodega» se conserva el «Agotado» de HU-05 y no sale «Baja existencia»» (`['Agotado']`). Solo cambia lo esperado de las etiquetas.
+  - `backend/tests/fraction-history.test.ts`: el `it` «devuelve como máximo FRACTION_HISTORY_LIMIT y deja fuera al más viejo» borra en un `finally` las 50 filas con fecha futura que inserta (llenaban el top 50 del `it` siguiente). Sus aserciones no cambian.
+  - Cambio aprobado por el usuario el 2026-11-07, que revierte «Se fracciona».
 - **Manual:** fraccionar en local (`npm run dev:all`), revisar «Productos», «Stock general», dejar y vender la bolsita, y abrir `/admin/fraccionados`.
 
 ## 9. Decisiones
 
-- **Sí:** solo la bolsita lleva «Fraccionado»; el entero no lleva etiqueta (decisión del usuario del 2026-11-08, que reemplaza la primera, «Se fracciona»). La casilla `fractionable` es solo la bandera de que se puede fraccionar, no un estado del producto.
+- **Sí:** solo la bolsita lleva «Fraccionado»; el entero no lleva etiqueta (decisión del usuario del 2026-11-07, que reemplaza la primera, «Se fracciona»). La casilla `fractionable` es solo la bandera de que se puede fraccionar, no un estado del producto.
 - **No:** una etiqueta «Se fracciona» en el entero, ni «Fraccionado» en ambos.
 - **Sí:** costo solo en la card de la bolsita y solo con «Yo · bodega» (decisión del usuario). Con un vendedor la card es de su stock y su precio.
 - **No:** costo en todas las cards. Cambia HU-05 para todo producto.
@@ -182,7 +184,7 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 - **Sí:** últimos 50 y buscador en el frontend, sin paginación (decisión del usuario).
 - **Sí:** enlace de texto en «Stock general», no un sexto movimiento rápido. `stock-page.component.spec.ts` exige cinco.
 - **Sí:** quitar el botón «Fraccionar» de la card (decisión del usuario; el cambio ya estaba empezado en el árbol de trabajo). Se fracciona desde «Stock general».
-- **Sí:** cambiar tres tests con commit de `product-card` (aprobado por el usuario el 2026-11-07, §8).
+- **Sí:** cambiar los tests con commit listados en §8 (`product-card`, `products-page` y un `it` de `fraction-history`; aprobado por el usuario el 2026-11-07).
 - **Sí:** los criterios 2 y 3 se cumplen sin código nuevo y se demuestran con una prueba de backend. La bolsita es un producto normal desde T-24.
 
 ## Lo que **no** entra en este spec

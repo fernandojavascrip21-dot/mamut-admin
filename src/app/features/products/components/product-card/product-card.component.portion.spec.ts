@@ -34,10 +34,11 @@ describe('ProductCardComponent · bolsita (HU-24)', () => {
     expect(labels()).toEqual(['Fraccionado']);
   });
 
-  it('el entero fraccionable muestra «Se fracciona» y no «Fraccionado»', async () => {
+  it('el entero fraccionable no muestra ninguna etiqueta de fraccionado', async () => {
     await render(WHOLE);
-    expect(labels()).toEqual(['Se fracciona']);
+    expect(labels()).toEqual([]);
     expect(text()).not.toContain('Fraccionado');
+    expect(text()).not.toContain('Se fracciona');
   });
 
   it('un producto normal no muestra ninguna de las dos', async () => {

@@ -92,23 +92,28 @@ describe('ProductCardComponent', () => {
       expect(labels()).toEqual([]);
     });
 
-    it('«Baja existencia» va antes de «Se fracciona»', async () => {
+    it('un entero fraccionable con baja existencia solo muestra «Baja existencia»', async () => {
       await renderLevel({ ...PRODUCT, stock: 1, fractionable: true }, 'low');
-      expect(labels()).toEqual(['Baja existencia', 'Se fracciona']);
+      expect(labels()).toEqual(['Baja existencia']);
     });
   });
 
-  it('muestra "Se fracciona" solo cuando fractionable es true', async () => {
+  it('un entero fraccionable no muestra ninguna etiqueta de fraccionado', async () => {
     await render({ ...PRODUCT, fractionable: true });
-    expect(fixture.nativeElement.textContent).toContain('Se fracciona');
+    const labels = Array.from(
+      fixture.nativeElement.querySelectorAll('.tags span'),
+    ).map((el) => (el as HTMLElement).textContent?.trim());
+    expect(labels).toEqual([]);
+    expect(fixture.nativeElement.textContent).not.toContain('Se fracciona');
+    expect(fixture.nativeElement.textContent).not.toContain('Fraccionado');
   });
 
-  it('con stock 0 y fractionable true muestra las dos etiquetas, "Agotado" primero', async () => {
+  it('con stock 0 y fractionable true solo muestra "Agotado"', async () => {
     await render({ ...PRODUCT, stock: 0, fractionable: true });
     const labels = Array.from(
       fixture.nativeElement.querySelectorAll('.tags span'),
     ).map((el) => (el as HTMLElement).textContent?.trim());
-    expect(labels).toEqual(['Agotado', 'Se fracciona']);
+    expect(labels).toEqual(['Agotado']);
   });
 
   it('con image vacía muestra la inicial en vez de una foto', async () => {
