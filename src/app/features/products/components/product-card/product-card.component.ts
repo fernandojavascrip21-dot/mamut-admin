@@ -16,7 +16,7 @@ import {
 } from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
-// "Agotado"/"Baja existencia" y, si es bolsita o fraccionable, "Fraccionado"/"Se fracciona" encima,
+// "Agotado"/"Baja existencia" y, si es bolsita, "Fraccionado" encima,
 // nombre, «Cantidad N» y precio (y el costo de la bolsita con «Yo · bodega»). La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
 // dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Agregar» (HU-17) agrega 1 pieza
@@ -61,8 +61,8 @@ export class ProductCardComponent {
   readonly initial = computed(() => initialsOf(this.product().name));
   readonly level = computed<StockLevel>(() => this.stockLevel() ?? (this.product().stock <= 0 ? 'out' : 'ok'));
   readonly price = computed(() => Number(this.product().price));
-  // Bolsita (HU-24): lleva «Fraccionado» en vez de «Se fracciona». `?? null` cubre los productos sin el
-  // campo (specs previos): undefined no es una bolsita.
+  // Bolsita (HU-24): es la única que lleva «Fraccionado»; el entero fraccionable no lleva etiqueta.
+  // `?? null` cubre los productos sin el campo (specs previos): undefined no es una bolsita.
   readonly isPortion = computed(() => (this.product().parentProductId ?? null) !== null);
   // Costo de fábrica de la bolsita solo con «Yo · bodega»: con un vendedor la tarjeta es de su stock y no
   // muestra costos (spec M5-hu24 §2).

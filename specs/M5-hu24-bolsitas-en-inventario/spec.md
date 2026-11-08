@@ -16,7 +16,7 @@ Fuentes:
 **Entra en este spec:**
 
 - **«Productos» (card de HU-05):**
-  - La bolsita (`parentProductId ≠ null`) lleva la etiqueta «Fraccionado»; el entero (`fractionable = true`) pasa a «Se fracciona».
+  - Solo la bolsita (`parentProductId ≠ null`, el producto que se crea al fraccionar) lleva la etiqueta «Fraccionado»; el entero, aunque tenga `fractionable = true`, no lleva ninguna etiqueta de fraccionado.
   - La card de la bolsita muestra «Costo $X» (costo de fábrica de la bolsita) además del precio, solo con «Yo · bodega».
   - Se quita el botón «Fraccionar» del pie de la card (el cambio ya empezado en `product-card.component.html`), con su código (`canFraction`, `fractionLink`, `fractionText`) y su constante. «Fraccionar» sigue en los movimientos rápidos de «Stock general».
 - **Backend:**
@@ -34,7 +34,7 @@ Fuentes:
 - Detalle de un fraccionado o URL propia (`GET /api/fractions/[requestId]` sigue sin usarse en pantalla).
 - Mostrar costo en la card de productos que no son bolsita, o el costo con un vendedor en «Viendo».
 - Deshacer un fraccionado; editar la relación entero ↔ bolsita; resincronizar la bolsita con el entero.
-- Restringir la edición de una bolsita en HU-06 (p. ej. marcarla «Se fracciona»).
+- Restringir la edición de una bolsita en HU-06.
 - Migraciones o cambios en `supabase/seed.sql`.
 
 ## 2. Reglas de negocio
@@ -42,7 +42,7 @@ Fuentes:
 - **Quién:** solo el administrador. `/admin/fraccionados` cuelga de `/admin` (`roleGuard`); `GET /api/fractions` usa `requireRole(request, 'admin')` → vendedor `403`, sin sesión `401`.
 - **Etiquetas de la card:**
   - `parentProductId !== null` → «Fraccionado».
-  - `fractionable === true` → «Se fracciona».
+  - `fractionable === true` **no** lleva etiqueta: la casilla es solo la bandera de que el producto se puede fraccionar.
   - Se combinan con «Agotado»/«Baja existencia» como hoy (esas van primero).
 - **Costo en la card:**
   - Solo si `portionUnitCost !== null` y «Viendo» es «Yo · bodega» (`holderLabel() === null`).
@@ -115,7 +115,7 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 ```
 
 - `core/layout/routes/admin.routes.ts`: `{ path: 'fraccionados', loadChildren: FRACTION_HISTORY_ROUTES }` (tabla de rutas en `features/fraction/`), título «Fraccionados».
-- `features/products/components/product-card`: etiquetas, costo y retiro del botón; `product-card.constants.ts` pierde `PRODUCT_CARD_FRACTION_TEXT` y suma los textos «Se fracciona», «Fraccionado», «Costo».
+- `features/products/components/product-card`: etiquetas, costo y retiro del botón; `product-card.constants.ts` pierde `PRODUCT_CARD_FRACTION_TEXT` y suma los textos «Fraccionado» y «Costo».
 - `features/stock/pages/stock-page`: enlace «Ver fraccionados» (URL en `stock-page.constants.ts`, una feature no importa otra).
 
 ## 5. Plan de implementación
@@ -123,7 +123,7 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 1. **Backend: fila de productos.** `listProducts` suma `parentProductId` y `portionUnitCost` (`case when parent_product_id is not null then unit_cost end`). Prueba nueva en `backend/tests/products-portion.test.ts`. `npm run type-check` y `npm test` pasan (incluido `products.test.ts` sin cambios).
 2. **Backend: historial.** `FractionHistoryItem`, `FRACTION_HISTORY_LIMIT`, `listFractions()` y `GET` en `app/api/fractions/route.ts`. Prueba nueva `backend/tests/fraction-history.test.ts`.
 3. **Backend: la bolsita en los flujos.** Prueba nueva `backend/tests/fraction-inventory.test.ts`: fraccionar → la bolsita está en `GET /api/stock` (bodega) → dejarla a un vendedor → aparece en su stock → retirar una → venderla. Sin cambios de código; si algo falla, se detiene y se informa.
-4. **Card de «Productos».** Modelo, etiquetas «Fraccionado»/«Se fracciona», «Costo $X» solo para bolsitas con «Yo · bodega», y retiro del botón «Fraccionar» con su código. Cambio aprobado de los tres tests (§8) y pruebas nuevas en `product-card.component.portion.spec.ts`.
+4. **Card de «Productos».** Modelo, etiqueta «Fraccionado» (solo la bolsita), «Costo $X» solo para bolsitas con «Yo · bodega», y retiro del botón «Fraccionar» con su código. Cambio aprobado de los tres tests (§8) y pruebas nuevas en `product-card.component.portion.spec.ts`.
 5. **Diseño del historial.** **ui-ux-pro-max** y luego **frontend-design** (regla de `CLAUDE.md`), con tokens de `styles.css`, PrimeNG (`DataView`, `Skeleton`, `pInputText`) y mockups de Jira/Confluence + `references/`.
 6. **Página `/admin/fraccionados`.** `ng generate component` para `fraction-history-page` y `fraction-history-line`, ruta lazy, `FractionService.getHistory()`, regla de filtro, estados. Pruebas.
 7. **Enlaces.** «Ver fraccionados» en el pop-up (formulario y resultado) y en «Stock general». Pruebas nuevas en archivos nuevos.
@@ -132,7 +132,7 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 ## 6. Criterios de aceptación
 
 - [ ] Tras fraccionar, la bolsita aparece en «Productos» con la etiqueta «Fraccionado», «Costo $X» y su precio (criterio 1 de `SCRUM-64`); con `450.0000 ÷ 7` se ve «Costo $64.29».
-- [ ] El entero fraccionable muestra «Se fracciona» y no «Fraccionado»; un producto normal no muestra ninguna de las dos.
+- [ ] Solo la bolsita muestra «Fraccionado»; el entero fraccionable y un producto normal no muestran ninguna etiqueta de fraccionado.
 - [ ] Con un vendedor en «Viendo», la card de la bolsita no muestra el costo.
 - [ ] La card ya no tiene el botón «Fraccionar»; «Fraccionar» sigue en los movimientos rápidos de «Stock general».
 - [ ] `GET /api/products` trae `parentProductId` y `portionUnitCost` (no `null` solo en bolsitas) y sigue sin `unitCost`.
@@ -164,13 +164,15 @@ fraction-history.routes.ts                 FRACTION_HISTORY_ROUTES ('' → fract
 - **Frontend** (Vitest, archivos nuevos): `product-card.component.portion.spec.ts` (etiquetas, costo con y sin «Viendo», sin botón), `fraction-history.rules.spec.ts`, `fraction.service.history.spec.ts`, `fraction-history-line.component.spec.ts`, `fraction-history-page.component.spec.ts` (estados y buscador), y specs nuevos de los enlaces del pop-up y de «Stock general».
 - **Tests con commit cuyo cambio aprobó el usuario el 2026-11-07** (no se toca ningún otro):
   - `product-card.component.fraction.spec.ts` y `product-card.component.fraction-modal.spec.ts`: se borran (prueban el botón que se quita).
-  - `product-card.component.spec.ts`: el `it` «muestra "Fraccionado" solo cuando fractionable es true» se ajusta a «Se fracciona» para el entero (y el de «Agotado» primero, si depende del texto).
+  - `product-card.component.spec.ts`: los tres `it` que esperan «Se fracciona» (junto a «Baja existencia», solo, y junto a «Agotado») pasan a esperar solo «Baja existencia», ninguna etiqueta y solo «Agotado».
+  - `product-card.component.portion.spec.ts`: el `it` del entero pasa a exigir que no lleve ninguna etiqueta de fraccionado.
+  - Cambio aprobado por el usuario el 2026-11-08, que revierte «Se fracciona».
 - **Manual:** fraccionar en local (`npm run dev:all`), revisar «Productos», «Stock general», dejar y vender la bolsita, y abrir `/admin/fraccionados`.
 
 ## 9. Decisiones
 
-- **Sí:** la bolsita lleva «Fraccionado» y el entero pasa a «Se fracciona» (decisión del usuario). Las dos se distinguen a simple vista.
-- **No:** dejar «Fraccionado» en ambos o quitarle la etiqueta al entero.
+- **Sí:** solo la bolsita lleva «Fraccionado»; el entero no lleva etiqueta (decisión del usuario del 2026-11-08, que reemplaza la primera, «Se fracciona»). La casilla `fractionable` es solo la bandera de que se puede fraccionar, no un estado del producto.
+- **No:** una etiqueta «Se fracciona» en el entero, ni «Fraccionado» en ambos.
 - **Sí:** costo solo en la card de la bolsita y solo con «Yo · bodega» (decisión del usuario). Con un vendedor la card es de su stock y su precio.
 - **No:** costo en todas las cards. Cambia HU-05 para todo producto.
 - **Sí:** el costo viaja como `portionUnitCost` (`null` si no es bolsita), no como `unitCost`. Mantiene RNF-04 para el resto y no toca `products.test.ts`.
