@@ -11,7 +11,12 @@ import { newUuid } from '@shared/utils/uuid';
 import { FractionFormComponent } from '../../components/fraction-form/fraction-form.component';
 import type { FractionFormSubmit, FractionServerErrors } from '../../components/fraction-form/fraction-form.models';
 import { FractionResultComponent } from '../../components/fraction-result/fraction-result.component';
-import { FRACTION_PAGE_MESSAGES, FRACTION_PAGE_TEXTS, NO_UNITS_LABEL } from '../../constants/fraction-page.constants';
+import {
+  FRACTION_HISTORY_URL,
+  FRACTION_PAGE_MESSAGES,
+  FRACTION_PAGE_TEXTS,
+  NO_UNITS_LABEL,
+} from '../../constants/fraction-page.constants';
 import { FractionService } from '../../services/fraction.service';
 import type { FractionResult } from '../../interfaces/fraction.models';
 
@@ -35,6 +40,7 @@ export class FractionPageComponent {
 
   // --- Carga de opciones ---
   readonly texts = FRACTION_PAGE_TEXTS;
+  readonly historyUrl = FRACTION_HISTORY_URL;
   readonly optionsResource = rxResource({ stream: () => this.fractionService.getOptions() });
   readonly products = computed(() => this.optionsResource.value() ?? []);
 

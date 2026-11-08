@@ -20,6 +20,7 @@ export const BREAKDOWN_SEPARATOR = ' · ';
 export const WAREHOUSE_ENTRY_URL = '/admin/entrada';
 export const NEW_PRODUCT_URL = '/admin/productos/nuevo';
 export const SELL_URL = '/admin/productos'; // «Vender» (HU-17): se arma la venta desde «Productos»
+export const FRACTION_HISTORY_URL = '/admin/fraccionados'; // HU-24: enlace de texto, solo con «Yo · bodega»
 
 export const YO_QUICK_ACTIONS: StockQuickAction[] = [
   { label: 'Entrada a bodega', link: WAREHOUSE_ENTRY_URL, icon: 'entry' },
@@ -61,6 +62,7 @@ export const STOCK_PAGE_TEXTS = {
   lowPopupEmptySeller: 'Nada por resurtir con este vendedor por ahora.',
   lowFilterAriaSingular: 'producto',
   lowFilterAriaPlural: 'productos',
+  fractionHistoryLink: 'Ver fraccionados',
 } as const;
 
 // Piezas del título de la tarjeta de avisos (HU-18).

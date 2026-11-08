@@ -1,1 +1,25 @@
-<p>fraction-history-line works!</p>
+<article class="surface-card flex min-w-0 flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between md:gap-6">
+  <div class="flex min-w-0 flex-1 flex-col gap-1">
+    <p class="m-0 text-xs text-muted">{{ item().createdAt | date: dateFormat : timeZone }}</p>
+    <p class="m-0 break-words text-[15px] leading-snug">
+      <span class="font-bold text-ink">{{ item().product.name }}</span>
+      <span class="text-muted"> → </span>
+      <span class="text-muted">{{ item().portionProduct.name }}</span>
+    </p>
+    <p class="m-0 font-mono text-sm text-ink">
+      <span class="font-bold text-split-1">1</span> {{ texts.entire }} → <span class="font-bold text-split-2">{{ item().portions }}</span> {{ texts.portionsWord }}
+    </p>
+    <p class="m-0 break-words text-xs text-muted">{{ texts.by }} {{ item().createdBy.name }}</p>
+  </div>
+
+  <dl class="m-0 grid grid-cols-2 gap-x-6 gap-y-1 text-sm md:min-w-[14rem] md:text-right">
+    <div class="min-w-0">
+      <dt class="text-xs text-muted">{{ texts.unitCostLabel }}</dt>
+      <dd class="m-0 font-mono text-ink">{{ item().portionUnitCost | currency: currency : currencyDisplay }}</dd>
+    </div>
+    <div class="min-w-0">
+      <dt class="text-xs text-muted">{{ texts.priceLabel }}</dt>
+      <dd class="m-0 font-mono text-ink">{{ item().portionPrice | currency: currency : currencyDisplay }}</dd>
+    </div>
+  </dl>
+</article>
