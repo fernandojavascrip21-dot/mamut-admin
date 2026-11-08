@@ -1,13 +1,15 @@
-import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import { db } from '@db/client'
 import { isUniqueViolation, pgConstraintName } from '@db/errors'
-import { fractions, products } from '@db/schema'
+import { fractions, products, profiles } from '@db/schema'
 import { lockRows, withTransaction, type Tx } from '@db/transaction'
 import { findProduct, PRICE_BELOW_COST } from '@products'
 import { insertMovements } from '@stock'
 import { conflict, forbidden, notFound, validation } from '@lib/errors'
 import { compareMoney, divideMoney } from '@lib/money'
 import {
+  FRACTION_HISTORY_LIMIT,
   FRACTION_MISMATCH,
   FRACTION_REQUEST_CONSTRAINT,
   MAX_PORTIONS,
@@ -19,7 +21,9 @@ import {
   PRODUCT_NAME_CONSTRAINT,
   WHOLE_UNITS_PER_FRACTION,
 } from './constants'
-import type { CreateFractionInput, Fraction, FractionActor, FractionOption, FractionRow, ProductRow } from './types'
+import type {
+  CreateFractionInput, Fraction, FractionActor, FractionHistoryItem, FractionOption, FractionRow, ProductRow,
+} from './types'
 
 // Nombre de la bolsita: el del entero más su porción (spec T-24 §3).
 const portionProductName = (wholeName: string, portionSize: string) => `${wholeName} · bolsita ${portionSize}`
@@ -270,4 +274,48 @@ export async function listFractionOptions(): Promise<FractionOption[]> {
         : null,
     }
   })
+}
+
+// Historial de fraccionados (HU-24) para el administrador: los más recientes primero, con desempate por
+// id para que dos fraccionados con la misma hora salgan en orden fijo. Solo lee. Incluye productos
+// desactivados porque el historial no se borra al archivar. El join con profiles es interno: quien
+// fracciona siempre es un administrador con perfil, así que el nombre nunca falta.
+export async function listFractions(): Promise<FractionHistoryItem[]> {
+  const whole = alias(products, 'whole')
+  const bag = alias(products, 'bag')
+  const rows = await db
+    .select({
+      id: fractions.id,
+      requestId: fractions.requestId,
+      createdAt: fractions.createdAt,
+      portions: fractions.portions,
+      wholeUnitCost: fractions.wholeUnitCost,
+      portionUnitCost: fractions.portionUnitCost,
+      portionPrice: fractions.portionPrice,
+      wholeId: whole.id,
+      wholeName: whole.name,
+      bagId: bag.id,
+      bagName: bag.name,
+      createdById: profiles.id,
+      createdByName: profiles.fullName,
+    })
+    .from(fractions)
+    .innerJoin(whole, eq(whole.id, fractions.productId))
+    .innerJoin(bag, eq(bag.id, fractions.portionProductId))
+    .innerJoin(profiles, eq(profiles.id, fractions.createdBy))
+    .orderBy(desc(fractions.createdAt), desc(fractions.id))
+    .limit(FRACTION_HISTORY_LIMIT)
+
+  return rows.map((row) => ({
+    id: row.id,
+    requestId: row.requestId,
+    createdAt: row.createdAt,
+    portions: row.portions,
+    wholeUnitCost: row.wholeUnitCost,
+    portionUnitCost: row.portionUnitCost,
+    portionPrice: row.portionPrice,
+    product: { id: row.wholeId, name: row.wholeName },
+    portionProduct: { id: row.bagId, name: row.bagName },
+    createdBy: { id: row.createdById, name: row.createdByName },
+  }))
 }

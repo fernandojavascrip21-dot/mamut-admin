@@ -218,13 +218,13 @@ describe('ProductsPageComponent', () => {
     it('las etiquetas de existencia salen del catálogo del titular en «Viendo» (HU-18)', async () => {
       await loadWith(WAREHOUSE_CATALOG);
       expect(tags(0)).toEqual([]);
-      expect(tags(1)).toEqual(['Agotado', 'Fraccionado']);
+      expect(tags(1)).toEqual(['Agotado']);
     });
 
     it('con un vendedor en «Viendo» la etiqueta es la de sus piezas, no la de la bodega', async () => {
       await loadWith(LUIS_CATALOG, LUIS_ID);
       expect(tags(0)).toEqual([]);
-      expect(tags(1)).toEqual(['Baja existencia', 'Fraccionado']);
+      expect(tags(1)).toEqual(['Baja existencia']);
     });
 
     it('un producto que el vendedor nunca tuvo no se lista', async () => {
@@ -241,7 +241,7 @@ describe('ProductsPageComponent', () => {
       httpMock.expectOne((r) => r.url === CATALOG_URL).flush({}, { status: 500, statusText: 'Server Error' });
       await settle();
       expect(tags(0)).toEqual([]);
-      expect(tags(1)).toEqual(['Agotado', 'Fraccionado']);
+      expect(tags(1)).toEqual(['Agotado']);
       expect(fixture.nativeElement.textContent).not.toContain('Baja existencia');
     });
 

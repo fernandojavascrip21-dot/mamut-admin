@@ -86,6 +86,11 @@ export const ADMIN_ROUTES: Routes = [
       ),
     data: { title: 'Fraccionar' },
   },
+  // Historial de «Fraccionar» (HU-24): los 50 fraccionados más recientes, solo para el administrador.
+  {
+    path: 'fraccionados',
+    loadChildren: () => import('@features/fraction/fraction-history.routes').then((m) => m.FRACTION_HISTORY_ROUTES),
+  },
   {
     path: 'vendedores',
     loadChildren: () => import('@features/sellers/sellers.routes').then((m) => m.SELLER_ADMIN_ROUTES),

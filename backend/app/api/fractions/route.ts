@@ -1,5 +1,5 @@
 import { requireRole } from '@auth'
-import { createFraction } from '@fractions'
+import { createFraction, listFractions } from '@fractions'
 import { validation } from '@lib/errors'
 import { handle, optionalText, readJson, requireMoney, requireNumber } from '@lib/handler'
 import { UUID } from '@lib/constants'
@@ -27,4 +27,10 @@ export const POST = handle(async (request) => {
     portionSize: optionalText(body, 'portionSize'),
   }, actor)
   return Response.json({ fraction, replayed }, { status: replayed ? 200 : 201 })
+})
+
+// Historial de fraccionados (HU-24): solo administrador; el caso de uso ya limita y ordena.
+export const GET = handle(async (request) => {
+  await requireRole(request, 'admin')
+  return Response.json({ fractions: await listFractions() })
 })

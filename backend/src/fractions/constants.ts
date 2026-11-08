@@ -16,3 +16,6 @@ export const PORTION_COST_ZERO = 'El costo por bolsita es demasiado bajo'
 export const PRODUCT_NAME_CONSTRAINT = 'products_name_lower_key'
 // Nombre del índice único de requestId: su violación es una repetición, no un error.
 export const FRACTION_REQUEST_CONSTRAINT = 'fractions_request_id_key'
+
+// El historial de fraccionados trae los más recientes (HU-24).
+export const FRACTION_HISTORY_LIMIT = 50

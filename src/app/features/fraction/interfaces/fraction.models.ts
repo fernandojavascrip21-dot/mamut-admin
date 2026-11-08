@@ -56,3 +56,17 @@ export interface FractionBeforeAfter {
   portionBefore: number | null;
   portionAfter: number;
 }
+
+// Fila de GET /api/fractions (HU-24): un fraccionado del historial; espejo del backend.
+export interface FractionHistoryItem {
+  id: number;
+  requestId: string;
+  createdAt: string;
+  portions: number;
+  wholeUnitCost: string;
+  portionUnitCost: string;
+  portionPrice: string;
+  product: { id: number; name: string };
+  portionProduct: { id: number; name: string };
+  createdBy: { id: string; name: string };
+}

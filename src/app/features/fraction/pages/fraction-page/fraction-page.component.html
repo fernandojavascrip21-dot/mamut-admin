@@ -22,6 +22,7 @@
     </div>
   } @else if (outcome(); as done) {
     <app-fraction-result [fraction]="done.fraction" [replayed]="done.replayed" (again)="onAgain()" (viewStock)="close()" />
+    <a pButton [text]="true" [routerLink]="historyUrl" class="h-11 min-w-11 w-fit px-4">{{ texts.historyLink }}</a>
   } @else {
     <app-fraction-form
       [options]="products()"
@@ -31,6 +32,7 @@
       [notice]="notice()"
       (submitted)="onSubmitted($event)"
     />
+    <a pButton [text]="true" [routerLink]="historyUrl" class="h-11 min-w-11 w-fit px-4">{{ texts.historyLink }}</a>
   }
 </section>
 </app-modal-panel>

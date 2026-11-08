@@ -17,7 +17,9 @@ export const FRACTION_PAGE_TEXTS = {
   empty: 'No hay productos que se fraccionen',
   emptyLink: 'Ir a Productos',
   saved: 'Fraccionado registrado',
+  historyLink: 'Ver fraccionados',
 };
+
 
 // Avisos de la página cuando el backend rechaza el fraccionado sin mensaje propio.
 export const FRACTION_PAGE_MESSAGES = {

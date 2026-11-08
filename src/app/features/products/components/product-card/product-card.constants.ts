@@ -19,5 +19,11 @@ export const PRODUCT_CARD_SELL_TEXTS = {
   quantity: 'Cantidad',
 } as const;
 
-// Texto del enlace «Fraccionar» en el pie de la tarjeta (HU-23).
-export const PRODUCT_CARD_FRACTION_TEXT = 'Fraccionar';
+// Etiqueta de fraccionado (HU-24): solo la bolsita (producto creado al fraccionar) lleva «Fraccionado»;
+// el entero, aunque tenga `fractionable`, no lleva ninguna.
+export const PRODUCT_CARD_FRACTION_TAGS = {
+  portion: 'Fraccionado',
+} as const;
+
+// Rótulo del costo de fábrica de la bolsita, solo con «Yo · bodega» (HU-24).
+export const PRODUCT_CARD_COST_TEXT = 'Costo';
