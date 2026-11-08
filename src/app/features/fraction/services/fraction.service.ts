@@ -32,9 +32,11 @@ export class FractionService {
       .pipe(map((body) => body.products));
   }
 
-  // Esqueleto de HU-24: aún no pide GET /api/fractions.
+  // Los 50 fraccionados más recientes (HU-24). El backend los ordena; no hay parámetros.
   getHistory(): Observable<FractionHistoryItem[]> {
-    return of([]);
+    return this.http
+      .get<{ fractions: FractionHistoryItem[] }>(FRACTIONS_URL)
+      .pipe(map((body) => body.fractions));
   }
 
   // Registra el fraccionado. El backend responde { fraction, replayed }: replayed es true cuando es una

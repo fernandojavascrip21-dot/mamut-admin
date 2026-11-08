@@ -39,10 +39,16 @@
             severity="warn"
           />
         }
-        @if (product().fractionable) {
+        @if (isPortion()) {
           <p-tag
             class="fractionable-tag [--p-tag-info-background:var(--color-split-2)] [--p-tag-info-color:var(--color-white)]"
-            value="Fraccionado"
+            [value]="fractionTags.portion"
+            severity="info"
+          />
+        } @else if (product().fractionable) {
+          <p-tag
+            class="fractionable-tag [--p-tag-info-background:var(--color-split-2)] [--p-tag-info-color:var(--color-white)]"
+            [value]="fractionTags.fractionable"
             severity="info"
           />
         }
@@ -53,6 +59,11 @@
       <p class="m-0 font-mono text-sm font-semibold">
         {{ price() | currency: 'MXN' : 'symbol-narrow' }}
       </p>
+      @if (showPortionCost()) {
+        <p class="portion-cost m-0 font-mono text-sm text-muted">
+          {{ costText }} {{ product().portionUnitCost | currency: 'MXN' : 'symbol-narrow' }}
+        </p>
+      }
     </div>
   </a>
   @if (showFooter()) {

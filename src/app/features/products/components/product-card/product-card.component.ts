@@ -5,17 +5,19 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../interfaces/product.models';
-import { deliveryModalLink, fractionModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink } from '@shared/utils/modal-links';
 import { STOCK_LEVEL_LABELS, type StockLevel } from '@shared/constants/stock-level.constants';
 import { initialsOf } from '@shared/utils/initials';
 import {
-  PRODUCT_CARD_FRACTION_TEXT,
+  PRODUCT_CARD_COST_TEXT,
+  PRODUCT_CARD_FRACTION_TAGS,
   PRODUCT_CARD_PASS_THROUGH,
   PRODUCT_CARD_SELL_TEXTS,
 } from './product-card.constants';
 
 // Tarjeta horizontal de la pantalla 03 (spec M1-hu05 §6): foto o inicial con las etiquetas
-// "Agotado"/"Baja existencia"/"Fraccionado" encima, nombre, «Cantidad N» y precio. La parte de arriba abre la
+// "Agotado"/"Baja existencia" y, si es bolsita o fraccionable, "Fraccionado"/"Se fracciona" encima,
+// nombre, «Cantidad N» y precio (y el costo de la bolsita con «Yo · bodega»). La parte de arriba abre la
 // edición y, si hay piezas en la bodega, una acción aparte abre «Dejar a vendedor» (HU-11); son
 // dos enlaces hermanos porque un enlace no puede ir dentro de otro. «Agregar» (HU-17) agrega 1 pieza
 // al carrito del titular de «Viendo» y se vuelve − N + con tope en las piezas de ese titular; la
@@ -32,6 +34,8 @@ export class ProductCardComponent {
   readonly sellerId = input<string | null>(null); // vendedor en «Viendo»: la ventana lo deja fijo
   readonly texts = PRODUCT_CARD_SELL_TEXTS;
   readonly levelLabels = STOCK_LEVEL_LABELS;
+  readonly fractionTags = PRODUCT_CARD_FRACTION_TAGS;
+  readonly costText = PRODUCT_CARD_COST_TEXT;
 
   // Existencia del titular de «Viendo» según su catálogo (HU-18). null = sin catálogo todavía: se
   // conserva la regla de HU-05 (sin piezas en la bodega → «Agotado») y no sale «Baja existencia».
@@ -57,6 +61,14 @@ export class ProductCardComponent {
   readonly initial = computed(() => initialsOf(this.product().name));
   readonly level = computed<StockLevel>(() => this.stockLevel() ?? (this.product().stock <= 0 ? 'out' : 'ok'));
   readonly price = computed(() => Number(this.product().price));
+  // Bolsita (HU-24): lleva «Fraccionado» en vez de «Se fracciona». `?? null` cubre los productos sin el
+  // campo (specs previos): undefined no es una bolsita.
+  readonly isPortion = computed(() => (this.product().parentProductId ?? null) !== null);
+  // Costo de fábrica de la bolsita solo con «Yo · bodega»: con un vendedor la tarjeta es de su stock y no
+  // muestra costos (spec M5-hu24 §2).
+  readonly showPortionCost = computed(() =>
+    (this.product().portionUnitCost ?? null) !== null && this.holderLabel() === null,
+  );
 
   // Solo se puede dejar lo que hay en la bodega, y solo con «Yo · bodega»: con un vendedor en «Viendo»
   // la tarjeta es de su stock y el pie queda para vender.
@@ -65,13 +77,7 @@ export class ProductCardComponent {
   readonly canSell = computed(() => this.inCart() || (this.sellUnits() ?? 0) > 0);
   // El «+» se deshabilita en el tope: las piezas del titular.
   readonly canIncrement = computed(() => this.unitsInCart() < (this.sellUnits() ?? 0));
-  // «Fraccionar» (HU-23) solo con «Yo · bodega» y un producto fraccionable; aparece aunque no haya
-  // piezas, porque la pantalla de fraccionar valida las piezas al enviar.
-  readonly canFraction = computed(() => this.holderLabel() === null && this.product().fractionable);
-  readonly fractionText = PRODUCT_CARD_FRACTION_TEXT;
-  // La ventana «Fraccionar» abre con el entero ya elegido (parámetro matricial `producto`).
-  readonly fractionLink = computed(() => fractionModalLink({ productId: this.product().id }));
-  readonly showFooter = computed(() => this.canDeliver() || this.canFraction() || this.canSell());
+  readonly showFooter = computed(() => this.canDeliver() || this.canSell());
   readonly deliveryLink = computed(() => deliveryModalLink({
     productId: this.product().id,
     sellerId: this.sellerId() ?? undefined,

@@ -92,9 +92,9 @@ describe('ProductCardComponent', () => {
       expect(labels()).toEqual([]);
     });
 
-    it('«Baja existencia» va antes de «Fraccionado»', async () => {
+    it('«Baja existencia» va antes de «Se fracciona»', async () => {
       await renderLevel({ ...PRODUCT, stock: 1, fractionable: true }, 'low');
-      expect(labels()).toEqual(['Baja existencia', 'Fraccionado']);
+      expect(labels()).toEqual(['Baja existencia', 'Se fracciona']);
     });
   });
 

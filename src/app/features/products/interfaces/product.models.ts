@@ -36,6 +36,11 @@ export interface ProductSummary {
   stock: number;
   fractionable: boolean;
   image: string;
+  // HU-24: la bolsita apunta a su entero; null en los demás productos. Opcionales para que los specs
+  // previos, que no los traen, sigan compilando; el backend siempre los manda.
+  parentProductId?: number | null;
+  // Costo de fábrica de la bolsita (escala 4, texto); null en los demás productos.
+  portionUnitCost?: string | null;
 }
 
 // Fila completa que devuelve POST /api/products, para el resumen de "Product registrado".
