@@ -5,6 +5,7 @@ import {
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
+  MODAL_SHRINKAGE_PATH,
 } from '@shared/constants/modal.constants';
 import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
 
@@ -85,6 +86,17 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.FractionPageComponent,
       ),
     data: { title: 'Fraccionar' },
+  },
+  // «Registrar merma» (HU-25): pop-up en el outlet `ventana`; el titular llega como parámetro `vendedor`.
+  {
+    path: MODAL_SHRINKAGE_PATH,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [modalSavingGuard],
+    loadComponent: () =>
+      import('@features/shrinkage/pages/shrinkage-page/shrinkage-page.component').then(
+        (m) => m.ShrinkagePageComponent,
+      ),
+    data: { title: 'Registrar merma' },
   },
   // Historial de «Fraccionar» (HU-24): los 50 fraccionados más recientes, solo para el administrador.
   {

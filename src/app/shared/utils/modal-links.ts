@@ -31,11 +31,11 @@ export function fractionModalLink(params: { productId?: number } = {}): unknown[
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_FRACTION_PATH, matrix] } }];
 }
 
-// Esqueleto (HU-25): el titular va como parámetro matricial `vendedor`; sin él, la bodega.
+// El titular va como parámetro matricial `vendedor`; sin él, el pop-up es de la bodega.
 export function shrinkageModalLink(params: { sellerId?: string } = {}): unknown[] {
-  void params;
-  void MODAL_SHRINKAGE_PATH;
-  return [];
+  const matrix: Record<string, string> = {};
+  if (params.sellerId) matrix['vendedor'] = params.sellerId;
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_SHRINKAGE_PATH, matrix] } }];
 }
 
 export function closeModalLink(): unknown[] {

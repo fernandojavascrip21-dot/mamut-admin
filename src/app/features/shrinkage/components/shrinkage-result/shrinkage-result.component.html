@@ -1,0 +1,37 @@
+<section class="surface-card flex flex-col gap-5 p-5 sm:p-6" aria-label="Merma registrada">
+  <div class="flex min-w-0 items-center gap-3">
+    @if (shrinkage().product.image; as image) {
+      <img
+        [src]="image"
+        alt=""
+        loading="lazy"
+        class="h-16 w-16 flex-shrink-0 rounded-md object-cover"
+      />
+    } @else {
+      <span
+        class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-line font-display text-lg font-extrabold"
+        aria-hidden="true"
+      >{{ initial() }}</span>
+    }
+    <div class="flex min-w-0 flex-col gap-1">
+      <p class="m-0 font-display text-lg font-extrabold leading-tight break-words">{{ shrinkage().product.name }}</p>
+      <p class="m-0 text-sm font-semibold text-muted">{{ quantity() }}</p>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2 rounded-xl bg-page p-4">
+    <p class="m-0 text-sm font-semibold text-muted">{{ stockTitle() }}</p>
+    <p class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display tabular-nums">
+      <span class="text-3xl font-extrabold text-muted">{{ shrinkage().stock.before }}</span>
+      <span aria-hidden="true" class="text-2xl font-bold text-muted"> → </span>
+      <span class="text-4xl font-extrabold text-ink">{{ shrinkage().stock.after }}</span>
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-2 sm:flex-row">
+    <button pButton type="button" severity="secondary" class="h-11 min-w-11 px-4" (click)="again.emit()">
+      {{ texts.again }}
+    </button>
+    <button pButton type="button" class="h-11 min-w-11 px-4" (click)="closed.emit()">{{ texts.close }}</button>
+  </div>
+</section>
