@@ -4,6 +4,8 @@
 > **Depende de:** M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`) — saldos por trigger, `insertMovements` y signos (`shrinkage < 0`); M2-t10-base-vendedores (`specs/M2-t10-base-vendedores/spec.md`) — el vendedor es un `profiles` con `role = 'vendedor'`; M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — `stock_movements.request_id` y su índice único por titular; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — patrón de idempotencia sobre los movimientos y saldos antes → después leídos de los movimientos
 > **Fecha:** 2026-11-07
 > **Objetivo:** que `POST /api/shrinkages` dé de baja en una sola fila de movimiento N piezas de un producto del stock de un vendedor activo o de la bodega, con uno de cuatro motivos, y que reintentar la misma petición no registre la merma dos veces.
+>
+> **Nota (2026-11-08):** código y pruebas listos en la rama `feat/base-merma-simple`. La migración pasa con `npm run db:reset`; `npm run type-check` y `npm test` pasan contra la base local (385 pruebas, con `SUPABASE_SERVICE_ROLE_KEY`). **Falta:** aplicar la migración a producción a mano en el SQL Editor y correr `db:pull` contra producción (paso 1). Las rutas `app/api/shrinkages/**` solo se revisaron con `type-check`; el `403` y los `422` se prueban en el caso de uso.
 
 Fuentes:
 
@@ -151,18 +153,18 @@ Constantes en `backend/src/shrinkage/constants.ts`: `SHRINKAGE_REASONS` (código
 ## 6. Criterios de aceptación
 
 - [ ] La migración pasa con `npm run db:reset` y en producción deja `stock_movements_shrinkage_reason_check`.
-- [ ] Con Luis (vendedor activo) con 6 piezas de un producto, una merma de 2 con motivo `damaged` inserta una fila `shrinkage` con `qty = -2`, `holder_profile_id` = Luis, `reason = 'damaged'` y el `request_id` de la petición; Luis queda en 4, la bodega no cambia y el total baja 2 (criterio 1 de `SCRUM-65`).
-- [ ] Con 10 piezas en bodega, una merma de 3 con `holderProfileId = null` deja la bodega en 7 y el total baja 3 (criterio 2).
-- [ ] La respuesta del `POST` trae `qty`, `reason`, `reasonLabel` («Dañado»), `holder` (`null` para la bodega), `product` y `stock: { before, after }` correctos (6 → 4; 10 → 7).
-- [ ] Pedir más piezas de las que tiene el titular (o un producto que nunca tuvo) → `409` «No hay piezas suficientes» y ninguna fila nueva en `stock_movements` (criterio 3).
-- [ ] `qty` de `0`, `-1`, `2.5` o mayor que `MAX_QTY`, `reason` ausente o fuera de los cuatro códigos, `holderProfileId` que no es `null` ni UUID o `requestId` que no es UUID → `422`; producto inexistente → `404` (criterio 4).
-- [ ] Vendedor desactivado, perfil de administrador o UUID inexistente como `holderProfileId` → `404`; un producto desactivado sí se puede mermar.
-- [ ] Un vendedor que llama al `POST` o al `GET` → `403` (criterio 5).
-- [ ] Repetir el mismo `requestId` con los mismos datos responde `200`, `replayed: true`, los mismos saldos y no mueve piezas; con otro titular, producto, piezas o motivo responde `409` «Esta merma ya se registró con otros datos.»; con el `requestId` de un retiro responde `409` (criterio 6).
-- [ ] Dos `createShrinkage` iguales a la vez (`Promise.all`) dejan una sola fila `shrinkage`; dos con el mismo `requestId` y distinto titular a la vez dejan una sola fila y el otro recibe `409`.
-- [ ] `GET /api/shrinkages/[requestId]` devuelve la merma con los mismos saldos que el `POST`; uno inexistente da `404`.
-- [ ] Una fila `shrinkage` con `reason = 'robo'` insertada directo en la base falla por `stock_movements_shrinkage_reason_check`; una sin `reason` sigue pasando.
-- [ ] `npm run type-check`, `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) y `tests/architecture.test.ts` pasan, sin cambios en tests con commit (criterio 7).
+- [x] Con Luis (vendedor activo) con 6 piezas de un producto, una merma de 2 con motivo `damaged` inserta una fila `shrinkage` con `qty = -2`, `holder_profile_id` = Luis, `reason = 'damaged'` y el `request_id` de la petición; Luis queda en 4, la bodega no cambia y el total baja 2 (criterio 1 de `SCRUM-65`).
+- [x] Con 10 piezas en bodega, una merma de 3 con `holderProfileId = null` deja la bodega en 7 y el total baja 3 (criterio 2).
+- [x] La respuesta del `POST` trae `qty`, `reason`, `reasonLabel` («Dañado»), `holder` (`null` para la bodega), `product` y `stock: { before, after }` correctos (6 → 4; 10 → 7).
+- [x] Pedir más piezas de las que tiene el titular (o un producto que nunca tuvo) → `409` «No hay piezas suficientes» y ninguna fila nueva en `stock_movements` (criterio 3).
+- [x] `qty` de `0`, `-1`, `2.5` o mayor que `MAX_QTY`, `reason` ausente o fuera de los cuatro códigos, `holderProfileId` que no es `null` ni UUID o `requestId` que no es UUID → `422`; producto inexistente → `404` (criterio 4).
+- [x] Vendedor desactivado, perfil de administrador o UUID inexistente como `holderProfileId` → `404`; un producto desactivado sí se puede mermar.
+- [x] Un vendedor que llama al `POST` o al `GET` → `403` (criterio 5).
+- [x] Repetir el mismo `requestId` con los mismos datos responde `200`, `replayed: true`, los mismos saldos y no mueve piezas; con otro titular, producto, piezas o motivo responde `409` «Esta merma ya se registró con otros datos.»; con el `requestId` de un retiro responde `409` (criterio 6).
+- [x] Dos `createShrinkage` iguales a la vez (`Promise.all`) dejan una sola fila `shrinkage`; dos con el mismo `requestId` y distinto titular a la vez dejan una sola fila y el otro recibe `409`.
+- [x] `GET /api/shrinkages/[requestId]` devuelve la merma con los mismos saldos que el `POST`; uno inexistente da `404`.
+- [x] Una fila `shrinkage` con `reason = 'robo'` insertada directo en la base falla por `stock_movements_shrinkage_reason_check`; una sin `reason` sigue pasando.
+- [x] `npm run type-check`, `npm test` (con `SUPABASE_SERVICE_ROLE_KEY`) y `tests/architecture.test.ts` pasan, sin cambios en tests con commit (criterio 7).
 
 ## 7. Plan de pruebas
 

@@ -382,6 +382,40 @@ export async function movementsOfRequest(
   }
 }
 
+// La fila de una merma (T-25) con el saldo del titular antes → después. `qty` va en positivo.
+export interface ShrinkageMovement {
+  requestId: string
+  createdAt: string
+  productId: number
+  holderProfileId: string | null
+  qty: number
+  reason: string | null
+  stock: { before: number; after: number }
+}
+
+// Merma registrada con ese requestId, o null si no hay fila `shrinkage` con él (puede ser de una
+// entrega o un retiro). El saldo sale de los movimientos hasta esa fila, no de la caché actual, para
+// que un GET o una repetición den lo mismo que el primer POST.
+export async function movementOfShrinkage(requestId: string): Promise<ShrinkageMovement | null> {
+  const [row] = await db
+    .select()
+    .from(stockMovements)
+    .where(and(eq(stockMovements.requestId, requestId), eq(stockMovements.type, 'shrinkage')))
+    .orderBy(asc(stockMovements.id))
+    .limit(1)
+  if (!row) return null
+  const after = await balanceUpTo(row.productId, row.holderProfileId, row.id)
+  return {
+    requestId,
+    createdAt: row.createdAt,
+    productId: row.productId,
+    holderProfileId: row.holderProfileId,
+    qty: -row.qty,
+    reason: row.reason,
+    stock: { before: after - row.qty, after },
+  }
+}
+
 // Un renglón de venta con el stock del titular antes → después (T-18). `qty` va en positivo.
 export interface SaleMovement {
   productId: number
