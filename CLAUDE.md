@@ -112,6 +112,15 @@ tests/        Vitest against the real DB; architecture.test.ts checks module bou
 - **Ramas de specs:** al crear la rama de un spec (la crea `/spec` al escribirlo; `/spec-impl` la reutiliza), el tipo se elige por el contenido del spec, no siempre `feat`: una funcionalidad nueva es `feat`, una corrección `fix`, una reorganización sin cambio de comportamiento `refactor`, solo pruebas `test`, solo documentación `docs`, y configuración o mantenimiento `chore`. Este formato reemplaza el `spec-NN-slug` por omisión de la skill.
 - No hacer commit ni push si no se pide. Para crear un PR usa `gh pr create` con la plantilla. Solo cuando te lo pida, igual que push.
 
+## Modos de protección de tests
+
+- **Corrección (por omisión):** tests con commit congelados; aplica el Protocolo de corrección de errores.
+- **Cambio de comportamiento:** cuando pido modificar un componente y su test, yo corro `./desbloquear <componente>`. El desbloqueo vale solo para la rama actual.
+- Con un spec desbloqueado: primero actualiza el test para describir el nuevo comportamiento y después el código. Cambia solo los `it` que tocan lo que pedí; nunca debilites ni borres aserciones ajenas al cambio.
+- En tu resumen, lista cada `it` modificado en una línea: qué cambió y por qué.
+- Si un spec que no desbloqueé necesita cambio, DETENTE, explícalo en máximo 5 líneas y dime el comando `./desbloquear` exacto.
+- En `/spec-impl`: si el implementer topa con un test congelado que cree mal, lo reporta con la regla anterior, lo marca como pendiente y sigue con los demás.
+
 ## Buenas prácticas de código
 
 ### Principios

@@ -1,23 +1,39 @@
 #!/bin/sh
-# Protección de tests: rechaza el commit si un test que ya existía se MODIFICA, BORRA o RENOMBRA.
-# Los tests nuevos (A) sí pueden entrar. Salida a propósito: ALLOW_TEST_CHANGES=1 git commit ...
+# Protección de tests: rechaza el commit si un test que ya existía se BORRA o RENOMBRA, o si se
+# MODIFICA sin estar desbloqueado (./desbloquear <componente>) en la rama actual.
+# Los tests nuevos (A) sí pueden entrar. Salida manual: ALLOW_TEST_CHANGES=1 git commit ...
 if [ "$ALLOW_TEST_CHANGES" = "1" ]; then
   exit 0
 fi
 
-protected=$(git diff --cached --name-only --diff-filter=MDR -- \
-  ':(glob)**/*.spec.ts' \
-  ':(glob)**/*.test.ts' \
-  'backend/tests/' \
-  'src/test-setup.ts' \
-  'backend/vitest.config.ts')
+root=$(git rev-parse --show-toplevel)
+branch=$(git rev-parse --abbrev-ref HEAD)
+list="$root/.claude/desbloqueos/$(printf '%s' "$branch" | sed 's#/#__#g').txt"
+
+paths=':(glob)**/*.spec.ts :(glob)**/*.test.ts backend/tests/ src/test-setup.ts backend/vitest.config.ts'
+
+# Borrar o renombrar nunca se desbloquea.
+# shellcheck disable=SC2086
+protected=$(git diff --cached --name-only --diff-filter=DR -- $paths)
+
+# Modificar pasa solo si la ruta está en el archivo de desbloqueos de la rama.
+# shellcheck disable=SC2086
+modified=$(git diff --cached --name-only --diff-filter=M -- $paths)
+for f in $modified; do
+  if [ -f "$list" ] && grep -Fxq -- "$f" "$list"; then
+    continue
+  fi
+  protected="$protected
+$f"
+done
+protected=$(printf '%s\n' "$protected" | sed '/^$/d')
 
 if [ -n "$protected" ]; then
   echo "✋ Commit rechazado: se modifican, borran o renombran tests protegidos:" >&2
   echo "$protected" | sed 's/^/   - /' >&2
   echo "" >&2
   echo "Los tests son la especificación: se corrige el código, no el test." >&2
-  echo "Si el cambio al test es intencional y aprobado: ALLOW_TEST_CHANGES=1 git commit ..." >&2
+  echo "Cambio de comportamiento: ./desbloquear <componente>. Salida manual: ALLOW_TEST_CHANGES=1 git commit ..." >&2
   exit 1
 fi
 exit 0
