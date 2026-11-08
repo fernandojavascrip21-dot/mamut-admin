@@ -1,12 +1,15 @@
-import { sql } from 'drizzle-orm'
+import { gt, sql } from 'drizzle-orm'
 import { getActiveSellerName, getSellerName } from '@accounts'
+import { db } from '@db/client'
 import { isUniqueViolation } from '@db/errors'
+import { products } from '@db/schema'
 import { withTransaction } from '@db/transaction'
 import { findProduct } from '@products'
-import { insertMovements, movementOfShrinkage, type ShrinkageMovement } from '@stock'
+import { insertMovements, movementOfShrinkage, stockOfHolder, type ShrinkageMovement } from '@stock'
 import { conflict, forbidden, notFound, validation } from '@lib/errors'
+import { UUID } from '@lib/constants'
 import { INVALID_REASON, MAX_QTY, SHRINKAGE_MISMATCH, SHRINKAGE_REASONS } from './constants'
-import type { CreateShrinkageInput, Shrinkage, ShrinkageActor, ShrinkageOptions, ShrinkageReason } from './types'
+import type { CreateShrinkageInput, Shrinkage, ShrinkageActor, ShrinkageOption, ShrinkageOptions, ShrinkageReason } from './types'
 
 const isReason = (value: string): value is ShrinkageReason => Object.hasOwn(SHRINKAGE_REASONS, value)
 
@@ -108,9 +111,38 @@ export async function getShrinkage(requestId: string, actor: ShrinkageActor): Pr
   return toShrinkage(moved)
 }
 
-// Esqueleto (HU-25): opciones del pop-up «Registrar merma». Sin implementar.
+// Opciones del pop-up «Registrar merma» (HU-25). Solo lee. Con `sellerId` lista las piezas que tiene
+// ese vendedor activo (también de productos desactivados); sin él, los productos de la bodega con
+// stock > 0. Los desactivados entran en ambas listas porque T-25 permite mermarlos. Un id que no es
+// UUID da 422; uno que no es de un vendedor activo, 404 (lo resuelve getActiveSellerName).
 export async function listShrinkageOptions(sellerId: string | null, actor: ShrinkageActor): Promise<ShrinkageOptions> {
-  void sellerId
-  void actor
-  throw new Error('listShrinkageOptions no está implementado')
+  requireAdmin(actor)
+  if (sellerId !== null && !UUID.test(sellerId)) throw validation('El campo sellerId debe ser un UUID')
+
+  const holder = sellerId === null ? null : await getActiveSellerName(sellerId)
+  const items = holder === null ? await warehouseOptions() : await sellerOptions(holder.id)
+  // Orden por nombre en JS con la misma comparación para ambas listas: el orden de la base depende
+  // de su collation y la pantalla espera orden en español.
+  items.sort((a, b) => a.name.localeCompare(b.name, 'es'))
+
+  return {
+    holder,
+    products: items,
+    reasons: (Object.keys(SHRINKAGE_REASONS) as ShrinkageReason[]).map((code) => ({ code, label: SHRINKAGE_REASONS[code] })),
+  }
+}
+
+// Piezas de la bodega: products.stock > 0, también de productos desactivados.
+async function warehouseOptions(): Promise<ShrinkageOption[]> {
+  const rows = await db
+    .select({ productId: products.id, name: products.name, image: products.image, units: products.stock })
+    .from(products)
+    .where(gt(products.stock, 0))
+  return rows.map((row) => ({ productId: row.productId, name: row.name, image: row.image || null, units: row.units }))
+}
+
+// Piezas de un vendedor: stockOfHolder ya deja fuera las filas en 0 y no filtra por activo.
+async function sellerOptions(sellerId: string): Promise<ShrinkageOption[]> {
+  const lines = await stockOfHolder(sellerId)
+  return lines.map((line) => ({ productId: line.productId, name: line.name, image: line.image, units: line.units }))
 }
