@@ -33,15 +33,16 @@ export class CreateProductPageComponent {
   // sigue usable porque la categoría es opcional.
   readonly categoriesFailed = computed(() => this.categoriesResource.status() === 'error');
 
-  retryCategories(): void {
-    this.categoriesResource.reload();
-  }
-
   readonly state = signal<CreateProductState>('form');
   readonly nameTaken = signal(false);
   readonly categoryMissing = signal(false);
   readonly createdProduct = signal<Product | null>(null);
   private lastValue: ProductFormValue | null = null;
+
+  // «Reintentar» del aviso de categorías: vuelve a pedirlas sin tocar lo que ya se capturó.
+  retryCategories(): void {
+    this.categoriesResource.reload();
+  }
 
   // Ignora un segundo envío mientras el primero sigue en curso. takeUntilDestroyed evita tocar
   // el estado si el usuario ya salió de la pantalla.

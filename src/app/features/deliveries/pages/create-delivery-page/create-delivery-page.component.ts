@@ -5,17 +5,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { MODAL_OUTLET } from '@shared/constants/modal.constants';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
-import { closeModalLink } from '@shared/utils/modal-links';
+import { closeModalLink, leaveModalLink } from '@shared/utils/modal-links';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
 import type { HoldingStatus } from '../../components/delivery-form/delivery-form.models';
 import { DeliveryFormComponent } from '../../components/delivery-form/delivery-form.component';
 import {
   CREATE_DELIVERY_EMPTY_TEXTS,
-  NEW_PRODUCT_URL,
-  NEW_SELLER_URL,
+  NEW_PRODUCT_PATH,
+  NEW_SELLER_PATH,
 } from '../../constants/create-delivery-page.constants';
 import { FAILURE_TOASTS } from '../../constants/deliveries.constants';
 import type {
@@ -177,14 +176,14 @@ export class CreateDeliveryPageComponent {
   }
 
   // --- Estados vacíos ---
-  // Cada botón principal cierra el pop-up y cambia la ruta primaria en una sola navegación: el
-  // outlet `ventana` se vacía dentro del mismo comando, sin pasar por la página de atrás.
+  // Cada botón principal cierra el pop-up y cambia la ruta primaria en una sola navegación
+  // (`leaveModalLink`), sin pasar por la página de atrás.
   goToNewSeller(): void {
-    void this.router.navigate([NEW_SELLER_URL, { outlets: { [MODAL_OUTLET]: null } }]);
+    void this.router.navigate(leaveModalLink(NEW_SELLER_PATH));
   }
 
   goToNewProduct(): void {
-    void this.router.navigate([NEW_PRODUCT_URL, { outlets: { [MODAL_OUTLET]: null } }]);
+    void this.router.navigate(leaveModalLink(NEW_PRODUCT_PATH));
   }
 
   // --- Reintentos de carga ---

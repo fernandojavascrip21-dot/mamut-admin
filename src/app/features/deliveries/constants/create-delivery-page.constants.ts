@@ -16,7 +16,8 @@ export const CREATE_DELIVERY_EMPTY_TEXTS = {
   close: 'Cerrar',
 } as const;
 
-// Destinos de los botones principales. «Nuevo producto» se repite aquí porque la feature `stock`
-// tiene la suya y una feature no importa a otra.
-export const NEW_SELLER_URL = '/admin/vendedores/nuevo';
-export const NEW_PRODUCT_URL = '/admin/productos/nuevo';
+// Destinos de los botones principales, como segmentos dentro de /admin (los usa `leaveModalLink`).
+// «Nuevo producto» se repite aquí porque la feature `stock` tiene la suya y una feature no importa
+// a otra.
+export const NEW_SELLER_PATH = ['vendedores', 'nuevo'];
+export const NEW_PRODUCT_PATH = ['productos', 'nuevo'];

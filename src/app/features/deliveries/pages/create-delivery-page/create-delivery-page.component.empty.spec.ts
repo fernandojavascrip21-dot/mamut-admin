@@ -93,8 +93,8 @@ describe('CreateDeliveryPageComponent · estados vacíos', () => {
     button('Dar de alta vendedor').click();
     expect(router.navigate).toHaveBeenCalledTimes(1);
     const [commands] = vi.mocked(router.navigate).mock.calls[0];
-    expect(JSON.stringify(commands)).toContain('/admin/vendedores/nuevo');
-    expect(JSON.stringify(commands)).toContain('"ventana":null');
+    // El outlet `ventana` cuelga de /admin: se cierra y se cambia la ruta primaria en ese mismo grupo.
+    expect(commands).toEqual(['/admin', { outlets: { primary: ['vendedores', 'nuevo'], ventana: null } }]);
   });
 
   it('sin piezas en la bodega muestra «No hay piezas en la bodega»', async () => {
@@ -102,6 +102,17 @@ describe('CreateDeliveryPageComponent · estados vacíos', () => {
     expect(text()).toContain('No hay piezas en la bodega');
     expect(text()).toContain('Da de alta un producto con sus piezas para poder dejárselo a un vendedor.');
     expect(body().querySelector('app-delivery-form')).toBeNull();
+  });
+
+  it('mientras cargan los productos no muestra «No hay piezas en la bodega»', async () => {
+    setup({}, ONE_SELLER);
+    fixture.detectChanges();
+    const pending = httpMock.expectOne(PRODUCTS_URL);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.state()).toBe('loading');
+    expect(text()).not.toContain('No hay piezas en la bodega');
+    pending.flush(WITH_UNITS);
+    await settle();
   });
 
   it('con la lista de productos vacía también muestra «No hay piezas en la bodega»', async () => {
@@ -114,8 +125,7 @@ describe('CreateDeliveryPageComponent · estados vacíos', () => {
     button('Nuevo producto').click();
     expect(router.navigate).toHaveBeenCalledTimes(1);
     const [commands] = vi.mocked(router.navigate).mock.calls[0];
-    expect(JSON.stringify(commands)).toContain('/admin/productos/nuevo');
-    expect(JSON.stringify(commands)).toContain('"ventana":null');
+    expect(commands).toEqual(['/admin', { outlets: { primary: ['productos', 'nuevo'], ventana: null } }]);
   });
 
   it('si faltan vendedores y piezas a la vez, gana «Aún no tienes vendedores»', async () => {

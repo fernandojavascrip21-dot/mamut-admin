@@ -50,10 +50,6 @@ export class EditProductPageComponent implements HasUnsavedChanges {
   // Si el GET falla, el formulario muestra el aviso con «Reintentar» (spec T-26 §3.2); el select
   // sigue usable porque la categoría es opcional.
   readonly categoriesFailed = computed(() => this.categoriesResource.status() === 'error');
-
-  retryCategories(): void {
-    this.categoriesResource.reload();
-  }
   readonly original = computed<Product | null>(() =>
     this.productResource.hasValue() ? this.productResource.value() : null,
   );
@@ -81,6 +77,11 @@ export class EditProductPageComponent implements HasUnsavedChanges {
   // Botón «Reintentar» del error de carga: vuelve a pedir el producto.
   loadProduct(): void {
     this.productResource.reload();
+  }
+
+  // «Reintentar» del aviso de categorías: vuelve a pedirlas sin tocar lo que ya se capturó.
+  retryCategories(): void {
+    this.categoriesResource.reload();
   }
 
   onDirtyChange(dirty: boolean): void {

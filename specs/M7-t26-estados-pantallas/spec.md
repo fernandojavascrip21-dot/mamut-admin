@@ -3,6 +3,8 @@
 > **Estado:** Aprobado
 > **Depende de:** M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — ventana «Dejar a vendedor»; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — el pop-up vive en el outlet `ventana`; M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) y M1-hu06-editar-producto (`specs/M1-hu06-editar-producto/spec.md`) — `product-form` y la carga de categorías
 > **Fecha:** 2026-11-09
+> **Nota (2026-11-09):** al implementar, la verificación en el navegador mostró que `['/admin/vendedores/nuevo', { outlets: { ventana: null } }]` deja el pop-up abierto, porque el cierre cae bajo `nuevo` y no bajo `/admin`. Por eso se agregó `leaveModalLink` en `shared/utils/modal-links.ts` y las constantes pasaron a segmentos (`NEW_SELLER_PATH` / `NEW_PRODUCT_PATH`). Con el desbloqueo que dio el usuario se cambiaron las dos aserciones de navegación de `create-delivery-page.component.empty.spec.ts`. También se agregaron pruebas para «cargando sin estado vacío» y para el aviso de categorías junto con el 422.
+>
 > **Objetivo:** que cada pantalla de la v1 tenga sus estados de cargando, vacío y error con «Reintentar». Para lograrlo se completan los dos huecos que faltan: «Dejar a vendedor» sin vendedores o sin piezas en la bodega, y la falla al cargar las categorías en «Nuevo producto» y «Editar producto».
 
 Fuentes:
@@ -111,8 +113,9 @@ Constantes nuevas:
 
 - `features/deliveries/constants/create-delivery-page.constants.ts`:
   - `CREATE_DELIVERY_EMPTY_TEXTS`, con título, texto y botón de `no-sellers` y `no-units`.
-  - `NEW_SELLER_URL = '/admin/vendedores/nuevo'`.
-  - `NEW_PRODUCT_URL = '/admin/productos/nuevo'`. Se repite aquí porque la feature `stock` tiene la suya y una feature no importa a otra.
+  - `NEW_SELLER_PATH = ['vendedores', 'nuevo']`.
+  - `NEW_PRODUCT_PATH = ['productos', 'nuevo']`. Se repite aquí porque la feature `stock` tiene la suya y una feature no importa a otra.
+- `shared/utils/modal-links.ts`: `leaveModalLink(primary)` devuelve `['/admin', { outlets: { primary, ventana: null } }]`. Va junto a `closeModalLink()`.
 - `features/products/components/product-form/product-form.constants.ts`:
   - `CATEGORIES_FAILED_MESSAGE = 'No pudimos cargar las categorías.'`.
   - `CATEGORIES_RETRY_LABEL = 'Reintentar'`.
@@ -124,6 +127,7 @@ Constantes nuevas:
   - Llevan el título en negritas, el texto `text-sm text-muted` y dos botones apilados en móvil: primario «Dar de alta vendedor» / «Nuevo producto» y `secondary` «Cerrar».
   - Usa tokens de `styles.css`, sin hex.
   - Ambos botones primarios navegan con una sola llamada que cierra el outlet `ventana` y cambia la ruta primaria. No se encadenan dos `navigate`.
+  - La llamada es `leaveModalLink(...)`. El cierre y la ruta primaria van juntos en el grupo `/admin`, que es donde cuelga `ventana`.
 - **Formulario de producto:** el aviso va dentro del mismo `div` del campo «Categoría», debajo del select y antes de `category-error`. Lleva el texto `text-[13px] text-danger` y el botón «Reintentar» en la misma línea si cabe; si no, debajo.
 
 ## 6. Inventario de estados (2026-11-09)
@@ -230,7 +234,7 @@ Todas van en archivos `.spec.ts` **nuevos**, para no modificar specs con commit 
 | Riesgo | Mitigación |
 |---|---|
 | En edición con categorías caídas, `p-select` limpia el `categoryId` porque no está en las opciones | Prueba de §8 que fija el payload. Si `p-select` lo limpia, se mantiene el valor en el control sin pasar por el select (por ejemplo, la opción actual se agrega a `categoryOptions` con su id). |
-| Navegar del pop-up a otra página deja el outlet `ventana` abierto o pasa por `modalSavingGuard` | Una sola navegación con `outlets: { ventana: null }`. El guard solo bloquea mientras guarda, y en los estados vacíos nunca se está guardando. |
+| Navegar del pop-up a otra página deja el outlet `ventana` abierto o pasa por `modalSavingGuard` | Una sola navegación con `leaveModalLink` (`outlets: { primary, ventana: null }` en el grupo `/admin`). El guard solo bloquea mientras guarda, y en los estados vacíos nunca se está guardando. |
 | La revisión del paso 1 encuentra más huecos de los previstos | Se avisa al usuario antes de ampliar. Si son muchos, van a otra tarea. |
 
 ## Lo que **no** entra en este spec
