@@ -61,10 +61,10 @@ describe('StockPageComponent · selector de vista (HU-26 §12)', () => {
     expect(Array.from(el().querySelectorAll('a')).map((a) => a.textContent!.trim())).not.toContain('Ver fraccionados');
   });
 
-  it('con un vendedor en «Viendo» el selector no ofrece «Fraccionados»', async () => {
+  it('con un vendedor en «Viendo» el selector también ofrece «Fraccionados» (HU-26 §13)', async () => {
     selected.set({ id: 'luis-id', fullName: 'Luis' });
     await load();
-    expect(labels()).toEqual(['Productos', 'Mermas']);
+    expect(labels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
   });
 
   it('sigue habiendo seis movimientos rápidos y el selector no es uno de ellos', async () => {

@@ -123,6 +123,7 @@ describe.skipIf(!hasServiceKey)('Stock general (HU-13, con cuentas reales)', () 
       productId: whey,
       name: expect.stringContaining('whey'),
       image: 'https://example.com/whey.jpg',
+      parentProductId: null,
       warehouse: 4,
       warehouseLevel: 'ok',
       sellers: [{ sellerId: seller.id, units: 6, stockLevel: 'ok' }],

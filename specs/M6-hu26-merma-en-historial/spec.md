@@ -315,7 +315,7 @@ Pedido del usuario después de §12: el administrador tiene que ver las bolsitas
   - `StockProduct` del frontend (`features/stock/interfaces/stock-overview.models.ts`) suma `parentProductId?: number | null` (opcional: los fixtures con commit no lo traen).
   - Regla pura `portionRows(rows)` en `features/stock/rules/stock.rules.ts`: deja solo las filas cuyo producto tiene `parentProductId` distinto de `null`.
   - Vista «Fraccionados» de `stock-page` con dos secciones (§13.2) y disponible también con un vendedor en «Viendo».
-  - Ajuste de la fila de movimientos rápidos (`stock-quick-actions`): con 7 botones las etiquetas se partían en dos líneas en escritorio; pasa a una cuadrícula de 2 columnas en móvil, 4 desde `sm` y una sola fila desde `xl`.
+  - Ajuste de la fila de movimientos rápidos (`stock-quick-actions`): con 7 botones las etiquetas se partían en dos líneas en escritorio; pasa a una cuadrícula que acomoda tantas columnas como quepan con un mínimo de 11rem por botón (`repeat(auto-fit, minmax(11rem, 1fr))`): 1 columna a 375 px y los botones estirados al ancho disponible, también con las etiquetas largas de un vendedor («Dejar más a <nombre>»).
 
 **No entra:** cambios en `GET /api/fractions`, en «Mi stock» del vendedor, en «Productos» ni en el seed.
 
@@ -356,6 +356,9 @@ Pedido del usuario después de §12: el administrador tiene que ver las bolsitas
   - «con ?vista=fraccionados cae a «Productos» sin pedir fraccionados» → abre las bolsitas del vendedor sin pedir el historial.
   - «si estaba en «Fraccionados» y se elige un vendedor, la vista cae a «Productos»» → se queda en «Fraccionados» con las bolsitas del vendedor.
 - Si alguna prueba con commit del backend compara el producto de `GET /api/stock` completo y falla por el campo nuevo, se detiene y se reporta.
+- **Agregadas al implementar, con aprobación del usuario (2026-11-09):**
+  - `stock-page.component.history-link.spec.ts`, «con un vendedor en «Viendo» el selector no ofrece «Fraccionados»» → «…también ofrece «Fraccionados» (HU-26 §13)»: espera las tres opciones. Describía la regla de §12 que §13 cambia.
+  - `backend/tests/stock-overview.test.ts`, «un producto con 4 en bodega y 6 con un vendedor suma 10 (criterio 2)»: el `toEqual` del producto suma `parentProductId: null` (desbloqueo de `stock-overview`).
 
 ### 13.6 Decisiones
 
