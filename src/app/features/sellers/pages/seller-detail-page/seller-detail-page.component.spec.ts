@@ -120,7 +120,7 @@ describe('SellerDetailPageComponent', () => {
     await tick();
     httpMock.expectOne(HISTORY_URL).flush(history);
     httpMock.expectOne(RETURNS_URL).flush(returns);
-    httpMock.expectOne(SHRINKAGES_URL).flush([]);
+    httpMock.expectOne(SHRINKAGES_URL).flush(shrinkages);
     await settle();
   }
 

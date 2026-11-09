@@ -17,7 +17,7 @@ import { StockQuickActionsComponent } from '../../components/stock-quick-actions
 import type { StockQuickAction } from '../../components/stock-quick-actions/stock-quick-actions.models';
 import { StockSplitBarComponent } from '../../components/stock-split-bar/stock-split-bar.component';
 import {
-  FRACTION_HISTORY_URL, LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, SELLER_SHRINKAGE_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
+  FRACTION_HISTORY_URL, LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, SELLER_SHRINKAGE_LABEL, SHRINKAGE_HISTORY_URL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
 } from '../../constants/stock-page.constants';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import type { StockPageState, StockRow } from '../../models/stock-page.models';
@@ -71,6 +71,7 @@ export class StockPageComponent {
   readonly texts = STOCK_PAGE_TEXTS;
   readonly newProductUrl = NEW_PRODUCT_URL;
   readonly fractionHistoryUrl = FRACTION_HISTORY_URL;
+  readonly shrinkageHistoryUrl = SHRINKAGE_HISTORY_URL;
 
   // Mientras la barra no confirma al vendedor guardado (cargando su lista, o ya no es activo) vale
   // null y se ve la vista de «Yo» (HU-10, selección efectiva).

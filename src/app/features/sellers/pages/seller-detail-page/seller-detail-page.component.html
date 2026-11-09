@@ -157,5 +157,33 @@
         </ng-template>
       </p-dataview>
     }
+
+    <h2 class="mt-8 mb-0 text-base font-bold">Últimas mermas</h2>
+    @if (shrinkagesState() === 'loading') {
+      <p class="shrinkages-loading mt-3 mb-0 text-sm text-muted" role="status">Cargando mermas…</p>
+    } @else if (shrinkagesState() === 'error') {
+      <div class="shrinkages-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
+        <p class="m-0 text-sm font-bold">No pudimos cargar las mermas</p>
+        <button pButton severity="secondary"
+          type="button"
+          class="retry-shrinkages h-11 px-4 text-sm"
+          (click)="retryShrinkages()"
+        >
+          Reintentar
+        </button>
+      </div>
+    } @else if (shrinkages().length === 0) {
+      <p
+        class="shrinkages-empty mt-3 mb-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
+      >
+        Todavía no tiene mermas.
+      </p>
+    } @else {
+      <ul class="shrinkages mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
+        @for (item of shrinkages(); track $index) {
+          <li><app-shrinkage-history-line [item]="item" /></li>
+        }
+      </ul>
+    }
   }
 </div>

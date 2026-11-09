@@ -1,1 +1,28 @@
-<p>shrinkage-history-line works!</p>
+<div class="flex items-center gap-3 surface-card p-3">
+  @if (showPhoto()) {
+    <img
+      [src]="item().product.image"
+      alt=""
+      loading="lazy"
+      (error)="onPhotoError()"
+      class="h-12 w-12 flex-shrink-0 rounded-md object-cover"
+    />
+  } @else {
+    <div
+      class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-line text-sm font-bold text-ink"
+      aria-hidden="true"
+    >
+      {{ initials() }}
+    </div>
+  }
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <p class="name m-0 text-sm leading-tight font-bold break-words">{{ item().product.name }}</p>
+    <p class="reason-date m-0 text-xs text-muted">
+      {{ reasonLabel() }} · {{ item().createdAt | date: 'dd/MM/yyyy HH:mm' }}
+    </p>
+    @if (showHolder()) {
+      <p class="holder m-0 text-xs text-muted">{{ holderLabel() }}</p>
+    }
+  </div>
+  <p class="qty m-0 font-mono text-base font-bold whitespace-nowrap">−{{ item().qty }}</p>
+</div>
