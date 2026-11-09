@@ -1,6 +1,6 @@
 # Spec técnico — HU-26 · Ver la merma reflejada en el stock y el historial
 
-> **Estado:** Aprobado
+> **Estado:** Borrador
 > **Depende de:** M6-hu25-registrar-merma (`specs/M6-hu25-registrar-merma/spec.md`) — pop-up «Registrar merma», feature `shrinkage`; M6-t25-base-merma-simple (`specs/M6-t25-base-merma-simple/spec.md`) — filas `shrinkage` con `reason` y `request_id`, `SHRINKAGE_REASONS`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — «Stock general» y sus enlaces de texto; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — «Últimos retiros» del detalle del vendedor; M3-hu18-aviso-baja-existencia (`specs/M3-hu18-aviso-baja-existencia/spec.md`) — `stockLevel`; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — «Mi stock»; M5-hu24-bolsitas-en-inventario (`specs/M5-hu24-bolsitas-en-inventario/spec.md`) — patrón del historial `/admin/fraccionados`
 > **Fecha:** 2026-11-09
 > **Objetivo:** que el administrador vea cada merma (producto, piezas, motivo y fecha) en la sección «Últimas mermas» del detalle del vendedor y en el historial nuevo `/admin/mermas`, y que una prueba de backend fije que la merma ya baja el stock, el total, el `stockLevel` y «Mi stock».
@@ -301,6 +301,68 @@ Pedido del usuario después de implementar §1–§11. **Reemplaza** en este spe
 - **Sí:** quitar `/admin/mermas` y `/admin/fraccionados` y redirigir a la vista (decisión del usuario).
 - **Sí:** registrar el cambio ampliando este spec (decisión del usuario), no en un spec nuevo.
 - **Sí:** el botón entra en la fila por proyección de contenido; `StockQuickAction` sigue siendo solo de enlaces.
+
+## 13. Ampliación del 2026-11-09: bolsitas por titular en «Fraccionados»
+
+Pedido del usuario después de §12: el administrador tiene que ver las bolsitas (productos con `parent_product_id`) que tienen sus vendedores. Fraccionar siempre ocurre en la bodega (T-24), así que un vendedor no tiene «fraccionados» propios: tiene bolsitas que le dejaron. **Cambia** de §12.2 la regla «Fraccionados solo con «Yo · bodega»» y sus criterios.
+
+### 13.1 Alcance
+
+**Entra:**
+
+- **Backend:** `GET /api/stock` marca cada producto con `parentProductId` (`number | null`): `holdingsByProduct` (`backend/src/stock/holdings.ts`) lo selecciona y `StockProduct` (`backend/src/inventory/overview.ts`) lo devuelve. Sin migración ni endpoint nuevo.
+- **Frontend:**
+  - `StockProduct` del frontend (`features/stock/interfaces/stock-overview.models.ts`) suma `parentProductId?: number | null` (opcional: los fixtures con commit no lo traen).
+  - Regla pura `portionRows(rows)` en `features/stock/rules/stock.rules.ts`: deja solo las filas cuyo producto tiene `parentProductId` distinto de `null`.
+  - Vista «Fraccionados» de `stock-page` con dos secciones (§13.2) y disponible también con un vendedor en «Viendo».
+  - Ajuste de la fila de movimientos rápidos (`stock-quick-actions`): con 7 botones las etiquetas se partían en dos líneas en escritorio; pasa a una cuadrícula de 2 columnas en móvil, 4 desde `sm` y una sola fila desde `xl`.
+
+**No entra:** cambios en `GET /api/fractions`, en «Mi stock» del vendedor, en «Productos» ni en el seed.
+
+### 13.2 Reglas
+
+- **Con «Yo · bodega», «Fraccionados» muestra:**
+  1. «Bolsitas en stock»: las bolsitas del negocio con su reparto por titular («Bodega 12 · Víctor 3») y su total, con `app-stock-product-row` (las mismas filas de «Productos», filtradas con `portionRows`).
+  2. «Últimos fraccionados»: el historial de §12 (`GET /api/fractions`, carga perezosa, sus estados).
+- **Con un vendedor en «Viendo»:** la opción «Fraccionados» aparece; muestra solo «Bolsitas en stock» con las bolsitas de ese vendedor y sus piezas. No pide `GET /api/fractions` ni muestra el historial. `?vista=fraccionados` con un vendedor ya no cae a «Productos».
+- **Buscador:** filtra por nombre las dos secciones (bolsitas con la regla de búsqueda de productos; historial con `filterFractionHistory`).
+- **Vacíos:** «No hay bolsitas en stock» (con «Yo») / «<nombre> no tiene bolsitas» (con vendedor); sin coincidencias en una sección, su aviso propio. El historial conserva sus estados de §12.
+- El `stockLevel` de cada bolsita se pinta como en «Productos» (HU-18); el frontend no repite el umbral.
+
+### 13.3 Plan
+
+1. Pruebas en rojo (`test-writer`), después de que el usuario corra el desbloqueo de `stock-page`.
+2. **Un bloque** (`implementer`): backend (`holdingsByProduct`, `StockProduct`, prueba) y frontend (modelo, `portionRows`, vista «Fraccionados», fila de movimientos rápidos).
+3. Verificación: `npm test` del backend, `ng test`, `ng build`, `npm run check:architecture`; a mano, dejar 3 bolsitas a Víctor (el seed no le da ninguna) y revisar las dos vistas a 375 px y en escritorio.
+4. README y Jira (`SCRUM-67`).
+
+### 13.4 Criterios de aceptación
+
+- [ ] `GET /api/stock` trae `parentProductId` en cada producto: el id del entero en una bolsita y `null` en los demás.
+- [ ] Con «Yo · bodega», «Fraccionados» muestra «Bolsitas en stock» con el reparto por titular (también las que tiene un vendedor) y, debajo, «Últimos fraccionados».
+- [ ] Con un vendedor en «Viendo», el selector ofrece «Fraccionados» y la vista muestra solo sus bolsitas con sus piezas, sin historial y sin pedir `GET /api/fractions`.
+- [ ] El buscador filtra las dos secciones; los vacíos «No hay bolsitas en stock» / «<nombre> no tiene bolsitas» se ven cuando corresponde.
+- [ ] En escritorio, las etiquetas de los movimientos rápidos no se parten en dos líneas; a 375 px no hay desplazamiento horizontal.
+- [ ] `npm test` del backend, `ng test`, `ng build` y `npm run check:architecture` pasan; solo cambian las pruebas con commit de §13.5.
+
+### 13.5 Pruebas
+
+- **Nuevas:**
+  - `backend/tests/stock-overview-portion.test.ts` (datos `test-sop-`): una bolsita dejada a un vendedor sale con `parentProductId` y las piezas del vendedor; un entero sale con `null`.
+  - `features/stock/rules/stock.rules.portions.spec.ts`: `portionRows`.
+  - `features/stock/pages/stock-page/stock-page.component.portions.spec.ts`: secciones con «Yo», solo bolsitas con vendedor (sin pedir el historial), buscador en las dos secciones, vacíos.
+- **Con commit, requieren que el usuario corra el desbloqueo de `stock-page`** (solo se modifican, ninguna se borra ni renombra): en `stock-page.component.history-view.spec.ts`, bloque «con un vendedor en «Viendo»»:
+  - «el selector no ofrece «Fraccionados»» → lo ofrece.
+  - «con ?vista=fraccionados cae a «Productos» sin pedir fraccionados» → abre las bolsitas del vendedor sin pedir el historial.
+  - «si estaba en «Fraccionados» y se elige un vendedor, la vista cae a «Productos»» → se queda en «Fraccionados» con las bolsitas del vendedor.
+- Si alguna prueba con commit del backend compara el producto de `GET /api/stock` completo y falla por el campo nuevo, se detiene y se reporta.
+
+### 13.6 Decisiones
+
+- **Sí:** «Fraccionados» = bolsitas en stock por titular + historial de fraccionados (decisión del usuario); con un vendedor, solo sus bolsitas.
+- **No:** dejar «Fraccionados» oculto con vendedor, ni quitar el historial.
+- **Sí:** marcar la bolsita con `parentProductId` en `GET /api/stock` en lugar de un endpoint nuevo: la respuesta ya trae las bolsitas con su reparto.
+- **Sí:** registrar el cambio como §13 de este spec (decisión del usuario).
 
 ## Lo que **no** entra en este spec
 
