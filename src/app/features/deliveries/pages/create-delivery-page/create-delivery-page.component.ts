@@ -5,12 +5,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ViewingService } from '@core/viewing/viewing.service';
+import { MODAL_OUTLET } from '@shared/constants/modal.constants';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
 import { closeModalLink } from '@shared/utils/modal-links';
 import { isNotFound } from '@shared/utils/http-errors';
 import { unitsLabel } from '@shared/utils/units-label';
 import type { HoldingStatus } from '../../components/delivery-form/delivery-form.models';
 import { DeliveryFormComponent } from '../../components/delivery-form/delivery-form.component';
+import {
+  CREATE_DELIVERY_EMPTY_TEXTS,
+  NEW_PRODUCT_URL,
+  NEW_SELLER_URL,
+} from '../../constants/create-delivery-page.constants';
 import { FAILURE_TOASTS } from '../../constants/deliveries.constants';
 import type {
   DeliveryFormValue,
@@ -56,6 +62,9 @@ export class CreateDeliveryPageComponent {
   readonly fixedSellerId = this.routeParams.get('vendedor');
   private readonly fixedProductId = parseProductId(this.routeParams.get('producto'));
   readonly fixedProduct = this.fixedProductId !== null;
+
+  // --- Textos de los estados vacíos (plantilla) ---
+  readonly emptyTexts = CREATE_DELIVERY_EMPTY_TEXTS;
 
   // --- Elección actual ---
   readonly sellerId = signal<string | null>(this.fixedSellerId);
@@ -109,9 +118,11 @@ export class CreateDeliveryPageComponent {
   readonly failure = signal<DeliveryFailureNotice | null>(null);
   private lastValue: DeliveryFormValue | null = null;
 
-  // Primero lo que hace falta para mostrar el formulario (vendedor y producto fijados); después el
-  // guardado. Elegir otro producto con el buscador no vuelve a «cargando»: solo el producto fijo
-  // de la URL bloquea la pantalla.
+  // Primero lo que hace falta para mostrar el formulario (vendedor y producto fijados); después los
+  // estados vacíos, que solo aplican si la URL no fijó vendedor (`no-sellers`) ni producto
+  // (`no-units`), y por último el guardado. Elegir otro producto con el buscador no vuelve a
+  // «cargando»: solo el producto fijo de la URL bloquea la pantalla. Si faltan vendedores y piezas a
+  // la vez, gana `no-sellers`.
   readonly state = computed<CreateDeliveryState>(() => {
     const viewingStatus = this.viewing.listStatus();
     if (viewingStatus === 'loading') return 'loading';
@@ -130,6 +141,10 @@ export class CreateDeliveryPageComponent {
     } else {
       if (this.productsResource.status() === 'error') return 'error';
       if (!this.productsResource.hasValue()) return 'loading';
+    }
+    if (this.fixedSellerId === null && this.sellers().length === 0) return 'no-sellers';
+    if (!this.fixedProduct && !this.products().some((product) => product.stock > 0)) {
+      return 'no-units';
     }
     const saving = this.saveState();
     return saving === 'idle' ? 'form' : saving;
@@ -159,6 +174,17 @@ export class CreateDeliveryPageComponent {
 
   clearProduct(): void {
     this.productId.set(null);
+  }
+
+  // --- Estados vacíos ---
+  // Cada botón principal cierra el pop-up y cambia la ruta primaria en una sola navegación: el
+  // outlet `ventana` se vacía dentro del mismo comando, sin pasar por la página de atrás.
+  goToNewSeller(): void {
+    void this.router.navigate([NEW_SELLER_URL, { outlets: { [MODAL_OUTLET]: null } }]);
+  }
+
+  goToNewProduct(): void {
+    void this.router.navigate([NEW_PRODUCT_URL, { outlets: { [MODAL_OUTLET]: null } }]);
   }
 
   // --- Reintentos de carga ---
