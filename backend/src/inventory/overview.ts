@@ -10,10 +10,12 @@ export interface StockSellerTotal {
 
 // Un producto con piezas en algún lugar: bodega, vendedores activos con piezas de ese producto y la
 // suma de los vendedores desactivados (sin nombre). total = warehouse + Σ sellers + inactiveSellers.
+// `parentProductId` marca una bolsita con el entero del que sale (HU-26 §13); null en los demás.
 export interface StockProduct {
   productId: number
   name: string
   image: string | null
+  parentProductId: number | null
   warehouse: number
   warehouseLevel: StockLevel
   sellers: { sellerId: string; units: number; stockLevel: StockLevel }[]
@@ -70,6 +72,7 @@ export async function getStockOverview(): Promise<StockOverview> {
       productId: holding.productId,
       name: holding.name,
       image: holding.image,
+      parentProductId: holding.parentProductId,
       warehouse: holding.warehouse,
       warehouseLevel: stockLevelOf(holding.warehouse),
       sellers,

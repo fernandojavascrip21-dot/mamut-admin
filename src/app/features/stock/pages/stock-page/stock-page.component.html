@@ -154,7 +154,7 @@
     <div class="mt-5">
       <p-selectbutton
         class="views"
-        [options]="viewOptions()"
+        [options]="viewOptions"
         optionLabel="label"
         optionValue="value"
         [ngModel]="view()"
@@ -274,49 +274,86 @@
         }
       }
       @case ('fractions') {
-        @if (fractionsState() === 'loading') {
-          <div class="mt-5 flex flex-col gap-3" aria-busy="true">
-            <p-skeleton height="88px" />
-            <p-skeleton height="88px" />
-            <p-skeleton height="88px" />
-          </div>
-        } @else if (fractionsState() === 'error') {
-          <div class="mt-5 flex flex-col gap-3 alert-danger p-5" role="alert">
-            <p class="m-0 text-[15px] font-bold">{{ historyTexts.fractionsLoadError }}</p>
-            <button
-              pButton
-              type="button"
-              severity="secondary"
-              class="retry h-11 min-w-11 w-fit px-4"
-              (click)="retryFractions()"
-            >
-              {{ historyTexts.retry }}
-            </button>
-          </div>
-        } @else if (fractions().length === 0) {
-          <div class="empty mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
-            <p class="m-0 text-[17px] font-bold">{{ historyTexts.fractionsEmpty }}</p>
-          </div>
-        } @else if (visibleFractions().length === 0) {
-          <div class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
-            <p class="m-0 text-[17px] font-bold">{{ historyTexts.fractionsNoMatch }}</p>
-            <p class="m-0 text-sm text-muted">{{ historyTexts.fractionsNoMatchHint }}</p>
-            <button pButton type="button" severity="secondary" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
-              {{ historyTexts.clearSearch }}
-            </button>
-          </div>
-        } @else {
-          <p-dataview [value]="visibleFractions()" layout="list" class="mt-5 block">
-            <ng-template #list>
-              <ul class="m-0 flex list-none flex-col gap-3 p-0">
-                @for (item of visibleFractions(); track item.id) {
-                  <li class="min-w-0">
-                    <app-fraction-history-line [item]="item" />
-                  </li>
-                }
-              </ul>
-            </ng-template>
-          </p-dataview>
+        <section class="bags mt-5" aria-labelledby="bags-title">
+          <h2 id="bags-title" class="m-0 text-[15px] font-bold">{{ portionTexts.title }}</h2>
+          @if (!hasBagRows()) {
+            <div class="empty mt-3 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+              <p class="m-0 text-[17px] font-bold">{{ bagsEmptyMessage() }}</p>
+            </div>
+          } @else if (visibleBagRows().length === 0) {
+            <div class="no-match mt-3 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+              <p class="m-0 text-[17px] font-bold">{{ portionTexts.noMatchTitle }}</p>
+              <p class="m-0 text-sm text-muted">{{ texts.noMatchHint }}</p>
+              <button pButton severity="secondary" type="button" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+                {{ texts.clearSearch }}
+              </button>
+            </div>
+          } @else {
+            <ul class="rows mt-3 mb-0 flex list-none flex-col gap-3 p-0">
+              @for (row of visibleBagRows(); track row.productId) {
+                <li class="min-w-0">
+                  <app-stock-product-row
+                    [name]="row.name"
+                    [image]="row.image"
+                    [units]="row.units"
+                    [breakdown]="row.breakdown"
+                    [editable]="seller() !== null"
+                    (activated)="editSellerProduct(row.productId)"
+                  />
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        @if (!seller()) {
+          <section class="history mt-6" aria-labelledby="history-title">
+            <h2 id="history-title" class="m-0 text-[15px] font-bold">{{ portionTexts.historyTitle }}</h2>
+            @if (fractionsState() === 'loading') {
+              <div class="mt-3 flex flex-col gap-3" aria-busy="true">
+                <p-skeleton height="88px" />
+                <p-skeleton height="88px" />
+                <p-skeleton height="88px" />
+              </div>
+            } @else if (fractionsState() === 'error') {
+              <div class="mt-3 flex flex-col gap-3 alert-danger p-5" role="alert">
+                <p class="m-0 text-[15px] font-bold">{{ historyTexts.fractionsLoadError }}</p>
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  class="retry h-11 min-w-11 w-fit px-4"
+                  (click)="retryFractions()"
+                >
+                  {{ historyTexts.retry }}
+                </button>
+              </div>
+            } @else if (fractions().length === 0) {
+              <div class="empty mt-3 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+                <p class="m-0 text-[17px] font-bold">{{ historyTexts.fractionsEmpty }}</p>
+              </div>
+            } @else if (visibleFractions().length === 0) {
+              <div class="no-match mt-3 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+                <p class="m-0 text-[17px] font-bold">{{ historyTexts.fractionsNoMatch }}</p>
+                <p class="m-0 text-sm text-muted">{{ historyTexts.fractionsNoMatchHint }}</p>
+                <button pButton type="button" severity="secondary" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+                  {{ historyTexts.clearSearch }}
+                </button>
+              </div>
+            } @else {
+              <p-dataview [value]="visibleFractions()" layout="list" class="mt-3 block">
+                <ng-template #list>
+                  <ul class="m-0 flex list-none flex-col gap-3 p-0">
+                    @for (item of visibleFractions(); track item.id) {
+                      <li class="min-w-0">
+                        <app-fraction-history-line [item]="item" />
+                      </li>
+                    }
+                  </ul>
+                </ng-template>
+              </p-dataview>
+            }
+          </section>
         }
       }
       @case ('products') {

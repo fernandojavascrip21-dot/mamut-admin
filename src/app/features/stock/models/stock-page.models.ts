@@ -21,6 +21,8 @@ export interface StockRow {
   image: string | null;
   units: number;
   breakdown: string;
+  // Id del entero de una bolsita (HU-26 §13); lo usa `portionRows` para la sección «Bolsitas en stock».
+  parentProductId?: number | null;
   // Solo en el filtro «Baja existencia» (HU-18): 'out' pinta «Agotado» en texto. Sin él, no hay etiqueta.
   stockLevel?: StockLevel;
 }

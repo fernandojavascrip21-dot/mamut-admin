@@ -23,13 +23,13 @@ import { StockQuickActionsComponent } from '../../components/stock-quick-actions
 import type { StockQuickAction } from '../../components/stock-quick-actions/stock-quick-actions.models';
 import { StockSplitBarComponent } from '../../components/stock-split-bar/stock-split-bar.component';
 import {
-  LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, SELLER_SHRINKAGE_LABEL, STOCK_HISTORY_TEXTS, STOCK_PAGE_TEXTS, STOCK_VIEW_LABEL, STOCK_VIEW_OPTIONS, STOCK_VIEW_QUERY, YO_QUICK_ACTIONS,
+  LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, SELLER_SHRINKAGE_LABEL, STOCK_HISTORY_TEXTS, STOCK_PAGE_TEXTS, STOCK_PORTION_TEXTS, STOCK_VIEW_LABEL, STOCK_VIEW_OPTIONS, STOCK_VIEW_QUERY, YO_QUICK_ACTIONS,
 } from '../../constants/stock-page.constants';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import type { StockView } from '../../interfaces/stock-history.models';
 import type { StockPageState, StockRow, StockViewOption } from '../../models/stock-page.models';
 import {
-  filterStockByName, lowStockFor, lowStockOfHolder, lowStockTitle, productBreakdown, sellerProducts, sellerTotal, splitParts,
+  filterStockByName, lowStockFor, lowStockOfHolder, lowStockTitle, portionRows, productBreakdown, sellerProducts, sellerTotal, splitParts,
 } from '../../rules/stock.rules';
 import {
   filterFractionHistory, filterShrinkageHistory, historyStateOf, stockViewFromQuery,
@@ -89,16 +89,11 @@ export class StockPageComponent {
   // null y se ve la vista de «Yo» (HU-10, selección efectiva).
   readonly seller = this.viewing.selectedSeller;
 
-  // 3) Vista activa (HU-26 §12). Sale del query param `vista`; «Fraccionados» con un vendedor en
-  // «Viendo» no existe (los fraccionados son de la bodega), así que cae en «Productos».
+  // 3) Vista activa (HU-26 §12). Sale del query param `vista`. «Fraccionados» se ofrece también con un
+  // vendedor en «Viendo» (HU-26 §13): ahí muestra solo sus bolsitas, sin el historial.
   private readonly queryParams = toSignal(this.route.queryParamMap, { requireSync: true });
-  readonly view = computed<StockView>(() => {
-    const requested = stockViewFromQuery(this.queryParams().get('vista'));
-    return requested === 'fractions' && this.seller() ? 'products' : requested;
-  });
-  readonly viewOptions = computed<StockViewOption[]>(() =>
-    this.seller() ? STOCK_VIEW_OPTIONS.filter((option) => option.value !== 'fractions') : STOCK_VIEW_OPTIONS,
-  );
+  readonly view = computed<StockView>(() => stockViewFromQuery(this.queryParams().get('vista')));
+  readonly viewOptions: StockViewOption[] = STOCK_VIEW_OPTIONS;
   readonly viewLabel = STOCK_VIEW_LABEL;
 
   // Mermas y fraccionados se piden solo cuando su vista está activa. Un recurso sin parámetros queda
@@ -107,8 +102,9 @@ export class StockPageComponent {
     params: () => (this.view() === 'shrinkages' ? { sellerId: this.seller()?.id ?? null } : undefined),
     stream: ({ params }) => this.history.shrinkages(params.sellerId ?? undefined),
   });
+  // Con un vendedor en «Viendo» la vista no muestra el historial (HU-26 §13), así que no se pide.
   readonly fractionsResource = rxResource({
-    params: () => (this.view() === 'fractions' ? true : undefined),
+    params: () => (this.view() === 'fractions' && this.seller() === null ? true : undefined),
     stream: () => this.history.fractions(),
   });
   readonly shrinkagesState = computed(() => historyStateOf(this.shrinkagesResource.status()));
@@ -129,6 +125,7 @@ export class StockPageComponent {
   readonly searchQuery = signal('');
   readonly visibleShrinkages = computed(() => filterShrinkageHistory(this.shrinkages(), this.searchQuery()));
   readonly visibleFractions = computed(() => filterFractionHistory(this.fractions(), this.searchQuery()));
+  readonly visibleBagRows = computed(() => filterStockByName(this.bagRows(), this.searchQuery()));
   readonly searchLabel = computed(() => {
     const view = this.view();
     if (view === 'shrinkages') return STOCK_HISTORY_TEXTS.shrinkagesSearchLabel;
@@ -138,12 +135,16 @@ export class StockPageComponent {
   readonly showSearch = computed(() => {
     const view = this.view();
     if (view === 'shrinkages') return this.shrinkagesState() === 'ready' && this.shrinkages().length > 0;
-    if (view === 'fractions') return this.fractionsState() === 'ready' && this.fractions().length > 0;
+    if (view === 'fractions') {
+      // Las bolsitas se buscan siempre; el historial solo con «Yo» y cuando ya llegó con filas.
+      return this.hasBagRows() || (this.seller() === null && this.fractionsState() === 'ready' && this.fractions().length > 0);
+    }
     return this.hasRows();
   });
 
   readonly texts = STOCK_PAGE_TEXTS;
   readonly historyTexts = STOCK_HISTORY_TEXTS;
+  readonly portionTexts = STOCK_PORTION_TEXTS;
   readonly newProductUrl = NEW_PRODUCT_URL;
   // Pop-up «Baja existencia» (HU-18, spec §10): abierto muestra solo los productos bajos o agotados del
   // titular en «Viendo»; la lista de la pantalla no cambia.
@@ -165,6 +166,7 @@ export class StockPageComponent {
     if (seller) {
       return sellerProducts(overview, seller.id).map(({ product, units }) => ({
         productId: product.productId, name: product.name, image: product.image, units, breakdown: '',
+        parentProductId: product.parentProductId,
       }));
     }
     return overview.products.map((product) => ({
@@ -173,10 +175,23 @@ export class StockPageComponent {
       image: product.image,
       units: product.total,
       breakdown: productBreakdown(product, overview.sellers),
+      parentProductId: product.parentProductId,
     }));
   });
   readonly hasRows = computed(() => this.allRows().length > 0);
   readonly visibleRows = computed(() => filterStockByName(this.allRows(), this.searchQuery()));
+
+  // «Bolsitas en stock» (HU-26 §13): las mismas filas que «Productos», solo las bolsitas, con el reparto
+  // por titular. Con un vendedor, sus bolsitas con sus piezas.
+  readonly bagRows = computed<StockRow[]>(() => portionRows(this.allRows()));
+  readonly hasBagRows = computed(() => this.bagRows().length > 0);
+  // Vacío de la sección: con «Yo» dice que no hay bolsitas; con un vendedor, que él no tiene.
+  readonly bagsEmptyMessage = computed(() => {
+    const seller = this.seller();
+    return seller
+      ? `${seller.fullName} ${this.portionTexts.emptySellerSuffix}`
+      : this.portionTexts.emptyBusiness;
+  });
 
   // Avisos de baja existencia (HU-18) de la vista activa. Sin avisos la tarjeta no sale.
   readonly lowStockItems = computed<LowStockAlertItem[]>(() => {
