@@ -42,3 +42,14 @@ export type ShrinkageFailureReason = 'no-units' | 'conflict' | 'not-found' | 'of
 export type ShrinkageResult =
   | { ok: true; shrinkage: Shrinkage; replayed: boolean }
   | { ok: false; reason: ShrinkageFailureReason; message: string | null };
+
+// Una merma del historial (HU-26): GET /api/shrinkages. `qty` va en positivo.
+export interface ShrinkageHistoryItem {
+  requestId: string | null;
+  createdAt: string;
+  qty: number;
+  reason: string | null;
+  reasonLabel: string | null;
+  holder: { id: string; fullName: string } | null; // null = bodega
+  product: { id: number; name: string; image: string | null };
+}

@@ -103,3 +103,14 @@ export interface SellerDetail extends Seller {
   units: number;
   stock: SellerStockLine[];
 }
+
+// Una merma del vendedor (HU-26): GET /api/sellers/:id/shrinkages; mismo contrato que /api/shrinkages.
+export interface ShrinkageHistoryItem {
+  requestId: string | null;
+  createdAt: string;
+  qty: number;
+  reason: string | null;
+  reasonLabel: string | null;
+  holder: { id: string; fullName: string } | null;
+  product: { id: number; name: string; image: string | null };
+}
