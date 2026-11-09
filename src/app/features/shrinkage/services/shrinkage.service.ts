@@ -1,6 +1,6 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, type Observable, catchError, map, of } from 'rxjs';
+import { type Observable, catchError, map, of } from 'rxjs';
 import { httpErrorMessage, httpStatus, isOffline } from '@shared/utils/http-errors';
 import { NO_UNITS_MESSAGE, SHRINKAGES_URL } from '../constants/shrinkage.constants';
 import type {

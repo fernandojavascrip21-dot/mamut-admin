@@ -1,4 +1,4 @@
-import { deliveryModalLink, fractionModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, fractionModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { StockQuickAction } from '../components/stock-quick-actions/stock-quick-actions.models';
 
 // Etiquetas fijas de la barra dividida y del reparto por producto (HU-13).
@@ -26,6 +26,7 @@ export const YO_QUICK_ACTIONS: StockQuickAction[] = [
   { label: 'Entrada a bodega', link: WAREHOUSE_ENTRY_URL, icon: 'entry' },
   { label: 'Dejar a vendedor', link: deliveryModalLink(), icon: 'deliver' },
   { label: 'Vender', link: SELL_URL, icon: 'sell' },
+  { label: 'Registrar merma', link: shrinkageModalLink(), icon: 'shrinkage' }, // M6-hu25: merma de la bodega
   { label: 'Fraccionar', link: fractionModalLink(), icon: 'fraction' }, // HU-23: abre la ventana, solo con «Yo · bodega»
   { label: 'Nuevo producto', link: NEW_PRODUCT_URL, icon: 'new' },
 ];
@@ -33,6 +34,8 @@ export const YO_QUICK_ACTIONS: StockQuickAction[] = [
 // Con un vendedor en «Viendo»: «Dejar más a {nombre}» y «Retirarle producto».
 export const SELLER_DELIVER_LABEL_PREFIX = 'Dejar más a';
 export const SELLER_RETURN_LABEL = 'Retirarle producto';
+// Con un vendedor en «Viendo»: merma de sus piezas (M6-hu25), con él fijo en el enlace.
+export const SELLER_SHRINKAGE_LABEL = 'Registrar su merma';
 
 // Textos de la pantalla (los de los estados, del spec HU-13 §5).
 export const STOCK_PAGE_TEXTS = {

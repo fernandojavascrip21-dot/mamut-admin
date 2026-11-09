@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  AbstractControl, FormBuilder, FormControl, ReactiveFormsModule, Validators,
+  AbstractControl, FormBuilder, ReactiveFormsModule, Validators,
 } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -91,7 +91,7 @@ export class ShrinkageFormComponent implements OnInit {
 
   private createEmptyForm(): ShrinkageFormGroup {
     return this.formBuilder.group({
-      productId: new FormControl<number | null>(null, Validators.required),
+      productId: this.formBuilder.control<number | null>(null, Validators.required),
       qty: this.formBuilder.control('', wholeQuantity()),
       reason: this.formBuilder.control('', Validators.required),
     });
@@ -179,7 +179,8 @@ export class ShrinkageFormComponent implements OnInit {
   }
 }
 
-// Marca el control como inválido y enlaza su mensaje para lectores de pantalla.
+// Solo fija los atributos aria (aria-describedby y aria-invalid) que enlazan el error con el selector;
+// no cambia la apariencia, que la pone `[invalid]`.
 function describedSelect(error: string | null, errorId: string): SelectPassThrough {
   return {
     label: {

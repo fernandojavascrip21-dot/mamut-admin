@@ -68,10 +68,10 @@ describe('StockPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
     expect(historyLinks()).toHaveLength(0);
   });
 
-  it('sigue habiendo cinco movimientos rápidos y el enlace no es uno de ellos', async () => {
+  it('sigue habiendo seis movimientos rápidos y el enlace no es uno de ellos', async () => {
     await load();
     const labels = Array.from(el().querySelectorAll('a.quick-action')).map((a) => a.textContent!.trim());
-    expect(labels).toHaveLength(5);
+    expect(labels).toHaveLength(6);
     expect(labels).not.toContain('Ver fraccionados');
   });
 });

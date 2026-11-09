@@ -6,7 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { deliveryModalLink, editHoldingModalLink, fractionModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, fractionModalLink, returnModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import { StockPageComponent } from './stock-page.component';
@@ -144,13 +144,14 @@ describe('StockPageComponent', () => {
       expect(whey.querySelector('.breakdown')?.textContent?.trim()).toBe('Bodega 4 · Luis 6');
     });
 
-    it('ofrece los cinco movimientos rápidos con sus destinos', () => {
-      expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Vender', 'Fraccionar', 'Nuevo producto']);
+    it('ofrece los seis movimientos rápidos con sus destinos', () => {
+      expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Vender', 'Registrar merma', 'Fraccionar', 'Nuevo producto']);
       expect(actionHrefs()).toEqual([
         '/admin/entrada',
         hrefOf(deliveryModalLink()),
         '/admin/productos',
-         hrefOf(fractionModalLink()),
+         hrefOf(shrinkageModalLink()),
+        hrefOf(fractionModalLink()),
         '/admin/productos/nuevo',
       ]);
     });
@@ -383,9 +384,13 @@ describe('StockPageComponent', () => {
       expect(navigate).toHaveBeenCalledWith(editHoldingModalLink(LUIS, 2));
     });
 
-    it('ofrece «Dejar más a Luis» y «Retirarle producto» con él fijo', () => {
-      expect(actionLabels()).toEqual(['Dejar más a Luis', 'Retirarle producto']);
-      expect(actionHrefs()).toEqual([hrefOf(deliveryModalLink({ sellerId: LUIS })), hrefOf(returnModalLink(LUIS))]);
+    it('ofrece «Dejar más a Luis», «Retirarle producto» y «Registrar su merma» con él fijo', () => {
+      expect(actionLabels()).toEqual(['Dejar más a Luis', 'Retirarle producto', 'Registrar su merma']);
+      expect(actionHrefs()).toEqual([
+        hrefOf(deliveryModalLink({ sellerId: LUIS })),
+        hrefOf(returnModalLink(LUIS)),
+        hrefOf(shrinkageModalLink({ sellerId: LUIS })),
+      ]);
     });
 
     it('cambiar de vendedor en la barra no vuelve a pedir datos', () => {
@@ -401,7 +406,7 @@ describe('StockPageComponent', () => {
       expect(text('.seller-empty')).toBe('Todavía no tiene producto.');
       expect(text('.seller-card .total')).toBe('0 piezas');
       expect(el().querySelector('#stock-search')).toBeNull();
-      expect(actionLabels()).toEqual(['Dejar más a Valeria', 'Retirarle producto']);
+      expect(actionLabels()).toEqual(['Dejar más a Valeria', 'Retirarle producto', 'Registrar su merma']);
     });
   });
 

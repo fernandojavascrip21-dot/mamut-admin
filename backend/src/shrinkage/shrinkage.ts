@@ -119,7 +119,7 @@ export async function listShrinkageOptions(sellerId: string | null, actor: Shrin
   requireAdmin(actor)
   if (sellerId !== null && !UUID.test(sellerId)) throw validation('El campo sellerId debe ser un UUID')
 
-  const holder = sellerId === null ? null : await getActiveSellerName(sellerId)
+  const holder = sellerId === null ? null : await getActiveSellerName(sellerId.toLowerCase())
   const items = holder === null ? await warehouseOptions() : await sellerOptions(holder.id)
   // Orden por nombre en JS con la misma comparación para ambas listas: el orden de la base depende
   // de su collation y la pantalla espera orden en español.
