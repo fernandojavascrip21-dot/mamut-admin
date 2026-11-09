@@ -98,6 +98,12 @@ export const ADMIN_ROUTES: Routes = [
       ),
     data: { title: 'Registrar merma' },
   },
+  // Historial de mermas (HU-26): todas las mermas, o solo las del vendedor en «Viendo».
+  {
+    path: 'mermas',
+    loadChildren: () => import('@features/shrinkage/shrinkage-history.routes').then((m) => m.SHRINKAGE_HISTORY_ROUTES),
+    data: { title: 'Mermas' },
+  },
   // Historial de «Fraccionar» (HU-24): los 50 fraccionados más recientes, solo para el administrador.
   {
     path: 'fraccionados',

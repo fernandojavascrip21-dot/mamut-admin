@@ -25,9 +25,11 @@ export class ShrinkageService {
     return this.http.get<ShrinkageOptions>(`${SHRINKAGES_URL}/options`, { params });
   }
 
-  // Últimas mermas (HU-26), de la más nueva a la más vieja. Esqueleto: aún sin implementar.
+  // Últimas mermas (HU-26), de la más nueva a la más vieja. Sin `sellerId` son las de la bodega y de
+  // todos los vendedores; con uno, solo las de ese vendedor (el backend limita la lista a 50).
   list(sellerId?: string): Observable<ShrinkageHistoryItem[]> {
-    throw new Error(`no implementado: ${sellerId ?? ''}`);
+    const params: Record<string, string> = sellerId ? { sellerId } : {};
+    return this.http.get<ShrinkageHistoryItem[]>(SHRINKAGES_URL, { params });
   }
 
   // Registra la merma. El backend responde { shrinkage, replayed }: 201 es nueva y 200 una repetición

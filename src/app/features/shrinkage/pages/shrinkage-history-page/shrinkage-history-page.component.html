@@ -1,1 +1,56 @@
-<p>shrinkage-history-page works!</p>
+<div class="flex w-full flex-col px-5 py-6">
+  <a pButton [text]="true" [routerLink]="stockUrl" class="h-11 min-w-11 w-fit px-2">‹ {{ texts.backToStock }}</a>
+
+  <h1 class="page-title mt-3">{{ title() }}</h1>
+
+  @if (state() === 'loading') {
+    <div class="mt-6 flex flex-col gap-3" aria-busy="true">
+      <p-skeleton height="88px" />
+      <p-skeleton height="88px" />
+      <p-skeleton height="88px" />
+    </div>
+  } @else if (state() === 'error') {
+    <div class="mt-6 flex flex-col gap-3 alert-danger p-5" role="alert">
+      <p class="m-0 text-[15px] font-bold">{{ texts.loadError }}</p>
+      <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="retry()">
+        {{ texts.retry }}
+      </button>
+    </div>
+  } @else if (!hasItems()) {
+    <div class="mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+      <p class="m-0 text-[17px] font-bold">{{ emptyMessage() }}</p>
+      <a pButton [text]="true" [routerLink]="stockUrl" class="mt-2 h-11 min-w-11 px-4">{{ texts.emptyLink }}</a>
+    </div>
+  } @else {
+    <div class="mt-5 flex flex-col gap-2">
+      <label for="shrinkage-search" class="field-label">{{ texts.searchLabel }}</label>
+      <input
+        pInputText
+        id="shrinkage-search"
+        type="search"
+        class="h-11 min-w-0 w-full"
+        [value]="query()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <p class="m-0 mt-3 text-sm font-semibold text-muted" role="status" aria-atomic="true">{{ countLabel() }}</p>
+
+    @if (visibleItems().length === 0) {
+      <div class="mt-4 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+        <p class="m-0 text-[17px] font-bold">{{ texts.noMatch }}</p>
+        <button pButton [text]="true" type="button" class="mt-2 h-11 min-w-11 px-4" (click)="clearSearch()">
+          {{ texts.clearSearch }}
+        </button>
+      </div>
+    } @else {
+      <ul class="m-0 mt-4 flex list-none flex-col gap-3 p-0">
+        @for (item of visibleItems(); track item.requestId ?? $index) {
+          <li class="min-w-0">
+            <app-shrinkage-history-line [item]="item" [showHolder]="showHolder()" />
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>
