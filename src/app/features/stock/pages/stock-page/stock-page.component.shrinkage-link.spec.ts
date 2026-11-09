@@ -21,15 +21,13 @@ const OVERVIEW: StockOverview = {
   lowStock: [],
 };
 
-describe('StockPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
+describe('StockPageComponent · vista «Mermas» en lugar del enlace «Ver mermas» (HU-26 §12)', () => {
   let fixture: ComponentFixture<StockPageComponent>;
   let httpMock: HttpTestingController;
   let selected: ReturnType<typeof signal<ViewingSeller | null>>;
   const el = () => fixture.nativeElement as HTMLElement;
   const option = (label: string) =>
     Array.from(el().querySelectorAll('p-selectbutton p-togglebutton')).find((o) => o.textContent!.trim() === label) as HTMLElement;
-  const historyLinks = () =>
-    Array.from(el().querySelectorAll('a')).filter((a) => a.textContent!.trim() === 'Ver fraccionados');
 
   async function load() {
     fixture.detectChanges();
