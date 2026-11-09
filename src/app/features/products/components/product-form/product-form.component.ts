@@ -46,6 +46,8 @@ export class ProductFormComponent implements OnInit {
   readonly categoryMissing = input(false); // 422: aviso en categoría
   readonly submitted = output<ProductFormValue>();
   readonly dirtyChange = output<boolean>();
+  readonly categoriesFailed = input(false); // GET de categorías falló: aviso con «Reintentar»
+  readonly categoriesRetried = output<void>();
 
   // --- Formulario y estados ---
   form!: ProductFormGroup;
