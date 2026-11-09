@@ -7,7 +7,7 @@ import { LowStockNoticeService } from '@core/low-stock-notice/low-stock-notice.s
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
-import { deliveryModalLink, editHoldingModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, returnModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import { unitsLabel } from '@shared/utils/units-label';
 import { LowStockAlertComponent } from '../../components/low-stock-alert/low-stock-alert.component';
 import type { LowStockAlertItem } from '../../components/low-stock-alert/low-stock-alert.models';
@@ -17,7 +17,7 @@ import { StockQuickActionsComponent } from '../../components/stock-quick-actions
 import type { StockQuickAction } from '../../components/stock-quick-actions/stock-quick-actions.models';
 import { StockSplitBarComponent } from '../../components/stock-split-bar/stock-split-bar.component';
 import {
-  FRACTION_HISTORY_URL, LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
+  FRACTION_HISTORY_URL, LOW_FILTER_BADGE_MAX, LOW_STOCK_WAREHOUSE_HOLDER, NEW_PRODUCT_URL, SELLER_DELIVER_LABEL_PREFIX, SELLER_RETURN_LABEL, SELLER_SHRINKAGE_LABEL, STOCK_PAGE_TEXTS, YO_QUICK_ACTIONS,
 } from '../../constants/stock-page.constants';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import type { StockPageState, StockRow } from '../../models/stock-page.models';
@@ -175,6 +175,7 @@ export class StockPageComponent {
         icon: 'deliver',
       },
       { label: SELLER_RETURN_LABEL, link: returnModalLink(seller.id), icon: 'return' },
+      { label: SELLER_SHRINKAGE_LABEL, link: shrinkageModalLink({ sellerId: seller.id }), icon: 'shrinkage' },
     ];
   });
 

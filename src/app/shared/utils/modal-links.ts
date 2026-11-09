@@ -5,6 +5,7 @@ import {
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
+  MODAL_SHRINKAGE_PATH,
 } from '../constants/modal.constants';
 
 // Solo modifica el outlet de admin: conserva la ruta primaria y encapsula sus parámetros.
@@ -28,6 +29,13 @@ export function fractionModalLink(params: { productId?: number } = {}): unknown[
   const matrix: Record<string, number> = {};
   if (params.productId !== undefined) matrix['producto'] = params.productId;
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_FRACTION_PATH, matrix] } }];
+}
+
+// El titular va como parámetro matricial `vendedor`; sin él, el pop-up es de la bodega.
+export function shrinkageModalLink(params: { sellerId?: string } = {}): unknown[] {
+  const matrix: Record<string, string> = {};
+  if (params.sellerId) matrix['vendedor'] = params.sellerId;
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_SHRINKAGE_PATH, matrix] } }];
 }
 
 export function closeModalLink(): unknown[] {

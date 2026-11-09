@@ -1,0 +1,66 @@
+<app-modal-panel [title]="texts.title" [closable]="!saving()" (closed)="close()">
+<section class="mx-auto flex w-full max-w-xl flex-col gap-5">
+  @if (subtitle(); as text) {
+    <p class="m-0 text-sm font-semibold text-muted">{{ text }}</p>
+  }
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="surface-card flex flex-col gap-3 p-5" aria-live="polite">
+        <p class="m-0 text-sm font-semibold text-muted">{{ texts.loading }}</p>
+        <p-skeleton height="52px" />
+        <p-skeleton height="52px" />
+      </div>
+    }
+    @case ('error') {
+      <div class="flex flex-col gap-3 alert-danger p-5">
+        <p class="m-0 text-[15px] font-bold" role="alert">{{ texts.loadError }}</p>
+        <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="optionsResource.reload()">
+          {{ texts.retry }}
+        </button>
+      </div>
+    }
+    @case ('not-found') {
+      <div class="flex flex-col gap-3 alert-danger p-5">
+        <p class="m-0 text-[15px] font-bold" role="alert">{{ texts.notFound }}</p>
+        <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="close()">
+          {{ texts.close }}
+        </button>
+      </div>
+    }
+    @case ('empty') {
+      <div class="surface-card flex flex-col gap-3 border-dashed border-line-strong p-5">
+        <p class="m-0 text-[15px] font-bold">{{ emptyText() }}</p>
+        <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="close()">
+          {{ texts.close }}
+        </button>
+      </div>
+    }
+    @case ('result') {
+      @if (outcome(); as done) {
+        <app-shrinkage-result [shrinkage]="done.shrinkage" (again)="onAgain()" (closed)="close()" />
+      }
+    }
+    @default {
+      @if (offline()) {
+        <div class="flex flex-col items-start gap-2 alert-danger p-4" role="alert">
+          <p class="m-0 text-sm font-semibold">{{ texts.saveFailed }}</p>
+          <button pButton type="button" severity="secondary" class="h-11 min-w-11 w-fit px-4" (click)="retry()">
+            {{ texts.retry }}
+          </button>
+        </div>
+      }
+      @if (options(); as loaded) {
+        <app-shrinkage-form
+          [options]="loaded"
+          [saving]="saving()"
+          [serverErrors]="serverErrors()"
+          [notice]="notice()"
+          (submitted)="onSubmitted($event)"
+          (cancelled)="close()"
+        />
+      }
+    }
+  }
+</section>
+</app-modal-panel>

@@ -619,5 +619,6 @@ CASE
     WHEN (type = 'adjustment'::text) THEN (qty <> 0)
     ELSE false
 END)`),
+	check("stock_movements_shrinkage_reason_check", sql`(type <> 'shrinkage'::text) OR (reason IS NULL) OR (reason = ANY (ARRAY['lost'::text, 'damaged'::text, 'expired'::text, 'other'::text]))`),
 	check("stock_movements_type_check", sql`type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text, 'fraction_out'::text, 'fraction_in'::text])`),
 ]);
