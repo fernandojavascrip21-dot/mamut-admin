@@ -47,6 +47,13 @@ export class EditProductPageComponent implements HasUnsavedChanges {
   readonly categories = computed<Category[]>(() =>
     this.categoriesResource.hasValue() ? this.categoriesResource.value() : [],
   );
+  // Si el GET falla, el formulario muestra el aviso con «Reintentar» (spec T-26 §3.2); el select
+  // sigue usable porque la categoría es opcional.
+  readonly categoriesFailed = computed(() => this.categoriesResource.status() === 'error');
+
+  retryCategories(): void {
+    this.categoriesResource.reload();
+  }
   readonly original = computed<Product | null>(() =>
     this.productResource.hasValue() ? this.productResource.value() : null,
   );

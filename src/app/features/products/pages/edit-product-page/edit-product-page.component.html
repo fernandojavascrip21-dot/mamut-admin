@@ -73,6 +73,8 @@
       mode="edit"
       [initialValue]="original()"
       [categories]="categories()"
+      [categoriesFailed]="categoriesFailed()"
+      (categoriesRetried)="retryCategories()"
       [busy]="state() === 'saving' || state() === 'offline'"
       [saving]="state() === 'saving'"
       [nameTaken]="nameTaken()"

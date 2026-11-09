@@ -18,7 +18,8 @@ import {
 } from '../../validators/product-form.validators';
 import type { Category, Product, ProductFormValue } from '../../interfaces/product.models';
 import {
-  CATEGORY_SELECT_MOTION_OPTIONS, FIELD_MESSAGES, FRACTIONABLE_LABEL, MONEY_MESSAGES, NO_CATEGORY_OPTION, PORTION_HINT, PORTION_LABEL,
+  CATEGORIES_FAILED_MESSAGE, CATEGORIES_RETRY_LABEL, CATEGORY_SELECT_MOTION_OPTIONS, FIELD_MESSAGES,
+  FRACTIONABLE_LABEL, MONEY_MESSAGES, NO_CATEGORY_OPTION, PORTION_HINT, PORTION_LABEL,
 } from './product-form.constants';
 import type { FieldWithError, ProductFormGroup } from './product-form.models';
 
@@ -72,6 +73,8 @@ export class ProductFormComponent implements OnInit {
     },
   }));
   readonly categoryMotionOptions = CATEGORY_SELECT_MOTION_OPTIONS;
+  readonly categoriesFailedMessage = CATEGORIES_FAILED_MESSAGE;
+  readonly categoriesRetryLabel = CATEGORIES_RETRY_LABEL;
   readonly fractionableLabel = FRACTIONABLE_LABEL;
   readonly portionLabel = PORTION_LABEL;
   readonly portionHint = PORTION_HINT;
