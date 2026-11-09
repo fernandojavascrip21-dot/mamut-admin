@@ -1,9 +1,11 @@
 # Spec técnico — T-26 · Estados de cargando, vacío y error en todas las pantallas
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — ventana «Dejar a vendedor»; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — el pop-up vive en el outlet `ventana`; M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) y M1-hu06-editar-producto (`specs/M1-hu06-editar-producto/spec.md`) — `product-form` y la carga de categorías
 > **Fecha:** 2026-11-09
 > **Nota (2026-11-09):** al implementar, la verificación en el navegador mostró que `['/admin/vendedores/nuevo', { outlets: { ventana: null } }]` deja el pop-up abierto, porque el cierre cae bajo `nuevo` y no bajo `/admin`. Por eso se agregó `leaveModalLink` en `shared/utils/modal-links.ts` y las constantes pasaron a segmentos (`NEW_SELLER_PATH` / `NEW_PRODUCT_PATH`). Con el desbloqueo que dio el usuario se cambiaron las dos aserciones de navegación de `create-delivery-page.component.empty.spec.ts`. También se agregaron pruebas para «cargando sin estado vacío» y para el aviso de categorías junto con el 422.
+>
+> **Nota (2026-11-09, verificación manual):** se recorrieron en local (administrador y vendedor) las pantallas de §6 simulando «cargando» (respuestas del API retrasadas 4 s), «error» (respuestas 500) y «vacío» (listas sin datos). Todas muestran su estado y, en error, «Reintentar». El carrito (`/admin/carrito`, `/vendedor/carrito`) no pide datos al entrar: su vacío es «Tu carrito está vacío». El corte solo carga al pulsar «Generar corte»; ahí se comprobaron cargando, error con «Reintentar» y «No hay ventas en este periodo». `/admin/entrada` sigue en «Próximamente» (HU-27, `SCRUM-77`).
 >
 > **Objetivo:** que cada pantalla de la v1 tenga sus estados de cargando, vacío y error con «Reintentar». Para lograrlo se completan los dos huecos que faltan: «Dejar a vendedor» sin vendedores o sin piezas en la bodega, y la falla al cargar las categorías en «Nuevo producto» y «Editar producto».
 
@@ -204,16 +206,16 @@ Todas van en archivos `.spec.ts` **nuevos**, para no modificar specs con commit 
 
 ## 9. Criterios de aceptación
 
-- [ ] La tabla de §6 está revisada contra la app y no tiene ❌.
-- [ ] Sin vendedores activos, «Dejar a vendedor» muestra «Aún no tienes vendedores» y «Dar de alta vendedor» lleva a `/admin/vendedores/nuevo` con el pop-up cerrado.
-- [ ] Sin piezas en la bodega, «Dejar a vendedor» muestra «No hay piezas en la bodega» y «Nuevo producto» lleva a `/admin/productos/nuevo` con el pop-up cerrado.
-- [ ] Con vendedor o producto fijados en la URL, los estados vacíos de ese dato no aparecen.
-- [ ] Si falla la carga de categorías, «Nuevo producto» y «Editar producto» muestran «No pudimos cargar las categorías.» con «Reintentar», y el formulario sigue usable.
-- [ ] «Reintentar» repite `GET` de categorías y, si responde, el aviso desaparece.
-- [ ] Guardar una edición con las categorías caídas no le quita la categoría al producto.
-- [ ] `ng build`, `npm test` y `npm run check:architecture` pasan, sin modificar specs con commit.
-- [ ] Los dos huecos se ven bien a 375 px.
-- [ ] `specs/README.md` y `SCRUM-68` quedan actualizados con el inventario.
+- [x] La tabla de §6 está revisada contra la app y no tiene ❌.
+- [x] Sin vendedores activos, «Dejar a vendedor» muestra «Aún no tienes vendedores» y «Dar de alta vendedor» lleva a `/admin/vendedores/nuevo` con el pop-up cerrado.
+- [x] Sin piezas en la bodega, «Dejar a vendedor» muestra «No hay piezas en la bodega» y «Nuevo producto» lleva a `/admin/productos/nuevo` con el pop-up cerrado.
+- [x] Con vendedor o producto fijados en la URL, los estados vacíos de ese dato no aparecen.
+- [x] Si falla la carga de categorías, «Nuevo producto» y «Editar producto» muestran «No pudimos cargar las categorías.» con «Reintentar», y el formulario sigue usable.
+- [x] «Reintentar» repite `GET` de categorías y, si responde, el aviso desaparece.
+- [x] Guardar una edición con las categorías caídas no le quita la categoría al producto.
+- [x] `ng build`, `npm test` y `npm run check:architecture` pasan, sin modificar specs con commit.
+- [x] Los dos huecos se ven bien a 375 px.
+- [x] `specs/README.md` y `SCRUM-68` quedan actualizados con el inventario.
 
 ## 10. Decisiones
 
