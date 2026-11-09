@@ -1,6 +1,6 @@
 # Spec técnico — T-26 · Estados de cargando, vacío y error en todas las pantallas
 
-> **Estado:** Aprobadpo
+> **Estado:** Aprobado
 > **Depende de:** M2-hu11-dejar-a-vendedor (`specs/M2-hu11-dejar-a-vendedor/spec.md`) — ventana «Dejar a vendedor»; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — el pop-up vive en el outlet `ventana`; M1-hu04-dar-de-alta-producto (`specs/M1-hu04-dar-de-alta-producto/spec.md`) y M1-hu06-editar-producto (`specs/M1-hu06-editar-producto/spec.md`) — `product-form` y la carga de categorías
 > **Fecha:** 2026-11-09
 > **Objetivo:** que cada pantalla de la v1 tenga sus estados de cargando, vacío y error con «Reintentar». Para lograrlo se completan los dos huecos que faltan: «Dejar a vendedor» sin vendedores o sin piezas en la bodega, y la falla al cargar las categorías en «Nuevo producto» y «Editar producto».
