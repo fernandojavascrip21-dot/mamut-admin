@@ -155,7 +155,7 @@ describe('SellerDetailPageComponent', () => {
     await load(SELLER, HISTORY, RETURNS);
 
     const views = Array.from(fixture.nativeElement.querySelectorAll('p-dataview')) as HTMLElement[];
-    expect(views).toHaveLength(3);
+    expect(views).toHaveLength(4);
     expect(views[0].querySelectorAll('app-seller-stock-line')).toHaveLength(2);
     expect(views[1].querySelectorAll('app-delivery-history-line')).toHaveLength(2);
     expect(views[2].querySelectorAll('app-return-history-line').length).toBeGreaterThan(0);

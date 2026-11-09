@@ -44,13 +44,17 @@
         </button>
       </div>
     } @else {
-      <ul class="m-0 mt-4 flex list-none flex-col gap-3 p-0">
-        @for (item of visibleItems(); track item.requestId ?? $index) {
-          <li class="min-w-0">
-            <app-shrinkage-history-line [item]="item" [showHolder]="showHolder()" />
-          </li>
-        }
-      </ul>
+      <p-dataview [value]="visibleItems()" layout="list" class="mt-4 block">
+        <ng-template #list>
+          <ul class="m-0 flex list-none flex-col gap-3 p-0">
+            @for (item of visibleItems(); track item.requestId ?? $index) {
+              <li class="min-w-0">
+                <app-shrinkage-history-line [item]="item" [showHolder]="showHolder()" />
+              </li>
+            }
+          </ul>
+        </ng-template>
+      </p-dataview>
     }
   }
 </div>

@@ -1,9 +1,11 @@
 # Spec técnico — HU-26 · Ver la merma reflejada en el stock y el historial
 
-> **Estado:** Aprobado
+> **Estado:** Borrador
 > **Depende de:** M6-hu25-registrar-merma (`specs/M6-hu25-registrar-merma/spec.md`) — pop-up «Registrar merma», feature `shrinkage`; M6-t25-base-merma-simple (`specs/M6-t25-base-merma-simple/spec.md`) — filas `shrinkage` con `reason` y `request_id`, `SHRINKAGE_REASONS`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — «Stock general» y sus enlaces de texto; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — «Últimos retiros» del detalle del vendedor; M3-hu18-aviso-baja-existencia (`specs/M3-hu18-aviso-baja-existencia/spec.md`) — `stockLevel`; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — «Mi stock»; M5-hu24-bolsitas-en-inventario (`specs/M5-hu24-bolsitas-en-inventario/spec.md`) — patrón del historial `/admin/fraccionados`
 > **Fecha:** 2026-11-09
 > **Objetivo:** que el administrador vea cada merma (producto, piezas, motivo y fecha) en la sección «Últimas mermas» del detalle del vendedor y en el historial nuevo `/admin/mermas`, y que una prueba de backend fije que la merma ya baja el stock, el total, el `stockLevel` y «Mi stock».
+>
+> **Nota (2026-11-09):** implementado. `/admin/mermas` carga con `toSignal` + `switchMap` (no `rxResource`): con `rxResource` las pruebas con commit se colgaban al cambiar «Viendo», porque el recurso cuenta como tarea pendiente; «Reintentar» y `StockChangesService` repiten la petición. «Últimas mermas» y `/admin/mermas` usan `p-dataview`; en `seller-detail-page.component.spec.ts` el usuario aprobó cambiar el conteo de `p-dataview` de 3 a 4 y que `load()` responda con sus mermas. Al entrar con un vendedor guardado en «Viendo», la página pide primero todas y luego las suyas (misma selección efectiva de HU-10 que «Stock general»).
 
 Fuentes:
 
@@ -215,6 +217,90 @@ Constantes nuevas:
 | Filas `shrinkage` sin motivo (pruebas viejas, Studio) | `reason`/`reasonLabel` `null` y la pantalla pinta «Sin motivo». |
 | Un vendedor desactivado desaparece del historial | `left join profiles` sin filtrar `active`: su nombre sigue en `/admin/mermas`. Su detalle da `404`, como hoy con retiros. |
 | Con muchas mermas, el buscador solo ve las últimas 50 | Aceptado, igual que `/admin/fraccionados`. |
+
+## 12. Ampliación del 2026-11-09: mermas y fraccionados dentro de «Stock general»
+
+Pedido del usuario después de implementar §1–§11. **Reemplaza** en este spec la página `/admin/mermas` (§2, §3 «/admin/mermas» y «Stock general», §6, §7 pasos 5–7, criterios 6–8 de §8) y **revierte** la página `/admin/fraccionados` de HU-24 y la posición del botón «Baja existencia» de HU-18. «Últimas mermas» del detalle del vendedor (§3) y el backend (§4, §5) no cambian.
+
+### 12.1 Alcance
+
+**Entra:**
+
+- Selector `p-selectbutton` «Productos | Mermas | Fraccionados» en «Stock general», encima del buscador. Cambia la lista de abajo sin salir de la página.
+- «Baja existencia» pasa al final de la fila de movimientos rápidos (sigue abriendo su pop-up).
+- Se quitan los enlaces «Ver fraccionados» y «Ver mermas» de «Stock general».
+- Se borran las páginas `/admin/mermas` (`features/shrinkage/pages/shrinkage-history-page/`, `shrinkage-history.routes.ts`, `constants/shrinkage-history-page.constants.ts`) y `/admin/fraccionados` (`features/fraction/pages/fraction-history-page/`, `fraction-history.routes.ts`, la parte de historial de `constants/fraction-history-page.constants.ts`); sus rutas redirigen a «Stock general» con la vista elegida.
+- Datos y reglas pasan a `features/stock` (una feature no importa otra):
+  - `features/stock/services/stock-history.service.ts` (nuevo): `shrinkages(sellerId?)` (`GET /api/shrinkages`, sale de `ShrinkageService.list`) y `fractions()` (`GET /api/fractions`, sale de `FractionService.getHistory`).
+  - `features/stock/rules/stock-history.rules.ts`: `filterShrinkageHistory` y `filterFractionHistory` (salen de `features/shrinkage/rules/` y `features/fraction/rules/`).
+  - Tipos en `features/stock/interfaces/stock-history.models.ts`.
+  - `features/fraction/components/fraction-history-line` se mueve a `shared/components/fraction-history-line` (con su modelo `.models.ts` y sus constantes al lado).
+- El enlace «Ver fraccionados» del pop-up «Fraccionar» abre `/admin/stock?vista=fraccionados`.
+
+**No entra:** cambios de backend, en «Últimas mermas» del detalle del vendedor, en el pop-up de «Baja existencia» (solo se mueve el botón) ni en los movimientos rápidos existentes.
+
+### 12.2 Reglas
+
+- **Vista:** `'products' | 'shrinkages' | 'fractions'`, sincronizada con el query param `vista` (`productos` / `mermas` / `fraccionados`) con `replaceUrl`. Sin `vista` o con un valor desconocido → «Productos».
+- **«Fraccionados»** solo aparece con «Yo · bodega» (los fraccionados son de la bodega). Con un vendedor en «Viendo» la opción no está y, si estaba elegida, la vista cae a «Productos».
+- **Mermas:** con «Yo · bodega», todas (bodega y vendedores) con su titular; con un vendedor en «Viendo», solo las suyas (`?sellerId=`), sin titular en la fila. Cambiar «Viendo» vuelve a pedir la lista.
+- **Carga perezosa:** las mermas y los fraccionados se piden solo cuando su vista está activa; se recargan con `StockChangesService`.
+- **Buscador:** uno solo, por nombre de producto, sin mayúsculas ni acentos, aplicado a la vista activa (`filterShrinkageHistory`, `filterFractionHistory`).
+- **Estados por vista:** cargando (esqueleto), error con «Reintentar», vacío («Aún no hay mermas» / «<nombre> no tiene mermas» / «Aún no hay fraccionados») y sin coincidencias con «Limpiar búsqueda». Textos tomados de las constantes de las páginas que se borran.
+- **«Baja existencia»:** botón `button.low-filter` proyectado al final de `stock-quick-actions` (`<ng-content />`), con su globo, su `aria-label`, `aria-haspopup="dialog"`, su pop-up y el foco que le devuelve cerrar la tarjeta de avisos. Aparece con «Yo · bodega» y con un vendedor. Los `a.quick-action` siguen siendo 6 con «Yo · bodega» y 3 con un vendedor.
+- **Redirecciones:** `/admin/mermas` → `/admin/stock?vista=mermas`; `/admin/fraccionados` → `/admin/stock?vista=fraccionados` (`redirectTo` con `UrlTree`).
+
+### 12.3 Interfaz
+
+- Orden: resumen → tarjeta de avisos → fila de movimientos rápidos (con «Baja existencia» al final) → selector de vista → buscador → lista.
+- Filas: `app-shrinkage-history-line` (`showHolder` solo con «Yo · bodega») y `app-fraction-history-line`; lista con `p-dataview`.
+- «Baja existencia» con el estilo de las acciones (`severity="secondary"`, `h-11`) y el ícono de alerta.
+- A 375 px sin desplazamiento horizontal.
+
+### 12.4 Plan
+
+1. Pruebas en rojo (`test-writer`), después de los desbloqueos de §12.6.
+2. **Datos y reglas:** `StockHistoryService`, `stock-history.rules.ts`, tipos, mover `fraction-history-line` a `shared/components/`; quitar `ShrinkageService.list`, `FractionService.getHistory` y las reglas viejas.
+3. **Interfaz:** selector y vistas en `stock-page`, «Baja existencia» en la fila, quitar los enlaces y sus constantes, borrar las dos páginas y sus rutas, redirecciones en `admin.routes.ts`, enlace del pop-up «Fraccionar».
+4. Verificación: `ng test`, `ng build`, `npm run check:architecture`, y a mano a 375 px.
+5. README y Jira (`SCRUM-67` vuelve a «En curso»; nota en `SCRUM-64` de HU-24).
+
+### 12.5 Criterios de aceptación
+
+- [ ] «Stock general» muestra el selector «Productos | Mermas | Fraccionados»; elegir «Mermas» o «Fraccionados» cambia la lista sin salir de `/admin/stock` y deja `?vista=` en la URL.
+- [ ] Con un vendedor en «Viendo», el selector no ofrece «Fraccionados», «Mermas» lista solo las suyas sin titular y, si estaba en «Fraccionados», la vista cae a «Productos».
+- [ ] El buscador filtra la vista activa por producto sin mayúsculas ni acentos; cada vista muestra cargando, error con «Reintentar», vacío y sin coincidencias.
+- [ ] «Baja existencia» está al final de la fila de movimientos rápidos, con su globo, y abre el mismo pop-up; al cerrar la tarjeta de avisos el foco vuelve a él.
+- [ ] Ya no hay enlaces «Ver fraccionados» ni «Ver mermas» en «Stock general»; los movimientos rápidos no cambian.
+- [ ] `/admin/mermas` y `/admin/fraccionados` redirigen a «Stock general» con la vista correspondiente; «Ver fraccionados» del pop-up «Fraccionar» abre esa vista.
+- [ ] A 375 px se usa sin zoom ni desplazamiento horizontal.
+- [ ] `ng build`, `npm run check:architecture` y `ng test` pasan; solo cambian las pruebas con commit de §12.6.
+
+### 12.6 Pruebas
+
+- **Nuevas:** `stock-page.component.history-view.spec.ts` (selector, `?vista=`, «Fraccionados» con vendedor, buscador por vista, estados) y la redirección de las dos rutas.
+- **Con commit, requieren desbloqueo del usuario antes del paso 1** (el script de desbloqueo con el nombre indicado):
+
+  | Nombre | Qué cambia |
+  | --- | --- |
+  | `stock-page` | `.history-link.spec.ts` y `.shrinkage-link.spec.ts` pasan de probar enlaces a probar el selector y `?vista=`; en `stock-page.component.spec.ts` solo lo que dependa de la posición del botón «Baja existencia». |
+  | `shrinkage-history` | Se borra la spec de la página; `shrinkage-history.rules.spec.ts` se mueve a `features/stock/rules/`. La spec de la fila no cambia. |
+  | `fraction-history` | Se borra la spec de la página; la de las reglas se mueve a `features/stock/rules/` y la de la fila a `shared/components/`, cambiando solo imports. |
+  | `shrinkage.service` | `shrinkage.service.history.spec.ts` se mueve a `stock-history.service.spec.ts`. |
+  | `fraction.service` | `fraction.service.history.spec.ts` se mueve a `stock-history.service.spec.ts`. |
+  | `fraction-page` | `fraction-page.component.history-link.spec.ts`: el destino pasa a `/admin/stock?vista=fraccionados`. |
+
+- Las pruebas que se mueven conservan sus aserciones y solo cambian imports o URL.
+
+### 12.7 Decisiones
+
+- **Sí:** selector «Productos | Mermas | Fraccionados» en la misma pantalla (decisión del usuario).
+- **No:** chips alternables ni páginas propias.
+- **Sí:** «Baja existencia» sigue abriendo su pop-up y solo cambia de lugar (decisión del usuario).
+- **No:** convertirlo en filtro de la lista.
+- **Sí:** quitar `/admin/mermas` y `/admin/fraccionados` y redirigir a la vista (decisión del usuario).
+- **Sí:** registrar el cambio ampliando este spec (decisión del usuario), no en un spec nuevo.
+- **Sí:** el botón entra en la fila por proyección de contenido; `StockQuickAction` sigue siendo solo de enlaces.
 
 ## Lo que **no** entra en este spec
 

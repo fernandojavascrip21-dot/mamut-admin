@@ -6,6 +6,7 @@ import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { DataView } from 'primeng/dataview';
 import { Skeleton } from 'primeng/skeleton';
 import { ShrinkageHistoryLineComponent } from '@shared/components/shrinkage-history-line/shrinkage-history-line.component';
 import { SHRINKAGE_HISTORY_STOCK_URL, SHRINKAGE_HISTORY_TEXTS } from '../../constants/shrinkage-history-page.constants';
@@ -18,7 +19,7 @@ import { ShrinkageService } from '../../services/shrinkage.service';
 // vendedores, con su titular); con un vendedor en «Viendo» son solo las suyas, sin repetir el titular.
 // El id de «Viendo» es el parámetro del recurso: cambiarlo vuelve a pedir la lista.
 @Component({
-  imports: [RouterLink, ButtonDirective, InputText, Skeleton, ShrinkageHistoryLineComponent],
+  imports: [RouterLink, ButtonDirective, InputText, DataView, Skeleton, ShrinkageHistoryLineComponent],
   selector: 'app-shrinkage-history-page',
   templateUrl: './shrinkage-history-page.component.html',
 })

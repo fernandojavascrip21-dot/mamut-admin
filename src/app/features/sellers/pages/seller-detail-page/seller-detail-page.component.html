@@ -172,18 +172,23 @@
           Reintentar
         </button>
       </div>
-    } @else if (shrinkages().length === 0) {
-      <p
-        class="shrinkages-empty mt-3 mb-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-      >
-        Todavía no tiene mermas.
-      </p>
     } @else {
-      <ul class="shrinkages mt-3 mb-0 flex list-none flex-col gap-2.5 p-0">
-        @for (item of shrinkages(); track $index) {
-          <li><app-shrinkage-history-line [item]="item" /></li>
-        }
-      </ul>
+      <p-dataview [value]="shrinkages()" layout="list" class="mt-3 block">
+        <ng-template #list>
+          <ul class="shrinkages m-0 flex list-none flex-col gap-2.5 p-0">
+            @for (item of shrinkages(); track $index) {
+              <li><app-shrinkage-history-line [item]="item" /></li>
+            }
+          </ul>
+        </ng-template>
+        <ng-template #emptymessage>
+          <p
+            class="shrinkages-empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
+          >
+            Todavía no tiene mermas.
+          </p>
+        </ng-template>
+      </p-dataview>
     }
   }
 </div>
