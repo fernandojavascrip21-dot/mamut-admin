@@ -56,4 +56,3 @@ export interface FractionBeforeAfter {
   portionBefore: number | null;
   portionAfter: number;
 }
-

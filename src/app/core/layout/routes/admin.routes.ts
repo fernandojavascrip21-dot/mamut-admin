@@ -101,7 +101,10 @@ export const ADMIN_ROUTES: Routes = [
   },
   // Mermas y fraccionados (HU-26 §12) son vistas de «Stock general»: las direcciones antiguas solo
   // redirigen a la vista correspondiente.
-  { path: 'mermas', redirectTo: () => inject(Router).createUrlTree(['/admin/stock'], { queryParams: { vista: 'mermas' } }) },
+  {
+    path: 'mermas',
+    redirectTo: () => inject(Router).createUrlTree(['/admin/stock'], { queryParams: { vista: 'mermas' } }),
+  },
   {
     path: 'fraccionados',
     redirectTo: () => inject(Router).createUrlTree(['/admin/stock'], { queryParams: { vista: 'fraccionados' } }),

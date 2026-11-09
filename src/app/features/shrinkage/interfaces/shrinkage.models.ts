@@ -42,4 +42,3 @@ export type ShrinkageFailureReason = 'no-units' | 'conflict' | 'not-found' | 'of
 export type ShrinkageResult =
   | { ok: true; shrinkage: Shrinkage; replayed: boolean }
   | { ok: false; reason: ShrinkageFailureReason; message: string | null };
-
