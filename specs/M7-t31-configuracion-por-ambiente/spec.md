@@ -1,6 +1,6 @@
 # Spec técnico — T-31 · Configuración por ambiente: URL de la API, variables y CORS
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** M0-base (`specs/M0-base/spec.md`) — `core/api-base-url.ts`, rutas `RenderMode.Client` y CORS por `ALLOWED_ORIGINS`; M3-t01-primeng-listas-dialogos (`specs/M3-t01-primeng-listas-dialogos/spec.md`) — patrón de `scripts/prepare-primeng-license.mjs` (archivo generado e ignorado por git)
 > **Fecha:** 2026-11-09
 > **Objetivo:** que el frontend tome la URL de la API de la variable `API_BASE_URL` al compilar, que el build falle si falta o no es válida, y que el backend y su documentación queden listos para un dominio público, sin cambiar el comportamiento en local.
