@@ -1,5 +1,5 @@
-import type { ShrinkageHistoryItem } from '../interfaces/shrinkage.models';
-import { filterShrinkageHistory } from './shrinkage-history.rules';
+import type { ShrinkageHistoryItem } from '../interfaces/stock-history.models';
+import { filterShrinkageHistory } from './stock-history.rules';
 
 const item = (id: number, name: string): ShrinkageHistoryItem => ({
   requestId: `r-${id}`,

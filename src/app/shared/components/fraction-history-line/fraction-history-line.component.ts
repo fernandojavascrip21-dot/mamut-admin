@@ -7,7 +7,7 @@ import {
   FRACTION_HISTORY_LINE_TEXTS,
   FRACTION_HISTORY_TIME_ZONE,
 } from './fraction-history-line.constants';
-import type { FractionHistoryItem } from '../../interfaces/fraction.models';
+import type { FractionHistoryLineItem } from './fraction-history-line.models';
 
 // Una fila del historial: qué entero se fraccionó, en cuántas bolsitas, a qué costo y precio, y quién
 // lo hizo. Solo presenta: los montos llegan como texto y el pipe currency los muestra en centavos.
@@ -17,7 +17,7 @@ import type { FractionHistoryItem } from '../../interfaces/fraction.models';
   templateUrl: './fraction-history-line.component.html',
 })
 export class FractionHistoryLineComponent {
-  readonly item = input.required<FractionHistoryItem>();
+  readonly item = input.required<FractionHistoryLineItem>();
 
   // Constantes expuestas a la plantilla: la fecha, la moneda y los textos viven en el archivo aparte.
   readonly dateFormat = FRACTION_HISTORY_DATE_FORMAT;

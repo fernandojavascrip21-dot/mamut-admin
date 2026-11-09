@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Skeleton } from 'primeng/skeleton';
-import { FractionHistoryLineComponent } from '../../components/fraction-history-line/fraction-history-line.component';
+import { FractionHistoryLineComponent } from '@shared/components/fraction-history-line/fraction-history-line.component';
 import { FRACTION_HISTORY_TEXTS, STOCK_URL } from '../../constants/fraction-history-page.constants';
 import type { FractionHistoryPageState } from '../../models/fraction-history-page.models';
 import type { FractionHistoryItem } from '../../interfaces/fraction.models';

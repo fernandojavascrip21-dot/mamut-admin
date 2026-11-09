@@ -69,12 +69,12 @@ describe('FractionPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('el formulario trae un solo enlace «Ver fraccionados» hacia /admin/fraccionados', () => {
+  it('el formulario trae un solo enlace «Ver fraccionados» hacia /admin/stock?vista=fraccionados', () => {
     expect(historyLinks()).toHaveLength(1);
-    expect(historyLinks()[0]!.getAttribute('href')).toBe('/admin/fraccionados');
+    expect(historyLinks()[0]!.getAttribute('href')).toBe('/admin/stock?vista=fraccionados');
   });
 
-  it('el resultado también trae el enlace «Ver fraccionados» hacia /admin/fraccionados', async () => {
+  it('el resultado también trae el enlace «Ver fraccionados» hacia /admin/stock?vista=fraccionados', async () => {
     type('#portions', '7');
     type('#price', '85.00');
     document.body.querySelector('form')!.dispatchEvent(new Event('submit'));
@@ -83,6 +83,6 @@ describe('FractionPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
     await settle();
     expect(document.body.querySelector('form')).toBeNull();
     expect(historyLinks()).toHaveLength(1);
-    expect(historyLinks()[0]!.getAttribute('href')).toBe('/admin/fraccionados');
+    expect(historyLinks()[0]!.getAttribute('href')).toBe('/admin/stock?vista=fraccionados');
   });
 });

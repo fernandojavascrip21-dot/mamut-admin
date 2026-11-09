@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
 import { ViewingService } from '@core/viewing/viewing.service';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
@@ -21,13 +21,15 @@ const OVERVIEW: StockOverview = {
   lowStock: [],
 };
 
-describe('StockPageComponent · enlace «Ver mermas» (HU-26)', () => {
+describe('StockPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
   let fixture: ComponentFixture<StockPageComponent>;
   let httpMock: HttpTestingController;
   let selected: ReturnType<typeof signal<ViewingSeller | null>>;
   const el = () => fixture.nativeElement as HTMLElement;
-  const shrinkageLinks = () =>
-    Array.from(el().querySelectorAll('a')).filter((a) => a.textContent!.trim() === 'Ver mermas');
+  const option = (label: string) =>
+    Array.from(el().querySelectorAll('p-selectbutton p-togglebutton')).find((o) => o.textContent!.trim() === label) as HTMLElement;
+  const historyLinks = () =>
+    Array.from(el().querySelectorAll('a')).filter((a) => a.textContent!.trim() === 'Ver fraccionados');
 
   async function load() {
     fixture.detectChanges();
@@ -43,7 +45,7 @@ describe('StockPageComponent · enlace «Ver mermas» (HU-26)', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([]),
+        provideRouter([{ path: 'admin/stock', component: StockPageComponent }]),
         { provide: ViewingService, useValue: { selectedSeller: selected.asReadonly() } },
       ],
     }).compileComponents();
@@ -56,30 +58,25 @@ describe('StockPageComponent · enlace «Ver mermas» (HU-26)', () => {
     sessionStorage.clear();
   });
 
-  it('con «Yo · bodega» muestra «Ver mermas» hacia /admin/mermas', async () => {
+  it('elegir «Mermas» pone ?vista=mermas en la URL y pide /api/shrinkages', async () => {
     await load();
-    expect(shrinkageLinks()).toHaveLength(1);
-    expect(shrinkageLinks()[0]!.getAttribute('href')).toBe('/admin/mermas');
+    option('Mermas').click();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(TestBed.inject(Router).url).toContain('vista=mermas');
+    httpMock.expectOne((r) => r.url === `${API_BASE_URL}/api/shrinkages`).flush([]);
   });
 
-  it('con un vendedor en «Viendo» también muestra «Ver mermas» hacia /admin/mermas', async () => {
+  it('ya no hay enlace «Ver mermas» con «Yo · bodega» ni con un vendedor', async () => {
+    await load();
+    const labelsOf = () => Array.from(el().querySelectorAll('a')).map((a) => a.textContent!.trim());
+    expect(labelsOf()).not.toContain('Ver mermas');
     selected.set({ id: 'luis-id', fullName: 'Luis' });
-    await load();
-    expect(shrinkageLinks()).toHaveLength(1);
-    expect(shrinkageLinks()[0]!.getAttribute('href')).toBe('/admin/mermas');
+    fixture.detectChanges();
+    expect(labelsOf()).not.toContain('Ver mermas');
   });
 
-  it('con «Yo · bodega» «Ver fraccionados» sigue junto a «Ver mermas»', async () => {
+  it('los movimientos rápidos no cambian: seis con «Yo · bodega»', async () => {
     await load();
-    const labels = Array.from(el().querySelectorAll('a')).map((a) => a.textContent!.trim());
-    expect(labels).toContain('Ver fraccionados');
-    expect(labels).toContain('Ver mermas');
-  });
-
-  it('los movimientos rápidos no cambian y el enlace no es uno de ellos', async () => {
-    await load();
-    const labels = Array.from(el().querySelectorAll('a.quick-action')).map((a) => a.textContent!.trim());
-    expect(labels).toHaveLength(6);
-    expect(labels).not.toContain('Ver mermas');
+    expect(el().querySelectorAll('a.quick-action')).toHaveLength(6);
   });
 });

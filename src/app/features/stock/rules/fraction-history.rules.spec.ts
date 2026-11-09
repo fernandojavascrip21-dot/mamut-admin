@@ -1,5 +1,5 @@
-import type { FractionHistoryItem } from '../interfaces/fraction.models';
-import { filterFractionHistory } from './fraction-history.rules';
+import type { FractionHistoryItem } from '../interfaces/stock-history.models';
+import { filterFractionHistory } from './stock-history.rules';
 
 const item = (id: number, whole: string, bag: string): FractionHistoryItem => ({
   id,
