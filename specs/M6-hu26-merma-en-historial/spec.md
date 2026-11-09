@@ -1,6 +1,6 @@
 # Spec técnico — HU-26 · Ver la merma reflejada en el stock y el historial
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** M6-hu25-registrar-merma (`specs/M6-hu25-registrar-merma/spec.md`) — pop-up «Registrar merma», feature `shrinkage`; M6-t25-base-merma-simple (`specs/M6-t25-base-merma-simple/spec.md`) — filas `shrinkage` con `reason` y `request_id`, `SHRINKAGE_REASONS`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — «Stock general» y sus enlaces de texto; M2-hu12-retirar-a-vendedor (`specs/M2-hu12-retirar-a-vendedor/spec.md`) — «Últimos retiros» del detalle del vendedor; M3-hu18-aviso-baja-existencia (`specs/M3-hu18-aviso-baja-existencia/spec.md`) — `stockLevel`; M3-hu14-ver-mi-stock (`specs/M3-hu14-ver-mi-stock/spec.md`) — «Mi stock»; M5-hu24-bolsitas-en-inventario (`specs/M5-hu24-bolsitas-en-inventario/spec.md`) — patrón del historial `/admin/fraccionados`
 > **Fecha:** 2026-11-09
 > **Objetivo:** que el administrador vea cada merma (producto, piezas, motivo y fecha) en la sección «Últimas mermas» del detalle del vendedor y en el historial nuevo `/admin/mermas`, y que una prueba de backend fije que la merma ya baja el stock, el total, el `stockLevel` y «Mi stock».
