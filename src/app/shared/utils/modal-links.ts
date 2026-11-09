@@ -42,6 +42,13 @@ export function closeModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: null } }];
 }
 
+// Cierra la ventana y lleva a otra página de /admin en la misma navegación. El outlet `ventana`
+// cuelga del grupo /admin, así que la ruta primaria y el cierre van juntos en ese grupo: con
+// `['/admin/x/y', { outlets: … }]` el cierre caería bajo `y` y la ventana seguiría abierta.
+export function leaveModalLink(primary: string[]): unknown[] {
+  return ['/admin', { outlets: { primary, [MODAL_OUTLET]: null } }];
+}
+
 // Nombre de la ventana abierta en el outlet `ventana` (`dejar`, `retirar`, `editar`) o null si no hay ninguna.
 // El outlet cuelga del grupo `/admin`, no de la raíz, así que se busca bajando por los grupos.
 export function openModalPath(tree: UrlTree): string | null {

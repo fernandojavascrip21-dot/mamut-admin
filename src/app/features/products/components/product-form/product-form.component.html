@@ -105,6 +105,22 @@
       [motionOptions]="categoryMotionOptions"
       class="h-[52px] min-w-0 w-full"
     />
+    <!-- Sin categorías el select sigue usable («Sin categoría»): el aviso solo ofrece volver a pedirlas. -->
+    @if (categoriesFailed()) {
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1" role="alert">
+        <p class="m-0 text-[13px] font-semibold text-danger">{{ categoriesFailedMessage }}</p>
+        <button
+          pButton
+          severity="secondary"
+          [text]="true"
+          type="button"
+          class="h-11 min-w-11 px-3 text-sm"
+          (click)="categoriesRetried.emit()"
+        >
+          {{ categoriesRetryLabel }}
+        </button>
+      </div>
+    }
     @if (categoryError()) {
       <p
         id="category-error"

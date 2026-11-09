@@ -38,6 +38,32 @@
         Cerrar
       </button>
     </div>
+  } @else if (state() === 'no-sellers') {
+    <div class="flex flex-col items-center gap-3 surface-card p-5 text-center" role="status">
+      <p class="m-0 text-[15px] font-bold">{{ emptyTexts['no-sellers'].title }}</p>
+      <p class="m-0 text-sm text-muted">{{ emptyTexts['no-sellers'].text }}</p>
+      <div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+        <button pButton type="button" class="new-seller h-11 px-4 text-sm" (click)="goToNewSeller()">
+          {{ emptyTexts['no-sellers'].primary }}
+        </button>
+        <button pButton severity="secondary" type="button" class="close-empty h-11 px-4 text-sm" (click)="close()">
+          {{ emptyTexts.close }}
+        </button>
+      </div>
+    </div>
+  } @else if (state() === 'no-units') {
+    <div class="flex flex-col items-center gap-3 surface-card p-5 text-center" role="status">
+      <p class="m-0 text-[15px] font-bold">{{ emptyTexts['no-units'].title }}</p>
+      <p class="m-0 text-sm text-muted">{{ emptyTexts['no-units'].text }}</p>
+      <div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+        <button pButton type="button" class="new-product h-11 px-4 text-sm" (click)="goToNewProduct()">
+          {{ emptyTexts['no-units'].primary }}
+        </button>
+        <button pButton severity="secondary" type="button" class="close-empty h-11 px-4 text-sm" (click)="close()">
+          {{ emptyTexts.close }}
+        </button>
+      </div>
+    </div>
   } @else {
     @if (state() === 'offline') {
       <div class="offline mb-5 flex flex-col items-start gap-2 alert-danger p-4" role="alert">

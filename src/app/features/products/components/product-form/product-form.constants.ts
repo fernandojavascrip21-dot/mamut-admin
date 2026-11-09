@@ -25,3 +25,8 @@ export const MONEY_MESSAGES = {
   unitCost: { maxDecimals: 'El costo admite hasta 4 decimales', maxMoney: 'El costo es demasiado grande' },
   price: { maxDecimals: 'El precio admite hasta 2 decimales', maxMoney: 'El precio es demasiado grande' },
 };
+
+// Aviso cuando el GET de categorías falla: el select sigue habilitado con «Sin categoría» y el
+// botón vuelve a pedirlas (spec T-26 §3.2).
+export const CATEGORIES_FAILED_MESSAGE = 'No pudimos cargar las categorías.';
+export const CATEGORIES_RETRY_LABEL = 'Reintentar';

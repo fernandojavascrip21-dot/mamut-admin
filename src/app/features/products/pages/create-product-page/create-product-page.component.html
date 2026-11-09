@@ -24,6 +24,8 @@
     <app-product-form
       mode="create"
       [categories]="categories()"
+      [categoriesFailed]="categoriesFailed()"
+      (categoriesRetried)="retryCategories()"
       [busy]="state() === 'saving' || state() === 'offline'"
       [saving]="state() === 'saving'"
       [nameTaken]="nameTaken()"
