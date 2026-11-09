@@ -27,6 +27,8 @@ export interface StockProduct {
   sellers: StockProductSellerUnits[];
   inactiveSellers: number;
   total: number;
+  // Id del entero del que viene una bolsita; null en un entero (HU-26 §13). Opcional: no todos los fixtures lo traen.
+  parentProductId?: number | null;
 }
 
 // Aviso de baja o nula existencia (HU-18): un producto con pocas piezas en un titular. `holder` null

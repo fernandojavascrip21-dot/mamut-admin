@@ -200,24 +200,24 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
   });
 
   describe('con un vendedor en «Viendo»', () => {
-    it('el selector no ofrece «Fraccionados»', async () => {
+    it('el selector ofrece «Fraccionados»', async () => {
       selected.set(LUIS);
       await open();
-      expect(optionLabels()).toEqual(['Productos', 'Mermas']);
+      expect(optionLabels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
       expect(lines('a.quick-action')).toHaveLength(3);
     });
 
-    it('con ?vista=fraccionados cae a «Productos» sin pedir fraccionados', async () => {
+    it('con ?vista=fraccionados abre las bolsitas del vendedor sin pedir el historial', async () => {
       selected.set(LUIS);
       await open('/admin/stock?vista=fraccionados');
       await harness.fixture.whenStable();
       harness.detectChanges();
-      expect(pressed()).toEqual(['Productos']);
-      expect(lines('app-stock-product-row')).toHaveLength(1);
+      expect(pressed()).toEqual(['Fraccionados']);
+      expect(text()).toContain('Bolsitas en stock');
       expect(lines('app-fraction-history-line')).toHaveLength(0);
     });
 
-    it('si estaba en «Fraccionados» y se elige un vendedor, la vista cae a «Productos»', async () => {
+    it('si estaba en «Fraccionados» y se elige un vendedor, se queda en «Fraccionados» con las bolsitas del vendedor', async () => {
       await open('/admin/stock?vista=fraccionados');
       httpMock.expectOne(FRACTIONS_URL).flush({ fractions: FRACTIONS });
       await settle();
@@ -225,8 +225,9 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
       await settle();
       await harness.fixture.whenStable();
       harness.detectChanges();
-      expect(pressed()).toEqual(['Productos']);
-      expect(optionLabels()).not.toContain('Fraccionados');
+      expect(pressed()).toEqual(['Fraccionados']);
+      expect(optionLabels()).toContain('Fraccionados');
+      expect(lines('app-fraction-history-line')).toHaveLength(0);
     });
 
     it('«Mermas» pide solo las del vendedor (?sellerId=) y no pinta el titular en la fila', async () => {
