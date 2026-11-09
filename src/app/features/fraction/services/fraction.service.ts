@@ -13,7 +13,6 @@ import type {
   CreateFractionPayload,
   Fraction,
   FractionFailureReason,
-  FractionHistoryItem,
   FractionOption,
   FractionResult,
 } from '../interfaces/fraction.models';
@@ -30,13 +29,6 @@ export class FractionService {
     return this.http
       .get<{ products: FractionOption[] }>(`${FRACTIONS_URL}/options`)
       .pipe(map((body) => body.products));
-  }
-
-  // Los 50 fraccionados más recientes (HU-24). El backend los ordena; no hay parámetros.
-  getHistory(): Observable<FractionHistoryItem[]> {
-    return this.http
-      .get<{ fractions: FractionHistoryItem[] }>(FRACTIONS_URL)
-      .pipe(map((body) => body.fractions));
   }
 
   // Registra el fraccionado. El backend responde { fraction, replayed }: replayed es true cuando es una

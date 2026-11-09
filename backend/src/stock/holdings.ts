@@ -182,10 +182,12 @@ export async function lowStockLines(holderProfileId?: string): Promise<LowStockL
 
 // Un producto con piezas en algún lugar (HU-13): las de la bodega (products.stock) y las de cada
 // vendedor con qty > 0. `image` es null cuando el producto no tiene foto ('' en la base).
+// `parentProductId` es el entero del que sale una bolsita (HU-26 §13); null en los demás productos.
 export interface ProductHoldings {
   productId: number
   name: string
   image: string | null
+  parentProductId: number | null
   warehouse: number
   holders: { profileId: string; units: number }[]
 }
@@ -200,7 +202,13 @@ export async function holdingsByProduct(): Promise<ProductHoldings[]> {
     .where(gt(vendorStock.qty, 0))
 
   const productRows = await db
-    .select({ productId: products.id, name: products.name, image: products.image, warehouse: products.stock })
+    .select({
+      productId: products.id,
+      name: products.name,
+      image: products.image,
+      parentProductId: products.parentProductId,
+      warehouse: products.stock,
+    })
     .from(products)
     .where(or(gt(products.stock, 0), inArray(products.id, heldByVendor)))
     .orderBy(asc(products.name), asc(products.id))

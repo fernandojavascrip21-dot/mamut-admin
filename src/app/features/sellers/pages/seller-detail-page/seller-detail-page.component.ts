@@ -17,18 +17,30 @@ import {
   openModalPath,
   returnModalLink,
 } from '@shared/utils/modal-links';
+import { ShrinkageHistoryLineComponent } from '@shared/components/shrinkage-history-line/shrinkage-history-line.component';
 import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
 import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
 import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
-import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail } from '../../interfaces/seller.models';
-import type { DeliveryHistoryState, ReturnHistoryState, SellerDetailState } from '../../models/seller-detail-page.models';
+import type {
+  DeliveryHistoryItem,
+  ReturnHistoryItem,
+  SellerDetail,
+  ShrinkageHistoryItem,
+} from '../../interfaces/seller.models';
+import type {
+  DeliveryHistoryState,
+  ReturnHistoryState,
+  SellerDetailState,
+  ShrinkageHistoryState,
+} from '../../models/seller-detail-page.models';
 import { SellerReturnsService } from '../../services/seller-returns.service';
+import { SellerShrinkagesService } from '../../services/seller-shrinkages.service';
 import { SellersService } from '../../services/sellers.service';
 
 // Detalle de un vendedor (/admin/vendedores/:id, HU-09): sus datos, su total y su stock por
 // producto con los precios que le aplican (HU-11), los botones «Dejar producto» y «Retirar
-// producto» (HU-12), «Últimas entregas» y «Últimos retiros». Sigue a la barra «Viendo» (HU-10):
+// producto» (HU-12), «Últimas entregas», «Últimos retiros» y «Últimas mermas» (HU-26). Sigue a la barra «Viendo» (HU-10):
 // abrir el detalle elige a ese vendedor, y elegir a otro en la barra abre el suyo (o la lista, con
 // «Yo · bodega»).
 @Component({
@@ -39,6 +51,7 @@ import { SellersService } from '../../services/sellers.service';
     SellerStockLineComponent,
     DeliveryHistoryLineComponent,
     ReturnHistoryLineComponent,
+    ShrinkageHistoryLineComponent,
   ],
   selector: 'app-seller-detail-page',
   templateUrl: './seller-detail-page.component.html',
@@ -46,6 +59,7 @@ import { SellersService } from '../../services/sellers.service';
 export class SellerDetailPageComponent {
   private readonly sellersService = inject(SellersService);
   private readonly returnsService = inject(SellerReturnsService);
+  private readonly shrinkagesService = inject(SellerShrinkagesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly viewing = inject(ViewingService);
@@ -119,6 +133,19 @@ export class SellerDetailPageComponent {
     this.returnsResource.hasValue() ? this.returnsResource.value() : [],
   );
 
+  // «Últimas mermas» (HU-26) se carga igual que los retiros: aparte, y su error no esconde el detalle.
+  readonly shrinkagesResource = rxResource({
+    params: () => (this.state() === 'ready' ? this.sellerId() : undefined),
+    stream: ({ params: id }) => this.shrinkagesService.list(id),
+  });
+  readonly shrinkagesState = computed<ShrinkageHistoryState>(() => {
+    if (this.shrinkagesResource.status() === 'error') return 'error';
+    return this.shrinkagesResource.hasValue() ? 'ready' : 'loading';
+  });
+  readonly shrinkages = computed<ShrinkageHistoryItem[]>(() =>
+    this.shrinkagesResource.hasValue() ? this.shrinkagesResource.value() : [],
+  );
+
   readonly initials = computed(() => initialsOf(this.seller()?.fullName ?? ''));
   readonly units = computed(() => unitsLabel(this.seller()?.units ?? 0));
   // Sin piezas no hay nada que retirar: el botón «Retirar producto» no se muestra.
@@ -136,6 +163,7 @@ export class SellerDetailPageComponent {
         this.sellerResource.reload();
         this.historyResource.reload();
         this.returnsResource.reload();
+        this.shrinkagesResource.reload();
       });
     });
 
@@ -165,5 +193,10 @@ export class SellerDetailPageComponent {
   // «Reintentar» de «Últimos retiros».
   retryReturns(): void {
     this.returnsResource.reload();
+  }
+
+  // «Reintentar» de «Últimas mermas».
+  retryShrinkages(): void {
+    this.shrinkagesResource.reload();
   }
 }

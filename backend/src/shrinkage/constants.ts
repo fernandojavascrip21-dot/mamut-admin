@@ -17,3 +17,9 @@ export const SHRINKAGE_MISMATCH = 'Esta merma ya se registró con otros datos.'
 
 // 422 cuando el motivo falta o no es uno de los cuatro códigos.
 export const INVALID_REASON = 'El motivo debe ser lost, damaged, expired u other'
+
+// Cuántas mermas trae GET /api/shrinkages (HU-26): las más recientes.
+export const SHRINKAGE_HISTORY_LIMIT = 50
+
+// Cuántas mermas trae GET /api/sellers/[id]/shrinkages, igual que entregas y retiros.
+export const SELLER_SHRINKAGE_HISTORY_LIMIT = 20

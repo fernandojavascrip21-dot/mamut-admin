@@ -7,3 +7,6 @@ export type DeliveryHistoryState = 'loading' | 'error' | 'ready';
 
 // Estado de «Últimos retiros» (HU-12): igual que el de las entregas, se carga aparte.
 export type ReturnHistoryState = 'loading' | 'error' | 'ready';
+
+// Estado de «Últimas mermas» (HU-26): igual que el de los retiros, se carga aparte.
+export type ShrinkageHistoryState = 'loading' | 'error' | 'ready';

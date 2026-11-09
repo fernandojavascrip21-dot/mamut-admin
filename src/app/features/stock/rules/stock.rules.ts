@@ -91,3 +91,9 @@ export function lowStockTitle(count: number, forSeller: boolean): string {
   const noun = count === 1 ? LOW_STOCK_TITLES.singular : LOW_STOCK_TITLES.plural;
   return `${count} ${noun} ${forSeller ? LOW_STOCK_TITLES.sellerSuffix : LOW_STOCK_TITLES.businessSuffix}`;
 }
+
+// Deja solo las filas cuyo producto es una bolsita (HU-26 §13): tienen `parentProductId` distinto de null.
+// Solo `number` cuenta: un fixture sin el campo (antes de HU-26 §13) no es una bolsita.
+export function portionRows<T extends { parentProductId?: number | null }>(rows: T[]): T[] {
+  return rows.filter((row) => typeof row.parentProductId === 'number');
+}

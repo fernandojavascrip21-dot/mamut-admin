@@ -47,3 +47,18 @@ export interface ShrinkageOptions {
   products: ShrinkageOption[]
   reasons: ShrinkageReasonOption[]
 }
+
+// Una merma del historial (HU-26). `qty` va en positivo; `reason` es null en filas anteriores a T-25.
+export interface ShrinkageHistoryItem {
+  requestId: string | null        // null en una fila creada fuera de POST /api/shrinkages
+  createdAt: string
+  qty: number                     // en positivo
+  reason: ShrinkageReason | null
+  reasonLabel: string | null
+  holder: { id: string; fullName: string } | null // null = bodega
+  product: { id: number; name: string; image: string | null }
+}
+
+export type ShrinkageHistoryFilter =
+  | { scope: 'all'; limit: number }
+  | { scope: 'seller'; sellerId: string; limit: number }

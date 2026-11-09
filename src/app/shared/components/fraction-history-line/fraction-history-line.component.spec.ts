@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { FractionHistoryItem } from '../../interfaces/fraction.models';
+import type { FractionHistoryLineItem } from './fraction-history-line.models';
 import { FractionHistoryLineComponent } from './fraction-history-line.component';
 
 // 03:30 UTC del 8 de noviembre = 21:30 del 7 en America/Mexico_City.
-const ITEM: FractionHistoryItem = {
+const ITEM: FractionHistoryLineItem = {
   id: 1,
   requestId: 'r-1',
   createdAt: '2026-11-08T03:30:00Z',
@@ -20,7 +20,7 @@ describe('FractionHistoryLineComponent', () => {
   let fixture: ComponentFixture<FractionHistoryLineComponent>;
   const text = () => (fixture.nativeElement as HTMLElement).textContent!.replace(/\s+/g, ' ');
 
-  const render = (item: FractionHistoryItem = ITEM) => {
+  const render = (item: FractionHistoryLineItem = ITEM) => {
     fixture = TestBed.createComponent(FractionHistoryLineComponent);
     fixture.componentRef.setInput('item', item);
     fixture.detectChanges();

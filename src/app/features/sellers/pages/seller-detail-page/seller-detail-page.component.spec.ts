@@ -8,12 +8,13 @@ import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
 import { API_BASE_URL } from '@core/api-base-url';
-import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail } from '../../interfaces/seller.models';
+import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail, ShrinkageHistoryItem } from '../../interfaces/seller.models';
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
 const HISTORY_URL = `${SELLER_URL}/deliveries`;
 const RETURNS_URL = `${SELLER_URL}/returns`;
+const SHRINKAGES_URL = `${SELLER_URL}/shrinkages`;
 
 const SELLER: SellerDetail = {
   id: ID,
@@ -42,6 +43,17 @@ const HISTORY: DeliveryHistoryItem[] = [
 const RETURNS: ReturnHistoryItem[] = [
   { requestId: 'rt-1', createdAt: '2026-10-31T10:00:00.000Z', productId: 2, name: 'Proteína Whey 2 lb', image: null, qty: 2 },
   { requestId: null, createdAt: '2026-10-30T10:00:00.000Z', productId: 1, name: 'Creatina Monohidratada', image: null, qty: 1 },
+];
+
+const SHRINKAGES: ShrinkageHistoryItem[] = [
+  {
+    requestId: 'sh-1', createdAt: '2026-11-08T10:00:00.000Z', qty: 2, reason: 'damaged', reasonLabel: 'Dañado',
+    holder: { id: ID, fullName: 'Luis Prueba' }, product: { id: 2, name: 'Proteína Whey 2 lb', image: null },
+  },
+  {
+    requestId: null, createdAt: '2026-11-07T10:00:00.000Z', qty: 1, reason: null, reasonLabel: null,
+    holder: { id: ID, fullName: 'Luis Prueba' }, product: { id: 1, name: 'Creatina Monohidratada', image: null },
+  },
 ];
 
 @Component({ template: '' })
@@ -97,12 +109,18 @@ describe('SellerDetailPageComponent', () => {
   }
 
   // Carga el detalle y, ya con el vendedor en pantalla, «Últimas entregas» (se pide después).
-  async function load(seller: SellerDetail, history: DeliveryHistoryItem[] = [], returns: ReturnHistoryItem[] = []) {
+  async function load(
+    seller: SellerDetail,
+    history: DeliveryHistoryItem[] = [],
+    returns: ReturnHistoryItem[] = [],
+    shrinkages: ShrinkageHistoryItem[] = [],
+  ) {
     fixture.detectChanges();
     httpMock.expectOne(SELLER_URL).flush(seller);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush(history);
     httpMock.expectOne(RETURNS_URL).flush(returns);
+    httpMock.expectOne(SHRINKAGES_URL).flush(shrinkages);
     await settle();
   }
 
@@ -115,6 +133,7 @@ describe('SellerDetailPageComponent', () => {
     await tick();
     httpMock.expectOne(HISTORY_URL).flush([]);
     httpMock.expectOne(RETURNS_URL).flush([]);
+    httpMock.expectOne(SHRINKAGES_URL).flush([]);
   });
 
   it('muestra sus datos con el teléfono formateado, su total y su stock por producto', async () => {
@@ -136,7 +155,7 @@ describe('SellerDetailPageComponent', () => {
     await load(SELLER, HISTORY, RETURNS);
 
     const views = Array.from(fixture.nativeElement.querySelectorAll('p-dataview')) as HTMLElement[];
-    expect(views).toHaveLength(3);
+    expect(views).toHaveLength(4);
     expect(views[0].querySelectorAll('app-seller-stock-line')).toHaveLength(2);
     expect(views[1].querySelectorAll('app-delivery-history-line')).toHaveLength(2);
     expect(views[2].querySelectorAll('app-return-history-line').length).toBeGreaterThan(0);
@@ -173,6 +192,7 @@ describe('SellerDetailPageComponent', () => {
     await tick();
     httpMock.expectOne(HISTORY_URL).flush([]);
     httpMock.expectOne(RETURNS_URL).flush([]);
+    httpMock.expectOne(SHRINKAGES_URL).flush([]);
     await settle();
     expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
   });
@@ -208,6 +228,7 @@ describe('SellerDetailPageComponent', () => {
       await tick();
       httpMock.expectOne(HISTORY_URL).error(new ProgressEvent('error'));
       httpMock.expectOne(RETURNS_URL).flush([]);
+      httpMock.expectOne(SHRINKAGES_URL).flush([]);
       await settle();
 
       expect(fixture.nativeElement.querySelector('.history-error')).not.toBeNull();
@@ -307,6 +328,7 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(HISTORY_URL).flush([]);
       expect(fixture.nativeElement.querySelector('.returns-loading')?.textContent).toContain('Cargando retiros…');
       httpMock.expectOne(RETURNS_URL).flush([]);
+      httpMock.expectOne(SHRINKAGES_URL).flush([]);
       await settle();
     });
 
@@ -316,6 +338,7 @@ describe('SellerDetailPageComponent', () => {
       await tick();
       httpMock.expectOne(HISTORY_URL).flush([]);
       httpMock.expectOne(RETURNS_URL).error(new ProgressEvent('error'));
+      httpMock.expectOne(SHRINKAGES_URL).flush([]);
       await settle();
 
       expect(fixture.nativeElement.querySelector('.returns-error')).not.toBeNull();
@@ -325,6 +348,59 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(RETURNS_URL).flush(RETURNS);
       await settle();
       expect(fixture.nativeElement.querySelectorAll('app-return-history-line')).toHaveLength(2);
+    });
+  });
+
+  describe('últimas mermas (HU-26)', () => {
+    it('lista las mermas con producto, motivo y piezas, sin titular y sin enlace', async () => {
+      await load(SELLER, [], [], SHRINKAGES);
+      const items = Array.from(fixture.nativeElement.querySelectorAll('app-shrinkage-history-line')) as HTMLElement[];
+      expect(text()).toContain('Últimas mermas');
+      expect(items).toHaveLength(2);
+      expect(items[0].textContent).toContain('Proteína Whey 2 lb');
+      expect(items[0].textContent).toContain('Dañado');
+      expect(items[0].textContent).toContain('−2');
+      expect(items[0].querySelector('.holder')).toBeNull();
+      expect(items[0].querySelector('a')).toBeNull();
+      expect(items[1].textContent).toContain('Sin motivo');
+    });
+
+    it('sin mermas muestra «Todavía no tiene mermas.»', async () => {
+      await load(SELLER);
+      expect(fixture.nativeElement.querySelector('.shrinkages-empty').textContent.trim()).toBe(
+        'Todavía no tiene mermas.',
+      );
+    });
+
+    it('mientras carga las mermas muestra «Cargando mermas…»', async () => {
+      fixture.detectChanges();
+      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      await tick();
+      httpMock.expectOne(HISTORY_URL).flush([]);
+      httpMock.expectOne(RETURNS_URL).flush([]);
+      expect(fixture.nativeElement.querySelector('.shrinkages-loading')?.textContent).toContain('Cargando mermas…');
+      httpMock.expectOne(SHRINKAGES_URL).flush([]);
+      await settle();
+    });
+
+    it('si fallan las mermas lo avisa sin esconder el detalle, y «Reintentar» pide solo las mermas', async () => {
+      fixture.detectChanges();
+      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      await tick();
+      httpMock.expectOne(HISTORY_URL).flush([]);
+      httpMock.expectOne(RETURNS_URL).flush([]);
+      httpMock.expectOne(SHRINKAGES_URL).error(new ProgressEvent('error'));
+      await settle();
+
+      expect(fixture.nativeElement.querySelector('.shrinkages-error')?.textContent).toContain(
+        'No pudimos cargar las mermas',
+      );
+      expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(2);
+      (fixture.nativeElement.querySelector('.retry-shrinkages') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      httpMock.expectOne(SHRINKAGES_URL).flush(SHRINKAGES);
+      await settle();
+      expect(fixture.nativeElement.querySelectorAll('app-shrinkage-history-line')).toHaveLength(2);
     });
   });
 
@@ -340,6 +416,7 @@ describe('SellerDetailPageComponent', () => {
       httpMock.expectOne(SELLER_URL).flush({ ...SELLER, units: 4, stock: [SELLER.stock[1]!] });
       httpMock.expectOne(HISTORY_URL).flush(HISTORY);
       httpMock.expectOne(RETURNS_URL).flush([]);
+      httpMock.expectOne(SHRINKAGES_URL).flush([]);
       await settle();
 
       expect(fixture.nativeElement.querySelectorAll('app-seller-stock-line')).toHaveLength(1);
@@ -383,6 +460,7 @@ describe('SellerDetailPageComponent', () => {
       await tick();
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/deliveries`).flush([]);
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/returns`).flush([]);
+      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/shrinkages`).flush([]);
       await settle();
       expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Valeria');
       expect(viewing.select).toHaveBeenLastCalledWith(otherId);

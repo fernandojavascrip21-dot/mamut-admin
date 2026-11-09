@@ -21,13 +21,12 @@ const OVERVIEW: StockOverview = {
   lowStock: [],
 };
 
-describe('StockPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
+describe('StockPageComponent · selector de vista (HU-26 §12)', () => {
   let fixture: ComponentFixture<StockPageComponent>;
   let httpMock: HttpTestingController;
   let selected: ReturnType<typeof signal<ViewingSeller | null>>;
   const el = () => fixture.nativeElement as HTMLElement;
-  const historyLinks = () =>
-    Array.from(el().querySelectorAll('a')).filter((a) => a.textContent!.trim() === 'Ver fraccionados');
+  const labels = () => Array.from(el().querySelectorAll('p-selectbutton p-togglebutton')).map((o) => o.textContent!.trim());
 
   async function load() {
     fixture.detectChanges();
@@ -56,22 +55,22 @@ describe('StockPageComponent · enlace «Ver fraccionados» (HU-24)', () => {
     sessionStorage.clear();
   });
 
-  it('con «Yo · bodega» muestra «Ver fraccionados» hacia /admin/fraccionados', async () => {
+  it('con «Yo · bodega» el selector ofrece Productos, Mermas y Fraccionados y ya no hay enlace «Ver fraccionados»', async () => {
     await load();
-    expect(historyLinks()).toHaveLength(1);
-    expect(historyLinks()[0]!.getAttribute('href')).toBe('/admin/fraccionados');
+    expect(labels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
+    expect(Array.from(el().querySelectorAll('a')).map((a) => a.textContent!.trim())).not.toContain('Ver fraccionados');
   });
 
-  it('con un vendedor en «Viendo» no muestra «Ver fraccionados»', async () => {
+  it('con un vendedor en «Viendo» el selector también ofrece «Fraccionados» (HU-26 §13)', async () => {
     selected.set({ id: 'luis-id', fullName: 'Luis' });
     await load();
-    expect(historyLinks()).toHaveLength(0);
+    expect(labels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
   });
 
-  it('sigue habiendo seis movimientos rápidos y el enlace no es uno de ellos', async () => {
+  it('sigue habiendo seis movimientos rápidos y el selector no es uno de ellos', async () => {
     await load();
-    const labels = Array.from(el().querySelectorAll('a.quick-action')).map((a) => a.textContent!.trim());
-    expect(labels).toHaveLength(6);
-    expect(labels).not.toContain('Ver fraccionados');
+    const links = Array.from(el().querySelectorAll('a.quick-action')).map((a) => a.textContent!.trim());
+    expect(links).toHaveLength(6);
+    expect(links).not.toContain('Fraccionados');
   });
 });
