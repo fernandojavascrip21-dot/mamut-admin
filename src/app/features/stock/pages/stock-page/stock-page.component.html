@@ -109,87 +109,90 @@
       </div>
     }
 
+    <!-- «Baja existencia» va al final de la fila de movimientos rápidos (HU-26 §12), proyectado en ella. -->
     <div class="mt-4">
-      <app-stock-quick-actions [actions]="quickActions()" />
-    </div>
-
-    <div class="mt-3 flex flex-wrap justify-end gap-2">
-      @if (!seller()) {
-        <a pButton [text]="true" [routerLink]="fractionHistoryUrl" class="h-11 min-w-11 px-4 text-sm">
-          {{ texts.fractionHistoryLink }}
-        </a>
-      }
-      <a pButton [text]="true" [routerLink]="shrinkageHistoryUrl" class="shrinkage-history-link h-11 min-w-11 px-4 text-sm">
-        {{ texts.shrinkageHistoryLink }}
-      </a>
-    </div>
-
-    <div class="toolbar mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-      <button
-        pButton
-        type="button"
-        #lowButton
-        severity="secondary"
-        class="low-filter h-[52px] w-full shrink-0 justify-center gap-2 px-5 text-sm sm:w-auto"
-        aria-haspopup="dialog"
-        [attr.aria-label]="lowFilterAriaLabel()"
-        (click)="openLow()"
-      >
-        <svg
-          aria-hidden="true"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="shrink-0 text-warning"
+      <app-stock-quick-actions [actions]="quickActions()">
+        <button
+          pButton
+          type="button"
+          #lowButton
+          severity="secondary"
+          class="low-filter h-11 w-full justify-center gap-2 px-4 text-sm"
+          aria-haspopup="dialog"
+          [attr.aria-label]="lowFilterAriaLabel()"
+          (click)="openLow()"
         >
-          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
-          <path d="M12 9v4"></path>
-          <path d="M12 17h.01"></path>
-        </svg>
-        {{ texts.lowFilterLabel }}
-        @if (lowBadge(); as badge) {
-          <span
-            aria-hidden="true"
-            class="low-filter-badge inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning-bg px-1.5 font-mono text-[11px] leading-none font-bold text-warning-text ring-1 ring-warning-border"
-          >
-            {{ badge }}
-          </span>
-        }
-      </button>
-      @if (hasRows()) {
-        <div class="relative min-w-0 flex-1">
-          <label for="stock-search" class="sr-only">{{ texts.searchLabel }}</label>
           <svg
             aria-hidden="true"
             width="18"
             height="18"
             viewBox="0 0 24 24"
             fill="none"
+            stroke="currentColor"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+            class="shrink-0 text-warning"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
+            <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
           </svg>
-          <input
-            pInputText
-            id="stock-search"
-            type="search"
-            [placeholder]="texts.searchPlaceholder"
-            [value]="searchQuery()"
-            (input)="searchQuery.set($any($event.target).value)"
-            class="h-[52px] min-w-0 w-full pl-11"
-          />
-        </div>
-      }
+          {{ texts.lowFilterLabel }}
+          @if (lowBadge(); as badge) {
+            <span
+              aria-hidden="true"
+              class="low-filter-badge inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning-bg px-1.5 font-mono text-[11px] leading-none font-bold text-warning-text ring-1 ring-warning-border"
+            >
+              {{ badge }}
+            </span>
+          }
+        </button>
+      </app-stock-quick-actions>
     </div>
+
+    <div class="mt-5">
+      <p-selectbutton
+        class="views"
+        [options]="viewOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="view()"
+        (ngModelChange)="selectView($event)"
+        [allowEmpty]="false"
+        [fluid]="true"
+        [attr.aria-label]="viewLabel"
+      />
+    </div>
+
+    @if (showSearch()) {
+      <div class="relative mt-4 min-w-0">
+        <label for="stock-search" class="sr-only">{{ searchLabel() }}</label>
+        <svg
+          aria-hidden="true"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 stroke-muted"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input
+          pInputText
+          id="stock-search"
+          type="search"
+          [placeholder]="texts.searchPlaceholder"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          class="h-[52px] min-w-0 w-full pl-11"
+        />
+      </div>
+    }
 
     @if (lowOpen()) {
       <app-modal-panel [title]="lowPopupTitle()" (closed)="closeLow()">
@@ -224,39 +227,134 @@
       </app-modal-panel>
     }
 
-    @if (!hasRows()) {
-      <p class="seller-empty mt-5 mb-0 text-center text-sm text-muted">
-        {{ texts.sellerEmpty }}
-      </p>
-    } @else {
-      @if (visibleRows().length === 0) {
-        <div
-          class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
-        >
-          <p class="m-0 text-[17px] font-bold">{{ texts.noMatchTitle }}</p>
-          <p class="m-0 text-sm text-muted">{{ texts.noMatchHint }}</p>
-          <button pButton severity="secondary" type="button" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
-            {{ texts.clearSearch }}
-          </button>
-        </div>
-      } @else {
-        <ul class="rows mt-5 mb-0 flex list-none flex-col gap-3 p-0">
-          @for (row of visibleRows(); track row.productId; let index = $index) {
-            <li
-              class="min-w-0 animate-rise-in motion-reduce:animate-none"
-              [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+    @switch (view()) {
+      @case ('shrinkages') {
+        @if (shrinkagesState() === 'loading') {
+          <div class="mt-5 flex flex-col gap-3" aria-busy="true">
+            <p-skeleton height="88px" />
+            <p-skeleton height="88px" />
+            <p-skeleton height="88px" />
+          </div>
+        } @else if (shrinkagesState() === 'error') {
+          <div class="mt-5 flex flex-col gap-3 alert-danger p-5" role="alert">
+            <p class="m-0 text-[15px] font-bold">{{ historyTexts.shrinkagesLoadError }}</p>
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              class="retry h-11 min-w-11 w-fit px-4"
+              (click)="retryShrinkages()"
             >
-              <app-stock-product-row
-                [name]="row.name"
-                [image]="row.image"
-                [units]="row.units"
-                [breakdown]="row.breakdown"
-                [editable]="seller() !== null"
-                (activated)="editSellerProduct(row.productId)"
-              />
-            </li>
+              {{ historyTexts.retry }}
+            </button>
+          </div>
+        } @else if (shrinkages().length === 0) {
+          <div class="empty mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+            <p class="m-0 text-[17px] font-bold">{{ shrinkagesEmptyMessage() }}</p>
+          </div>
+        } @else if (visibleShrinkages().length === 0) {
+          <div class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+            <p class="m-0 text-[17px] font-bold">{{ historyTexts.shrinkagesNoMatch }}</p>
+            <button pButton type="button" severity="secondary" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+              {{ historyTexts.clearSearch }}
+            </button>
+          </div>
+        } @else {
+          <p-dataview [value]="visibleShrinkages()" layout="list" class="mt-5 block">
+            <ng-template #list>
+              <ul class="m-0 flex list-none flex-col gap-3 p-0">
+                @for (item of visibleShrinkages(); track item.requestId ?? $index) {
+                  <li class="min-w-0">
+                    <app-shrinkage-history-line [item]="item" [showHolder]="showHolder()" />
+                  </li>
+                }
+              </ul>
+            </ng-template>
+          </p-dataview>
+        }
+      }
+      @case ('fractions') {
+        @if (fractionsState() === 'loading') {
+          <div class="mt-5 flex flex-col gap-3" aria-busy="true">
+            <p-skeleton height="88px" />
+            <p-skeleton height="88px" />
+            <p-skeleton height="88px" />
+          </div>
+        } @else if (fractionsState() === 'error') {
+          <div class="mt-5 flex flex-col gap-3 alert-danger p-5" role="alert">
+            <p class="m-0 text-[15px] font-bold">{{ historyTexts.fractionsLoadError }}</p>
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              class="retry h-11 min-w-11 w-fit px-4"
+              (click)="retryFractions()"
+            >
+              {{ historyTexts.retry }}
+            </button>
+          </div>
+        } @else if (fractions().length === 0) {
+          <div class="empty mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+            <p class="m-0 text-[17px] font-bold">{{ historyTexts.fractionsEmpty }}</p>
+          </div>
+        } @else if (visibleFractions().length === 0) {
+          <div class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center">
+            <p class="m-0 text-[17px] font-bold">{{ historyTexts.fractionsNoMatch }}</p>
+            <p class="m-0 text-sm text-muted">{{ historyTexts.fractionsNoMatchHint }}</p>
+            <button pButton type="button" severity="secondary" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+              {{ historyTexts.clearSearch }}
+            </button>
+          </div>
+        } @else {
+          <p-dataview [value]="visibleFractions()" layout="list" class="mt-5 block">
+            <ng-template #list>
+              <ul class="m-0 flex list-none flex-col gap-3 p-0">
+                @for (item of visibleFractions(); track item.id) {
+                  <li class="min-w-0">
+                    <app-fraction-history-line [item]="item" />
+                  </li>
+                }
+              </ul>
+            </ng-template>
+          </p-dataview>
+        }
+      }
+      @case ('products') {
+        @if (!hasRows()) {
+          <p class="seller-empty mt-5 mb-0 text-center text-sm text-muted">
+            {{ texts.sellerEmpty }}
+          </p>
+        } @else {
+          @if (visibleRows().length === 0) {
+            <div
+              class="no-match mt-5 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+            >
+              <p class="m-0 text-[17px] font-bold">{{ texts.noMatchTitle }}</p>
+              <p class="m-0 text-sm text-muted">{{ texts.noMatchHint }}</p>
+              <button pButton severity="secondary" type="button" class="mt-2 h-11 px-4 text-sm" (click)="clearSearch()">
+                {{ texts.clearSearch }}
+              </button>
+            </div>
+          } @else {
+            <ul class="rows mt-5 mb-0 flex list-none flex-col gap-3 p-0">
+              @for (row of visibleRows(); track row.productId; let index = $index) {
+                <li
+                  class="min-w-0 animate-rise-in motion-reduce:animate-none"
+                  [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
+                >
+                  <app-stock-product-row
+                    [name]="row.name"
+                    [image]="row.image"
+                    [units]="row.units"
+                    [breakdown]="row.breakdown"
+                    [editable]="seller() !== null"
+                    (activated)="editSellerProduct(row.productId)"
+                  />
+                </li>
+              }
+            </ul>
           }
-        </ul>
+        }
       }
     }
   }

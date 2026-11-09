@@ -7,7 +7,6 @@ import type {
   CreateShrinkagePayload,
   Shrinkage,
   ShrinkageFailureReason,
-  ShrinkageHistoryItem,
   ShrinkageOptions,
   ShrinkageResult,
 } from '../interfaces/shrinkage.models';
@@ -23,13 +22,6 @@ export class ShrinkageService {
   getOptions(sellerId?: string): Observable<ShrinkageOptions> {
     const params: Record<string, string> = sellerId ? { sellerId } : {};
     return this.http.get<ShrinkageOptions>(`${SHRINKAGES_URL}/options`, { params });
-  }
-
-  // Últimas mermas (HU-26), de la más nueva a la más vieja. Sin `sellerId` son las de la bodega y de
-  // todos los vendedores; con uno, solo las de ese vendedor (el backend limita la lista a 50).
-  list(sellerId?: string): Observable<ShrinkageHistoryItem[]> {
-    const params: Record<string, string> = sellerId ? { sellerId } : {};
-    return this.http.get<ShrinkageHistoryItem[]>(SHRINKAGES_URL, { params });
   }
 
   // Registra la merma. El backend responde { shrinkage, replayed }: 201 es nueva y 200 una repetición

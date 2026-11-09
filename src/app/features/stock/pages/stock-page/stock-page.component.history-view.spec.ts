@@ -120,6 +120,8 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
     it('con «Yo · bodega» ofrece Productos, Mermas y Fraccionados, con «Productos» elegido por omisión', async () => {
       await open();
       expect(optionLabels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
+      await harness.fixture.whenStable();
+      harness.detectChanges();
       expect(pressed()).toEqual(['Productos']);
       expect(lines('app-stock-product-row')).toHaveLength(2);
     });
@@ -135,6 +137,8 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
 
     it('sin vista o con una desconocida cae en «Productos» y no pide mermas ni fraccionados', async () => {
       await open('/admin/stock?vista=otra');
+      await harness.fixture.whenStable();
+      harness.detectChanges();
       expect(pressed()).toEqual(['Productos']);
       expect(lines('app-stock-product-row')).toHaveLength(2);
     });
@@ -206,6 +210,8 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
     it('con ?vista=fraccionados cae a «Productos» sin pedir fraccionados', async () => {
       selected.set(LUIS);
       await open('/admin/stock?vista=fraccionados');
+      await harness.fixture.whenStable();
+      harness.detectChanges();
       expect(pressed()).toEqual(['Productos']);
       expect(lines('app-stock-product-row')).toHaveLength(1);
       expect(lines('app-fraction-history-line')).toHaveLength(0);
@@ -217,6 +223,8 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
       await settle();
       selected.set(LUIS);
       await settle();
+      await harness.fixture.whenStable();
+      harness.detectChanges();
       expect(pressed()).toEqual(['Productos']);
       expect(optionLabels()).not.toContain('Fraccionados');
     });

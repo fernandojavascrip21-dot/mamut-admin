@@ -20,6 +20,11 @@ export const FRACTION_PAGE_TEXTS = {
   historyLink: 'Ver fraccionados',
 };
 
+// Destino del enlace «Ver fraccionados» del pop-up «Fraccionar» (HU-24, HU-26 §12): la vista de
+// fraccionados de «Stock general». Ruta y query van separadas: un `routerLink` con «?» en el texto
+// codifica el signo y la URL no se lee. Una feature no importa otra, así que va como texto.
+export const FRACTION_HISTORY_LINK = { path: '/admin/stock', queryParams: { vista: 'fraccionados' } };
+
 
 // Avisos de la página cuando el backend rechaza el fraccionado sin mensaje propio.
 export const FRACTION_PAGE_MESSAGES = {

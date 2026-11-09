@@ -1,5 +1,7 @@
 import { deliveryModalLink, fractionModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { StockQuickAction } from '../components/stock-quick-actions/stock-quick-actions.models';
+import type { StockView } from '../interfaces/stock-history.models';
+import type { StockViewOption } from '../models/stock-page.models';
 
 // Etiquetas fijas de la barra dividida y del reparto por producto (HU-13).
 export const WAREHOUSE_LABEL = 'Bodega';
@@ -20,8 +22,6 @@ export const BREAKDOWN_SEPARATOR = ' · ';
 export const WAREHOUSE_ENTRY_URL = '/admin/entrada';
 export const NEW_PRODUCT_URL = '/admin/productos/nuevo';
 export const SELL_URL = '/admin/productos'; // «Vender» (HU-17): se arma la venta desde «Productos»
-export const FRACTION_HISTORY_URL = '/admin/fraccionados'; // HU-24: enlace de texto, solo con «Yo · bodega»
-export const SHRINKAGE_HISTORY_URL = '/admin/mermas'; // HU-26: enlace de texto, con «Yo» y con un vendedor
 
 export const YO_QUICK_ACTIONS: StockQuickAction[] = [
   { label: 'Entrada a bodega', link: WAREHOUSE_ENTRY_URL, icon: 'entry' },
@@ -66,8 +66,36 @@ export const STOCK_PAGE_TEXTS = {
   lowPopupEmptySeller: 'Nada por resurtir con este vendedor por ahora.',
   lowFilterAriaSingular: 'producto',
   lowFilterAriaPlural: 'productos',
-  fractionHistoryLink: 'Ver fraccionados',
-  shrinkageHistoryLink: 'Ver mermas',
+} as const;
+
+// Selector «Productos | Mermas | Fraccionados» (HU-26 §12). El valor de la vista es su nombre en el
+// query param `vista`; «Fraccionados» solo se ofrece con «Yo · bodega» (el selector la filtra).
+export const STOCK_VIEW_OPTIONS: StockViewOption[] = [
+  { label: 'Productos', value: 'products' },
+  { label: 'Mermas', value: 'shrinkages' },
+  { label: 'Fraccionados', value: 'fractions' },
+];
+export const STOCK_VIEW_QUERY: Record<StockView, string> = {
+  products: 'productos',
+  shrinkages: 'mermas',
+  fractions: 'fraccionados',
+};
+export const STOCK_VIEW_LABEL = 'Vista del stock';
+
+// Textos de las vistas de mermas y fraccionados, tomados de las páginas que se borraron (HU-26, HU-24).
+export const STOCK_HISTORY_TEXTS = {
+  retry: 'Reintentar',
+  clearSearch: 'Limpiar búsqueda',
+  shrinkagesSearchLabel: 'Buscar merma',
+  shrinkagesLoadError: 'No pudimos cargar las mermas',
+  shrinkagesEmpty: 'Aún no hay mermas',
+  shrinkagesEmptySellerSuffix: 'no tiene mermas',
+  shrinkagesNoMatch: 'No hay mermas de ese producto',
+  fractionsSearchLabel: 'Buscar fraccionado',
+  fractionsLoadError: 'No pudimos cargar los fraccionados',
+  fractionsEmpty: 'Aún no hay fraccionados',
+  fractionsNoMatch: 'Ningún fraccionado coincide',
+  fractionsNoMatchHint: 'Borra la búsqueda para ver todos.',
 } as const;
 
 // Piezas del título de la tarjeta de avisos (HU-18).
