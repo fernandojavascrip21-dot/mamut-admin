@@ -7,6 +7,12 @@ export interface RestockPageData {
   products: RestockProduct[];
 }
 
+// Total estimado de la lista: texto de dos decimales y cuántos renglones escritos no traen costo.
+export interface RestockEstimate {
+  total: string;
+  withoutCost: number;
+}
+
 // Lo que el guard de salida necesita saber de la página.
 export interface RestockLeaveTarget {
   hasUnsavedChanges(): boolean;

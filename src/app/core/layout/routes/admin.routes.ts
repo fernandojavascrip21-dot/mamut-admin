@@ -42,6 +42,11 @@ export const ADMIN_ROUTES: Routes = [
     path: 'corte',
     loadChildren: () => import('@features/cash-cut/cash-cut.routes').then((m) => m.ADMIN_CASH_CUT_ROUTES),
   },
+  // «Lista de resurtir» (HU-31): la página lleva su propio canDeactivate (unsavedRestockGuard).
+  {
+    path: 'resurtir',
+    loadChildren: () => import('@features/restock/restock.routes').then((m) => m.RESTOCK_ROUTES),
+  },
   {
     path: 'entregas',
     loadChildren: () => import('@features/deliveries/deliveries.routes').then((m) => m.DELIVERY_ROUTES),

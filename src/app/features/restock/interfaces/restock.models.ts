@@ -77,11 +77,31 @@ export interface UpdateRestockOrderPayload {
 
 export type RestockFailureReason = 'invalid' | 'closed' | 'conflict' | 'not-found' | 'offline';
 
-export type RestockResult =
-  | { ok: true; order: RestockOrder }
-  | { ok: false; reason: RestockFailureReason; message: string | null };
+// Fallo ya traducido: `message` es el del backend, o null si no hubo respuesta (sin conexión o 5xx).
+export interface RestockFailure {
+  ok: false;
+  reason: RestockFailureReason;
+  message: string | null;
+}
 
-// Resultado de descartar un borrador: no hay pedido que devolver, y un 404 cuenta como descartado.
-export type RestockDiscardResult =
-  | { ok: true }
-  | { ok: false; reason: RestockFailureReason; message: string | null };
+export type RestockResult = { ok: true; order: RestockOrder } | RestockFailure;
+
+// Descartar no devuelve pedido, y un 404 cuenta como descartado.
+export type RestockDiscardResult = { ok: true } | RestockFailure;
+
+// Cuerpos de respuesta de /api/restock (T-36 y HU-31).
+export interface RestockSuggestionsResponse {
+  suggestions: RestockSuggestion[];
+}
+
+export interface RestockProductsResponse {
+  products: RestockProduct[];
+}
+
+export interface RestockOrdersResponse {
+  orders: RestockOrderSummary[];
+}
+
+export interface RestockOrderResponse {
+  order: RestockOrder;
+}
