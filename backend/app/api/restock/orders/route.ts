@@ -1,7 +1,7 @@
 import { requireRole } from '@auth'
-import { createRestockOrder, listRestockOrders } from '@restock'
+import { createRestockOrder, listRestockOrders, requireLines } from '@restock'
 import { validation } from '@lib/errors'
-import { handle, optionalText, readJson, requireLines } from '@lib/handler'
+import { handle, optionalText, readJson } from '@lib/handler'
 import { UUID } from '@lib/constants'
 
 // Lista de pedidos (los 50 más recientes). `?status=` acepta draft o closed; otro valor, 422 en el

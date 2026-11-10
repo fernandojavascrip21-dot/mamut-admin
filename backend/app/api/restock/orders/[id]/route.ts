@@ -1,6 +1,6 @@
 import { requireRole } from '@auth'
-import { deleteRestockOrder, getRestockOrder, updateRestockOrder } from '@restock'
-import { handle, optionalText, parseRouteId, readJson, requireLines } from '@lib/handler'
+import { deleteRestockOrder, getRestockOrder, requireLines, updateRestockOrder } from '@restock'
+import { handle, optionalText, parseRouteId, readJson } from '@lib/handler'
 
 type Ctx = { params: Promise<{ id: string }> }
 

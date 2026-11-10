@@ -214,13 +214,13 @@ Constantes en `backend/src/restock/constants.ts`:
    - Al terminar el paso, `npm run type-check` y `npm test` pasan sin cambios.
 2. **Lectura en `@stock`.** Agregar `RestockCandidate` y `restockCandidates()` a `backend/src/stock/holdings.ts`: el mismo filtro de bodega de `lowStockLines`, más `parent_product_id is null` y `unit_cost`. `npm run type-check` pasa.
 3. **Módulo `restock`.** Crear `backend/src/restock/` (`index.ts`, `constants.ts`, `types.ts`) y el alias `@restock` en `backend/tsconfig.json`. `npm run type-check` pasa.
-4. **Sugerencias.** `getRestockSuggestions(actor)` en `suggestions.ts`: `403` si no es administrador; mapear `restockCandidates()` con `stockLevelOf`; ordenar.
+4. **Sugerencias.** `getRestockSuggestions(actor)` en `suggestions.ts`: `403` si no es administrador (el chequeo vive en `restock/access.ts`, `requireAdmin`, compartido con `orders.ts`); mapear `restockCandidates()` con `stockLevelOf`; ordenar.
 5. **Pedidos.** En `orders.ts`:
    - Una validación compartida de `note` y `lines`: tamaño, repetidos, `qty`, y producto activo y no bolsita con `findProduct`.
    - `createRestockOrder` con `findReplay` (comparación sin importar el orden), candado e `isUniqueViolation`, igual que `createPurchase`.
    - `updateRestockOrder`, `closeRestockOrder` y `deleteRestockOrder` con `withTransaction` y el pedido bloqueado (`lockRows`), y `409` si está cerrado.
    - `getRestockOrder` y `listRestockOrders` con `lineCount` y `totalUnits` calculados con `count()`/`sum()` en SQL.
-6. **Rutas.** Las cuatro rutas de §2. Cada una con `requireRole(request, 'admin')`, `parseId` para `[id]`, `requestId` con `UUID`, `optionalText` para `note` y validación de que `lines` sea un arreglo de objetos con `productId` y `qty` enteros. Sin lógica de negocio en las rutas.
+6. **Rutas.** Las cuatro rutas de §2. Cada una con `requireRole(request, 'admin')`, `parseRouteId` para `[id]` (responde `422`, como pide §3; `parseId` respondería `404`), `requestId` con `UUID`, `optionalText` para `note` y validación de que `lines` sea un arreglo de objetos con `productId` y `qty` enteros. Sin lógica de negocio en las rutas.
 7. **Pruebas.** Escribir `backend/tests/restock.test.ts` (§7) y correr `npm run type-check` y `npm test` con `SUPABASE_SERVICE_ROLE_KEY`.
 8. **Índice y Jira.** Actualizar `specs/README.md` (estado y relaciones) y comentar el avance en `SCRUM-87` (paso del plan y ✅/❌/⏳ por criterio). Moverla En curso → In review.
 

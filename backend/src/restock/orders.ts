@@ -5,7 +5,7 @@ import { products, restockOrderLines, restockOrders } from '@db/schema'
 import { lockRows, withTransaction } from '@db/transaction'
 import type { Tx } from '@db/transaction'
 import { UUID } from '@lib/constants'
-import { conflict, notFound, validation } from '@lib/errors'
+import { AppError, conflict, notFound, validation } from '@lib/errors'
 import { requireAdmin } from './access'
 import {
   DUPLICATE_PRODUCT, EMPTY_ORDER, INVALID_QTY, INVALID_REQUEST_ID, INVALID_STATUS, LIST_LIMIT, MAX_LINES,
@@ -152,7 +152,8 @@ export async function createRestockOrder(
         .insert(restockOrders)
         .values({ requestId: request.requestId, note: request.note, createdBy: actor.userId })
         .returning({ id: restockOrders.id })
-      if (!created) throw new Error('El pedido no quedó registrado')
+      // Un insert que no devuelve fila es un fallo interno: 500, no un error de la petición.
+      if (!created) throw new AppError('internal', 'El pedido no quedó registrado')
       if (request.lines.length > 0) {
         await tx.insert(restockOrderLines).values(request.lines.map((line) => ({
           orderId: created.id,
@@ -252,7 +253,8 @@ export async function listRestockOrders(
     .select({
       orderId: restockOrderLines.orderId,
       lineCount: sql<number>`count(*)::int`.as('line_count'),
-      totalUnits: sql<number>`sum(${restockOrderLines.qty})::int`.as('total_units'),
+      // bigint: la suma de muchos renglones puede pasar de int4. postgres.js lo devuelve como texto.
+      totalUnits: sql<string>`sum(${restockOrderLines.qty})::bigint`.as('total_units'),
     })
     .from(restockOrderLines)
     .groupBy(restockOrderLines.orderId)
@@ -266,7 +268,7 @@ export async function listRestockOrders(
       updatedAt: restockOrders.updatedAt,
       closedAt: restockOrders.closedAt,
       lineCount: sql<number>`coalesce(${totals.lineCount}, 0)`,
-      totalUnits: sql<number>`coalesce(${totals.totalUnits}, 0)`,
+      totalUnits: sql<string>`coalesce(${totals.totalUnits}, 0)`,
     })
     .from(restockOrders)
     .leftJoin(totals, eq(totals.orderId, restockOrders.id))
@@ -274,6 +276,10 @@ export async function listRestockOrders(
     .orderBy(desc(restockOrders.createdAt), desc(restockOrders.id))
     .limit(LIST_LIMIT)
   return {
-    orders: rows.map((row) => ({ ...row, status: row.status as RestockOrderStatus })),
+    orders: rows.map((row) => ({
+      ...row,
+      status: row.status as RestockOrderStatus,
+      totalUnits: Number(row.totalUnits),
+    })),
   }
 }

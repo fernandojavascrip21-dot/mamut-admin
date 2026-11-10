@@ -6,6 +6,7 @@ export type {
   CreateRestockOrderInput, RestockActor, RestockLineInput, RestockOrder, RestockOrderLine,
   RestockOrderStatus, RestockOrderSummary, RestockOrdersFilter, RestockSuggestion, UpdateRestockOrderInput,
 } from './types'
+export { requireLines } from './lines'
 export {
   DUPLICATE_PRODUCT, EMPTY_ORDER, LIST_LIMIT, MAX_LINES, MAX_NOTE_LENGTH, MAX_QTY, ORDER_CLOSED,
   ORDER_MISMATCH, PRODUCT_NOT_ORDERABLE,
