@@ -1,6 +1,6 @@
 # Spec técnico — HU-25 · Registrar la merma de un vendedor o de la bodega (administrador)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M6-t25-base-merma-simple (`specs/M6-t25-base-merma-simple/spec.md`) — `POST /api/shrinkages`, módulo `@shrinkage`, motivos y respuesta `Shrinkage`; M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`) — movimientos rápidos de «Stock general»; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — «Viendo»; M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`) — pop-ups en el outlet `ventana`; M5-hu23-fraccionar-entero-bolsitas (`specs/M5-hu23-fraccionar-entero-bolsitas/spec.md`) — resultado dentro del pop-up y endpoint de opciones
 > **Fecha:** 2026-11-08
 > **Objetivo:** que el administrador abra desde «Stock general» el pop-up «Registrar merma» del vendedor en «Viendo» o de la bodega, elija producto, piezas y motivo, confirme una sola vez y vea en el mismo pop-up el stock del titular antes → después.
