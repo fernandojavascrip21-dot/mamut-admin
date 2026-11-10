@@ -175,7 +175,7 @@
    barra «Viendo» sobre la barra lateral. Capa `primeng`: las utilidades locales siguen ganando. */
 @layer primeng {
   .p-select.viewing-select {
-    height: 2.5rem;
+    height: 2.75rem;
     border-radius: 0.5rem;
     border: 1px solid rgb(245 239 228 / 0.4);
     background: rgb(255 255 255 / 0.1);
@@ -238,6 +238,27 @@
     flex-shrink: 0;
     border-bottom: 1px solid var(--color-line);
     padding: 0.75rem 1.25rem;
+  }
+
+  /* Selector segmentado («Productos | Mermas | Fraccionados»): a 375 px el tercer rótulo no cabe con
+     el relleno de escritorio y se corta; en celular se compacta y desde `sm` vuelve al tamaño normal. */
+  @media (max-width: 39.99rem) {
+    .p-selectbutton .p-togglebutton {
+      min-height: 2.75rem;
+      padding: 0.125rem;
+      font-size: 0.8125rem;
+    }
+
+    .p-selectbutton .p-togglebutton-content {
+      padding-inline: 0.25rem;
+    }
+  }
+
+  /* La X cierra con un área táctil de 44 px (RNF-03); PrimeNG la deja de 2rem y la encoge. */
+  .p-dialog.modal-panel-dialog .p-dialog-close-button {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
   }
 
   .p-dialog.modal-panel-dialog .p-dialog-content {
