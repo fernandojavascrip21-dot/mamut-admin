@@ -1,6 +1,6 @@
 # Spec técnico — T-31 · Configuración por ambiente: URL de la API, variables y CORS
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M0-base (`specs/M0-base/spec.md`) — `core/api-base-url.ts`, rutas `RenderMode.Client` y CORS por `ALLOWED_ORIGINS`; M3-t01-primeng-listas-dialogos (`specs/M3-t01-primeng-listas-dialogos/spec.md`) — patrón de `scripts/prepare-primeng-license.mjs` (archivo generado e ignorado por git)
 > **Fecha:** 2026-11-09
 > **Objetivo:** que el frontend tome la URL de la API de la variable `API_BASE_URL` al compilar, que el build falle si falta o no es válida, y que el backend y su documentación queden listos para un dominio público, sin cambiar el comportamiento en local.
@@ -164,20 +164,20 @@ No hay cambios de interfaz: la app se ve y se comporta igual. Solo cambia de dó
 
 ## 7. Criterios de aceptación
 
-- [ ] Con `API_BASE_URL=http://localhost:3000` en `.env`, `npm start`, `npm test` y `npm run build` funcionan como hoy.
-- [ ] Sin `API_BASE_URL` (ni en el entorno ni en `.env`), `npm run build` falla con el mensaje de §3.2 y no genera el archivo.
-- [ ] `API_BASE_URL=http://api.ejemplo.com` (http fuera de localhost) hace fallar el build.
-- [ ] `API_BASE_URL=https://api.ejemplo.com/v1` (con ruta) hace fallar el build.
-- [ ] `API_BASE_URL=https://api.ejemplo.com/ npm run build` genera `https://api.ejemplo.com`, y el bundle del navegador en `dist/` contiene esa URL y no `localhost:3000`.
-- [ ] Una variable de proceso vacía (`API_BASE_URL=`) gana sobre el `.env` y hace fallar el build.
-- [ ] `src/app/core/api-base-url.generated.ts` está en `.gitignore` y no se versiona.
-- [ ] Ningún archivo fuera de `core/api-base-url.ts` importa `api-base-url.generated`.
-- [ ] `node --test scripts/`, `ng build`, `npm test` y `npm run check:architecture` pasan, sin modificar pruebas con commit.
-- [ ] `backend/.env.example` ya no menciona 5173 ni el Vue.
-- [ ] `backend/README.md` describe el backend de mamut-admin (sin Vue ni «SPEC 05»), con sus variables y una sección «Despliegue».
-- [ ] `README.md` lista las variables de §4 sin valores reales.
-- [ ] `CLAUDE.md` y `AGENTS.md` dicen `config:prepare` y piden `API_BASE_URL` en CI, con el mismo contenido.
-- [ ] `specs/README.md` y `SCRUM-73` quedan actualizados.
+- [x] Con `API_BASE_URL=http://localhost:3000` en `.env`, `npm start`, `npm test` y `npm run build` funcionan como hoy.
+- [x] Sin `API_BASE_URL` (ni en el entorno ni en `.env`), `npm run build` falla con el mensaje de §3.2 y no genera el archivo.
+- [x] `API_BASE_URL=http://api.ejemplo.com` (http fuera de localhost) hace fallar el build.
+- [x] `API_BASE_URL=https://api.ejemplo.com/v1` (con ruta) hace fallar el build.
+- [x] `API_BASE_URL=https://api.ejemplo.com/ npm run build` genera `https://api.ejemplo.com`, y el bundle del navegador en `dist/` contiene esa URL y no `localhost:3000`.
+- [x] Una variable de proceso vacía (`API_BASE_URL=`) gana sobre el `.env` y hace fallar el build.
+- [x] `src/app/core/api-base-url.generated.ts` está en `.gitignore` y no se versiona.
+- [x] Ningún archivo fuera de `core/api-base-url.ts` importa `api-base-url.generated`.
+- [x] `node --test scripts/*.test.mjs` (en Node 24 la carpeta sola falla), `ng build`, `npm test` y `npm run check:architecture` pasan, sin modificar pruebas con commit.
+- [x] `backend/.env.example` ya no menciona 5173 ni el Vue.
+- [x] `backend/README.md` describe el backend de mamut-admin (sin Vue ni «SPEC 05»), con sus variables y una sección «Despliegue».
+- [x] `README.md` lista las variables de §4 sin valores reales.
+- [x] `CLAUDE.md` y `AGENTS.md` dicen `config:prepare` y piden `API_BASE_URL` en CI, con el mismo contenido.
+- [x] `specs/README.md` y `SCRUM-73` quedan actualizados.
 
 ## 8. Plan de pruebas
 
