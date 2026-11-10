@@ -622,3 +622,51 @@ END)`),
 	check("stock_movements_shrinkage_reason_check", sql`(type <> 'shrinkage'::text) OR (reason IS NULL) OR (reason = ANY (ARRAY['lost'::text, 'damaged'::text, 'expired'::text, 'other'::text]))`),
 	check("stock_movements_type_check", sql`type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text, 'fraction_out'::text, 'fraction_in'::text])`),
 ]);
+
+export const restockOrders = pgTable("restock_orders", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "restock_orders_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	requestId: uuid("request_id").notNull(),
+	status: text().default('draft').notNull(),
+	note: text(),
+	createdBy: uuid("created_by").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	closedAt: timestamp("closed_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("restock_orders_created_at_idx").using("btree", table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "restock_orders_created_by_fkey"
+		}),
+	unique("restock_orders_request_id_key").on(table.requestId),
+	check("restock_orders_status_check", sql`status = ANY (ARRAY['draft'::text, 'closed'::text])`),
+	check("restock_orders_closed_at_check", sql`(status = 'closed'::text) = (closed_at IS NOT NULL)`),
+	check("restock_orders_note_check", sql`(note IS NULL) OR ((char_length(note) >= 1) AND (char_length(note) <= 500))`),
+]);
+
+export const restockOrderLines = pgTable("restock_order_lines", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "restock_order_lines_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	orderId: bigint("order_id", { mode: "number" }).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	productId: bigint("product_id", { mode: "number" }).notNull(),
+	qty: integer().notNull(),
+	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }).notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.orderId],
+			foreignColumns: [restockOrders.id],
+			name: "restock_order_lines_order_id_fkey"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.productId],
+			foreignColumns: [products.id],
+			name: "restock_order_lines_product_id_fkey"
+		}).onDelete("restrict"),
+	unique("restock_order_lines_product_key").on(table.orderId, table.productId),
+	check("restock_order_lines_qty_check", sql`qty > 0`),
+	check("restock_order_lines_unit_cost_check", sql`unit_cost >= (0)::numeric`),
+]);

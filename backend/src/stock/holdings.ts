@@ -129,6 +129,34 @@ export interface LowStockLine {
   stockLevel: 'low' | 'out'
 }
 
+// Un producto que conviene resurtir (base de pedidos, T-36): activo, que no es bolsita y con
+// LOW_STOCK_THRESHOLD piezas o menos en la bodega. Solo cuentan las piezas de la bodega.
+export interface RestockCandidate {
+  productId: number
+  name: string
+  image: string | null
+  units: number
+  unitCost: string
+}
+
+export async function restockCandidates(): Promise<RestockCandidate[]> {
+  const rows = await db
+    .select({
+      productId: products.id,
+      name: products.name,
+      image: products.image,
+      units: products.stock,
+      unitCost: products.unitCost,
+    })
+    .from(products)
+    .where(and(
+      eq(products.active, true),
+      isNull(products.parentProductId),
+      lte(products.stock, LOW_STOCK_THRESHOLD),
+    ))
+  return rows.map((row) => ({ ...row, image: row.image || null }))
+}
+
 // Avisos de baja existencia: bodega y vendedores activos, o solo un vendedor si se pasa su id. Solo
 // productos activos. En la bodega entra todo producto activo con LOW_STOCK_THRESHOLD piezas o menos;
 // en un vendedor, los de 1 a LOW_STOCK_THRESHOLD y los que están en 0 solo si el último movimiento

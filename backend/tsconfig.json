@@ -33,6 +33,7 @@
       "@fractions": ["./src/fractions"],
       "@shrinkage": ["./src/shrinkage"],
       "@purchases": ["./src/purchases"],
+      "@restock": ["./src/restock"],
       "@cuts": ["./src/cuts"],
       "@api/*": ["./app/api/*"]
     }
