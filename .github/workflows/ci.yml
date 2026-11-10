@@ -1,0 +1,157 @@
+# CI de mamut-admin (spec M7-t32): compila y prueba el frontend y el backend en cada PR
+# y en cada push a main. Los nombres de los jobs son los checks obligatorios de main:
+# si se renombra uno, hay que actualizar la regla de protección en el mismo cambio.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama o PR cancela el run anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+
+      # El secret solo existe en este paso; ng build y ng test se llaman directos
+      # para no repetir config:prepare en los hooks pre*.
+      - name: Preparar licencia de PrimeNG y URL de la API
+        run: npm run config:prepare
+        env:
+          PRIMENG_LICENSE_KEY: ${{ secrets.PRIMENG_LICENSE_KEY }}
+          API_BASE_URL: http://localhost:3000
+
+      - name: Pruebas de scripts/
+        run: node --test scripts/*.test.mjs
+
+      - name: Build
+        run: npx ng build
+        timeout-minutes: 10
+
+      - name: Fronteras de capas
+        run: npm run check:architecture
+
+      - name: Pruebas
+        run: npx ng test --watch=false
+        timeout-minutes: 10
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # src/db/client.ts exige la variable al importarse; next build no se conecta.
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build
+        timeout-minutes: 10
+
+      - name: Fronteras de módulos
+        run: npx vitest run tests/architecture.test.ts
+
+  backend-db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Valores de demo de Supabase local (públicos e iguales en todas las máquinas,
+    # los mismos de backend/.env.example): no son secretos y nunca apuntan a producción.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_URL: http://127.0.0.1:54321
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+      ALLOWED_ORIGINS: http://localhost:4200
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+
+      # Las pruebas escriben en la base: un error en una variable no debe llevarlas a producción.
+      - name: Guardia de producción
+        run: |
+          if [ "$DATABASE_URL" != "postgresql://postgres:postgres@127.0.0.1:54322/postgres" ]; then
+            echo "::error::DATABASE_URL no apunta a Supabase local (127.0.0.1:54322)."
+            exit 1
+          fi
+          if [ "$SUPABASE_URL" != "http://127.0.0.1:54321" ]; then
+            echo "::error::SUPABASE_URL no apunta a Supabase local (http://127.0.0.1:54321)."
+            exit 1
+          fi
+
+      # Sin la llave, las pruebas con cuentas se saltarían y el job quedaría en verde sin probarlas.
+      - name: Guardia de la llave
+        run: |
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Falta SUPABASE_SERVICE_ROLE_KEY: las pruebas con cuentas se saltarían."
+            exit 1
+          fi
+
+      # start aplica supabase/migrations y supabase/seed.sql sobre una base vacía (igual que db reset).
+      # Storage se queda: products-photo.test.ts sube al bucket product-photos.
+      - name: Levantar Supabase local
+        run: supabase start -x imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor,realtime
+        timeout-minutes: 10
+
+      - run: npm ci
+        working-directory: backend
+
+      - name: Pruebas del backend
+        working-directory: backend
+        run: npx vitest run --reporter=default --reporter=json --outputFile=vitest-results.json
+        timeout-minutes: 10
+
+      - name: Aviso de pruebas saltadas
+        if: always()
+        working-directory: backend
+        run: |
+          if [ ! -f vitest-results.json ]; then exit 0; fi
+          skipped=$(jq '(.numPendingTests // 0) + (.numTodoTests // 0)' vitest-results.json)
+          if [ "$skipped" -gt 0 ]; then
+            echo "::warning::$skipped pruebas del backend se saltaron"
+            echo "$skipped pruebas del backend se saltaron" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Detener Supabase local
+        if: always()
+        run: supabase stop --no-backup

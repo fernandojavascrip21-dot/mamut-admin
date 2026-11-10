@@ -30,6 +30,8 @@ npm run config:prepare                      # PrimeNG license + API URL files (t
 
 Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY` and `API_BASE_URL`. `API_BASE_URL` (spec `M7-t31`) is the backend origin read at build time from the env or the root `.env`: absolute URL, `http:` only for localhost/127.0.0.1, no path; if missing or invalid the build fails. `scripts/prepare-api-url.mjs` writes the git-ignored `core/api-base-url.generated.ts`, which only `core/api-base-url.ts` re-exports. There is no lint script.
 
+**CI** (spec `M7-t32`): `.github/workflows/ci.yml` runs on every PR and push to `main` with three jobs, which are the required checks of `main` (renaming one means updating the branch protection in the same change): `frontend` (`config:prepare` with the `PRIMENG_LICENSE_KEY` secret, `node --test scripts/*.test.mjs`, `ng build`, `check:architecture`, `ng test --watch=false`), `backend` (`type-check`, `build`, `architecture.test.ts`) and `backend-db` (Supabase local in the runner with the demo keys and the full backend suite; it fails if the DB is not `127.0.0.1` or `SUPABASE_SERVICE_ROLE_KEY` is missing, and warns about skipped tests). Node version comes from `.nvmrc`.
+
 ### Backend (`cd backend` — own `package.json`, `node_modules`, `.env`)
 
 ```bash

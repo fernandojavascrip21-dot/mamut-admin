@@ -8,7 +8,7 @@ Panel de administración de inventario de **Mammut Supplements**.
 
 ## Requisitos
 
-- Node.js y npm
+- Node.js 24 (la versión está en `.nvmrc`) y npm
 - Docker Desktop, solo si vas a usar la base de prueba
 
 ## Primera vez (o en una máquina nueva)
@@ -126,6 +126,48 @@ Los cambios de esquema van como archivos SQL con fecha en `supabase/migrations/`
 3. Cuando funcione, aplícalo a producción.
 
 `20261024000000_baseline_schema.sql` es una copia del esquema heredado de producción. Solo sirve para que la base de prueba se pueda construir desde cero. **No se aplica a producción.**
+
+## CI
+
+`.github/workflows/ci.yml` corre en cada PR y en cada push a `main`. Tiene tres jobs en paralelo:
+
+| Job | Qué corre |
+| --- | --- |
+| `frontend` | `npm ci`, `config:prepare`, pruebas de `scripts/`, `ng build`, `check:architecture` y `ng test` |
+| `backend` | `npm ci`, `type-check`, `build` y `tests/architecture.test.ts` |
+| `backend-db` | Supabase local en el runner (`supabase start`) y toda la suite del backend |
+
+- `backend-db` usa las llaves de demo de Supabase local, las mismas de `backend/.env.example`. Nunca se conecta a producción: si `DATABASE_URL` o `SUPABASE_URL` no apuntan a `127.0.0.1`, falla antes de correr pruebas.
+- Si falta `SUPABASE_SERVICE_ROLE_KEY`, `backend-db` falla. Si alguna prueba se salta, el run muestra un aviso con el número.
+- Un push nuevo a la misma rama cancela el run anterior.
+
+### Secret necesario
+
+`frontend` necesita el secret `PRIMENG_LICENSE_KEY` en el repo (Settings → Secrets and variables → Actions):
+
+```bash
+gh secret set PRIMENG_LICENSE_KEY   # pega el valor cuando lo pida
+```
+
+Los PR desde un fork no reciben secrets, así que su job `frontend` falla.
+
+### Protección de `main`
+
+Una vez activada esta regla, los checks `frontend`, `backend` y `backend-db` serán obligatorios para hacer merge a `main`, también para el dueño del repo. Se activa una sola vez, después del primer run verde:
+
+```bash
+gh api -X PUT repos/fernandojavascrip21-dot/mamut-admin/branches/main/protection \
+  --input - <<'JSON'
+{
+  "required_status_checks": { "strict": true, "contexts": ["frontend", "backend", "backend-db"] },
+  "enforce_admins": true,
+  "required_pull_request_reviews": null,
+  "restrictions": null
+}
+JSON
+```
+
+Si se renombra un job en `ci.yml`, hay que actualizar esta regla en el mismo cambio. Si no, la regla pide un check que ya no existe y ningún PR puede entrar.
 
 ## Otros comandos
 
