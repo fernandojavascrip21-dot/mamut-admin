@@ -95,3 +95,10 @@ export function parseUuid(value: string): string {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) throw notFound()
   return value.toLowerCase()
 }
+
+// Parámetro de ruta de un recurso con id entero (`/api/restock/orders/:id`). A diferencia de
+// parseId, un valor que no es entero positivo es un error de forma: 422, no 404.
+export function parseRouteId(value: string): number {
+  if (!/^[1-9]\d*$/.test(value)) throw validation('El id debe ser un entero positivo')
+  return Number(value)
+}
