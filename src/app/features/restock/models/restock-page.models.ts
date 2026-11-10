@@ -18,3 +18,10 @@ export interface RestockLeaveTarget {
   hasUnsavedChanges(): boolean;
   saving(): boolean;
 }
+
+// Pedido que la pantalla ya guardó sobre la carga `base`: sustituye al borrador de esa carga hasta que
+// llega una nueva. `draft: null` significa que el borrador ya se descartó.
+export interface RestockSavedDraft {
+  base: RestockPageData;
+  draft: RestockOrder | null;
+}

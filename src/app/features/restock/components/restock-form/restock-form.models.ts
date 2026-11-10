@@ -1,5 +1,6 @@
 import type { FormArray, FormControl, FormGroup } from '@angular/forms';
 import type { UpdateRestockOrderPayload } from '../../interfaces/restock.models';
+import type { RestockLineView } from '../restock-line/restock-line.models';
 
 // Un renglón: `kind` fija si es de catálogo (productId) o escrito a mano (name). Piezas y costo son
 // texto mientras se escriben.
@@ -35,4 +36,18 @@ export interface RestockFormSubmit {
   payload: UpdateRestockOrderPayload;
   total: string;
   lineCount: number;
+}
+
+// Lo que hay escrito en la lista (nota y renglones). Las vistas y el total se calculan de aquí, no
+// del FormArray, para que se actualicen al escribir.
+export interface RestockFormValue {
+  note: string;
+  lines: RestockLineForm[];
+}
+
+// Un renglón listo para pintar: su vista y los avisos que dependen de toda la lista.
+export interface RestockRow {
+  view: RestockLineView;
+  existsInCatalog: boolean;
+  duplicateName: boolean;
 }
