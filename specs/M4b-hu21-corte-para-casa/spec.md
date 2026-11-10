@@ -1,6 +1,6 @@
 # Spec técnico — HU-21 · Generar el corte para casa de un vendedor (administrador)
 
-> **Estado:** Aprovado
+> **Estado:** Implementado
 > **Depende de:** M4b-t22-base-corte-para-casa (`specs/M4b-t22-base-corte-para-casa/spec.md`) — `GET /api/cuts?type=home` con `factoryCost`, `realProfit` y `shippingCover` (esta última ya no se pinta, §10); M4a-hu19-corte-administrador (`specs/M4a-hu19-corte-administrador/spec.md`) — página «Corte», selector «Tipo de corte» y componentes de `features/cash-cut`; M4a-hu20-mi-corte-vendedor (`specs/M4a-hu20-mi-corte-vendedor/spec.md`) — componentes compartidos con «Mi corte»; M2-hu10-barra-viendo (`specs/M2-hu10-barra-viendo/spec.md`) — titular de «Viendo»; M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`) — dinero como texto
 > **Fecha:** 2026-11-05
 > **Nota (2026-11-06):** el usuario decidió que el corte para casa **no muestra «Para cubrir envíos»**: el administrador ve la ganancia real (precio menos costo de fábrica) y el vendedor ve, en su corte con precios, la ganancia con el costo con envío que se le puso. El backend (T-22) conserva `shippingCover`; solo la pantalla deja de pintarlo. Cambia lo aprobado en los criterios 2, 3 y 5, en §2, §8 y §10, y en el paso 4. Además, el usuario pidió renombrar las opciones del selector «Tipo de corte»: «Corte del vendedor» (antes «Corte con precios (para vendedor)») y «Corte de casa» (antes «Corte (para casa)»). Los títulos del resultado no cambian.
