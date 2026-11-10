@@ -204,23 +204,37 @@ No hay cambios de interfaz. Lo nuevo se ve en la pestaña «Checks» de cada PR 
 
 ## 7. Criterios de aceptación
 
-- [ ] `.github/workflows/ci.yml` corre en cada `pull_request` y en cada push a `main`, con los jobs `frontend`, `backend` y `backend-db`.
-- [ ] `frontend` corre `npm ci`, `config:prepare` con `PRIMENG_LICENSE_KEY` desde secrets, `node --test scripts/*.test.mjs`, `ng build`, `check:architecture` y `ng test --watch=false`.
-- [ ] El valor de `PRIMENG_LICENSE_KEY` no aparece en ningún log del run ni en un archivo con commit.
-- [ ] `backend` corre `npm ci`, `type-check`, `build` y `tests/architecture.test.ts`.
-- [ ] `backend-db` levanta Supabase local en el runner y corre toda la suite del backend contra `127.0.0.1:54322`, sin ningún secret.
-- [ ] Si `DATABASE_URL` o `SUPABASE_URL` no apuntan a Supabase local, `backend-db` falla antes de correr pruebas.
+- [x] `.github/workflows/ci.yml` corre en cada `pull_request` y en cada push a `main`, con los jobs `frontend`, `backend` y `backend-db`.
+- [x] `frontend` corre `npm ci`, `config:prepare` con `PRIMENG_LICENSE_KEY` desde secrets, `node --test scripts/*.test.mjs`, `ng build`, `check:architecture` y `ng test --watch=false`.
+- [x] El valor de `PRIMENG_LICENSE_KEY` no aparece en ningún log del run ni en un archivo con commit.
+- [x] `backend` corre `npm ci`, `type-check`, `build` y `tests/architecture.test.ts`.
+- [x] `backend-db` levanta Supabase local en el runner y corre toda la suite del backend contra `127.0.0.1:54322`, sin ningún secret.
+- [x] Si `DATABASE_URL` o `SUPABASE_URL` no apuntan a Supabase local, `backend-db` falla antes de correr pruebas.
 - [ ] Si `SUPABASE_SERVICE_ROLE_KEY` está vacía, `backend-db` falla con `::error::` antes de correr pruebas.
-- [ ] Si alguna prueba del backend se salta, el run muestra `::warning::` con el número y lo repite en el resumen del job.
-- [ ] En el run del PR de este spec, `backend-db` reporta 0 pruebas saltadas.
-- [ ] Una prueba en rojo, un build roto o una frontera de capas rota dejan su job en rojo. Se comprueba con un commit temporal que rompa una prueba del frontend; ese commit se revierte antes del merge.
-- [ ] Cada job tiene `timeout-minutes: 15`, los pasos largos `timeout-minutes: 10`, y en el run verde ningún paso pasa de 10 minutos.
-- [ ] Los tres jobs usan `node-version-file: .nvmrc` y `cache: npm`; el segundo run muestra «Cache restored» en `setup-node`.
+- [x] Si alguna prueba del backend se salta, el run muestra `::warning::` con el número y lo repite en el resumen del job.
+- [x] En el run del PR de este spec, `backend-db` reporta 0 pruebas saltadas.
+- [x] Una prueba en rojo, un build roto o una frontera de capas rota dejan su job en rojo. Se comprueba con un commit temporal que rompa una prueba del frontend; ese commit se revierte antes del merge.
+- [x] Cada job tiene `timeout-minutes: 15`, los pasos largos `timeout-minutes: 10`, y en el run verde ningún paso pasa de 10 minutos.
+- [x] Los tres jobs usan `node-version-file: .nvmrc` y `cache: npm`; el segundo run muestra «Cache restored» en `setup-node`.
 - [ ] Un segundo push a la misma rama cancela el run anterior.
 - [ ] Con la protección activa, `gh api …/branches/main/protection` devuelve los checks `frontend`, `backend` y `backend-db`, y GitHub no deja hacer merge de un PR con uno en rojo.
-- [ ] `README.md`, `CLAUDE.md` y `AGENTS.md` describen el CI; `CLAUDE.md` y `AGENTS.md` dicen lo mismo.
-- [ ] Ninguna prueba con commit cambió.
-- [ ] `specs/README.md` y `SCRUM-74` quedan actualizados.
+- [x] `README.md`, `CLAUDE.md` y `AGENTS.md` describen el CI; `CLAUDE.md` y `AGENTS.md` dicen lo mismo.
+- [x] Ninguna prueba con commit cambió.
+- [x] `specs/README.md` y `SCRUM-74` quedan actualizados.
+
+Verificación del 2026-11-09 (runs de CI de los PR #68 y #70 y del push a `main`):
+
+- **Prueba en rojo → job en rojo:** no hizo falta un commit temporal. El primer run del PR #68 dejó `frontend` en rojo por una falla real: `fraction-history-line` mostraba la hora en UTC porque `DatePipe` no entiende `'America/Mexico_City'`. Se corrigió en el PR #70 (`FRACTION_HISTORY_TIME_ZONE = '-0600'`), sin cambiar la prueba.
+- **Secret:** el log de «Preparar licencia…» muestra `PRIMENG_LICENSE_KEY: ***`.
+- **Tiempos del run verde de `main`:** `frontend` 50 s, `backend` 34 s, `backend-db` 2 min 16 s; «Cache restored successfully» en `setup-node`; 0 pruebas saltadas.
+- **Pendientes (⏳):**
+  - La guardia de la llave solo se probó como lógica de shell; no se corrió en GitHub con la llave vacía.
+  - La cancelación por `concurrency` no se observó: ningún run quedó «Cancelled».
+  - La protección devuelve los tres checks con `strict` y `enforce_admins`, pero todavía no se vio un PR bloqueado por un check en rojo.
+- **Observaciones:**
+  - El PR #68 se fusionó con `frontend` en rojo porque la protección aún no existía.
+  - Los runs avisan que `actions/checkout@v4` y `actions/setup-node@v4` usan Node 20 (deprecado). Subirlas a `@v5` queda para otro cambio.
+  - Los historiales de entregas, retiros y mermas y el resumen de venta usan `| date` sin zona: toman la hora del equipo. Queda para un spec propio.
 
 ## 8. Plan de pruebas
 
