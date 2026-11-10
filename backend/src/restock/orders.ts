@@ -56,7 +56,9 @@ function planLines(lines: RestockLineInput[]): PlannedLine[] {
     if (!Number.isSafeInteger(line.qty) || line.qty < 1 || line.qty > MAX_QTY) throw validation(INVALID_QTY)
     if ('name' in line) {
       const name = line.name.trim()
-      if (name.length < 1 || name.length > MAX_CUSTOM_NAME_LENGTH) throw validation(INVALID_CUSTOM_NAME)
+      // Se cuentan code points (como char_length de Postgres y el frontend), no unidades UTF-16.
+      const length = [...name].length
+      if (length < 1 || length > MAX_CUSTOM_NAME_LENGTH) throw validation(INVALID_CUSTOM_NAME)
       // Sin mayúsculas: el índice único de la base usa lower(custom_name), y aquí se avisa antes.
       const key = name.toLowerCase()
       if (seenNames.has(key)) throw validation(DUPLICATE_CUSTOM)

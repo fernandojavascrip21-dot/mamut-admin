@@ -1,11 +1,14 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting, type TestRequest } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { Router, provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { API_BASE_URL } from '@core/api-base-url';
 import { ConfirmService } from '@core/confirm/confirm.service';
 import { ToastService } from '@core/toast/toast.service';
+import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
+import { closeModalLink } from '@shared/utils/modal-links';
 import type { RestockOrder, RestockProduct, RestockSuggestion } from '../../interfaces/restock.models';
 import { RestockPageComponent } from './restock-page.component';
 
@@ -44,7 +47,7 @@ describe('RestockPageComponent', () => {
   let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let confirm: { ask: ReturnType<typeof vi.fn> };
 
-  const root = () => fixture.nativeElement as HTMLElement;
+  const root = () => document.body;
   const text = () => (root().textContent ?? '').replace(/\s+/g, ' ');
   const settle = async () => {
     fixture.detectChanges();
@@ -101,6 +104,22 @@ describe('RestockPageComponent', () => {
     req.flush({ order, replayed }, { status: replayed ? 200 : 201, statusText: 'OK' });
 
   afterEach(() => httpMock.verify());
+
+  describe('pop-up', () => {
+    it('se pinta dentro de un modal-panel con el título «Lista de resurtir»', async () => {
+      await load();
+      const panel = fixture.debugElement.query(By.directive(ModalPanelComponent));
+      expect(panel).not.toBeNull();
+      expect(panel.componentInstance.title()).toBe('Lista de resurtir');
+    });
+
+    it('cerrar el pop-up cierra la ventana y vuelve a «Stock general»', async () => {
+      await load();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      fixture.debugElement.query(By.directive(ModalPanelComponent)).componentInstance.closed.emit();
+      expect(navigate).toHaveBeenCalledWith(closeModalLink());
+    });
+  });
 
   describe('estados', () => {
     it('mientras carga muestra «Lista de resurtir» y un esqueleto de 3 renglones', async () => {

@@ -25,8 +25,9 @@ export type RestockFormGroup = FormGroup<{
   lines: FormArray<RestockLineFormGroup>;
 }>;
 
-// Acción que está en curso: el botón pulsado muestra espera y los tres se deshabilitan.
-export type RestockBusyAction = 'save' | 'close' | 'discard';
+// Acción en curso: el botón pulsado muestra espera y los tres se deshabilitan. «reload» bloquea la
+// lista mientras la página vuelve a cargar el borrador (no se puede actuar sobre uno viejo).
+export type RestockBusyAction = 'save' | 'close' | 'discard' | 'reload';
 
 // Acción del aviso de error de la página.
 export type RestockNoticeAction = 'reload' | 'retry';

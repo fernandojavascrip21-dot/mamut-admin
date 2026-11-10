@@ -33,7 +33,7 @@ Fuentes:
   - **Lectura de productos pedibles:** `GET /api/restock/products` (solo administrador), con piezas en bodega, nivel y costo de fábrica actual.
   - Pruebas nuevas contra la base real (§9).
 - **Frontend, feature nueva `src/app/features/restock/`:**
-  - Página `restock-page` en `/admin/resurtir` (`restock.routes.ts`, `loadComponent`), montada en `admin.routes.ts`.
+  - Pop-up `restock-page` en el outlet `ventana` (`(ventana:resurtir)`, `restock.routes.ts`, `loadComponent`), montado en `admin.routes.ts` como los demás pop-ups; usa `shared/components/modal-panel`. Cerrarlo vuelve a «Stock general».
   - Formulario reactivo presentacional `restock-form`: renglones (`FormArray`), «Agregar producto», «Escribir un producto», «Agregar sugeridos (N)», nota, total estimado y los botones de la página.
   - Renglón presentacional `restock-line`: de catálogo (foto, nombre, piezas en bodega con su nivel, piezas, costo, «Quitar», «Ya no se puede pedir») o escrito a mano (nombre, piezas, costo, etiqueta «Escrito a mano», «Quitar»).
   - Regla pura del total estimado (`rules/restock-estimate.rules.ts`), `RestockService` (productos pedibles, sugerencias, borrador más reciente, detalle, crear, actualizar, cerrar, descartar), modelos, validadores, reglas y constantes.
@@ -293,18 +293,19 @@ Constantes:
 - `constants/restock.constants.ts`: URLs, `MAX_QTY` (2147483647), `MAX_LINES` (200), `MAX_NOTE_LENGTH` (500), `MAX_CUSTOM_NAME_LENGTH` (120) — los mismos topes del backend para validar antes de enviar.
 - `constants/restock-page.constants.ts` y `components/*/…constants.ts`: los textos de §2 y §5.
 
-`StockQuickActionIcon` agrega `'restock'`. `YO_QUICK_ACTIONS` agrega `{ label: 'Resurtir', link: '/admin/resurtir', icon: 'restock' }` después de «Entrada a bodega».
+`StockQuickActionIcon` agrega `'restock'`. `YO_QUICK_ACTIONS` agrega `{ label: 'Resurtir', link: <enlace de la ventana resurtir>, icon: 'restock' }` después de «Entrada a bodega».
 
 ## 5. Interfaz
 
-- **Página** «Lista de resurtir» (`page-title`), con subtítulo «Pedido nuevo» o «Borrador del <fecha>» · «Guardado <fecha>».
-- **Lista:** un renglón por producto (`surface-*`):
+- **Pop-up** «Lista de resurtir» (`modal-panel`, ancho amplio, alto casi completo: ~`min(1100px, 95vw)` × `90vh`), con subtítulo «Pedido nuevo» o «Borrador del <fecha>» · «Guardado <fecha>». Encabezado y barra inferior fijos; solo el cuerpo de la tabla hace scroll.
+- **Lista como tabla con scroll:** encabezados fijos (Producto · En bodega · Piezas · Costo unitario · Quitar) y una fila por producto; solo el cuerpo hace scroll dentro del pop-up (`surface-*`, `overflow-y-auto`):
   - De catálogo: foto, nombre, «N piezas en bodega» con `Tag` del nivel («Agotado» / «Baja existencia», de `stock-level.constants.ts`), «Piezas», «Costo unitario» («Solo para este pedido») y «Quitar».
   - Escrito a mano: etiqueta «Escrito a mano», nombre, «Piezas», «Costo unitario» (opcional) y «Quitar».
-  - A 375 px los campos bajan bajo el nombre, apilados.
-- **Debajo de la lista:** «Agregar producto» (`p-select` con filtro, opciones «Nombre · N piezas en bodega»), «Escribir un producto» (bloque con «Nombre» y «Costo» y el botón «Agregar») y «Agregar sugeridos (N)» (secundario, solo si N > 0); luego «Nota del pedido» con contador.
-- **Total estimado:** fila al pie de la lista con «Total estimado» y el monto, más «N sin costo» si aplica; es texto, no un control.
-- **Acciones** (al final, en el flujo, no flotantes): aviso de error (si hay), «Guardar pedido» (primario), «Cerrar pedido» (secundario) y, con borrador, «Descartar borrador» (texto, `danger`).
+  - Desde `lg` cada renglón es una fila de la tabla. Por debajo de `lg`, y a 375 px, las filas se apilan (campos bajo el nombre) y el pop-up ocupa casi toda la pantalla.
+- **Arriba de la tabla, fijo:** «Agregar producto» (`p-select` con filtro, opciones «Nombre · N piezas en bodega»), «Escribir un producto» (bloque con «Nombre» y «Costo» y el botón «Agregar») y «Agregar sugeridos (N)» (secundario, solo si N > 0); la «Nota del pedido» con contador va al final del cuerpo con scroll.
+- **Total estimado:** va en la barra inferior fija, con «N sin costo» si aplica; es texto, no un control.
+- **Barra de acciones fija** (pie del pop-up, siempre visible): «Total estimado», «Guardar pedido» (primario) y «Cerrar pedido» (secundario). A 375 px el total va arriba y los botones en dos columnas de 44 px.
+- **Al final de la lista, en el flujo:** aviso de error (si hay) y, con borrador, «Descartar borrador» (texto, `danger`).
 - **Estados** (patrón de T-26):
   - Cargando → `Skeleton` de 3 renglones.
   - Error al cargar → «No pudimos cargar la lista de resurtir» con «Reintentar» (`reload()`).
@@ -342,7 +343,7 @@ Constantes:
 
 ## 7. Criterios de aceptación
 
-- [ ] Con «Yo · bodega», «Stock general» muestra «Resurtir» después de «Entrada a bodega», que abre `/admin/resurtir`.
+- [ ] Con «Yo · bodega», «Stock general» muestra «Resurtir» después de «Entrada a bodega», que abre el pop-up «Lista de resurtir» sobre «Stock general».
 - [ ] Sin borrador, la lista parte de los productos con baja o nula existencia en la bodega, en el orden del backend, con piezas vacías, el nivel y el costo registrado de cada uno, y no cuenta como cambio sin guardar (criterio 1 de `SCRUM-88`).
 - [ ] Se pueden cambiar piezas, quitar renglones y agregar un producto con el selector (criterio 2).
 - [ ] El selector «Agregar producto» ofrece productos con existencia suficiente (no solo bajos), con «N piezas en bodega», y no ofrece bolsitas, desactivados ni los ya agregados.
@@ -398,7 +399,7 @@ Constantes:
   - `restock-form.component.spec.ts`: errores al enviar (no al tocar), quitar y agregar marcan `dirty`, «Escribir un producto», «Agregar sugeridos (N)», total estimado al escribir, lista vacía no se cierra, renglón no pedible bloquea, `output()` con el payload (`unitCost` en cada renglón).
   - `restock-page.component.spec.ts`: estados, pedido nuevo vs borrador, `POST` y luego `PUT`, `requestId` que se conserva al reintentar, cerrar con y sin cambios (`switchMap`) con el total en la confirmación, confirmaciones aceptar/cancelar, descartar, un solo envío, toasts y `reload()`.
   - `unsaved-restock.guard.spec.ts`: con y sin cambios, «Salir» / «Seguir editando».
-  - `admin.routes.restock.spec.ts`: `/admin/resurtir` carga la página con el guard.
+  - `admin.routes.restock.spec.ts`: la ventana `resurtir` carga la página con el guard.
   - `stock-quick-actions.restock.spec.ts`: el ícono `restock`.
 - **Con commit, requieren `./desbloquear stock-page`** (cambio de comportamiento pedido por esta historia):
   - `stock-page.component.spec.ts:148`: la lista de «Yo» pasa a `['Entrada a bodega', 'Resurtir', 'Dejar a vendedor', 'Vender', 'Registrar merma', 'Fraccionar', 'Nuevo producto']`.
@@ -408,8 +409,8 @@ Constantes:
 
 ## 10. Decisiones
 
-- **Sí:** página propia `/admin/resurtir`, feature nueva `features/restock/`, con entrada «Resurtir» en «Stock general» (decisión del usuario). La lista puede ser larga.
-- **No:** pop-up en el outlet `ventana`, elemento en el menú superior, enlace en el aviso de baja existencia.
+- **Sí:** pop-up `resurtir` en el outlet `ventana` (decisión del usuario del 2026-11-10, al ver la pantalla como página: no aprovechaba el espacio y los botones se perdían), feature nueva `features/restock/`, con entrada «Resurtir» en «Stock general». Reemplaza la decisión original de página propia `/admin/resurtir`.
+- **No:** elemento en el menú superior ni enlace en el aviso de baja existencia.
 - **Sí:** borrador que se retoma (decisión del usuario): «Guardar pedido» crea (`POST`) y luego actualiza (`PUT`); al entrar se retoma el borrador más reciente; «Cerrar pedido» aparte, con confirmación.
 - **No:** guardar = cerrar, ni dejar el cierre para HU-32.
 - **Sí:** «Cerrar pedido» con cambios sin guardar guarda y cierra en un clic (decisión del usuario).
@@ -431,6 +432,7 @@ Constantes:
 - **No:** mover el guard de productos a `shared` (refactor que toca tests con commit).
 - **Sí:** «Descartar borrador», nota del pedido y aviso «Ya no se puede pedir» (decisión del usuario).
 - **Sí:** los topes de T-36 (`MAX_QTY`, `MAX_LINES`, 500 caracteres) y los nuevos (nombre de 120, costo con 4 decimales) se validan también en el frontend para dar el error de campo antes de enviar; el backend sigue mandando.
+- **Sí:** barra de acciones fija abajo con el total, «Guardar pedido» y «Cerrar pedido», y renglones en una fila desde `lg` (decisión del usuario del 2026-11-10, al ver la pantalla con varios productos: los botones se perdían al final de la lista). Reemplaza «en el flujo, no flotantes».
 - **Sí:** el nivel de cada renglón de catálogo se toma de `stockLevel` del backend; el frontend no compara contra el umbral (regla de HU-18).
 
 ## Lo que **no** entra en este spec

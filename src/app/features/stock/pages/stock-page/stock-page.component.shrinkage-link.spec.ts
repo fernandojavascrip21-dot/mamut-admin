@@ -73,8 +73,8 @@ describe('StockPageComponent · vista «Mermas» en lugar del enlace «Ver merma
     expect(labelsOf()).not.toContain('Ver mermas');
   });
 
-  it('los movimientos rápidos no cambian: seis con «Yo · bodega»', async () => {
+  it('los movimientos rápidos no cambian: siete con «Yo · bodega»', async () => {
     await load();
-    expect(el().querySelectorAll('a.quick-action')).toHaveLength(6);
+    expect(el().querySelectorAll('a.quick-action')).toHaveLength(7);
   });
 });

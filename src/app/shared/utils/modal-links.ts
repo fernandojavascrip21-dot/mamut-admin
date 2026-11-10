@@ -44,6 +44,11 @@ export function purchaseModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_PURCHASE_PATH] } }];
 }
 
+// «Lista de resurtir» (HU-31): siempre de la bodega, sin parámetros.
+export function restockModalLink(): unknown[] {
+  return ['/admin'];
+}
+
 export function closeModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: null } }];
 }

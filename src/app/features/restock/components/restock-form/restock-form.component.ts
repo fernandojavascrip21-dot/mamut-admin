@@ -51,6 +51,8 @@ export class RestockFormComponent implements OnInit {
   readonly hasDraft = input(false);
   readonly notice = input<string | null>(null);
   readonly noticeAction = input<RestockNoticeAction | null>(null);
+  // Total que devuelve el backend tras guardar; null mientras la lista no se guardó o cambió.
+  readonly savedTotal = input<string | null>(null);
 
   readonly saved = output<RestockFormSubmit>();
   readonly closed = output<RestockFormSubmit>();
@@ -78,6 +80,8 @@ export class RestockFormComponent implements OnInit {
   readonly submitError = signal<string | null>(null);
   readonly isBusy = computed(() => this.busy() !== null);
   private readonly snapshot = signal<RestockFormValue>({ note: '', lines: [] });
+  // Última acción de guardar o cerrar: el reintento la repite con los valores actuales.
+  private lastAction: 'save' | 'close' | null = null;
 
   // --- Vistas calculadas de la lista escrita ---
   readonly rows = computed<RestockRow[]>(() => {
@@ -95,8 +99,10 @@ export class RestockFormComponent implements OnInit {
   readonly estimate = computed(() =>
     estimateTotal(this.snapshot().lines.filter((_, index) => this.rows()[index].view.orderable)),
   );
+  // Lo que se pinta: el total del backend tras guardar, y el calculado en vivo al volver a editar.
+  readonly shownTotal = computed(() => this.savedTotal() ?? this.estimate().total);
   // Único `Number()` del total: solo para que el pipe `currency` lo muestre.
-  readonly totalAmount = computed(() => Number(this.estimate().total));
+  readonly shownAmount = computed(() => Number(this.shownTotal()));
   readonly noteLength = computed(() => [...this.snapshot().note.trim()].length);
   readonly noteError = computed(() =>
     this.submitted() && this.noteLength() > MAX_NOTE_LENGTH ? this.texts.noteTooLong : null,
@@ -266,8 +272,14 @@ export class RestockFormComponent implements OnInit {
 
   // Valida y emite. Primero los avisos generales (que no tienen campo), después los campos; un
   // error general no marca campos, así que no se pinta nada sobre renglones que no se ven.
+  // Reintento tras un fallo de red: vuelve a leer la lista tal como está ahora, no el envío anterior.
+  resubmit(): void {
+    if (this.lastAction) this.submit(this.lastAction);
+  }
+
   private submit(action: 'save' | 'close'): void {
     if (this.isBusy()) return;
+    this.lastAction = action;
     const problem = this.generalProblem(action);
     this.submitError.set(problem);
     if (problem) return;

@@ -1,28 +1,24 @@
-import type { Route, Routes } from '@angular/router';
+import type { Route } from '@angular/router';
+import { MODAL_OUTLET, MODAL_RESTOCK_PATH } from '@shared/constants/modal.constants';
 import { unsavedRestockGuard } from '@features/restock/guards/unsaved-restock.guard';
 import { RestockPageComponent } from '@features/restock/pages/restock-page/restock-page.component';
 import { ADMIN_ROUTES } from './admin.routes';
 
-describe('ADMIN_ROUTES · «Lista de resurtir»', () => {
-  const mounted = () => ADMIN_ROUTES.find((route) => route.path === 'resurtir') as Route;
-  const pageRoute = async (): Promise<Route> => {
-    const children = await (mounted().loadChildren as () => Promise<Routes>)();
-    return children.find((route) => route.path === '') as Route;
-  };
+describe('ADMIN_ROUTES · ventana «Lista de resurtir»', () => {
+  const modalRoute = () =>
+    ADMIN_ROUTES.find((route) => route.outlet === MODAL_OUTLET && route.path === MODAL_RESTOCK_PATH) as Route;
 
-  it('/admin/resurtir se monta con carga diferida, en el outlet principal', () => {
-    expect(mounted()).toBeDefined();
-    expect(mounted().loadChildren).toBeDefined();
-    expect(mounted().outlet).toBeUndefined();
+  it('«resurtir» vive en el outlet «ventana», ya no en el principal', () => {
+    expect(modalRoute()).toBeDefined();
+    expect(ADMIN_ROUTES.find((route) => route.path === 'resurtir' && route.outlet === undefined)).toBeUndefined();
   });
 
-  it('carga la página «Lista de resurtir»', async () => {
-    const route = await pageRoute();
-    expect(await (route.loadComponent as () => Promise<unknown>)()).toBe(RestockPageComponent);
-    expect(route.data?.['title']).toBe('Lista de resurtir');
+  it('carga la página «Lista de resurtir» con su título', async () => {
+    expect(await (modalRoute().loadComponent as () => Promise<unknown>)()).toBe(RestockPageComponent);
+    expect(modalRoute().data?.['title']).toBe('Lista de resurtir');
   });
 
-  it('protege la salida con unsavedRestockGuard', async () => {
-    expect((await pageRoute()).canDeactivate).toContain(unsavedRestockGuard);
+  it('protege la salida con unsavedRestockGuard', () => {
+    expect(modalRoute().canDeactivate).toContain(unsavedRestockGuard);
   });
 });

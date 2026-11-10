@@ -67,10 +67,10 @@ describe('StockPageComponent · selector de vista (HU-26 §12)', () => {
     expect(labels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
   });
 
-  it('sigue habiendo seis movimientos rápidos y el selector no es uno de ellos', async () => {
+  it('sigue habiendo siete movimientos rápidos y el selector no es uno de ellos', async () => {
     await load();
     const links = Array.from(el().querySelectorAll('a.quick-action')).map((a) => a.textContent!.trim());
-    expect(links).toHaveLength(6);
+    expect(links).toHaveLength(7);
     expect(links).not.toContain('Fraccionados');
   });
 });

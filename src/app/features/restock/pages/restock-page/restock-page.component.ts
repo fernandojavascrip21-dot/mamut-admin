@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, from, Observable, of, switchMap, tap } from 'rxjs';
 import { ButtonDirective } from 'primeng/button';
@@ -63,10 +63,17 @@ export class RestockPageComponent {
   readonly busy = signal<RestockBusyAction | null>(null);
   readonly saving = computed(() => this.busy() !== null);
   readonly dirty = signal(false);
+  // Total estimado que devolvió el backend tras guardar; null cuando la lista cambió después.
+  readonly savedTotal = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
   readonly noticeAction = signal<RestockNoticeAction | null>(null);
-  // Repite lo último que falló, con los mismos datos y el mismo requestId.
-  private retryLast: (() => void) | null = null;
+  // Reintento de descartar. Guardar y cerrar se reintentan desde el formulario (datos actuales).
+  private discardRetry: (() => void) | null = null;
+  private readonly formRef = viewChild(RestockFormComponent);
+  // Lista bloqueada mientras guarda o mientras vuelve a cargar el borrador tras cerrar o descartar.
+  readonly formBusy = computed<RestockBusyAction | null>(() =>
+    this.busy() ?? (this.data.isLoading() ? 'reload' : null),
+  );
   // Llave de idempotencia del pedido nuevo: se crea una vez y solo se conserva si el envío falla por red.
   private requestId: string | null = null;
 
@@ -79,13 +86,19 @@ export class RestockPageComponent {
     this.data.reload();
   }
 
+  // Al primer cambio después de guardar, el total vuelve a calcularse en pantalla.
   onDirtyChange(dirty: boolean): void {
+    if (dirty) this.savedTotal.set(null);
     this.dirty.set(dirty);
   }
 
   onNoticeAction(action: RestockNoticeAction): void {
-    if (action === 'reload') this.refresh();
-    else this.retryLast?.();
+    if (action === 'reload') {
+      this.refresh();
+      return;
+    }
+    if (this.discardRetry) this.discardRetry();
+    else this.formRef()?.resubmit();
   }
 
   // --- Guardar, cerrar y descartar ---
@@ -130,7 +143,7 @@ export class RestockPageComponent {
     this.busy.set(action);
     this.notice.set(null);
     this.noticeAction.set(null);
-    this.retryLast = () => this.perform(action, submit);
+    this.discardRetry = null;
     return action === 'save' ? this.sendSave(submit) : this.closeOrder(submit);
   }
 
@@ -165,7 +178,7 @@ export class RestockPageComponent {
     this.busy.set('discard');
     this.notice.set(null);
     this.noticeAction.set(null);
-    this.retryLast = () => this.discardNow(id);
+    this.discardRetry = () => this.discardNow(id);
     return this.service.discard(id);
   }
 
@@ -183,7 +196,7 @@ export class RestockPageComponent {
       return;
     }
     if (action === 'save') {
-      this.retryLast = null;
+      this.discardRetry = null;
       this.toast.success(this.texts.saved);
       return;
     }
@@ -220,7 +233,9 @@ export class RestockPageComponent {
   // Un pedido guardado pasa a ser el borrador de la pantalla: el formulario se re-sincroniza y queda sin cambios.
   private adopt(result: RestockResult): void {
     const base = this.loaded();
-    if (result.ok && base) this.savedDraft.set({ base, draft: result.order });
+    if (!result.ok || !base) return;
+    this.savedDraft.set({ base, draft: result.order });
+    this.savedTotal.set(result.order.estimatedTotal);
   }
 
   // Vuelve a pedir todo tras «Volver a cargar». El pedido nuevo que sigue parte de cero, con llave nueva.
@@ -237,8 +252,9 @@ export class RestockPageComponent {
   }
 
   private resetOrderState(): void {
+    this.savedTotal.set(null);
     this.requestId = null;
-    this.retryLast = null;
+    this.discardRetry = null;
     this.notice.set(null);
     this.noticeAction.set(null);
   }
