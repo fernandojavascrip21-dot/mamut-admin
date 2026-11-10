@@ -110,10 +110,10 @@ jobs:
       # Las pruebas escriben en la base: un error en una variable no debe llevarlas a producción.
       - name: Guardia de producción
         run: |
-          case "$DATABASE_URL" in
-            *@127.0.0.1:54322/*) ;;
-            *) echo "::error::DATABASE_URL no apunta a Supabase local (127.0.0.1:54322)."; exit 1 ;;
-          esac
+          if [ "$DATABASE_URL" != "postgresql://postgres:postgres@127.0.0.1:54322/postgres" ]; then
+            echo "::error::DATABASE_URL no apunta a Supabase local (127.0.0.1:54322)."
+            exit 1
+          fi
           if [ "$SUPABASE_URL" != "http://127.0.0.1:54321" ]; then
             echo "::error::SUPABASE_URL no apunta a Supabase local (http://127.0.0.1:54321)."
             exit 1
@@ -149,7 +149,7 @@ jobs:
           skipped=$(jq '(.numPendingTests // 0) + (.numTodoTests // 0)' vitest-results.json)
           if [ "$skipped" -gt 0 ]; then
             echo "::warning::$skipped pruebas del backend se saltaron"
-            echo "⚠️ $skipped pruebas del backend se saltaron" >> "$GITHUB_STEP_SUMMARY"
+            echo "$skipped pruebas del backend se saltaron" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Detener Supabase local
