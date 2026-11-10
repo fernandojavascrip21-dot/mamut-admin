@@ -94,7 +94,7 @@ describe.skipIf(!hasServiceKey)('Base de pedidos de resurtir (T-36, base real)',
   })
 
   describe('sugerencias', () => {
-    const mine = (list: { name: string }[]) => list.filter((row) => row.name.startsWith(PREFIX))
+    const mine = <T extends { name: string }>(list: T[]) => list.filter((row) => row.name.startsWith(PREFIX))
 
     it('trae A (0, out) y B (2, low) en ese orden con units y unitCost, y no trae C (3)', async () => {
       const a = await newProduct({ qty: 0, unitCost: '12.5000', label: 'sug-a' })
@@ -117,7 +117,7 @@ describe.skipIf(!hasServiceKey)('Base de pedidos de resurtir (T-36, base real)',
         initialQty: 3, fractionable: true, portionSize: '250 g', image: null,
       }, admin.id)
       const { fraction } = await createFraction(
-        { requestId: randomUUID(), productId: whole.id as number, portions: 1, price: '85.00' }, asAdmin())
+        { requestId: randomUUID(), productId: whole.id as number, portions: 2, price: '900.00' }, asAdmin())
       const bagId = fraction.portionProduct.id
       const { suggestions } = await getRestockSuggestions(asAdmin())
       const ids = suggestions.map((row) => row.productId)
@@ -248,7 +248,7 @@ describe.skipIf(!hasServiceKey)('Base de pedidos de resurtir (T-36, base real)',
         initialQty: 3, fractionable: true, portionSize: '250 g', image: null,
       }, admin.id)
       const { fraction } = await createFraction(
-        { requestId: randomUUID(), productId: whole.id as number, portions: 2, price: '85.00' }, asAdmin())
+        { requestId: randomUUID(), productId: whole.id as number, portions: 2, price: '900.00' }, asAdmin())
       await expect(createRestockOrder(input([{ productId: fraction.portionProduct.id, qty: 1 }]), asAdmin()))
         .rejects.toMatchObject({ code: 'validation', message: PRODUCT_NOT_ORDERABLE })
     })
