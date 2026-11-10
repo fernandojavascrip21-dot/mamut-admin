@@ -1,6 +1,6 @@
 # Spec técnico — T-32 · CI en GitHub Actions: build, arquitectura y pruebas
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M7-t31-configuracion-por-ambiente (`specs/M7-t31-configuracion-por-ambiente/spec.md`) — `API_BASE_URL` y `config:prepare` en los hooks `pre*`
 > **Fecha:** 2026-11-09
 > **Objetivo:** que cada PR y cada push a `main` compilen y prueben solos el frontend y el backend, incluida la suite del backend contra Supabase local en el runner, y que una falla bloquee el merge.

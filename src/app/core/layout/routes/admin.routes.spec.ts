@@ -1,5 +1,5 @@
-import type { Route } from '@angular/router';
-import { ComingSoonPageComponent } from '@shared/pages/coming-soon-page/coming-soon-page.component';
+import { TestBed } from '@angular/core/testing';
+import { type ActivatedRouteSnapshot, type Route, Router, type UrlTree, provideRouter } from '@angular/router';
 import { ADMIN_CASH_CUT_ROUTES } from '@features/cash-cut/cash-cut.routes';
 import { ADMIN_CART_ROUTES, ADMIN_SALE_ROUTES } from '@features/sell/sell.routes';
 import { STOCK_ROUTES } from '@features/stock/stock.routes';
@@ -13,10 +13,13 @@ describe('ADMIN_ROUTES', () => {
     expect(loaded).toBe(STOCK_ROUTES);
   });
 
-  it('«entrada» carga la página «Próximamente»', async () => {
+  it('«entrada» redirige a la ventana «Entrada a bodega» sobre «Stock general»', () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const route = routeOf('entrada');
-    expect(route.data?.['title']).toBe('Entrada a bodega');
-    expect(await (route.loadComponent as () => Promise<unknown>)()).toBe(ComingSoonPageComponent);
+    expect(route.loadComponent).toBeUndefined();
+    const redirect = route.redirectTo as (snapshot: ActivatedRouteSnapshot) => UrlTree;
+    const tree = TestBed.runInInjectionContext(() => redirect({} as ActivatedRouteSnapshot));
+    expect(TestBed.inject(Router).serializeUrl(tree)).toBe('/admin/(stock//ventana:entrada)');
   });
 
   it('«carrito» carga las rutas del carrito del administrador', async () => {

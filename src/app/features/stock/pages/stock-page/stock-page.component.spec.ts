@@ -6,7 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { deliveryModalLink, editHoldingModalLink, fractionModalLink, returnModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, fractionModalLink, purchaseModalLink, returnModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import { StockPageComponent } from './stock-page.component';
@@ -147,7 +147,7 @@ describe('StockPageComponent', () => {
     it('ofrece los seis movimientos rápidos con sus destinos', () => {
       expect(actionLabels()).toEqual(['Entrada a bodega', 'Dejar a vendedor', 'Vender', 'Registrar merma', 'Fraccionar', 'Nuevo producto']);
       expect(actionHrefs()).toEqual([
-        '/admin/entrada',
+        hrefOf(purchaseModalLink()),
         hrefOf(deliveryModalLink()),
         '/admin/productos',
          hrefOf(shrinkageModalLink()),

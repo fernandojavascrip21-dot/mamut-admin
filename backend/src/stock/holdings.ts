@@ -424,6 +424,36 @@ export async function movementOfShrinkage(requestId: string): Promise<ShrinkageM
   }
 }
 
+// La fila de una entrada a bodega (HU-27) con el saldo de la bodega antes → después.
+export interface PurchaseMovement {
+  requestId: string
+  createdAt: string
+  productId: number
+  qty: number
+  stock: { before: number; after: number }
+}
+
+// Entrada registrada con ese requestId, o null si no hay fila `purchase` con él. El saldo sale de
+// los movimientos hasta esa fila, no de la caché actual, para que un GET o una repetición den lo
+// mismo que el primer POST.
+export async function movementOfPurchase(requestId: string): Promise<PurchaseMovement | null> {
+  const [row] = await db
+    .select()
+    .from(stockMovements)
+    .where(and(eq(stockMovements.requestId, requestId), eq(stockMovements.type, 'purchase')))
+    .orderBy(asc(stockMovements.id))
+    .limit(1)
+  if (!row) return null
+  const after = await balanceUpTo(row.productId, row.holderProfileId, row.id)
+  return {
+    requestId,
+    createdAt: row.createdAt,
+    productId: row.productId,
+    qty: row.qty,
+    stock: { before: after - row.qty, after },
+  }
+}
+
 // Un renglón de venta con el stock del titular antes → después (T-18). `qty` va en positivo.
 export interface SaleMovement {
   productId: number
