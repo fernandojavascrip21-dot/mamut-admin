@@ -25,10 +25,10 @@ npm test                                    # ng test: Vitest runner, jsdom (not
 ng test --include src/app/core/auth/services/auth.service.spec.ts   # one file
 ng test --filter "AuthService"                                      # by name
 npm run check:architecture                  # layer boundaries of src/app — run it with the build
-npm run ui:prepare                          # generates the PrimeNG license file (the pre* hooks run it)
+npm run config:prepare                      # PrimeNG license + API URL files (the pre* hooks run it); ui:prepare / api:prepare run each alone
 ```
 
-Direct `ng serve|build|test` need `npm run ui:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY`. There is no lint script.
+Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY` and `API_BASE_URL`. `API_BASE_URL` (spec `M7-t31`) is the backend origin read at build time from the env or the root `.env`: absolute URL, `http:` only for localhost/127.0.0.1, no path; if missing or invalid the build fails. `scripts/prepare-api-url.mjs` writes the git-ignored `core/api-base-url.generated.ts`, which only `core/api-base-url.ts` re-exports. There is no lint script.
 
 ### Backend (`cd backend` — own `package.json`, `node_modules`, `.env`)
 

@@ -40,6 +40,29 @@ npm run dev        # levanta Angular (:4200) y el backend (:3000)
 
 Entra a http://localhost:4200. Para terminar, `Ctrl+C` detiene la app. `npm run db:stop` apaga la base, pero es opcional: los datos se conservan.
 
+## Variables de entorno
+
+Solo nombres y para qué sirven; los valores nunca se suben a git.
+
+| Proyecto | Variable | Para qué sirve | ¿Secreta? |
+| --- | --- | --- | --- |
+| Frontend (`.env` en la raíz) | `PRIMENG_LICENSE_KEY` | Licencia de PrimeNG; se genera al compilar | No se versiona |
+| Frontend (`.env` en la raíz) | `API_BASE_URL` | Origen del backend (por ejemplo `http://localhost:3000`); se genera al compilar | No |
+| Backend (`backend/.env`) | `DATABASE_URL` | Conexión a Postgres (Session pooler, 5432) | Sí |
+| Backend | `SUPABASE_URL` | URL del proyecto Supabase | No |
+| Backend | `SUPABASE_ANON_KEY` | Llave pública: valida tokens y hace login | No se versiona |
+| Backend | `SUPABASE_SERVICE_ROLE_KEY` | Llave secreta: crea y edita cuentas | Sí |
+| Backend | `ALLOWED_ORIGINS` | Orígenes exactos del frontend para CORS | No |
+
+Copia `.env.example` a `.env` en la raíz. Las variables del frontend se leen al compilar con `npm run config:prepare`, que corren solos `npm start`, `npm run dev`, `npm run build`, `npm run watch` y `npm test`. Si falta `API_BASE_URL` o no es válida, el build falla con un mensaje que dice qué poner. Si tu IDE marca error en `core/api-base-url.ts` en un clon nuevo, corre `npm run config:prepare` una vez.
+
+`API_BASE_URL` debe ser una URL absoluta, solo el origen (sin ruta), y `https://` fuera de `localhost` y `127.0.0.1`. Una variable de entorno vacía gana sobre el `.env` y hace fallar el build.
+
+### En un ambiente público
+
+- **Frontend:** definir `API_BASE_URL` (y `PRIMENG_LICENSE_KEY`) como variables del proveedor o de CI, y compilar con `npm run build`, no con `ng build` directo, para que se genere el archivo de configuración. En CI, `API_BASE_URL=http://localhost:3000` basta para las pruebas.
+- **Backend:** cargar sus cinco variables y poner en `ALLOWED_ORIGINS` el origen público exacto del frontend. Ver «Despliegue» en `backend/README.md`.
+
 ## Base de prueba (Docker) vs. producción
 
 `backend/.env` tiene dos bloques de conexión, **PRODUCCIÓN** y **LOCAL**. Deja activo uno y comenta el otro con `#` (en VS Code: selecciona las líneas y usa `Cmd+/`).
