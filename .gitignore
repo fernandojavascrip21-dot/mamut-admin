@@ -50,5 +50,8 @@ Thumbs.db
 /.env
 /src/app/core/ui/constants/primeng-license.generated.ts
 
+# URL de la API generada desde API_BASE_URL antes de compilar
+/src/app/core/api-base-url.generated.ts
+
 # Desbloqueos de tests por rama (los controla solo Fernando)
 /.claude/desbloqueos/

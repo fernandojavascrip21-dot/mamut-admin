@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working in this
 
 A new **Angular 22** admin app (`mamut-admin`) for a supplement-inventory business (Mammut Supplements), paired with a **Next.js API-only backend** in `backend/`. The backend was copied from a sibling project (`mammutSuplements/mammut-Suplements`, a Vue catalog app for the same business/Supabase project) and is **reused and extended**, not rebuilt:
 
-- `backend/README.md` still describes the old Vue frontend (accurate for backend code, outdated about who consumes it). `ALLOWED_ORIGINS` still lists the old Vue port.
+- `backend/README.md` describes this backend and the Angular app that consumes it (rewritten in spec `M7-t31`); `ALLOWED_ORIGINS` in `backend/.env.example` lists only the Angular origin (`http://localhost:4200`).
 - The schema (`clients`, `consignment_items`, `debtors`, …) reflects the old domain. Settled in `specs/M1-t03-tablas-productos-stock`: **a `vendedor` is not a `client`**; a seller is a `profiles` row with `role = 'vendedor'` and no `clients` row (`clients`/`consignment_items` stay reserved for a wholesale distributor the app doesn't use yet).
 - `profiles.role` allows `'admin' | 'client' | 'vendedor'` (`profiles_role_check` and `AuthContext['role']`); a `vendedor` needs a 10-digit `profiles.phone` (spec `M2-t10`). A new role **extends** both, never replaces them.
 - Schema changes for this repo are timestamped SQL files in `supabase/migrations/`.
@@ -25,10 +25,10 @@ npm test                                    # ng test: Vitest runner, jsdom (not
 ng test --include src/app/core/auth/services/auth.service.spec.ts   # one file
 ng test --filter "AuthService"                                      # by name
 npm run check:architecture                  # layer boundaries of src/app — run it with the build
-npm run ui:prepare                          # generates the PrimeNG license file (the pre* hooks run it)
+npm run config:prepare                      # PrimeNG license + API URL files (the pre* hooks run it); ui:prepare / api:prepare run each alone
 ```
 
-Direct `ng serve|build|test` need `npm run ui:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY`. There is no lint script.
+Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY` and `API_BASE_URL`. `API_BASE_URL` (spec `M7-t31`) is the backend origin read at build time from the env or the root `.env`: absolute URL, `http:` only for localhost/127.0.0.1, no path; if missing or invalid the build fails. `scripts/prepare-api-url.mjs` writes the git-ignored `core/api-base-url.generated.ts`, which only `core/api-base-url.ts` re-exports. There is no lint script.
 
 ### Backend (`cd backend` — own `package.json`, `node_modules`, `.env`)
 
