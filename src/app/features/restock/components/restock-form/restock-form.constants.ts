@@ -23,6 +23,11 @@ export const RESTOCK_FORM_TEXTS = {
   notOrderable: 'Quita los productos que ya no se pueden pedir',
   tooManyLines: 'Un pedido lleva hasta 200 productos',
   emptyClose: 'Agrega al menos un producto para cerrar el pedido',
+  columnProduct: 'Producto',
+  columnStock: 'En bodega',
+  columnPieces: 'Piezas',
+  columnCost: 'Costo unitario',
+  columnRemove: 'Quitar',
 } as const;
 
 // Etiquetas del botón de acción del aviso de la página.

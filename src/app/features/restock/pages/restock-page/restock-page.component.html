@@ -1,52 +1,54 @@
-<section class="flex flex-col gap-5">
-  <header class="flex flex-col gap-1">
-    <h1 class="page-title m-0">{{ texts.title }}</h1>
-    @if (draft(); as order) {
-      <p class="m-0 text-sm text-muted">
-        {{ texts.draftSince }} {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' : timeZone }} ·
-        {{ texts.savedAt }} {{ order.updatedAt | date: 'dd/MM/yyyy HH:mm' : timeZone }}
-      </p>
-    } @else if (page()) {
-      <p class="m-0 text-sm text-muted">{{ texts.newOrder }}</p>
-    }
-  </header>
-
-  @if (failed()) {
-    <div class="alert-danger flex flex-col items-start gap-2 text-sm" role="alert">
-      <p class="m-0">{{ texts.loadFailed }}</p>
-      <button
-        pButton
-        type="button"
-        severity="secondary"
-        [text]="true"
-        class="h-11 min-w-11 px-3 text-sm"
-        (click)="retryLoad()"
-      >
-        {{ texts.retry }}
-      </button>
-    </div>
-  } @else if (page()) {
-    <app-restock-form
-      [products]="products()"
-      [suggestions]="suggestions()"
-      [initialLines]="formLines()"
-      [initialNote]="initialNote()"
-      [busy]="formBusy()"
-      [hasDraft]="draft() !== null"
-      [notice]="notice()"
-      [noticeAction]="noticeAction()"
-      [savedTotal]="savedTotal()"
-      (saved)="onSave($event)"
-      (closed)="onClose($event)"
-      (discarded)="onDiscard()"
-      (noticeActionClicked)="onNoticeAction($event)"
-      (dirtyChange)="onDirtyChange($event)"
-    />
-  } @else {
-    <div class="flex flex-col gap-3" aria-busy="true" [attr.aria-label]="texts.loadingLabel">
-      @for (row of skeletonRows; track row) {
-        <p-skeleton height="7rem" borderRadius="0.75rem" />
+<app-modal-panel [title]="texts.title" [closable]="!saving()" [wide]="true" (closed)="close()">
+  <div class="flex h-full min-h-0 flex-col gap-3">
+    <header class="shrink-0">
+      @if (draft(); as order) {
+        <p class="m-0 text-sm text-muted">
+          {{ texts.draftSince }} {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' : timeZone }} ·
+          {{ texts.savedAt }} {{ order.updatedAt | date: 'dd/MM/yyyy HH:mm' : timeZone }}
+        </p>
+      } @else if (page()) {
+        <p class="m-0 text-sm text-muted">{{ texts.newOrder }}</p>
       }
-    </div>
-  }
-</section>
+    </header>
+
+    @if (failed()) {
+      <div class="alert-danger flex shrink-0 flex-col items-start gap-2 text-sm" role="alert">
+        <p class="m-0">{{ texts.loadFailed }}</p>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [text]="true"
+          class="h-11 min-w-11 px-3 text-sm"
+          (click)="retryLoad()"
+        >
+          {{ texts.retry }}
+        </button>
+      </div>
+    } @else if (page()) {
+      <app-restock-form
+        class="flex min-h-0 flex-1 flex-col"
+        [products]="products()"
+        [suggestions]="suggestions()"
+        [initialLines]="formLines()"
+        [initialNote]="initialNote()"
+        [busy]="formBusy()"
+        [hasDraft]="draft() !== null"
+        [notice]="notice()"
+        [noticeAction]="noticeAction()"
+        [savedTotal]="savedTotal()"
+        (saved)="onSave($event)"
+        (closed)="onClose($event)"
+        (discarded)="onDiscard()"
+        (noticeActionClicked)="onNoticeAction($event)"
+        (dirtyChange)="onDirtyChange($event)"
+      />
+    } @else {
+      <div class="flex flex-col gap-3" aria-busy="true" [attr.aria-label]="texts.loadingLabel">
+        @for (row of skeletonRows; track row) {
+          <p-skeleton height="7rem" borderRadius="0.75rem" />
+        }
+      </div>
+    }
+  </div>
+</app-modal-panel>

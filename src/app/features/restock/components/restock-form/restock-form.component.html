@@ -1,28 +1,9 @@
-<div class="flex flex-col gap-5 pb-4">
+<div class="flex min-h-0 flex-1 flex-col">
   <!-- Mientras guarda o recarga, la lista no se edita: lo que se envió es lo que queda al volver. -->
   <fieldset class="contents min-w-0 border-0 p-0" [disabled]="isBusy()">
-    <section aria-label="Renglones del pedido" class="flex flex-col gap-2 lg:gap-2.5">
-      @if (lineGroups.length === 0) {
-        <div class="surface-card flex flex-col items-center gap-1 border-dashed p-6 text-center">
-          <p class="m-0 text-base font-bold text-ink">{{ texts.emptyTitle }}</p>
-          <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
-        </div>
-      } @else {
-        @for (group of lineGroups; track group; let i = $index) {
-          <app-restock-line
-            [group]="group"
-            [view]="rows()[i].view"
-            [showErrors]="submitted()"
-            [existsInCatalog]="rows()[i].existsInCatalog"
-            [duplicateName]="submitted() && rows()[i].duplicateName"
-            (removed)="removeLine(i)"
-          />
-        }
-      }
-    </section>
-
-    <section class="flex flex-col gap-3 surface-card p-3 lg:p-4">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+    <!-- Fijo arriba: agregar productos (no se desplaza con la tabla). -->
+    <section class="shrink-0 flex flex-col gap-3 pb-3">
+      <div class="flex flex-col gap-3 surface-card p-3 lg:flex-row lg:items-end lg:p-4">
         <div class="flex min-w-0 flex-1 flex-col gap-1.5">
           <label id="add-product-label" for="add-product" class="field-label">{{ texts.addProduct }}</label>
           <p-select
@@ -69,118 +50,156 @@
             }
           </div>
         }
-      </div>
 
-      @if (customOpen()) {
-        <div [formGroup]="customForm" class="grid grid-cols-1 gap-3 border-t border-line pt-3 lg:grid-cols-2">
-          <div class="flex flex-col gap-1.5">
-            <label for="custom-name" class="field-label">{{ texts.customNameLabel }}</label>
-            <input
-              pInputText
-              type="text"
-              id="custom-name"
-              formControlName="name"
-              class="restock-custom-name h-[52px] w-full min-w-0"
-              [invalid]="!!customNameError()"
-              [attr.aria-invalid]="customNameError() ? 'true' : null"
-            />
-            @if (customNameError(); as message) {
-              <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
-            }
+        @if (customOpen()) {
+          <div
+            [formGroup]="customForm"
+            class="grid grid-cols-1 gap-3 border-t border-line pt-3 lg:w-full lg:grid-cols-2"
+          >
+            <div class="flex flex-col gap-1.5">
+              <label for="custom-name" class="field-label">{{ texts.customNameLabel }}</label>
+              <input
+                pInputText
+                type="text"
+                id="custom-name"
+                formControlName="name"
+                class="restock-custom-name h-[52px] w-full min-w-0"
+                [invalid]="!!customNameError()"
+                [attr.aria-invalid]="customNameError() ? 'true' : null"
+              />
+              @if (customNameError(); as message) {
+                <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+              }
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="custom-cost" class="field-label">{{ texts.customCostLabel }}</label>
+              <input
+                pInputText
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                id="custom-cost"
+                formControlName="cost"
+                class="restock-custom-cost h-[52px] w-full min-w-0"
+                [invalid]="!!customCostError()"
+                [attr.aria-invalid]="customCostError() ? 'true' : null"
+              />
+              <p class="m-0 text-xs text-muted">{{ lineTexts.optionalHint }}</p>
+              @if (customCostError(); as message) {
+                <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+              }
+            </div>
+            <div class="flex flex-wrap gap-2 lg:col-span-2">
+              <button pButton type="button" class="h-11 px-5 text-sm" (click)="addCustom()">{{ texts.addCustom }}</button>
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [text]="true"
+                class="h-11 px-4 text-sm"
+                (click)="cancelCustom()"
+              >
+                {{ texts.cancelCustom }}
+              </button>
+            </div>
           </div>
-          <div class="flex flex-col gap-1.5">
-            <label for="custom-cost" class="field-label">{{ texts.customCostLabel }}</label>
-            <input
-              pInputText
-              type="text"
-              inputmode="decimal"
-              autocomplete="off"
-              id="custom-cost"
-              formControlName="cost"
-              class="restock-custom-cost h-[52px] w-full min-w-0"
-              [invalid]="!!customCostError()"
-              [attr.aria-invalid]="customCostError() ? 'true' : null"
-            />
-            <p class="m-0 text-xs text-muted">{{ lineTexts.optionalHint }}</p>
-            @if (customCostError(); as message) {
-              <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
-            }
-          </div>
-          <div class="flex flex-wrap gap-2 lg:col-span-2">
-            <button pButton type="button" class="h-11 px-5 text-sm" (click)="addCustom()">{{ texts.addCustom }}</button>
-            <button
-              pButton
-              type="button"
-              severity="secondary"
-              [text]="true"
-              class="h-11 px-4 text-sm"
-              (click)="cancelCustom()"
-            >
-              {{ texts.cancelCustom }}
-            </button>
-          </div>
-        </div>
-      }
+        }
+      </div>
     </section>
 
-    <div [formGroup]="form" class="flex flex-col gap-1.5">
-      <label for="note" class="field-label">{{ texts.noteLabel }}</label>
-      <textarea
-        pTextarea
-        id="note"
-        formControlName="note"
-        rows="3"
-        class="restock-note w-full"
-        [invalid]="!!noteError()"
-        [attr.aria-invalid]="noteError() ? 'true' : null"
-      ></textarea>
-      <p class="m-0 text-right text-xs text-muted">{{ noteLength() }}/{{ maxNoteLength }}</p>
-      @if (noteError(); as message) {
-        <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
-      }
-    </div>
-  </fieldset>
+    <!-- Cuerpo con scroll: la tabla de renglones (cabecera fija), la nota, los avisos y «Descartar». -->
+    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain">
+      <section aria-label="Renglones del pedido" class="flex flex-col">
+        @if (lineGroups.length === 0) {
+          <div class="surface-card flex flex-col items-center gap-1 border-dashed p-6 text-center">
+            <p class="m-0 text-base font-bold text-ink">{{ texts.emptyTitle }}</p>
+            <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
+          </div>
+        } @else {
+          <div
+            class="sticky top-0 z-[1] hidden border-b border-line-strong bg-page px-4 py-2 text-xs font-semibold tracking-wide text-muted lg:grid lg:grid-cols-[minmax(0,1fr)_7rem_8rem_11rem_auto] lg:gap-x-4"
+            aria-hidden="true"
+          >
+            <span>{{ texts.columnProduct }}</span>
+            <span>{{ texts.columnStock }}</span>
+            <span>{{ texts.columnPieces }}</span>
+            <span>{{ texts.columnCost }}</span>
+            <span>{{ texts.columnRemove }}</span>
+          </div>
+          <div class="flex flex-col gap-2 lg:gap-0">
+            @for (group of lineGroups; track group; let i = $index) {
+              <app-restock-line
+                [group]="group"
+                [view]="rows()[i].view"
+                [showErrors]="submitted()"
+                [existsInCatalog]="rows()[i].existsInCatalog"
+                [duplicateName]="submitted() && rows()[i].duplicateName"
+                (removed)="removeLine(i)"
+              />
+            }
+          </div>
+        }
+      </section>
 
-  <div class="flex flex-col gap-3">
-    @if (submitError(); as message) {
-      <p class="alert-danger m-0 text-sm" role="alert">{{ message }}</p>
-    }
-    @if (notice(); as message) {
-      <div class="alert-danger flex flex-col items-start gap-2 text-sm" role="alert">
-        <p class="m-0">{{ message }}</p>
-        @if (noticeAction(); as action) {
+      <div [formGroup]="form" class="flex flex-col gap-1.5">
+        <label for="note" class="field-label">{{ texts.noteLabel }}</label>
+        <textarea
+          pTextarea
+          id="note"
+          formControlName="note"
+          rows="3"
+          class="restock-note w-full"
+          [invalid]="!!noteError()"
+          [attr.aria-invalid]="noteError() ? 'true' : null"
+        ></textarea>
+        <p class="m-0 text-right text-xs text-muted">{{ noteLength() }}/{{ maxNoteLength }}</p>
+        @if (noteError(); as message) {
+          <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+        }
+      </div>
+
+      <div class="flex flex-col gap-3">
+        @if (submitError(); as message) {
+          <p class="alert-danger m-0 text-sm" role="alert">{{ message }}</p>
+        }
+        @if (notice(); as message) {
+          <div class="alert-danger flex flex-col items-start gap-2 text-sm" role="alert">
+            <p class="m-0">{{ message }}</p>
+            @if (noticeAction(); as action) {
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [text]="true"
+                class="h-11 min-w-11 px-3 text-sm"
+                (click)="noticeActionClicked.emit(action)"
+              >
+                {{ noticeLabels[action] }}
+              </button>
+            }
+          </div>
+        }
+        @if (hasDraft()) {
           <button
             pButton
             type="button"
-            severity="secondary"
+            severity="danger"
             [text]="true"
-            class="h-11 min-w-11 px-3 text-sm"
-            (click)="noticeActionClicked.emit(action)"
+            class="h-11 min-w-11 self-start px-3 text-sm"
+            [loading]="busy() === 'discard'"
+            [disabled]="isBusy()"
+            (click)="discard()"
           >
-            {{ noticeLabels[action] }}
+            {{ texts.discard }}
           </button>
         }
       </div>
-    }
-    @if (hasDraft()) {
-      <button
-        pButton
-        type="button"
-        severity="danger"
-        [text]="true"
-        class="h-11 min-w-11 self-start px-3 text-sm"
-        [loading]="busy() === 'discard'"
-        [disabled]="isBusy()"
-        (click)="discard()"
-      >
-        {{ texts.discard }}
-      </button>
-    }
-  </div>
+    </div>
+  </fieldset>
 
-  <!-- Barra fija inferior: el total y las dos acciones principales quedan a la vista al hacer scroll. -->
+  <!-- Barra fija inferior: total y acciones principales, siempre visibles dentro del pop-up. -->
   <div
-    class="sticky bottom-0 z-10 flex flex-col gap-3 border-t border-line-strong surface-card px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-raised lg:flex-row lg:items-center lg:justify-between lg:px-4"
+    class="shrink-0 flex flex-col gap-3 border-t border-line-strong bg-white px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:flex-row lg:items-center lg:justify-between lg:px-4"
   >
     <div class="flex items-baseline justify-between gap-3 lg:justify-start lg:gap-4">
       <span class="text-base font-bold text-ink">{{ texts.total }}</span>

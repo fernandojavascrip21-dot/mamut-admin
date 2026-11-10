@@ -1,12 +1,15 @@
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { filter, from, Observable, of, switchMap, tap } from 'rxjs';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { ConfirmService } from '@core/confirm/confirm.service';
 import type { ConfirmOptions } from '@core/confirm/confirm.models';
 import { ToastService } from '@core/toast/toast.service';
+import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
+import { closeModalLink } from '@shared/utils/modal-links';
 import { newUuid } from '@shared/utils/uuid';
 import { RestockFormComponent } from '../../components/restock-form/restock-form.component';
 import type { RestockBusyAction, RestockFormSubmit, RestockNoticeAction } from '../../components/restock-form/restock-form.models';
@@ -19,11 +22,11 @@ import type { RestockPageData, RestockSavedDraft } from '../../models/restock-pa
 import { initialLines } from '../../rules/restock-lines.rules';
 import { RestockService } from '../../services/restock.service';
 
-// «Lista de resurtir» (HU-31, /admin/resurtir). Carga la pantalla con rxResource y orquesta guardar,
+// «Lista de resurtir» (HU-31), pop-up en el outlet `ventana`. Carga la pantalla con rxResource y orquesta guardar,
 // cerrar y descartar; la lista y sus errores de campo son del formulario. Un solo envío a la vez:
 // mientras uno está en curso, los botones quedan deshabilitados y no sale otra petición.
 @Component({
-  imports: [DatePipe, ButtonDirective, Skeleton, RestockFormComponent],
+  imports: [DatePipe, ButtonDirective, Skeleton, ModalPanelComponent, RestockFormComponent],
   selector: 'app-restock-page',
   templateUrl: './restock-page.component.html',
 })
@@ -32,6 +35,7 @@ export class RestockPageComponent {
   private readonly service = inject(RestockService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly texts = RESTOCK_PAGE_TEXTS;
@@ -84,6 +88,12 @@ export class RestockPageComponent {
 
   retryLoad(): void {
     this.data.reload();
+  }
+
+  // Cerrar vuelve a «Stock general»; el guard de salida pregunta si hay cambios sin guardar.
+  close(): void {
+    if (this.saving()) return;
+    void this.router.navigate(closeModalLink());
   }
 
   // Al primer cambio después de guardar, el total vuelve a calcularse en pantalla.

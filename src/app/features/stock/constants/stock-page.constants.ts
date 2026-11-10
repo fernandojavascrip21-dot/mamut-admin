@@ -1,4 +1,4 @@
-import { deliveryModalLink, fractionModalLink, purchaseModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, fractionModalLink, purchaseModalLink, restockModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { StockQuickAction } from '../components/stock-quick-actions/stock-quick-actions.models';
 import type { StockView } from '../interfaces/stock-history.models';
 import type { StockViewOption } from '../models/stock-page.models';
@@ -24,7 +24,7 @@ export const SELL_URL = '/admin/productos'; // «Vender» (HU-17): se arma la ve
 
 export const YO_QUICK_ACTIONS: StockQuickAction[] = [
   { label: 'Entrada a bodega', link: purchaseModalLink(), icon: 'entry' },
-  { label: 'Resurtir', link: '/admin/resurtir', icon: 'restock' }, // M9-hu31: lista de resurtir, solo con «Yo · bodega»
+  { label: 'Resurtir', link: restockModalLink(), icon: 'restock' }, // M9-hu31: lista de resurtir (pop-up), solo con «Yo · bodega»
   { label: 'Dejar a vendedor', link: deliveryModalLink(), icon: 'deliver' },
   { label: 'Vender', link: SELL_URL, icon: 'sell' },
   { label: 'Registrar merma', link: shrinkageModalLink(), icon: 'shrinkage' }, // M6-hu25: merma de la bodega

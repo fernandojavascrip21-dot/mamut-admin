@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  computed,
   inject,
   input,
   output,
@@ -13,6 +14,7 @@ import {
   FOCUSABLE_SELECTOR,
   MODAL_PANEL_MOTION_OPTIONS,
   MODAL_PANEL_STYLE_CLASS,
+  MODAL_PANEL_WIDE_CLASS,
 } from './modal-panel.constants';
 
 // Marco de los pop-ups de «Dejar» y «Retirar» (spec T-16 y M3-t04): un `p-dialog` modal con el
@@ -29,11 +31,16 @@ export class ModalPanelComponent {
   readonly title = input.required<string>();
   // false mientras la página guarda: no hay X y Escape no cierra.
   readonly closable = input(true);
+  // true para pop-ups de tabla (ancho ~1100 px y alto casi completo); por omisión, el ancho normal.
+  readonly wide = input(false);
   readonly closed = output<void>();
 
   readonly visible = signal(true);
   readonly motionOptions = MODAL_PANEL_MOTION_OPTIONS;
   readonly styleClass = MODAL_PANEL_STYLE_CLASS;
+  readonly dialogClass = computed(() =>
+    this.wide() ? `${MODAL_PANEL_STYLE_CLASS} ${MODAL_PANEL_WIDE_CLASS}` : MODAL_PANEL_STYLE_CLASS,
+  );
 
   private readonly document = inject(DOCUMENT);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

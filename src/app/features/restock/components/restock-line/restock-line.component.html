@@ -1,10 +1,11 @@
-<!-- Móvil: apilado (nombre, Piezas, Costo, Quitar). Desde sm, dos columnas; desde lg, una sola fila:
-     nombre | Piezas | Costo | Quitar. Los errores crecen su celda sin romper la rejilla. -->
+<!-- Móvil: apilado (producto, existencia, Piezas, Costo, Quitar). Desde sm, dos columnas. Desde lg es
+     una fila de la tabla con las mismas columnas que su cabecera: producto | en bodega | piezas |
+     costo | quitar. Los errores crecen su celda sin romper la rejilla. -->
 <article
-  class="grid grid-cols-1 gap-3 surface-card p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_9rem_11rem_auto] lg:items-start lg:gap-x-4 lg:p-4"
+  class="grid grid-cols-1 gap-3 surface-card p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_7rem_8rem_11rem_auto] lg:items-center lg:gap-x-4 lg:rounded-none lg:border-0 lg:border-b lg:px-4 lg:py-3 lg:shadow-none"
   [formGroup]="group()"
 >
-  <div class="flex min-w-0 flex-col gap-3 sm:col-span-2 lg:col-span-1">
+  <div class="flex min-w-0 flex-col gap-3 sm:col-span-2 lg:col-span-1 lg:col-start-1 lg:self-start">
     @if (view().kind === 'custom') {
       <span class="w-fit rounded-md bg-accent-2-bg px-2 py-0.5 text-xs font-semibold text-accent-2-text">
         {{ texts.handwritten }}
@@ -38,29 +39,17 @@
             alt=""
             loading="lazy"
             (error)="imageBroken.set(true)"
-            class="h-14 w-14 shrink-0 rounded-md object-cover"
+            class="h-12 w-12 shrink-0 rounded-md object-cover"
           />
         } @else {
           <div
             aria-hidden="true"
-            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
           >
             {{ initials() }}
           </div>
         }
-        <div class="flex min-w-0 flex-1 flex-col gap-1">
-          <p class="m-0 text-base font-bold break-words">{{ view().name }}</p>
-          @if (view().orderable) {
-            <div class="flex flex-wrap items-center gap-2 text-sm text-muted">
-              <span>{{ unitsText() }}</span>
-              @if (view().stockLevel === 'out') {
-                <p-tag [value]="stockLabels.out" severity="contrast" />
-              } @else if (view().stockLevel === 'low') {
-                <p-tag [value]="stockLabels.low" severity="warn" />
-              }
-            </div>
-          }
-        </div>
+        <p class="m-0 min-w-0 text-base font-bold break-words">{{ view().name }}</p>
       </div>
       @if (!view().orderable) {
         <p class="alert-warning m-0 text-sm">{{ texts.notOrderable }}</p>
@@ -68,9 +57,20 @@
     }
   </div>
 
+  @if (view().kind === 'catalog' && view().orderable) {
+    <div class="flex flex-wrap items-center gap-2 text-sm text-muted sm:col-span-2 lg:col-span-1 lg:col-start-2">
+      <span>{{ unitsText() }}</span>
+      @if (view().stockLevel === 'out') {
+        <p-tag [value]="stockLabels.out" severity="contrast" />
+      } @else if (view().stockLevel === 'low') {
+        <p-tag [value]="stockLabels.low" severity="warn" />
+      }
+    </div>
+  }
+
   @if (view().orderable) {
-    <div class="flex min-w-0 flex-col gap-1.5">
-      <label [attr.for]="'qty-' + uid" class="field-label">{{ texts.qtyLabel }}</label>
+    <div class="flex min-w-0 flex-col gap-1.5 lg:col-span-1 lg:col-start-3">
+      <label [attr.for]="'qty-' + uid" class="field-label lg:sr-only">{{ texts.qtyLabel }}</label>
       <input
         pInputText
         type="text"
@@ -89,8 +89,8 @@
         </p>
       }
     </div>
-    <div class="flex min-w-0 flex-col gap-1.5">
-      <label [attr.for]="'cost-' + uid" class="field-label">{{ texts.costLabel }}</label>
+    <div class="flex min-w-0 flex-col gap-1.5 lg:col-span-1 lg:col-start-4">
+      <label [attr.for]="'cost-' + uid" class="field-label lg:sr-only">{{ texts.costLabel }}</label>
       <input
         pInputText
         type="text"
@@ -114,7 +114,7 @@
     </div>
   }
 
-  <div class="flex sm:col-span-2 lg:col-span-1 lg:col-start-4 lg:row-start-1 lg:self-end">
+  <div class="flex sm:col-span-2 lg:col-span-1 lg:col-start-5 lg:self-center">
     <button pButton type="button" severity="secondary" [text]="true" class="h-11 min-w-11 px-3 text-sm" (click)="removed.emit()">
       {{ texts.remove }}
     </button>

@@ -8,3 +8,6 @@ export const MODAL_PANEL_MOTION_OPTIONS = { safe: true } satisfies MotionOptions
 
 // La clase da el tamaño (pantalla completa en celular y centrado desde `sm`) en `styles.css`.
 export const MODAL_PANEL_STYLE_CLASS = 'modal-panel-dialog';
+
+// Variante más ancha (≈1100 px, alto casi completo) para pop-ups de tabla, como «Lista de resurtir».
+export const MODAL_PANEL_WIDE_CLASS = 'modal-panel-dialog--wide';
