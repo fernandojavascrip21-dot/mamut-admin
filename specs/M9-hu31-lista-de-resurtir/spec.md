@@ -33,7 +33,7 @@ Fuentes:
   - **Lectura de productos pedibles:** `GET /api/restock/products` (solo administrador), con piezas en bodega, nivel y costo de fábrica actual.
   - Pruebas nuevas contra la base real (§9).
 - **Frontend, feature nueva `src/app/features/restock/`:**
-  - Pop-up `restock-page` en el outlet `ventana` (`(ventana:resurtir)`, `restock.routes.ts`, `loadComponent`), montado en `admin.routes.ts` como los demás pop-ups; usa `shared/components/modal-panel`. Cerrarlo vuelve a «Stock general».
+  - Pop-up `restock-page` en el outlet `ventana` (`(ventana:resurtir)`, `loadComponent`), montado en `admin.routes.ts` como los demás pop-ups; usa `shared/components/modal-panel`. Cerrarlo vuelve a «Stock general».
   - Formulario reactivo presentacional `restock-form`: renglones (`FormArray`), «Agregar producto», «Escribir un producto», «Agregar sugeridos (N)», nota, total estimado y los botones de la página.
   - Renglón presentacional `restock-line`: de catálogo (foto, nombre, piezas en bodega con su nivel, piezas, costo, «Quitar», «Ya no se puede pedir») o escrito a mano (nombre, piezas, costo, etiqueta «Escrito a mano», «Quitar»).
   - Regla pura del total estimado (`rules/restock-estimate.rules.ts`), `RestockService` (productos pedibles, sugerencias, borrador más reciente, detalle, crear, actualizar, cerrar, descartar), modelos, validadores, reglas y constantes.
@@ -112,7 +112,7 @@ Fuentes:
   - `409` del `requestId` con otros datos o `404` del pedido o un producto → aviso con el mensaje del backend.
   - Sin conexión o `5xx` → aviso «No pudimos guardar el pedido. Inténtalo de nuevo.» con «Reintentar», que reenvía la misma acción (mismo `requestId` en un `POST`).
   - Solo `http-errors.ts` lee `HttpErrorResponse`; el servicio traduce a un motivo y la página decide qué pintar.
-- **Cambios sin guardar:** hay cambios cuando el formulario está `dirty` (cambiar piezas, costos o nota, quitar o agregar renglones marca `markAsDirty()`). Una lista nueva recién cargada de las sugerencias **no** cuenta como cambio. Salir de `/admin/resurtir` con cambios → `ConfirmService.ask()` «¿Salir sin guardar? Se pierden los cambios del pedido.», «Salir» / «Seguir editando». Mientras un envío está en curso no se sale.
+- **Cambios sin guardar:** hay cambios cuando el formulario está `dirty` (cambiar piezas, costos o nota, quitar o agregar renglones marca `markAsDirty()`). Una lista nueva recién cargada de las sugerencias **no** cuenta como cambio. Cerrar el pop-up o salir de él con cambios → `ConfirmService.ask()` «¿Salir sin guardar? Se pierden los cambios del pedido.», «Salir» / «Seguir editando». Mientras un envío está en curso no se sale.
 
 ## 3. Contrato con el backend (T-36 extendido)
 
@@ -331,7 +331,7 @@ Constantes:
    - `types.ts` y `constants.ts`.
    - Pruebas nuevas (§9). `npm run type-check`, `npm test` con `SUPABASE_SERVICE_ROLE_KEY` y `tests/architecture.test.ts` pasan, sin cambios en tests con commit.
 3. **Esqueleto de la feature.** Crear `src/app/features/restock/` (`pages/`, `components/`, `services/`, `guards/`, `interfaces/`, `models/`, `constants/`, `validators/`, `rules/`), `interfaces/restock.models.ts`, `constants/restock.constants.ts` y `RestockService` con sus pruebas (`getPageData()` con `forkJoin`: borrador → detalle, sugerencias y productos; `create()`, `update()`, `close()`, `discard()` traducidos a `RestockResult`). `ng build` pasa.
-4. **Ruta.** `restock.routes.ts` con `restock-page` (`ng generate component`), el montaje `resurtir` en `admin.routes.ts` y `canDeactivate: [unsavedRestockGuard]`. Estados cargando / error / vacío con `rxResource`.
+4. **Ruta.** `restock-page` (`ng generate component`), el montaje `resurtir` en el outlet `ventana` de `admin.routes.ts` y `canDeactivate: [unsavedRestockGuard]`. Estados cargando / error / vacío con `rxResource`.
 5. **Diseño.** Pasar por ui-ux-pro-max y frontend-design con los tokens de la app.
 6. **Reglas y validadores.** `rules/restock-lines.rules.ts` (vista de cada renglón, productos que ofrece «Agregar producto», sugerencias que faltan, aviso de nombre ya existente), `rules/restock-estimate.rules.ts` (total con `money.ts`) y `validators/restock-form.validators.ts` (piezas, costo, nombre, nota, nombres repetidos), con pruebas.
 7. **Formulario.** `restock-line` y `restock-form` (`ng generate component`) con el patrón de `product-form`: `createEmptyForm()`, un setter que reemplaza los renglones con el mismo método privado que «agregar», `markAsDirty()` al quitar o agregar, errores al enviar, `output()` con `{ action: 'save' | 'close', note, lines }` y `output()` de «Descartar». Total estimado en un `computed()`.

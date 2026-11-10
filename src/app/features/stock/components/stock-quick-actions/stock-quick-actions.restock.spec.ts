@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
+import { restockModalLink } from '@shared/utils/modal-links';
 import { StockQuickActionsComponent } from './stock-quick-actions.component';
 
 describe('StockQuickActionsComponent · ícono «restock»', () => {
@@ -13,12 +14,14 @@ describe('StockQuickActionsComponent · ícono «restock»', () => {
     fixture = TestBed.createComponent(StockQuickActionsComponent);
   });
 
-  it('«Resurtir» apunta a /admin/resurtir y dibuja su ícono', () => {
-    fixture.componentRef.setInput('actions', [{ label: 'Resurtir', link: '/admin/resurtir', icon: 'restock' }]);
+  it('«Resurtir» apunta a la ventana de resurtir y dibuja su ícono', () => {
+    fixture.componentRef.setInput('actions', [{ label: 'Resurtir', link: restockModalLink(), icon: 'restock' }]);
     fixture.detectChanges();
     const link = fixture.nativeElement.querySelector('a.quick-action') as HTMLAnchorElement;
     expect(link.textContent!.trim()).toBe('Resurtir');
-    expect(link.getAttribute('href')).toBe('/admin/resurtir');
+    expect(link.getAttribute('href')).toBe(
+      TestBed.inject(Router).serializeUrl(TestBed.inject(Router).createUrlTree(restockModalLink())),
+    );
     expect(link.querySelector('svg')!.children.length).toBeGreaterThan(0);
   });
 
