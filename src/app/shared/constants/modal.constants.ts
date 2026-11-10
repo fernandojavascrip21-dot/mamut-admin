@@ -11,3 +11,5 @@ export const MODAL_EDIT_HOLDING_PATH = 'editar';
 export const MODAL_FRACTION_PATH = 'fraccionar';
 // Ventana «Registrar merma» (HU-25): con el parámetro matricial opcional `vendedor`.
 export const MODAL_SHRINKAGE_PATH = 'merma';
+// Ventana «Entrada a bodega» (HU-27): sin parámetros.
+export const MODAL_PURCHASE_PATH = 'entrada';

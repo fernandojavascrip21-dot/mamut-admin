@@ -32,6 +32,7 @@
       "@sales": ["./src/sales"],
       "@fractions": ["./src/fractions"],
       "@shrinkage": ["./src/shrinkage"],
+      "@purchases": ["./src/purchases"],
       "@cuts": ["./src/cuts"],
       "@api/*": ["./app/api/*"]
     }

@@ -4,6 +4,7 @@ import {
   MODAL_EDIT_HOLDING_PATH,
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
+  MODAL_PURCHASE_PATH,
   MODAL_RETURN_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '../constants/modal.constants';
@@ -36,6 +37,11 @@ export function shrinkageModalLink(params: { sellerId?: string } = {}): unknown[
   const matrix: Record<string, string> = {};
   if (params.sellerId) matrix['vendedor'] = params.sellerId;
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_SHRINKAGE_PATH, matrix] } }];
+}
+
+// «Entrada a bodega» (HU-27): siempre de la bodega, sin parámetros.
+export function purchaseModalLink(): unknown[] {
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_PURCHASE_PATH] } }];
 }
 
 export function closeModalLink(): unknown[] {

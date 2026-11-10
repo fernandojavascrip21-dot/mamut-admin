@@ -1,0 +1,98 @@
+<form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="onSubmit()" novalidate>
+  <div class="flex flex-col gap-1.5">
+    <label id="product-label" for="product" class="field-label" (click)="focusProduct()">{{ texts.product }}</label>
+    <p-select
+      inputId="product"
+      ariaLabelledBy="product-label"
+      name="product"
+      #productInput
+      formControlName="productId"
+      [options]="products()"
+      optionLabel="name"
+      optionValue="id"
+      [filter]="true"
+      filterBy="name"
+      [filterPlaceholder]="texts.productFilter"
+      [placeholder]="texts.productPlaceholder"
+      [showClear]="false"
+      [invalid]="!!productError()"
+      [pt]="productPassThrough()"
+      [motionOptions]="motionOptions"
+      class="h-[52px] min-w-0 w-full"
+    >
+      <ng-template #item let-product>
+        <div class="flex w-full items-center gap-3 py-1 whitespace-normal">
+          @if (product.image) {
+            <img
+              [src]="product.image"
+              alt=""
+              loading="lazy"
+              class="h-12 w-12 flex-shrink-0 rounded-md object-cover"
+            />
+          } @else {
+            <span
+              class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-line text-sm font-bold"
+              aria-hidden="true"
+            >{{ product.name.charAt(0) }}</span>
+          }
+          <span class="min-w-0 flex-1 text-sm leading-tight font-bold break-words">{{ product.name }}</span>
+        </div>
+      </ng-template>
+      <ng-template #emptyfilter>
+        <span class="empty text-sm text-muted">{{ texts.noProductMatch }}</span>
+      </ng-template>
+    </p-select>
+    @if (currentText(); as current) {
+      <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ current }}</p>
+    }
+    @if (productError()) {
+      <p id="product-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ productError() }}
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <label for="qty" class="field-label">{{ texts.qty }}</label>
+    <input
+      pInputText
+      id="qty"
+      name="qty"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      #qtyInput
+      formControlName="qty"
+      [attr.aria-invalid]="qtyError() ? 'true' : null"
+      [attr.aria-describedby]="qtyError() ? 'qty-error' : null"
+      [invalid]="!!qtyError()"
+      class="h-[52px] min-w-0 w-full"
+    />
+    @if (afterText(); as after) {
+      <p class="m-0 text-sm font-bold text-ink tabular-nums" aria-live="polite">{{ after }}</p>
+    }
+    @if (qtyError()) {
+      <p id="qty-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ qtyError() }}
+      </p>
+    }
+  </div>
+
+  @if (notice()) {
+    <p class="alert-danger m-0 text-sm font-semibold" role="alert">{{ notice() }}</p>
+  }
+
+  <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <button pButton type="button" severity="secondary" class="h-11 min-w-11 px-4" (click)="cancelled.emit()">
+      {{ texts.cancel }}
+    </button>
+    <button
+      pButton
+      type="submit"
+      class="h-11 min-w-11 px-4"
+      [loading]="saving()"
+      [disabled]="saving()"
+      [attr.aria-busy]="saving() ? 'true' : null"
+    >{{ texts.submit }}</button>
+  </div>
+</form>

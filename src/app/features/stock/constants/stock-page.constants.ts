@@ -1,4 +1,4 @@
-import { deliveryModalLink, fractionModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, fractionModalLink, purchaseModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { StockQuickAction } from '../components/stock-quick-actions/stock-quick-actions.models';
 import type { StockView } from '../interfaces/stock-history.models';
 import type { StockViewOption } from '../models/stock-page.models';
@@ -17,14 +17,13 @@ export const SPLIT_PALETTE_SIZE = 5;
 // Separador del reparto en una línea: «Bodega 4 · Luis 6».
 export const BREAKDOWN_SEPARATOR = ' · ';
 
-// Destinos de los movimientos rápidos con «Yo» (HU-13). «Entrada a bodega» abre «Próximamente»
-// hasta que tenga su propia historia; «Dejar» abre la ventana sin vendedor fijo.
-export const WAREHOUSE_ENTRY_URL = '/admin/entrada';
+// Destinos de los movimientos rápidos con «Yo» (HU-13). «Entrada a bodega» (HU-27) y «Dejar» abren su
+// ventana sin vendedor fijo.
 export const NEW_PRODUCT_URL = '/admin/productos/nuevo';
 export const SELL_URL = '/admin/productos'; // «Vender» (HU-17): se arma la venta desde «Productos»
 
 export const YO_QUICK_ACTIONS: StockQuickAction[] = [
-  { label: 'Entrada a bodega', link: WAREHOUSE_ENTRY_URL, icon: 'entry' },
+  { label: 'Entrada a bodega', link: purchaseModalLink(), icon: 'entry' },
   { label: 'Dejar a vendedor', link: deliveryModalLink(), icon: 'deliver' },
   { label: 'Vender', link: SELL_URL, icon: 'sell' },
   { label: 'Registrar merma', link: shrinkageModalLink(), icon: 'shrinkage' }, // M6-hu25: merma de la bodega
