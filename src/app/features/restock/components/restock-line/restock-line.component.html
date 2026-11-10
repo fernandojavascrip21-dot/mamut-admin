@@ -115,7 +115,15 @@
   }
 
   <div class="flex sm:col-span-2 lg:col-span-1 lg:col-start-5 lg:self-center">
-    <button pButton type="button" severity="secondary" [text]="true" class="h-11 min-w-11 px-3 text-sm" (click)="removed.emit()">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [text]="true"
+      class="h-11 min-w-11 px-3 text-sm"
+      [attr.aria-label]="texts.remove + ' ' + view().name"
+      (click)="removed.emit()"
+    >
       {{ texts.remove }}
     </button>
   </div>

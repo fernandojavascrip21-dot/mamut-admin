@@ -11,3 +11,6 @@ export const MODAL_PANEL_STYLE_CLASS = 'modal-panel-dialog';
 
 // Variante más ancha (≈1100 px, alto casi completo) para pop-ups de tabla, como «Lista de resurtir».
 export const MODAL_PANEL_WIDE_CLASS = 'modal-panel-dialog--wide';
+
+// Nombre accesible de la X (solo icono).
+export const MODAL_PANEL_CLOSE_LABEL = 'Cerrar';

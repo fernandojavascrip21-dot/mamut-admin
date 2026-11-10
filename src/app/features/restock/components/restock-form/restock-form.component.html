@@ -199,11 +199,11 @@
 
   <!-- Barra fija inferior: total y acciones principales, siempre visibles dentro del pop-up. -->
   <div
-    class="shrink-0 flex flex-col gap-3 border-t border-line-strong bg-white px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:flex-row lg:items-center lg:justify-between lg:px-4"
+    class="shrink-0 flex flex-col gap-3 border-t border-line-strong bg-page px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:flex-row lg:items-center lg:justify-between lg:px-4"
   >
     <div class="flex items-baseline justify-between gap-3 lg:justify-start lg:gap-4">
       <span class="text-base font-bold text-ink">{{ texts.total }}</span>
-      <span class="font-mono text-2xl font-bold text-ink tabular-nums">
+      <span class="font-display text-2xl font-extrabold text-ink tabular-nums">
         {{ shownAmount() | currency: 'MXN' : 'symbol-narrow' }}
       </span>
       @if (estimate().withoutCost > 0) {
