@@ -62,6 +62,10 @@ Estados: `Borrador` → `Aprobado` → `Implementado` (o `Obsoleto`).
 | [`M7-t31-configuracion-por-ambiente`](M7-t31-configuracion-por-ambiente/spec.md) | Tarea | `SCRUM-73` · T-31 | Implementado | 2026-11-09 | `M0-base`, `M3-t01` | La URL de la API sale de `API_BASE_URL` al compilar: `scripts/prepare-api-url.mjs` (con prueba `node:test`) la valida (http solo en localhost, https fuera, solo origen) y genera `core/api-base-url.generated.ts`, ignorado por git; `core/api-base-url.ts` lo reexporta. Si falta, el build falla. `config:prepare` corre licencia y URL en los hooks `pre*`. Backend: `ALLOWED_ORIGINS` de ejemplo sin el 5173 del Vue, `backend/README.md` reescrito y variables documentadas en `README.md`. Sin previews en CORS ni cambios en Supabase Auth. |
 | [`M7-t32-ci-github-actions`](M7-t32-ci-github-actions/spec.md) | Tarea | `SCRUM-74` · T-32 | Aprobado | 2026-11-09 | `M7-t31` | Workflow `.github/workflows/ci.yml` en cada PR y push a `main` con tres jobs: `frontend` (`config:prepare` con el secret `PRIMENG_LICENSE_KEY`, pruebas de `scripts/`, `ng build`, `check:architecture`, `ng test`), `backend` (`type-check`, `build`, `architecture.test.ts`) y `backend-db` (Supabase local en el runner con llaves de demo y la suite completa; falla sin `SUPABASE_SERVICE_ROLE_KEY` o si la base no es `127.0.0.1`, y avisa de pruebas saltadas). `.nvmrc` con Node 24, caché de npm y `concurrency`. La protección de `main` la activa el usuario con el comando del spec. Sin despliegue ni pruebas contra producción. |
 
+## Plan v2
+
+[`v2-plan.md`](v2-plan.md) (borrador, 2026-11-10): milestones M8 a M12 con lo diferido de la v1 (crédito, resurtir, venta avanzada e importar Excel, merma con confirmación, cliente). Aún sin specs; se bajan con `/spec` cuando exista su backlog en Jira.
+
 ## Relaciones que «Depende de» no muestra
 
 - **`M7-t26` → `M2-hu11`, `M2-t16`, `M1-hu04`, `M1-hu06`, `M2-hu13`:**
