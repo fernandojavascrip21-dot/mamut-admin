@@ -1,6 +1,6 @@
 # Spec técnico — T-36 · Base de resurtir: pedidos guardados con fecha (backend)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M3-hu18-aviso-baja-existencia (`specs/M3-hu18-aviso-baja-existencia/spec.md`): `LOW_STOCK_THRESHOLD` y `stockLevel` los decide el backend. M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`): `products.stock` es la caché de la bodega que mantiene el trigger. M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`): el costo viaja como texto con 4 decimales. M5-t24-base-fraccionado (`specs/M5-t24-base-fraccionado/spec.md`): las bolsitas tienen `parent_product_id`, y es el patrón de tabla propia con `request_id` único. HU-27 «Entrada a bodega» (`SCRUM-77`, módulo `@purchases`, sin carpeta de spec) registra la mercancía que llega; este spec no la toca.
 > **Fecha:** 2026-11-10
 > **Objetivo:** que el administrador obtenga del backend los productos de la bodega con baja o nula existencia y guarde, edite, cierre y liste pedidos de resurtir con fecha, sin mover inventario.

@@ -109,7 +109,7 @@ describe.skipIf(!hasServiceKey)('Base de pedidos de resurtir (T-36, base real)',
       expect(suggestions.find((row) => row.productId === b)).toMatchObject({ units: 2, stockLevel: 'low', unitCost: '99.1234' })
     })
 
-    it('no trae un producto desactivado con 0 piezas ni una bolsita con 1 pieza en bodega', async () => {
+    it('no trae un producto desactivado con 0 piezas ni una bolsita con 2 piezas en bodega', async () => {
       const inactive = await newProduct({ qty: 0, label: 'sug-inactivo' })
       await db.update(products).set({ active: false }).where(eq(products.id, inactive))
       const whole = await createProduct({
