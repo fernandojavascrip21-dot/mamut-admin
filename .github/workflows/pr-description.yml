@@ -1,0 +1,38 @@
+# Rellena el cuerpo de un PR al abrirlo: «Qué cambia» con los commits de la rama, «Spec relacionado» con
+# el spec (y su clave de Jira) o «Ninguno», y «Cómo probarlo» según lo que se tocó. Solo completa las
+# secciones que siguen vacías: nunca pisa lo que ya escribiste ni marca el checklist. La lógica está en
+# scripts/pr-body.mjs (con pruebas) y scripts/fill-pr-body.mjs.
+name: PR description
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  fill:
+    # Con un PR desde un fork el token es de solo lectura y no podría escribir el cuerpo.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # El cuerpo y los commits son texto de la persona: llegan por entorno, nunca dentro del script.
+      - name: Rellenar el cuerpo del PR
+        run: node scripts/fill-pr-body.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
