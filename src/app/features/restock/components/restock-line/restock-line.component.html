@@ -5,57 +5,48 @@
   class="grid grid-cols-1 gap-3 surface-card p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_7rem_8rem_11rem_auto] lg:items-center lg:gap-x-4 lg:rounded-none lg:border-0 lg:border-b lg:px-4 lg:py-3 lg:shadow-none"
   [formGroup]="group()"
 >
-  <div class="flex min-w-0 flex-col gap-3 sm:col-span-2 lg:col-span-1 lg:col-start-1 lg:self-start">
-    @if (view().kind === 'custom') {
-      <span class="w-fit rounded-md bg-accent-2-bg px-2 py-0.5 text-xs font-semibold text-accent-2-text">
-        {{ texts.handwritten }}
-      </span>
-      <div class="flex flex-col gap-1.5">
-        <label [attr.for]="'name-' + uid" class="field-label">{{ texts.nameLabel }}</label>
-        <input
-          pInputText
-          type="text"
-          [id]="'name-' + uid"
-          formControlName="name"
-          class="restock-name h-[52px] w-full min-w-0"
-          [invalid]="!!nameError()"
-          [attr.aria-invalid]="nameError() ? 'true' : null"
-          [attr.aria-describedby]="nameError() ? 'name-error-' + uid : null"
+  <div class="flex min-w-0 flex-col gap-2 sm:col-span-2 lg:col-span-1 lg:col-start-1 lg:self-start">
+    <div class="flex min-w-0 items-center gap-3">
+      @if (showPhoto()) {
+        <img
+          [src]="view().image"
+          alt=""
+          loading="lazy"
+          (error)="imageBroken.set(true)"
+          class="h-12 w-12 shrink-0 rounded-md object-cover"
         />
-        @if (nameError()) {
-          <p [id]="'name-error-' + uid" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
-            {{ nameError() }}
-          </p>
-        }
-        @if (existsInCatalog()) {
-          <p class="alert-warning m-0 text-sm">{{ texts.existsInCatalog }}</p>
-        }
-      </div>
-    } @else {
-      <div class="flex min-w-0 items-center gap-3">
-        @if (showPhoto()) {
-          <img
-            [src]="view().image"
-            alt=""
-            loading="lazy"
-            (error)="imageBroken.set(true)"
-            class="h-12 w-12 shrink-0 rounded-md object-cover"
-          />
-        } @else {
-          <div
-            aria-hidden="true"
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
-          >
-            {{ initials() }}
-          </div>
-        }
-        <p class="m-0 min-w-0 text-base font-bold break-words">{{ view().name }}</p>
-      </div>
-      @if (!view().orderable) {
-        <p class="alert-warning m-0 text-sm">{{ texts.notOrderable }}</p>
+      } @else {
+        <div
+          aria-hidden="true"
+          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-line text-base font-bold text-ink"
+        >
+          {{ initials() }}
+        </div>
+      }
+      <p class="m-0 min-w-0 text-base font-bold break-words">{{ view().name }}</p>
+    </div>
+    @if (view().kind === 'catalog' && !view().orderable) {
+      <p class="alert-warning m-0 text-sm">{{ texts.notOrderable }}</p>
+    }
+    @if (view().kind === 'custom') {
+      @if (nameError()) {
+        <p [id]="'name-error-' + uid" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+          {{ nameError() }}
+        </p>
+      }
+      @if (existsInCatalog()) {
+        <p class="alert-warning m-0 text-sm">{{ texts.existsInCatalog }}</p>
       }
     }
   </div>
+
+  @if (view().kind === 'custom') {
+    <div class="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-1 lg:col-start-2">
+      <span class="w-fit rounded-md bg-accent-2-bg px-2 py-0.5 text-xs font-semibold text-accent-2-text">
+        {{ texts.handwritten }}
+      </span>
+    </div>
+  }
 
   @if (view().kind === 'catalog' && view().orderable) {
     <div class="flex flex-wrap items-center gap-2 text-sm text-muted sm:col-span-2 lg:col-span-1 lg:col-start-2">

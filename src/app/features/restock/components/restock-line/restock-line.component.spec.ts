@@ -33,7 +33,7 @@ describe('RestockLineComponent', () => {
   const render = (
     view: RestockLineView,
     value: RestockLineForm,
-    extras: { showErrors?: boolean; existsInCatalog?: boolean } = {},
+    extras: { showErrors?: boolean; existsInCatalog?: boolean; duplicateName?: boolean } = {},
   ) => {
     fixture = TestBed.createComponent(RestockLineComponent);
     fixture.componentRef.setInput('view', view);
@@ -110,10 +110,11 @@ describe('RestockLineComponent', () => {
   });
 
   describe('escrito a mano', () => {
-    it('muestra la etiqueta «Escrito a mano» y deja editar nombre, piezas y costo', () => {
+    it('muestra la etiqueta «Escrito a mano» y el nombre como texto, y deja editar piezas y costo', () => {
       render(CUSTOM_VIEW, customValue);
       expect(text()).toContain('Escrito a mano');
-      expect(field('name')!.value).toBe('Shaker');
+      expect(text()).toContain('Shaker');
+      expect(field('name')).toBeNull();
       expect(field('qty')!.value).toBe('2');
       expect(field('cost')!.value).toBe('');
       expect(text()).toContain('Costo unitario');
@@ -166,9 +167,10 @@ describe('RestockLineComponent', () => {
       expect(text()).toContain('Es demasiado');
     });
 
-    it('un nombre escrito vacío pinta error al enviar', () => {
-      render(CUSTOM_VIEW, { ...customValue, name: '' }, { showErrors: true });
-      expect(root().querySelector('.restock-name')!.getAttribute('aria-invalid')).toBe('true');
+    it('un nombre escrito repetido pinta su error bajo el nombre, que ya no es un campo', () => {
+      render(CUSTOM_VIEW, customValue, { showErrors: true, duplicateName: true });
+      expect(field('name')).toBeNull();
+      expect(text()).toContain('Ya escribiste este producto');
     });
   });
 });

@@ -150,7 +150,8 @@ describe('RestockFormComponent', () => {
       await addCustom('Shaker', '35.5');
       expect(lineCount()).toBe(2);
       expect(text()).toContain('Escrito a mano');
-      expect(root().querySelector<HTMLInputElement>('input.restock-name')!.value).toBe('Shaker');
+      expect(text()).toContain('Shaker');
+      expect(root().querySelector('input.restock-name')).toBeNull();
       expect(root().querySelectorAll<HTMLInputElement>('input.restock-qty')[1]!.value).toBe('');
       expect(root().querySelectorAll<HTMLInputElement>('input.restock-cost')[1]!.value).toBe('35.5');
       expect(dirty).toContain(true);

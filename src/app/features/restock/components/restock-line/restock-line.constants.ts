@@ -4,7 +4,6 @@ export const RESTOCK_LINE_TEXTS = {
   costLabel: 'Costo unitario',
   costHint: 'Solo para este pedido',
   optionalHint: 'Opcional',
-  nameLabel: 'Nombre',
   handwritten: 'Escrito a mano',
   notOrderable: 'Ya no se puede pedir',
   inStock: 'en bodega',

@@ -218,8 +218,11 @@ export class RestockFormComponent implements OnInit {
     this.form.markAsDirty();
   }
 
+  // Mientras se escribe un producto a mano no se elige otro del catálogo: el selector queda bloqueado
+  // hasta cancelar o agregar (resetCustom lo vuelve a habilitar).
   openCustom(): void {
     this.customOpen.set(true);
+    this.pickerControl.disable();
   }
 
   cancelCustom(): void {
@@ -255,6 +258,7 @@ export class RestockFormComponent implements OnInit {
     this.customForm.reset();
     this.customSubmitted.set(false);
     this.customOpen.set(false);
+    this.pickerControl.enable();
   }
 
   // --- Validación, payload y envío ---

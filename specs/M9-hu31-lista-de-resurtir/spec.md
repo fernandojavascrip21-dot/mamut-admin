@@ -70,7 +70,7 @@ Fuentes:
   - Elegir uno lo agrega al final con piezas vacías y su costo registrado actual en «Costo unitario»; el selector vuelve a quedar sin valor.
 - **Escribir un producto (que no está en el catálogo):**
   - Botón «Escribir un producto» que abre un bloque con «Nombre» (obligatorio, 1 a 120 caracteres tras recortar), «Costo» (opcional, mismas reglas que el costo unitario) y «Agregar». Agrega un renglón al final con piezas vacías y la etiqueta «Escrito a mano»; sin nombre no agrega y pinta el error del campo en ese bloque.
-  - Un renglón escrito a mano deja editar nombre, piezas y costo; no tiene foto, ni piezas en bodega, ni nivel, ni «Ya no se puede pedir».
+  - Un renglón escrito a mano se ve igual que uno de catálogo (avatar con iniciales y el nombre como texto) y solo deja editar piezas y costo; el nombre no se edita después de agregarlo (para corregirlo se quita el renglón y se escribe de nuevo; decisión del usuario del 2026-11-10). En lugar de las piezas en bodega muestra la etiqueta «Escrito a mano»; no tiene foto, nivel ni «Ya no se puede pedir».
   - **Repetidos:** dos renglones escritos con el mismo nombre (sin mayúsculas ni acentos, con `normalizeText`) → error de campo al enviar «Ya escribiste este producto».
   - Si el nombre coincide con un producto del catálogo, el renglón muestra el aviso no bloqueante «Ya existe en el catálogo: elígelo de la lista» (`alert-warning`).
   - **No crea ningún producto** ni mueve inventario: es solo texto del pedido.
@@ -300,7 +300,7 @@ Constantes:
 - **Pop-up** «Lista de resurtir» (`modal-panel`, ancho amplio, alto casi completo: ~`min(1100px, 95vw)` × `90vh`), con subtítulo «Pedido nuevo» o «Borrador del <fecha>» · «Guardado <fecha>». Encabezado y barra inferior fijos; solo el cuerpo de la tabla hace scroll.
 - **Lista como tabla con scroll:** encabezados fijos (Producto · En bodega · Piezas · Costo unitario · Quitar) y una fila por producto; solo el cuerpo hace scroll dentro del pop-up (`surface-*`, `overflow-y-auto`):
   - De catálogo: foto, nombre, «N piezas en bodega» con `Tag` del nivel («Agotado» / «Baja existencia», de `stock-level.constants.ts`), «Piezas», «Costo unitario» («Solo para este pedido») y «Quitar».
-  - Escrito a mano: etiqueta «Escrito a mano», nombre, «Piezas», «Costo unitario» (opcional) y «Quitar».
+  - Escrito a mano: avatar con iniciales, nombre como texto, etiqueta «Escrito a mano» en la columna «En bodega», «Piezas», «Costo unitario» (opcional) y «Quitar».
   - Desde `lg` cada renglón es una fila de la tabla. Por debajo de `lg`, y a 375 px, las filas se apilan (campos bajo el nombre) y el pop-up ocupa casi toda la pantalla.
 - **Arriba de la tabla, fijo:** «Agregar producto» (`p-select` con filtro, opciones «Nombre · N piezas en bodega»), «Escribir un producto» (bloque con «Nombre» y «Costo» y el botón «Agregar») y «Agregar sugeridos (N)» (secundario, solo si N > 0); la «Nota del pedido» con contador va al final del cuerpo con scroll.
 - **Total estimado:** va en la barra inferior fija, con «N sin costo» si aplica; es texto, no un control.
