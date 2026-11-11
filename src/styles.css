@@ -279,6 +279,17 @@
     }
   }
 
+  /* Pop-up de tabla («Lista de resurtir»): ancho ~1100 px y alto ~90 % de la ventana desde `sm`.
+     En celular sigue ocupando toda la pantalla. */
+  @media (min-width: 40rem) {
+    .p-dialog.modal-panel-dialog.modal-panel-dialog--wide {
+      width: min(1100px, 95vw);
+      max-width: 95vw;
+      height: 90dvh;
+      max-height: 90dvh;
+    }
+  }
+
   /* Los esqueletos de PrimeNG brillan con una animación; sin movimiento quedan quietos. */
   @media (prefers-reduced-motion: reduce) {
     .p-skeleton::after {

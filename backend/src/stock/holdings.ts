@@ -139,6 +139,30 @@ export interface RestockCandidate {
   unitCost: string
 }
 
+// Un producto que se puede pedir (HU-31): activo, que no es bolsita, con las piezas de la bodega
+// (todos, también los que tienen 0). Lo lee la lista de resurtir para elegir productos del catálogo.
+export interface OrderableProduct {
+  productId: number
+  name: string
+  image: string | null
+  units: number
+  unitCost: string
+}
+
+export async function orderableProducts(): Promise<OrderableProduct[]> {
+  const rows = await db
+    .select({
+      productId: products.id,
+      name: products.name,
+      image: products.image,
+      units: products.stock,
+      unitCost: products.unitCost,
+    })
+    .from(products)
+    .where(and(eq(products.active, true), isNull(products.parentProductId)))
+  return rows.map((row) => ({ ...row, image: row.image || null }))
+}
+
 export async function restockCandidates(): Promise<RestockCandidate[]> {
   const rows = await db
     .select({

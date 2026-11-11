@@ -7,9 +7,11 @@ import {
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
   MODAL_PURCHASE_PATH,
+  MODAL_RESTOCK_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '@shared/constants/modal.constants';
 import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
+import { unsavedRestockGuard } from '@features/restock/guards/unsaved-restock.guard';
 
 // Hijos de /admin, cargados con loadChildren: este archivo (y cada feature) solo se descarga
 // cuando roleGuard ya dejó pasar a un administrador, así que el vendedor nunca lo baja.
@@ -111,6 +113,15 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.PurchasePageComponent,
       ),
     data: { title: 'Entrada a bodega' },
+  },
+  // «Lista de resurtir» (HU-31): pop-up en el outlet `ventana`, sin parámetros; no se sale con cambios sin guardar.
+  {
+    path: MODAL_RESTOCK_PATH,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [unsavedRestockGuard],
+    loadComponent: () =>
+      import('@features/restock/pages/restock-page/restock-page.component').then((m) => m.RestockPageComponent),
+    data: { title: 'Lista de resurtir' },
   },
   // Mermas y fraccionados (HU-26 §12) son vistas de «Stock general»: las direcciones antiguas solo
   // redirigen a la vista correspondiente.

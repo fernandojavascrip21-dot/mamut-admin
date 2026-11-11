@@ -13,3 +13,5 @@ export const MODAL_FRACTION_PATH = 'fraccionar';
 export const MODAL_SHRINKAGE_PATH = 'merma';
 // Ventana «Entrada a bodega» (HU-27): sin parámetros.
 export const MODAL_PURCHASE_PATH = 'entrada';
+// Ventana «Lista de resurtir» (HU-31): sin parámetros.
+export const MODAL_RESTOCK_PATH = 'resurtir';

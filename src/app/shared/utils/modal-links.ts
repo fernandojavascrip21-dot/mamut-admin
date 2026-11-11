@@ -5,6 +5,7 @@ import {
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_PURCHASE_PATH,
+  MODAL_RESTOCK_PATH,
   MODAL_RETURN_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '../constants/modal.constants';
@@ -42,6 +43,11 @@ export function shrinkageModalLink(params: { sellerId?: string } = {}): unknown[
 // «Entrada a bodega» (HU-27): siempre de la bodega, sin parámetros.
 export function purchaseModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_PURCHASE_PATH] } }];
+}
+
+// «Lista de resurtir» (HU-31): pop-up de la bodega, sin parámetros.
+export function restockModalLink(): unknown[] {
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_PATH] } }];
 }
 
 export function closeModalLink(): unknown[] {

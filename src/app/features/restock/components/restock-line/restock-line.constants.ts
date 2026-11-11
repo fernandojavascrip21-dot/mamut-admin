@@ -1,0 +1,19 @@
+// Textos de un renglón del pedido de resurtir (spec M9-hu31 §2 y §5).
+export const RESTOCK_LINE_TEXTS = {
+  qtyLabel: 'Piezas',
+  costLabel: 'Costo unitario',
+  costHint: 'Solo para este pedido',
+  optionalHint: 'Opcional',
+  handwritten: 'Escrito a mano',
+  notOrderable: 'Ya no se puede pedir',
+  inStock: 'en bodega',
+  remove: 'Quitar',
+  qtyRequired: 'Escribe cuántas piezas',
+  qtyInteger: 'Debe ser un número entero mayor a 0',
+  qtyTooLarge: 'Es demasiado',
+  costInvalid: 'Escribe un costo válido (hasta 4 decimales)',
+  nameRequired: 'Escribe el nombre del producto',
+  nameTooLong: 'Máximo 120 caracteres',
+  duplicateName: 'Ya escribiste este producto',
+  existsInCatalog: 'Ya existe en el catálogo: elígelo de la lista',
+} as const;
