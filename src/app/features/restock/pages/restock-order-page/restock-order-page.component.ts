@@ -45,23 +45,27 @@ export class RestockOrderPageComponent {
   readonly texts = RESTOCK_ORDER_PAGE_TEXTS;
 
   // --- Carga del pedido ---
-  // Cada pedido de la ruta arranca una petición, y «Reintentar» emite de nuevo en `retries`. La
-  // petición sale al pulsar, no durante la detección de cambios: así el reintento es una acción igual
-  // que las demás (como el guardado de la lista de resurtir), y el borrador se queda en el pipeline.
+  // No se usa rxResource ni reload(): el reload arranca la petición durante la detección de cambios,
+  // y con ella en vuelo `whenStable` no resuelve (los tests de «Reintentar» se quedaban esperando).
+  // Aquí «Reintentar» emite en `retries` desde el clic, y el pedido llega por toSignal.
+  // Cada pedido de la ruta arranca una petición; un id que no es entero positivo no llega al backend
+  // y se trata como «ya no existe».
   private readonly retries = new Subject<void>();
   private readonly load = toSignal(
     this.route.paramMap.pipe(
       map((params) => Number(params.get('id'))),
       switchMap((id) =>
-        this.retries.pipe(
-          startWith(undefined),
-          switchMap(() =>
-            this.service.getOrder(id).pipe(
-              map((lookup): RestockOrderLoad => ({ failed: false, lookup })),
-              catchError(() => of<RestockOrderLoad>({ failed: true })),
-            ),
-          ),
-        ),
+        Number.isInteger(id) && id > 0
+          ? this.retries.pipe(
+              startWith(undefined),
+              switchMap(() =>
+                this.service.getOrder(id).pipe(
+                  map((lookup): RestockOrderLoad => ({ failed: false, lookup })),
+                  catchError(() => of<RestockOrderLoad>({ failed: true })),
+                ),
+              ),
+            )
+          : of<RestockOrderLoad>({ failed: false, lookup: { found: false } }),
       ),
     ),
     { initialValue: null },

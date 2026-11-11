@@ -37,9 +37,6 @@ export const REPLACE_DRAFT_CONFIRMATION: ConfirmOptions = {
   tone: 'default',
 };
 
-// Las fechas del pedido se muestran en la hora de la bodega, no en la del equipo.
-export const RESTOCK_TIME_ZONE = 'America/Mexico_City';
-
 // Tres renglones de esqueleto mientras carga la lista.
 export const RESTOCK_SKELETON_ROWS = [0, 1, 2] as const;
 
