@@ -1,8 +1,8 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
-import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, from, map } from 'rxjs';
+import { Subject, catchError, finalize, from, map, of, startWith, switchMap } from 'rxjs';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { ToastService } from '@core/toast/toast.service';
@@ -12,7 +12,8 @@ import { RestockExportButtonsComponent } from '../../components/restock-export-b
 import { RestockOrderDetailComponent } from '../../components/restock-order-detail/restock-order-detail.component';
 import { RESTOCK_EXPORT_ERROR_MESSAGE } from '../../constants/restock-export.constants';
 import { RESTOCK_ORDER_PAGE_TEXTS } from '../../constants/restock-order-page.constants';
-import type { RestockExportFormat, RestockOrder } from '../../interfaces/restock.models';
+import type { RestockExportFormat, RestockOrderLookup, RestockOrder } from '../../interfaces/restock.models';
+import type { RestockOrderLoad } from '../../models/restock-order-page.models';
 import { buildExportDocument, restockCountsLabel } from '../../rules/restock-export.rules';
 import { RestockExportService } from '../../services/restock-export.service';
 import { RestockService } from '../../services/restock.service';
@@ -44,20 +45,42 @@ export class RestockOrderPageComponent {
   readonly texts = RESTOCK_ORDER_PAGE_TEXTS;
 
   // --- Carga del pedido ---
-  // El id llega como parámetro de ruta; con toSignal se recarga si cambia sin recrear la página.
-  private readonly orderId = toSignal(this.route.paramMap.pipe(map((params) => Number(params.get('id')))), {
-    requireSync: true,
+  // Cada pedido de la ruta arranca una petición, y «Reintentar» emite de nuevo en `retries`. La
+  // petición sale al pulsar, no durante la detección de cambios: así el reintento es una acción igual
+  // que las demás (como el guardado de la lista de resurtir), y el borrador se queda en el pipeline.
+  private readonly retries = new Subject<void>();
+  private readonly load = toSignal(
+    this.route.paramMap.pipe(
+      map((params) => Number(params.get('id'))),
+      switchMap((id) =>
+        this.retries.pipe(
+          startWith(undefined),
+          switchMap(() =>
+            this.service.getOrder(id).pipe(
+              map((lookup): RestockOrderLoad => ({ failed: false, lookup })),
+              catchError(() => of<RestockOrderLoad>({ failed: true })),
+            ),
+          ),
+        ),
+      ),
+    ),
+    { initialValue: null },
+  );
+
+  readonly failed = computed(() => this.load()?.failed === true);
+  // Respuesta del servicio, o null mientras carga o si falló.
+  private readonly lookupResult = computed<RestockOrderLookup | null>(() => {
+    const load = this.load();
+    return load !== null && !load.failed ? load.lookup : null;
   });
-  readonly lookup = rxResource({
-    params: () => this.orderId(),
-    stream: ({ params }) => this.service.getOrder(params),
+  readonly notFound = computed(() => {
+    const lookup = this.lookupResult();
+    return lookup !== null && !lookup.found;
   });
-  readonly failed = computed(() => this.lookup.status() === 'error');
-  readonly notFound = computed(() => this.lookup.hasValue() && !this.lookup.value().found);
   readonly order = computed<RestockOrder | null>(() => {
-    if (!this.lookup.hasValue()) return null;
-    const lookup = this.lookup.value();
-    return lookup.found && lookup.order.status === 'closed' ? lookup.order : null;
+    const lookup = this.lookupResult();
+    if (lookup === null || !lookup.found) return null;
+    return lookup.order.status === 'closed' ? lookup.order : null;
   });
   readonly countsLabel = computed(() => {
     const order = this.order();
@@ -66,9 +89,10 @@ export class RestockOrderPageComponent {
 
   // Un borrador se edita en la lista de resurtir: si el id es de un borrador, se pasa a esa ventana.
   private readonly redirectDraft = effect(() => {
-    if (!this.lookup.hasValue()) return;
-    const lookup = this.lookup.value();
-    if (lookup.found && lookup.order.status === 'draft') void this.router.navigate(restockModalLink());
+    const lookup = this.lookupResult();
+    if (lookup !== null && lookup.found && lookup.order.status === 'draft') {
+      void this.router.navigate(restockModalLink());
+    }
   });
 
   // --- Exportar ---
@@ -92,7 +116,7 @@ export class RestockOrderPageComponent {
 
   // --- Navegación ---
   retry(): void {
-    this.lookup.reload();
+    this.retries.next();
   }
 
   // «Usar como base»: abre la lista de resurtir con el parámetro `base`, que ella carga.

@@ -7,11 +7,11 @@ describe('Enlaces de «Pedidos anteriores» (HU-32)', () => {
   });
 
   it('restockHistoryModalLink abre la lista sin parámetros', () => {
-    expect(restockHistoryModalLink()).toEqual(['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_HISTORY_PATH] } }]);
+    expect(restockHistoryModalLink()).toEqual(['/admin', { outlets: { [MODAL_OUTLET]: ['resurtir', 'pedidos'] } }]);
   });
 
   it('restockOrderModalLink abre el detalle con el id del pedido', () => {
-    expect(restockOrderModalLink(12)).toEqual(['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_HISTORY_PATH, 12] } }]);
+    expect(restockOrderModalLink(12)).toEqual(['/admin', { outlets: { [MODAL_OUTLET]: ['resurtir', 'pedidos', 12] } }]);
   });
 
   it('restockModalLink con baseId lleva el parámetro matricial base', () => {
