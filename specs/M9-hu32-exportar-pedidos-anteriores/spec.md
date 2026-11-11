@@ -1,6 +1,6 @@
 # Spec técnico — HU-32 · Exportar el pedido a PDF y Excel y ver pedidos anteriores (administrador)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M9-hu31-lista-de-resurtir (`specs/M9-hu31-lista-de-resurtir/spec.md`): pop-up `resurtir` en el outlet `ventana`, `RestockService`, formulario de renglones, `GET /api/restock/products` con el costo actual y `estimatedTotal`/`customLines` en el pedido. M9-t36-base-resurtir (`specs/M9-t36-base-resurtir/spec.md`): `GET /api/restock/orders?status=closed` (últimos 50) y `GET /api/restock/orders/[id]`, solo administrador. M7-t26-estados-pantallas (`specs/M7-t26-estados-pantallas/spec.md`): estados cargando / vacío / error. M3-t05-reducir-bundle-inicial (`specs/M3-t05-reducir-bundle-inicial/spec.md`): el bundle inicial no crece.
 > **Fecha:** 2026-11-11
 > **Objetivo:** que el administrador exporte un pedido de resurtir guardado a PDF y a Excel (producto, piezas y fecha, sin costos) y consulte sus pedidos cerrados en solo lectura para usar uno como base del pedido actual.
