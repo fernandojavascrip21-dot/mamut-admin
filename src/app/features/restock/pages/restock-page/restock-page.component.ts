@@ -15,10 +15,10 @@ import { closeModalLink, restockHistoryModalLink, restockModalLink } from '@shar
 import { newUuid } from '@shared/utils/uuid';
 import { RestockFormComponent } from '../../components/restock-form/restock-form.component';
 import type { RestockBusyAction, RestockFormSubmit, RestockNoticeAction } from '../../components/restock-form/restock-form.models';
-import { CLOSED_ORDER_MESSAGE } from '../../constants/restock.constants';
+import { CLOSED_ORDER_MESSAGE, RESTOCK_TIME_ZONE } from '../../constants/restock.constants';
 import { RESTOCK_EXPORT_ERROR_MESSAGE } from '../../constants/restock-export.constants';
 import {
-  DISCARD_CONFIRMATION, REPLACE_DRAFT_CONFIRMATION, RESTOCK_PAGE_TEXTS, RESTOCK_SKELETON_ROWS, RESTOCK_TIME_ZONE,
+  DISCARD_CONFIRMATION, REPLACE_DRAFT_CONFIRMATION, RESTOCK_PAGE_TEXTS, RESTOCK_SKELETON_ROWS,
 } from '../../constants/restock-page.constants';
 import type {
   RestockDiscardResult, RestockExportFormat, RestockFailure, RestockOrder, RestockOrderLookup, RestockResult,

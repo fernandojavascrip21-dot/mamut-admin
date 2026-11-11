@@ -277,6 +277,16 @@ Dependencias nuevas en `package.json`: `jspdf`, `jspdf-autotable`, `exceljs` (ve
 - **Sí:** el base viaja como parámetro matricial `base` y se consume una vez, igual que `producto` / `vendedor` en otras ventanas.
 - **Sí:** la lista se reordena por `closedAt` en el frontend en vez de cambiar `listRestockOrders` (sin tocar backend ni `restock.test.ts`).
 
+### Decisiones tomadas al implementar (2026-11-11, aprobadas por el usuario tras la revisión)
+
+- **Enlaces partidos en segmentos:** `restockHistoryModalLink()` y `restockOrderModalLink(id)` devuelven `['resurtir', 'pedidos']` / `['resurtir', 'pedidos', id]` dentro de `outlets`, no el texto `'resurtir/pedidos'`: Angular no parte un texto dentro del arreglo de un outlet y la navegación fallaba. Se cambiaron las dos aserciones de `modal-links.restock-history.spec.ts` con `./desbloquear modal-links.restock-history`.
+- **Detalle sin `rxResource`:** `restock-order-page` carga con un `Subject` dentro de `toSignal`, y «Reintentar» lo vuelve a emitir. Con `rxResource.reload()` la petición arrancaba durante la detección de cambios y `whenStable` no terminaba. Es una excepción a la regla de `CLAUDE.md`, explicada en un comentario del componente.
+- **Id inválido en el detalle:** un `id` que no es entero positivo no llama al backend y muestra «Este pedido ya no existe».
+- **Aviso de omitidos en singular:** con un solo renglón omitido dice «1 producto del pedido base ya no se puede pedir y no se agregó.»; con más, el plural de §2.
+- **Guardar con pedido base:** después del guardado el formulario solo se marca como sin cambios, sin volver a cargar los renglones con la respuesta del backend (a diferencia de HU-31), para no revertir lo que el usuario editó sobre el base.
+- **Tipos de `exceljs`:** el build de navegador no trae tipos; se declara el módulo en `src/types/exceljs-browser.d.ts`.
+- **Avisos de CommonJS:** vienen de dependencias transitivas de `jspdf` (`canvg` → `core-js`) en el chunk diferido; no rompen el build ni tocan el bundle inicial, así que no se agregan a `allowedCommonJsDependencies`.
+
 ## Lo que **no** entra en este spec
 
 - Cambios en el backend, la base de datos o sus pruebas.
