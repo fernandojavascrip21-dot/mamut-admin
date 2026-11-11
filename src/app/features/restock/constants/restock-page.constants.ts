@@ -19,7 +19,23 @@ export const RESTOCK_PAGE_TEXTS = {
   productSingular: 'producto',
   productPlural: 'productos',
   loadingLabel: 'Cargando la lista de resurtir',
+  // Pedidos anteriores y usar como base (spec M9-hu32 §2 y §5).
+  history: 'Pedidos anteriores',
+  basedOn: 'Pedido nuevo · basado en el pedido del',
+  baseMissing: 'No encontramos ese pedido',
+  skippedOne: '1 producto del pedido base ya no se puede pedir y no se agregó.',
+  skippedMany: 'productos del pedido base ya no se pueden pedir y no se agregaron.',
+  exportHelp: 'Guarda el pedido para exportarlo',
 } as const;
+
+// Confirmación de reemplazar los renglones del borrador con los de un pedido base (spec M9-hu32 §2).
+export const REPLACE_DRAFT_CONFIRMATION: ConfirmOptions = {
+  title: 'Usar como base',
+  message: '¿Reemplazar los productos de tu borrador con los de este pedido? Se guardan cuando pulses «Guardar pedido».',
+  confirmLabel: 'Reemplazar',
+  cancelLabel: 'Cancelar',
+  tone: 'default',
+};
 
 // Las fechas del pedido se muestran en la hora de la bodega, no en la del equipo.
 export const RESTOCK_TIME_ZONE = 'America/Mexico_City';

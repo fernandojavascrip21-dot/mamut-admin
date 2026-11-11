@@ -1,13 +1,27 @@
 <app-modal-panel [title]="texts.title" [closable]="!saving()" [wide]="true" (closed)="close()">
   <div class="flex h-full min-h-0 flex-col gap-3">
-    <header class="shrink-0">
-      @if (draft(); as order) {
-        <p class="m-0 text-sm text-muted">
-          {{ texts.draftSince }} {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' : timeZone }} ·
-          {{ texts.savedAt }} {{ order.updatedAt | date: 'dd/MM/yyyy HH:mm' : timeZone }}
-        </p>
-      } @else if (page()) {
-        <p class="m-0 text-sm text-muted">{{ texts.newOrder }}</p>
+    <header class="flex shrink-0 items-start justify-between gap-3">
+      <div class="min-w-0">
+        @if (draft(); as order) {
+          <p class="m-0 text-sm text-muted">
+            {{ texts.draftSince }} {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' : timeZone }} ·
+            {{ texts.savedAt }} {{ order.updatedAt | date: 'dd/MM/yyyy HH:mm' : timeZone }}
+          </p>
+        } @else if (page()) {
+          <p class="m-0 text-sm text-muted">{{ newOrderText() }}</p>
+        }
+      </div>
+      @if (!data.isLoading()) {
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [text]="true"
+          class="h-11 shrink-0 px-3 text-sm"
+          (click)="openHistory()"
+        >
+          {{ texts.history }}
+        </button>
       }
     </header>
 
@@ -26,6 +40,9 @@
         </button>
       </div>
     } @else if (page()) {
+      @if (skippedText(); as message) {
+        <p class="alert-warning m-0 shrink-0 text-sm" role="status">{{ message }}</p>
+      }
       <app-restock-form
         class="flex min-h-0 flex-1 flex-col"
         [products]="products()"
@@ -37,11 +54,16 @@
         [notice]="notice()"
         [noticeAction]="noticeAction()"
         [savedTotal]="savedTotal()"
+        [startsDirty]="startsDirty()"
+        [exportBlocked]="exportBlocked()"
+        [exportHelp]="exportHelp()"
+        [exportBusy]="exporting()"
         (saved)="onSave($event)"
         (closed)="onClose($event)"
         (discarded)="onDiscard()"
         (noticeActionClicked)="onNoticeAction($event)"
         (dirtyChange)="onDirtyChange($event)"
+        (exportRequested)="onExport($event)"
       />
     } @else {
       <div class="flex flex-col gap-3" aria-busy="true" [attr.aria-label]="texts.loadingLabel">

@@ -13,11 +13,12 @@ import { Textarea } from 'primeng/textarea';
 import { unitsLabel } from '@shared/utils/units-label';
 import { MAX_LINES, MAX_NOTE_LENGTH } from '../../constants/restock.constants';
 import type {
-  RestockLinePayload, RestockProduct, RestockSuggestion, UpdateRestockOrderPayload,
+  RestockExportFormat, RestockLinePayload, RestockProduct, RestockSuggestion, UpdateRestockOrderPayload,
 } from '../../interfaces/restock.models';
 import { estimateTotal } from '../../rules/restock-estimate.rules';
 import { addableProducts, existsInCatalog, lineViews, missingSuggestions } from '../../rules/restock-lines.rules';
 import { duplicateNameIndexes, restockCustomName, restockNote, restockQty, restockUnitCost } from '../../validators/restock-form.validators';
+import { RestockExportButtonsComponent } from '../restock-export-buttons/restock-export-buttons.component';
 import { RestockLineComponent } from '../restock-line/restock-line.component';
 import { RESTOCK_LINE_TEXTS } from '../restock-line/restock-line.constants';
 import { RESTOCK_FORM_TEXTS, RESTOCK_NOTICE_LABELS } from './restock-form.constants';
@@ -31,7 +32,10 @@ import type {
 // validado. Los errores de campo aparecen al enviar; los generales (lista vacía para cerrar,
 // renglones que ya no se pueden pedir, más de 200) se explican arriba de los botones.
 @Component({
-  imports: [CurrencyPipe, ReactiveFormsModule, ButtonDirective, InputText, Select, Textarea, RestockLineComponent],
+  imports: [
+    CurrencyPipe, ReactiveFormsModule, ButtonDirective, InputText, Select, Textarea,
+    RestockLineComponent, RestockExportButtonsComponent,
+  ],
   selector: 'app-restock-form',
   templateUrl: './restock-form.component.html',
 })
@@ -53,6 +57,12 @@ export class RestockFormComponent implements OnInit {
   readonly noticeAction = input<RestockNoticeAction | null>(null);
   // Total que devuelve el backend tras guardar; null mientras la lista no se guardó o cambió.
   readonly savedTotal = input<string | null>(null);
+  // Un pedido base (HU-32) entra con cambios sin guardar: la lista todavía no se guardó.
+  readonly startsDirty = input(false);
+  // Exportar: bloqueo por cambios o guardado en curso, ayuda que lo explica y formato en generación.
+  readonly exportBlocked = input(false);
+  readonly exportHelp = input<string | null>(null);
+  readonly exportBusy = input<RestockExportFormat | null>(null);
 
   readonly saved = output<RestockFormSubmit>();
   readonly closed = output<RestockFormSubmit>();
@@ -60,6 +70,7 @@ export class RestockFormComponent implements OnInit {
   readonly noticeActionClicked = output<RestockNoticeAction>();
   // true al primer cambio del usuario; una lista recién cargada no cuenta.
   readonly dirtyChange = output<boolean>();
+  readonly exportRequested = output<RestockExportFormat>();
 
   // --- Formulario y estados ---
   form!: RestockFormGroup;
@@ -133,7 +144,8 @@ export class RestockFormComponent implements OnInit {
     effect(() => {
       const lines = this.initialLines();
       const note = this.initialNote();
-      untracked(() => this.loadInitial(lines, note));
+      const startsDirty = this.startsDirty();
+      untracked(() => this.loadInitial(lines, note, startsDirty));
     });
   }
 
@@ -172,13 +184,18 @@ export class RestockFormComponent implements OnInit {
   }
 
   // Reemplaza todos los renglones con los que llegan y deja el formulario sin cambios pendientes.
-  private loadInitial(lines: RestockLineForm[], note: string): void {
+  // `startsDirty` es el caso del pedido base: la carga cuenta como cambio porque aún no se guardó.
+  private loadInitial(lines: RestockLineForm[], note: string, startsDirty: boolean): void {
     const wasDirty = this.form.dirty;
     this.form.controls.lines.clear();
     for (const line of lines) this.addLine(line);
     this.form.controls.note.setValue(note);
     this.form.markAsPristine();
     if (wasDirty) this.dirtyChange.emit(false);
+    if (startsDirty) {
+      this.form.markAsDirty();
+      this.dirtyChange.emit(true);
+    }
   }
 
   // Único camino para crear renglones (cargar, agregar, sugerir): así cada uno lleva las mismas reglas.
@@ -272,6 +289,13 @@ export class RestockFormComponent implements OnInit {
 
   discard(): void {
     if (!this.isBusy()) this.discarded.emit();
+  }
+
+  // Tras guardar, lo que se ve ya está guardado: queda sin cambios sin volver a cargar los renglones,
+  // porque el usuario puede seguir editando y una recarga los revertiría.
+  markSaved(): void {
+    this.form.markAsPristine();
+    this.dirtyChange.emit(false);
   }
 
   // Valida y emite. Primero los avisos generales (que no tienen campo), después los campos; un
