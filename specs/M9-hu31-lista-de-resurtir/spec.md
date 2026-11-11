@@ -1,6 +1,6 @@
 # Spec técnico — HU-31 · Generar y editar la lista de resurtir (administrador)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** M9-t36-base-resurtir (`specs/M9-t36-base-resurtir/spec.md`): sugerencias y pedidos `draft`/`closed` en `/api/restock/…`, solo administrador, sin mover inventario; **este spec lo extiende** (renglones escritos a mano, costo editable por renglón, total estimado y lectura de productos pedibles; §3 y §4). M3-hu18-aviso-baja-existencia (`specs/M3-hu18-aviso-baja-existencia/spec.md`): el nivel `stockLevel` lo decide el backend. M2-hu13-stock-general (`specs/M2-hu13-stock-general/spec.md`): movimientos rápidos de «Stock general». M7-t26-estados-pantallas (`specs/M7-t26-estados-pantallas/spec.md`): estados cargando / vacío / error. M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`): costo con 4 decimales como texto, sin `number` flotante. HU-27 «Entrada a bodega» (`SCRUM-77`, feature `purchases`, sin carpeta de spec): patrón del campo de piezas como texto validado al enviar.
 > **Fecha:** 2026-11-10
 > **Objetivo:** que el administrador abra desde «Stock general» la página «Lista de resurtir», parta de los productos con baja o nula existencia (o retome su borrador), agregue cualquier producto del catálogo o uno escrito a mano, ajuste cantidades y costos solo para el pedido, vea el total estimado y guarde o cierre el pedido con un solo envío.
@@ -343,28 +343,28 @@ Constantes:
 
 ## 7. Criterios de aceptación
 
-- [ ] Con «Yo · bodega», «Stock general» muestra «Resurtir» después de «Entrada a bodega», que abre el pop-up «Lista de resurtir» sobre «Stock general».
-- [ ] Sin borrador, la lista parte de los productos con baja o nula existencia en la bodega, en el orden del backend, con piezas vacías, el nivel y el costo registrado de cada uno, y no cuenta como cambio sin guardar (criterio 1 de `SCRUM-88`).
-- [ ] Se pueden cambiar piezas, quitar renglones y agregar un producto con el selector (criterio 2).
-- [ ] El selector «Agregar producto» ofrece productos con existencia suficiente (no solo bajos), con «N piezas en bodega», y no ofrece bolsitas, desactivados ni los ya agregados.
-- [ ] «Escribir un producto» agrega un renglón «Escrito a mano» con piezas vacías; sin nombre, con un nombre de más de 120 caracteres, con dos iguales o con costo inválido da su error y no manda nada.
-- [ ] Un nombre escrito que coincide con un producto del catálogo muestra el aviso «Ya existe en el catálogo» y no bloquea.
-- [ ] Un renglón de catálogo muestra su costo registrado; cambiarlo cambia el total estimado, pero `products.unit_cost` queda igual (comprobado en la base).
-- [ ] El total estimado se actualiza al cambiar piezas o costos y al quitar o agregar renglones, y redondea una sola vez sobre la suma: con un renglón de 3 piezas a `10.3333` da `31.00` y con uno de 3 a `10.3350` da `31.01`. Los renglones escritos sin costo cuentan 0 y se avisa «N sin costo».
-- [ ] «Guardar pedido» de un pedido nuevo manda un `POST` con `requestId`; los siguientes guardados mandan `PUT` del mismo pedido. Sale el toast «Pedido guardado», se actualiza «Guardado <fecha>» y el total que se ve es el `estimatedTotal` del backend, igual al calculado en pantalla (criterio 3).
-- [ ] Al retomar el borrador reaparecen sus renglones de catálogo y escritos a mano con piezas y costos, su nota y sus fechas; «Agregar sugeridos (N)» agrega solo las sugerencias que faltan y no aparece si no falta ninguna.
-- [ ] Piezas vacías, `0`, `2.5`, `-1` o texto, y un costo con más de 4 decimales, negativo o texto, dan su error de campo al enviar y no se manda nada; los errores no aparecen al solo tocar los campos (criterio 3).
-- [ ] Mientras se guarda, cierra o descarta, los botones están deshabilitados y un segundo clic no manda otra petición (criterio 3).
-- [ ] Sin conexión: aviso con «Reintentar»; reintentar un pedido nuevo usa el mismo `requestId` y no crea dos pedidos.
-- [ ] «Cerrar pedido» pide confirmación con el total estimado; con cambios sin guardar guarda y cierra en un solo clic; después sale «Pedido cerrado» y la página parte de las sugerencias como pedido nuevo. Cancelar no manda nada; cerrar una lista vacía da su error sin mandar nada; un pedido con solo renglones escritos a mano se cierra.
-- [ ] «Descartar borrador» pide confirmación, borra el borrador y la página parte de las sugerencias.
-- [ ] Un renglón de catálogo del borrador con un producto desactivado o bolsita se marca «Ya no se puede pedir», no suma al total, y guardar o cerrar sin quitarlo da el error general sin mandar nada.
-- [ ] Una nota de más de 500 caracteres da su error al enviar; una nota vacía se manda como `null`.
-- [ ] Salir con cambios sin guardar pregunta «¿Salir sin guardar?»; sin cambios sale sin preguntar.
-- [ ] Cargando, error al cargar (con «Reintentar») y vacío («Nada que resurtir», con «Agregar producto» y «Escribir un producto» visibles) muestran su estado; a 375 px la página se usa sin zoom (criterio 4).
-- [ ] Guardar o cerrar un pedido no agrega filas a `stock_movements`, no crea productos y no cambia `products` (ni `unit_cost` ni `stock`).
-- [ ] Backend: la migración pasa con `db:reset` y en producción; `GET /api/restock/products` trae todos los productos activos que no son bolsita (también los de existencia suficiente) y da `403` a un vendedor; `422`/`409` de §3; `restock.test.ts` con commit sigue pasando sin cambios.
-- [ ] `ng build`, `npm run check:architecture`, `ng test`, `npm run type-check` y `npm test` del backend pasan; solo cambian las aserciones de «Stock general» de §9.
+- [x] Con «Yo · bodega», «Stock general» muestra «Resurtir» después de «Entrada a bodega», que abre el pop-up «Lista de resurtir» sobre «Stock general».
+- [x] Sin borrador, la lista parte de los productos con baja o nula existencia en la bodega, en el orden del backend, con piezas vacías, el nivel y el costo registrado de cada uno, y no cuenta como cambio sin guardar (criterio 1 de `SCRUM-88`).
+- [x] Se pueden cambiar piezas, quitar renglones y agregar un producto con el selector (criterio 2).
+- [x] El selector «Agregar producto» ofrece productos con existencia suficiente (no solo bajos), con «N piezas en bodega», y no ofrece bolsitas, desactivados ni los ya agregados.
+- [x] «Escribir un producto» agrega un renglón «Escrito a mano» con piezas vacías; sin nombre, con un nombre de más de 120 caracteres, con dos iguales o con costo inválido da su error y no manda nada.
+- [x] Un nombre escrito que coincide con un producto del catálogo muestra el aviso «Ya existe en el catálogo» y no bloquea.
+- [x] Un renglón de catálogo muestra su costo registrado; cambiarlo cambia el total estimado, pero `products.unit_cost` queda igual (comprobado en la base).
+- [x] El total estimado se actualiza al cambiar piezas o costos y al quitar o agregar renglones, y redondea una sola vez sobre la suma: con un renglón de 3 piezas a `10.3333` da `31.00` y con uno de 3 a `10.3350` da `31.01`. Los renglones escritos sin costo cuentan 0 y se avisa «N sin costo».
+- [x] «Guardar pedido» de un pedido nuevo manda un `POST` con `requestId`; los siguientes guardados mandan `PUT` del mismo pedido. Sale el toast «Pedido guardado», se actualiza «Guardado <fecha>» y el total que se ve es el `estimatedTotal` del backend, igual al calculado en pantalla (criterio 3).
+- [x] Al retomar el borrador reaparecen sus renglones de catálogo y escritos a mano con piezas y costos, su nota y sus fechas; «Agregar sugeridos (N)» agrega solo las sugerencias que faltan y no aparece si no falta ninguna.
+- [x] Piezas vacías, `0`, `2.5`, `-1` o texto, y un costo con más de 4 decimales, negativo o texto, dan su error de campo al enviar y no se manda nada; los errores no aparecen al solo tocar los campos (criterio 3).
+- [x] Mientras se guarda, cierra o descarta, los botones están deshabilitados y un segundo clic no manda otra petición (criterio 3).
+- [x] Sin conexión: aviso con «Reintentar»; reintentar un pedido nuevo usa el mismo `requestId` y no crea dos pedidos.
+- [x] «Cerrar pedido» pide confirmación con el total estimado; con cambios sin guardar guarda y cierra en un solo clic; después sale «Pedido cerrado» y la página parte de las sugerencias como pedido nuevo. Cancelar no manda nada; cerrar una lista vacía da su error sin mandar nada; un pedido con solo renglones escritos a mano se cierra.
+- [x] «Descartar borrador» pide confirmación, borra el borrador y la página parte de las sugerencias.
+- [x] Un renglón de catálogo del borrador con un producto desactivado o bolsita se marca «Ya no se puede pedir», no suma al total, y guardar o cerrar sin quitarlo da el error general sin mandar nada.
+- [x] Una nota de más de 500 caracteres da su error al enviar; una nota vacía se manda como `null`.
+- [x] Salir con cambios sin guardar pregunta «¿Salir sin guardar?»; sin cambios sale sin preguntar.
+- [x] Cargando, error al cargar (con «Reintentar») y vacío («Nada que resurtir», con «Agregar producto» y «Escribir un producto» visibles) muestran su estado; a 375 px la página se usa sin zoom (criterio 4).
+- [x] Guardar o cerrar un pedido no agrega filas a `stock_movements`, no crea productos y no cambia `products` (ni `unit_cost` ni `stock`).
+- [x] Backend: la migración pasa con `db:reset` y en producción; `GET /api/restock/products` trae todos los productos activos que no son bolsita (también los de existencia suficiente) y da `403` a un vendedor; `422`/`409` de §3; `restock.test.ts` con commit sigue pasando sin cambios.
+- [x] `ng build`, `npm run check:architecture`, `ng test`, `npm run type-check` y `npm test` del backend pasan; solo cambian las aserciones de «Stock general» de §9.
 
 ## 8. Riesgos
 
