@@ -46,8 +46,17 @@ export function purchaseModalLink(): unknown[] {
 }
 
 // «Lista de resurtir» (HU-31): pop-up de la bodega, sin parámetros.
-export function restockModalLink(): unknown[] {
+export function restockModalLink(params: { baseId?: number } = {}): unknown[] {
+  if (params.baseId !== undefined) throw new Error('Sin implementar: baseId');
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_PATH] } }];
+}
+
+export function restockHistoryModalLink(): unknown[] {
+  throw new Error('Sin implementar');
+}
+
+export function restockOrderModalLink(id: number): unknown[] {
+  throw new Error(`Sin implementar: ${id}`);
 }
 
 export function closeModalLink(): unknown[] {

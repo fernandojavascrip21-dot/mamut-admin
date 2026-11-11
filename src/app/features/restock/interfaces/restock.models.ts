@@ -105,3 +105,17 @@ export interface RestockOrdersResponse {
 export interface RestockOrderResponse {
   order: RestockOrder;
 }
+
+// Detalle de un pedido: un 404 no es error de pantalla, es «ya no existe».
+export type RestockOrderLookup = { found: true; order: RestockOrder } | { found: false };
+export type RestockExportFormat = 'pdf' | 'xlsx';
+
+// Renglones listos para el formulario a partir de un pedido viejo y de los productos pedibles hoy.
+export interface RestockBaseLines {
+  lines: Array<
+    | { kind: 'catalog'; productId: number; qty: number; unitCost: string }
+    | { kind: 'custom'; name: string; qty: number; unitCost: string | null }
+  >;
+  skipped: number;
+  baseClosedAt: string;
+}

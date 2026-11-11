@@ -15,3 +15,5 @@ export const MODAL_SHRINKAGE_PATH = 'merma';
 export const MODAL_PURCHASE_PATH = 'entrada';
 // Ventana «Lista de resurtir» (HU-31): sin parámetros.
 export const MODAL_RESTOCK_PATH = 'resurtir';
+// Ventanas «Pedidos anteriores» (`resurtir/pedidos`) y su detalle (`resurtir/pedidos/:id`) (HU-32).
+export const MODAL_RESTOCK_HISTORY_PATH = 'resurtir/pedidos';

@@ -13,7 +13,9 @@ import type {
   CreateRestockOrderPayload,
   RestockDiscardResult,
   RestockFailure,
+  RestockOrderLookup,
   RestockOrderResponse,
+  RestockOrderSummary,
   RestockOrdersResponse,
   RestockProductsResponse,
   RestockResult,
@@ -40,6 +42,14 @@ export class RestockService {
         .get<RestockProductsResponse>(RESTOCK_PRODUCTS_URL)
         .pipe(map((response) => response.products)),
     });
+  }
+
+  listClosed(): Observable<RestockOrderSummary[]> {
+    throw new Error('Sin implementar');
+  }
+
+  getOrder(id: number): Observable<RestockOrderLookup> {
+    throw new Error(`Sin implementar: ${id}`);
   }
 
   create(payload: CreateRestockOrderPayload): Observable<RestockResult> {
