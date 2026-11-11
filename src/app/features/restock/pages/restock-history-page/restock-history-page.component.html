@@ -1,0 +1,51 @@
+<app-modal-panel [title]="texts.title" [wide]="true" (closed)="close()">
+  <div class="flex h-full min-h-0 flex-col gap-3">
+    <div class="shrink-0">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [text]="true"
+        class="h-11 px-3 text-sm"
+        (click)="backToOrder()"
+      >
+        {{ texts.backToOrder }}
+      </button>
+    </div>
+
+    @if (failed()) {
+      <div class="alert-danger flex shrink-0 flex-col items-start gap-2 text-sm" role="alert">
+        <p class="m-0">{{ texts.loadFailed }}</p>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [text]="true"
+          class="h-11 min-w-11 px-3 text-sm"
+          (click)="retry()"
+        >
+          {{ texts.retry }}
+        </button>
+      </div>
+    } @else if (items(); as list) {
+      @if (list.length === 0) {
+        <div class="surface-card flex flex-col items-center gap-1 border-dashed p-6 text-center">
+          <p class="m-0 text-base font-bold text-ink">{{ texts.empty }}</p>
+          <p class="m-0 text-sm text-muted">{{ texts.emptyHint }}</p>
+        </div>
+      } @else {
+        <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain">
+          @for (item of list; track item.id) {
+            <app-restock-history-item [item]="item" />
+          }
+        </div>
+      }
+    } @else {
+      <div class="flex flex-col gap-3" aria-busy="true" [attr.aria-label]="texts.loadingLabel">
+        @for (row of skeletonRows; track row) {
+          <p-skeleton height="5.5rem" borderRadius="0.75rem" />
+        }
+      </div>
+    }
+  </div>
+</app-modal-panel>

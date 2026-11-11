@@ -192,6 +192,12 @@
           >
             {{ texts.discard }}
           </button>
+          <app-restock-export-buttons
+            [disabled]="exportBlocked()"
+            [helpText]="exportHelp()"
+            [busyFormat]="exportBusy()"
+            (exportRequested)="exportRequested.emit($event)"
+          />
         }
       </div>
     </div>

@@ -1,0 +1,15 @@
+<a
+  [routerLink]="link()"
+  class="surface-interactive flex min-w-0 flex-col gap-2 p-4 no-underline text-ink"
+>
+  <p class="m-0 text-base font-bold">{{ item().closedLabel }}</p>
+  <p class="m-0 text-sm text-muted">{{ item().countsLabel }}</p>
+  <p class="m-0 text-sm text-ink">
+    {{ texts.total }}
+    <span class="font-bold tabular-nums">{{ item().estimatedTotal | currency: 'MXN' : 'symbol-narrow' }}</span>
+  </p>
+  @if (item().note; as note) {
+    <!-- Una sola línea: la nota completa se ve en el detalle. -->
+    <p class="m-0 truncate text-sm text-muted">{{ note }}</p>
+  }
+</a>

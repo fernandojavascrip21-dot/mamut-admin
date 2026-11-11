@@ -5,6 +5,7 @@ import {
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_PURCHASE_PATH,
+  MODAL_RESTOCK_HISTORY_PATH,
   MODAL_RESTOCK_PATH,
   MODAL_RETURN_PATH,
   MODAL_SHRINKAGE_PATH,
@@ -45,9 +46,26 @@ export function purchaseModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_PURCHASE_PATH] } }];
 }
 
-// «Lista de resurtir» (HU-31): pop-up de la bodega, sin parámetros.
-export function restockModalLink(): unknown[] {
-  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_PATH] } }];
+// «Lista de resurtir» (HU-31): pop-up de la bodega. Con `baseId` («Usar como base», HU-32) lleva el
+// parámetro matricial `base`, que el pop-up consume una sola vez.
+export function restockModalLink(params: { baseId?: number } = {}): unknown[] {
+  const segment: unknown[] =
+    params.baseId === undefined ? [MODAL_RESTOCK_PATH] : [MODAL_RESTOCK_PATH, { base: params.baseId }];
+  return ['/admin', { outlets: { [MODAL_OUTLET]: segment } }];
+}
+
+// Angular no parte en «/» un texto dentro de un array de outlet: `'resurtir/pedidos'` quedaría como un
+// solo segmento y no encajaría con la ruta. Por eso la ruta se pasa en segmentos separados.
+const restockHistorySegments = (): string[] => MODAL_RESTOCK_HISTORY_PATH.split('/');
+
+// «Pedidos anteriores» (HU-32): la lista de pedidos cerrados, sin parámetros.
+export function restockHistoryModalLink(): unknown[] {
+  return ['/admin', { outlets: { [MODAL_OUTLET]: restockHistorySegments() } }];
+}
+
+// Detalle de un pedido cerrado (HU-32): el id va en la ruta `resurtir/pedidos/:id`.
+export function restockOrderModalLink(id: number): unknown[] {
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [...restockHistorySegments(), id] } }];
 }
 
 export function closeModalLink(): unknown[] {

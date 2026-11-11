@@ -1,0 +1,33 @@
+<div class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+  <div class="flex w-full flex-col gap-2 sm:flex-row">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      class="h-11 w-full px-4 text-sm sm:w-auto"
+      [loading]="busyFormat() === 'pdf'"
+      [disabled]="blocked()"
+      [attr.aria-describedby]="helpText() ? helpId : null"
+      (click)="exportRequested.emit('pdf')"
+    >
+      {{ texts.pdf }}
+    </button>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      class="h-11 w-full px-4 text-sm sm:w-auto"
+      [loading]="busyFormat() === 'xlsx'"
+      [disabled]="blocked()"
+      [attr.aria-describedby]="helpText() ? helpId : null"
+      (click)="exportRequested.emit('xlsx')"
+    >
+      {{ texts.xlsx }}
+    </button>
+  </div>
+  @if (helpText(); as help) {
+    <p [id]="helpId" class="m-0 self-center text-sm text-muted">{{ help }}</p>
+  }
+</div>

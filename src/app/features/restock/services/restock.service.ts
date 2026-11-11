@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { catchError, forkJoin, map, of, switchMap, type Observable } from 'rxjs';
+import { catchError, forkJoin, map, of, switchMap, throwError, type Observable } from 'rxjs';
 import { httpErrorMessage, httpStatus, isOffline } from '@shared/utils/http-errors';
 import {
   CLOSED_ORDER_MESSAGE,
+  RESTOCK_CLOSED_URL,
   RESTOCK_DRAFTS_URL,
   RESTOCK_ORDERS_URL,
   RESTOCK_PRODUCTS_URL,
@@ -13,7 +14,9 @@ import type {
   CreateRestockOrderPayload,
   RestockDiscardResult,
   RestockFailure,
+  RestockOrderLookup,
   RestockOrderResponse,
+  RestockOrderSummary,
   RestockOrdersResponse,
   RestockProductsResponse,
   RestockResult,
@@ -40,6 +43,24 @@ export class RestockService {
         .get<RestockProductsResponse>(RESTOCK_PRODUCTS_URL)
         .pipe(map((response) => response.products)),
     });
+  }
+
+  // Pedidos cerrados para la lista de pedidos anteriores. Los errores los recoge el rxResource.
+  listClosed(): Observable<RestockOrderSummary[]> {
+    return this.http
+      .get<RestockOrdersResponse>(RESTOCK_CLOSED_URL)
+      .pipe(map((response) => response.orders));
+  }
+
+  // Un 404 significa que el pedido ya no existe: se devuelve como dato para que la pantalla lo
+  // muestre sin tratarlo como error. Los demás fallos siguen su curso hacia el rxResource.
+  getOrder(id: number): Observable<RestockOrderLookup> {
+    return this.http.get<RestockOrderResponse>(`${RESTOCK_ORDERS_URL}/${id}`).pipe(
+      map((response): RestockOrderLookup => ({ found: true, order: response.order })),
+      catchError((error: unknown) =>
+        httpStatus(error) === 404 ? of<RestockOrderLookup>({ found: false }) : throwError(() => error),
+      ),
+    );
   }
 
   create(payload: CreateRestockOrderPayload): Observable<RestockResult> {
