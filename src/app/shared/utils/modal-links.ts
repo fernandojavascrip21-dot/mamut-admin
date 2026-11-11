@@ -5,6 +5,7 @@ import {
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_PURCHASE_PATH,
+  MODAL_RESTOCK_HISTORY_PATH,
   MODAL_RESTOCK_PATH,
   MODAL_RETURN_PATH,
   MODAL_SHRINKAGE_PATH,
@@ -45,18 +46,22 @@ export function purchaseModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_PURCHASE_PATH] } }];
 }
 
-// «Lista de resurtir» (HU-31): pop-up de la bodega, sin parámetros.
+// «Lista de resurtir» (HU-31): pop-up de la bodega. Con `baseId` («Usar como base», HU-32) lleva el
+// parámetro matricial `base`, que el pop-up consume una sola vez.
 export function restockModalLink(params: { baseId?: number } = {}): unknown[] {
-  if (params.baseId !== undefined) throw new Error('Sin implementar: baseId');
-  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_PATH] } }];
+  const segment: unknown[] =
+    params.baseId === undefined ? [MODAL_RESTOCK_PATH] : [MODAL_RESTOCK_PATH, { base: params.baseId }];
+  return ['/admin', { outlets: { [MODAL_OUTLET]: segment } }];
 }
 
+// «Pedidos anteriores» (HU-32): la lista de pedidos cerrados, sin parámetros.
 export function restockHistoryModalLink(): unknown[] {
-  throw new Error('Sin implementar');
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_HISTORY_PATH] } }];
 }
 
+// Detalle de un pedido cerrado (HU-32): el id va en la ruta `resurtir/pedidos/:id`.
 export function restockOrderModalLink(id: number): unknown[] {
-  throw new Error(`Sin implementar: ${id}`);
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RESTOCK_HISTORY_PATH, id] } }];
 }
 
 export function closeModalLink(): unknown[] {

@@ -7,6 +7,7 @@ import {
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
   MODAL_PURCHASE_PATH,
+  MODAL_RESTOCK_HISTORY_PATH,
   MODAL_RESTOCK_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '@shared/constants/modal.constants';
@@ -122,6 +123,27 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('@features/restock/pages/restock-page/restock-page.component').then((m) => m.RestockPageComponent),
     data: { title: 'Lista de resurtir' },
+  },
+  // «Pedidos anteriores» (HU-32): solo lectura, así que no lleva guard de salida. Se entra desde la
+  // lista de resurtir, que sí pregunta por los cambios sin guardar antes de salir.
+  {
+    path: MODAL_RESTOCK_HISTORY_PATH,
+    outlet: MODAL_OUTLET,
+    loadComponent: () =>
+      import('@features/restock/pages/restock-history-page/restock-history-page.component').then(
+        (m) => m.RestockHistoryPageComponent,
+      ),
+    data: { title: 'Pedidos anteriores' },
+  },
+  // Detalle de un pedido cerrado (HU-32): `resurtir/pedidos/:id`; un borrador se redirige a la lista.
+  {
+    path: `${MODAL_RESTOCK_HISTORY_PATH}/:id`,
+    outlet: MODAL_OUTLET,
+    loadComponent: () =>
+      import('@features/restock/pages/restock-order-page/restock-order-page.component').then(
+        (m) => m.RestockOrderPageComponent,
+      ),
+    data: { title: 'Pedido de resurtir' },
   },
   // Mermas y fraccionados (HU-26 §12) son vistas de «Stock general»: las direcciones antiguas solo
   // redirigen a la vista correspondiente.
