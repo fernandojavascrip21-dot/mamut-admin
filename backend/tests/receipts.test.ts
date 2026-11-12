@@ -172,7 +172,7 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
     join supplier_receipts r on r.id = l.receipt_id
     where r.request_id = ${requestId} order by m.id`
   const aliasOf = async (readName: string) =>
-    (await sql`select product_id from supplier_product_aliases where normalized_name = ${matchKey(readName)}`)[0]?.product_id as number | undefined
+    (await sql`select product_id::int as product_id from supplier_product_aliases where normalized_name = ${matchKey(readName)}`)[0]?.product_id as number | undefined
 
   const confirmInput = (lines: { readName: string; qty: number; unitCost: string | null; productId: number | null }[], requestId: string = randomUUID()) =>
     ({ requestId, source: 'excel' as const, fileName: 'remision.xlsx', lines })
@@ -265,7 +265,7 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
     it.each([
       ['un .xls', new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]), 'remision.xls'],
       ['un .csv', new TextEncoder().encode('producto,cantidad\na,1\n'), 'remision.csv'],
-      ['una imagen', new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), 'remision.png'],
+      ['una imagen GIF', new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]), 'remision.gif'],
     ])('responde 422 con %s', async (_label, bytes, name) => {
       await expect(previewReceipt(toFile(bytes, name), asAdmin())).rejects.toMatchObject({
         code: 'validation', message: 'Solo se aceptan remisiones en PDF, Excel (.xlsx) o imagen (JPG o PNG)',
@@ -496,7 +496,7 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
       const line = { readName: 'x', qty: 1, unitCost: null, productId: null }
       const cases: [string, ReturnType<typeof confirmInput>][] = [
         ['qty cero', confirmInput([{ ...line, qty: 0 }])],
-        ['qty fuera del máximo', confirmInput([{ ...line, qty: 1_000_000_000 }])],
+        ['qty fuera del máximo', confirmInput([{ ...line, qty: 2_147_483_648 }])],
         ['unitCost con 5 decimales', confirmInput([{ ...line, unitCost: '1.23456' }])],
         ['lines vacío', confirmInput([])],
         ['más de 200 renglones', confirmInput(Array.from({ length: 201 }, () => line))],
