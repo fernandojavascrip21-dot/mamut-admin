@@ -20,6 +20,7 @@ export interface NewStockMovement {
   requestId?: string | null         // llave de idempotencia de una entrega (HU-11); las dos filas la comparten
   directSaleId?: number | null      // venta a la que pertenece un movimiento direct_sale (T-18)
   fractionId?: number | null        // fraccionado al que pertenece un movimiento fraction_* (T-24)
+  receiptLineId?: number | null     // renglón de remisión que originó una entrada `purchase` (T-41); único por renglón
 }
 
 // Único punto para mover inventario. El trigger de la base ajusta products.stock /
@@ -38,6 +39,7 @@ export async function insertMovements(tx: Tx, rows: NewStockMovement[]): Promise
       requestId: row.requestId ?? null,
       directSaleId: row.directSaleId ?? null,
       fractionId: row.fractionId ?? null,
+      receiptLineId: row.receiptLineId ?? null,
     })))
   } catch (err) {
     if (isCheckViolation(err, 'products_stock_check') || isCheckViolation(err, 'vendor_stock_qty_check')) {

@@ -1,3 +1,5 @@
+import type { products } from '@db/schema'
+
 export type ReceiptSource = 'excel' | 'pdf' | 'image'
 export type ReceiptImageType = 'image/jpeg' | 'image/png'
 export type MatchKind = 'alias' | 'name' | 'none'
@@ -106,4 +108,65 @@ export interface PendingCostChange {
 export interface PendingReceiptLines {
   newProducts: PendingNewProduct[]
   costChanges: PendingCostChange[]
+}
+
+// Lectores de PDF e imagen que recibe la vista previa; las pruebas pasan unos falsos (spec §3).
+export interface ReceiptReaders {
+  readPdf: PdfReader
+  readImage: ImageReader
+}
+
+// Tipo de archivo decidido por sus primeros bytes.
+export type DetectedFile =
+  | { source: 'excel' }
+  | { source: 'pdf' }
+  | { source: 'image'; mediaType: ReceiptImageType }
+
+// Resultado de validar un renglón leído: o un motivo de salto, o los datos ya limpios.
+export type RowCheck =
+  | { ok: true; readName: string; qty: number; unitCost: string | null }
+  | { ok: false; reason: SkipReason }
+
+// Producto del catálogo para emparejar: incluye inactivos, para avisar y no ignorar.
+export interface CatalogProduct {
+  id: number
+  name: string
+  image: string
+  unitCost: string
+  stock: number
+  active: boolean
+}
+
+// Catálogo y alias ya cargados para una vista previa: búsquedas por id, por nombre normalizado y por llave.
+export interface Catalog {
+  byId: Map<number, CatalogProduct>
+  byName: Map<string, CatalogProduct[]>
+  aliases: Map<string, number>
+}
+
+// Resultado de emparejar un renglón: alias o nombre, o sin pareja.
+export interface Match {
+  kind: MatchKind
+  product: CatalogProduct | null
+}
+
+// Alta de un producto nuevo desde un pendiente (spec §3, «Dar de alta»). `unitCost` es opcional.
+export interface CreateProductFromLineInput {
+  name: string
+  price: string
+  categoryId: number | null
+  unitCost?: string
+}
+
+export type ReceiptProductRow = typeof products.$inferSelect
+
+export interface CreateProductFromLineResult {
+  product: ReceiptProductRow
+  line: ReceiptLine
+  stock: { before: number; after: number }
+}
+
+export interface AcceptLineCostResult {
+  line: ReceiptLine
+  product: { id: number; unitCost: string }
 }

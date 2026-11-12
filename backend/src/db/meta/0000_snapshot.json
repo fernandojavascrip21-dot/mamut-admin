@@ -1,0 +1,3248 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.categories": {
+      "name": "categories",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "categories_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "categories_name_key": {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false,
+          "name": "categories_name_key"
+        },
+        "categories_slug_key": {
+          "columns": [
+            "slug"
+          ],
+          "nullsNotDistinct": false,
+          "name": "categories_slug_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.clients": {
+      "name": "clients",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "clients_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contact_name": {
+          "name": "contact_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "clients_name_key": {
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false,
+          "name": "clients_name_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_client_id_fkey": {
+          "name": "profiles_client_id_fkey",
+          "tableFrom": "profiles",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "profiles_id_fkey": {
+          "name": "profiles_id_fkey",
+          "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "profiles_client_id_matches_role": {
+          "name": "profiles_client_id_matches_role",
+          "value": "(role = 'client'::text) = (client_id IS NOT NULL)"
+        },
+        "profiles_phone_format_check": {
+          "name": "profiles_phone_format_check",
+          "value": "(phone IS NULL) OR (phone ~ '^[0-9]{10}$'::text)"
+        },
+        "profiles_role_check": {
+          "name": "profiles_role_check",
+          "value": "role = ANY (ARRAY['admin'::text, 'client'::text, 'vendedor'::text])"
+        },
+        "profiles_seller_phone_required_check": {
+          "name": "profiles_seller_phone_required_check",
+          "value": "(role <> 'vendedor'::text) OR (phone IS NOT NULL)"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.sales": {
+      "name": "sales",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "sales_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "consignment_item_id": {
+          "name": "consignment_item_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "on_credit": {
+          "name": "on_credit",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "debtor_id": {
+          "name": "debtor_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'paid'"
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uncollectible_at": {
+          "name": "uncollectible_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uncollectible_by": {
+          "name": "uncollectible_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transferred_to_admin_at": {
+          "name": "transferred_to_admin_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sold_by": {
+          "name": "sold_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sold_at": {
+          "name": "sold_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "cut_id": {
+          "name": "cut_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_at": {
+          "name": "voided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_by": {
+          "name": "voided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "sales_client_pending_idx": {
+          "name": "sales_client_pending_idx",
+          "columns": [
+            {
+              "expression": "client_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "payment_status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "((cut_id IS NULL) AND (voided_at IS NULL))",
+          "with": {}
+        },
+        "sales_cut_id_idx": {
+          "name": "sales_cut_id_idx",
+          "columns": [
+            {
+              "expression": "cut_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "sales_debtor_id_idx": {
+          "name": "sales_debtor_id_idx",
+          "columns": [
+            {
+              "expression": "debtor_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "sales_sold_at_idx": {
+          "name": "sales_sold_at_idx",
+          "columns": [
+            {
+              "expression": "sold_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "sales_client_id_fkey": {
+          "name": "sales_client_id_fkey",
+          "tableFrom": "sales",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_consignment_item_id_fkey": {
+          "name": "sales_consignment_item_id_fkey",
+          "tableFrom": "sales",
+          "tableTo": "consignment_items",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "consignment_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_cut_id_fkey": {
+          "name": "sales_cut_id_fkey",
+          "tableFrom": "sales",
+          "tableTo": "cuts",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "cut_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_debtor_id_fkey": {
+          "name": "sales_debtor_id_fkey",
+          "tableFrom": "sales",
+          "tableTo": "debtors",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "debtor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_product_id_fkey": {
+          "name": "sales_product_id_fkey",
+          "tableFrom": "sales",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_sold_by_fkey": {
+          "name": "sales_sold_by_fkey",
+          "tableFrom": "sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "sold_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_uncollectible_by_fkey": {
+          "name": "sales_uncollectible_by_fkey",
+          "tableFrom": "sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "uncollectible_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "sales_voided_by_fkey": {
+          "name": "sales_voided_by_fkey",
+          "tableFrom": "sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "voided_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "sales_payment_method_check": {
+          "name": "sales_payment_method_check",
+          "value": "payment_method = ANY (ARRAY['cash'::text, 'transfer'::text])"
+        },
+        "sales_payment_status_check": {
+          "name": "sales_payment_status_check",
+          "value": "payment_status = ANY (ARRAY['paid'::text, 'pending'::text, 'uncollectible'::text])"
+        },
+        "sales_qty_check": {
+          "name": "sales_qty_check",
+          "value": "qty > 0"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.direct_sale_items": {
+      "name": "direct_sale_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "direct_sale_items_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "direct_sale_id": {
+          "name": "direct_sale_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "factory_unit_cost": {
+          "name": "factory_unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "direct_sale_items_direct_sale_id_idx": {
+          "name": "direct_sale_items_direct_sale_id_idx",
+          "columns": [
+            {
+              "expression": "direct_sale_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "direct_sale_items_product_id_idx": {
+          "name": "direct_sale_items_product_id_idx",
+          "columns": [
+            {
+              "expression": "product_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "direct_sale_items_direct_sale_id_fkey": {
+          "name": "direct_sale_items_direct_sale_id_fkey",
+          "tableFrom": "direct_sale_items",
+          "tableTo": "direct_sales",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "direct_sale_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "direct_sale_items_product_id_fkey": {
+          "name": "direct_sale_items_product_id_fkey",
+          "tableFrom": "direct_sale_items",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "direct_sale_items_sale_product_key": {
+          "columns": [
+            "direct_sale_id",
+            "product_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "direct_sale_items_sale_product_key"
+        }
+      },
+      "checkConstraints": {
+        "direct_sale_items_factory_unit_cost_check": {
+          "name": "direct_sale_items_factory_unit_cost_check",
+          "value": "factory_unit_cost >= (0)::numeric"
+        },
+        "direct_sale_items_qty_check": {
+          "name": "direct_sale_items_qty_check",
+          "value": "qty > 0"
+        },
+        "direct_sale_items_unit_price_check": {
+          "name": "direct_sale_items_unit_price_check",
+          "value": "unit_price >= (0)::numeric"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.direct_sales": {
+      "name": "direct_sales",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "direct_sales_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "buyer_note": {
+          "name": "buyer_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "on_credit": {
+          "name": "on_credit",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "debtor_id": {
+          "name": "debtor_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'paid'"
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uncollectible_at": {
+          "name": "uncollectible_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uncollectible_by": {
+          "name": "uncollectible_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sold_by": {
+          "name": "sold_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sold_at": {
+          "name": "sold_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "voided_at": {
+          "name": "voided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_by": {
+          "name": "voided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "holder_profile_id": {
+          "name": "holder_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "direct_sales_debtor_id_idx": {
+          "name": "direct_sales_debtor_id_idx",
+          "columns": [
+            {
+              "expression": "debtor_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "direct_sales_holder_sold_at_idx": {
+          "name": "direct_sales_holder_sold_at_idx",
+          "columns": [
+            {
+              "expression": "holder_profile_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "sold_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "direct_sales_payment_status_idx": {
+          "name": "direct_sales_payment_status_idx",
+          "columns": [
+            {
+              "expression": "payment_status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(voided_at IS NULL)",
+          "with": {}
+        },
+        "direct_sales_request_id_key": {
+          "name": "direct_sales_request_id_key",
+          "columns": [
+            {
+              "expression": "request_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(request_id IS NOT NULL)",
+          "with": {}
+        },
+        "direct_sales_sold_at_idx": {
+          "name": "direct_sales_sold_at_idx",
+          "columns": [
+            {
+              "expression": "sold_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "direct_sales_debtor_id_fkey": {
+          "name": "direct_sales_debtor_id_fkey",
+          "tableFrom": "direct_sales",
+          "tableTo": "debtors",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "debtor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "direct_sales_holder_profile_id_fkey": {
+          "name": "direct_sales_holder_profile_id_fkey",
+          "tableFrom": "direct_sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "holder_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "direct_sales_sold_by_fkey": {
+          "name": "direct_sales_sold_by_fkey",
+          "tableFrom": "direct_sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "sold_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "direct_sales_uncollectible_by_fkey": {
+          "name": "direct_sales_uncollectible_by_fkey",
+          "tableFrom": "direct_sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "uncollectible_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "direct_sales_voided_by_fkey": {
+          "name": "direct_sales_voided_by_fkey",
+          "tableFrom": "direct_sales",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "voided_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "direct_sales_payment_method_check": {
+          "name": "direct_sales_payment_method_check",
+          "value": "payment_method = ANY (ARRAY['cash'::text, 'transfer'::text])"
+        },
+        "direct_sales_payment_status_check": {
+          "name": "direct_sales_payment_status_check",
+          "value": "payment_status = ANY (ARRAY['paid'::text, 'pending'::text, 'uncollectible'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.debtors": {
+      "name": "debtors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "debtors_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "debtors_client_name_idx": {
+          "name": "debtors_client_name_idx",
+          "columns": [
+            {
+              "expression": "client_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "name",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "debtors_client_id_fkey": {
+          "name": "debtors_client_id_fkey",
+          "tableFrom": "debtors",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "debtors_created_by_fkey": {
+          "name": "debtors_created_by_fkey",
+          "tableFrom": "debtors",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "debtors_client_phone_key": {
+          "columns": [
+            "client_id",
+            "phone"
+          ],
+          "nullsNotDistinct": false,
+          "name": "debtors_client_phone_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.cuts": {
+      "name": "cuts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "cuts_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_start": {
+          "name": "period_start",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_end": {
+          "name": "period_end",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_qty": {
+          "name": "total_qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_sold": {
+          "name": "total_sold",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cash_total": {
+          "name": "cash_total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transfer_total": {
+          "name": "transfer_total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restock_amount": {
+          "name": "restock_amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profit": {
+          "name": "profit",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_by": {
+          "name": "cancelled_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cuts_client_period_end_idx": {
+          "name": "cuts_client_period_end_idx",
+          "columns": [
+            {
+              "expression": "client_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "period_end",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cuts_cancelled_by_fkey": {
+          "name": "cuts_cancelled_by_fkey",
+          "tableFrom": "cuts",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "cancelled_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "cuts_client_id_fkey": {
+          "name": "cuts_client_id_fkey",
+          "tableFrom": "cuts",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "cuts_created_by_fkey": {
+          "name": "cuts_created_by_fkey",
+          "tableFrom": "cuts",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.cut_items": {
+      "name": "cut_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "cut_items_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "cut_id": {
+          "name": "cut_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_name": {
+          "name": "product_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_sold": {
+          "name": "total_sold",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restock_amount": {
+          "name": "restock_amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profit": {
+          "name": "profit",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cut_items_cut_id_idx": {
+          "name": "cut_items_cut_id_idx",
+          "columns": [
+            {
+              "expression": "cut_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cut_items_cut_id_fkey": {
+          "name": "cut_items_cut_id_fkey",
+          "tableFrom": "cut_items",
+          "tableTo": "cuts",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "cut_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "cut_items_product_id_fkey": {
+          "name": "cut_items_product_id_fkey",
+          "tableFrom": "cut_items",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "cut_items_qty_check": {
+          "name": "cut_items_qty_check",
+          "value": "qty > 0"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.credit_payments": {
+      "name": "credit_payments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "credit_payments_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "sale_id": {
+          "name": "sale_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "direct_sale_id": {
+          "name": "direct_sale_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_by": {
+          "name": "received_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "voided_at": {
+          "name": "voided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_by": {
+          "name": "voided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "credit_payments_direct_sale_id_idx": {
+          "name": "credit_payments_direct_sale_id_idx",
+          "columns": [
+            {
+              "expression": "direct_sale_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "credit_payments_sale_id_idx": {
+          "name": "credit_payments_sale_id_idx",
+          "columns": [
+            {
+              "expression": "sale_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "credit_payments_direct_sale_id_fkey": {
+          "name": "credit_payments_direct_sale_id_fkey",
+          "tableFrom": "credit_payments",
+          "tableTo": "direct_sales",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "direct_sale_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "credit_payments_received_by_fkey": {
+          "name": "credit_payments_received_by_fkey",
+          "tableFrom": "credit_payments",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "received_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "credit_payments_sale_id_fkey": {
+          "name": "credit_payments_sale_id_fkey",
+          "tableFrom": "credit_payments",
+          "tableTo": "sales",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "sale_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "credit_payments_voided_by_fkey": {
+          "name": "credit_payments_voided_by_fkey",
+          "tableFrom": "credit_payments",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "voided_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "credit_payments_amount_check": {
+          "name": "credit_payments_amount_check",
+          "value": "amount > (0)::numeric"
+        },
+        "credit_payments_one_target": {
+          "name": "credit_payments_one_target",
+          "value": "(sale_id IS NULL) <> (direct_sale_id IS NULL)"
+        },
+        "credit_payments_payment_method_check": {
+          "name": "credit_payments_payment_method_check",
+          "value": "payment_method = ANY (ARRAY['cash'::text, 'transfer'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.shrinkage": {
+      "name": "shrinkage",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "shrinkage_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consignment_item_id": {
+          "name": "consignment_item_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reported_by": {
+          "name": "reported_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "voided_at": {
+          "name": "voided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_by": {
+          "name": "voided_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "shrinkage_client_created_idx": {
+          "name": "shrinkage_client_created_idx",
+          "columns": [
+            {
+              "expression": "client_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "created_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "shrinkage_product_id_idx": {
+          "name": "shrinkage_product_id_idx",
+          "columns": [
+            {
+              "expression": "product_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "shrinkage_client_id_fkey": {
+          "name": "shrinkage_client_id_fkey",
+          "tableFrom": "shrinkage",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "shrinkage_consignment_item_id_fkey": {
+          "name": "shrinkage_consignment_item_id_fkey",
+          "tableFrom": "shrinkage",
+          "tableTo": "consignment_items",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "consignment_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "shrinkage_product_id_fkey": {
+          "name": "shrinkage_product_id_fkey",
+          "tableFrom": "shrinkage",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "shrinkage_reported_by_fkey": {
+          "name": "shrinkage_reported_by_fkey",
+          "tableFrom": "shrinkage",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "reported_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "shrinkage_voided_by_fkey": {
+          "name": "shrinkage_voided_by_fkey",
+          "tableFrom": "shrinkage",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "voided_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "shrinkage_item_and_client_together": {
+          "name": "shrinkage_item_and_client_together",
+          "value": "(consignment_item_id IS NULL) = (client_id IS NULL)"
+        },
+        "shrinkage_qty_check": {
+          "name": "shrinkage_qty_check",
+          "value": "qty > 0"
+        },
+        "shrinkage_reason_check": {
+          "name": "shrinkage_reason_check",
+          "value": "reason = ANY (ARRAY['lost'::text, 'damaged'::text, 'expired'::text, 'other'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.products": {
+      "name": "products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "products_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "brand": {
+          "name": "brand",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "size": {
+          "name": "size",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "flavor": {
+          "name": "flavor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "benefits": {
+          "name": "benefits",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"\"}'"
+        },
+        "usage": {
+          "name": "usage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "price": {
+          "name": "price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "stock": {
+          "name": "stock",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "fractionable": {
+          "name": "fractionable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "portion_size": {
+          "name": "portion_size",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parent_product_id": {
+          "name": "parent_product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "products_active_idx": {
+          "name": "products_active_idx",
+          "columns": [
+            {
+              "expression": "active",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "bool_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(archived_at IS NULL)",
+          "with": {}
+        },
+        "products_category_id_idx": {
+          "name": "products_category_id_idx",
+          "columns": [
+            {
+              "expression": "category_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "products_name_lower_key": {
+          "name": "products_name_lower_key",
+          "columns": [
+            {
+              "expression": "lower(TRIM(BOTH FROM name))",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": true
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "products_category_id_fkey": {
+          "name": "products_category_id_fkey",
+          "tableFrom": "products",
+          "tableTo": "categories",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "products_parent_product_id_fkey": {
+          "name": "products_parent_product_id_fkey",
+          "tableFrom": "products",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "parent_product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "products_parent_product_id_key": {
+          "columns": [
+            "parent_product_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "products_parent_product_id_key"
+        }
+      },
+      "checkConstraints": {
+        "products_parent_not_self": {
+          "name": "products_parent_not_self",
+          "value": "(parent_product_id IS NULL) OR (parent_product_id <> id)"
+        },
+        "products_price_check": {
+          "name": "products_price_check",
+          "value": "price >= (0)::numeric"
+        },
+        "products_stock_check": {
+          "name": "products_stock_check",
+          "value": "stock >= 0"
+        },
+        "products_unit_cost_check": {
+          "name": "products_unit_cost_check",
+          "value": "unit_cost >= (0)::numeric"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.fractions": {
+      "name": "fractions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "fractions_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "portion_product_id": {
+          "name": "portion_product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "portions": {
+          "name": "portions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "whole_unit_cost": {
+          "name": "whole_unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "portion_unit_cost": {
+          "name": "portion_unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "portion_price": {
+          "name": "portion_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "fractions_product_created_at_idx": {
+          "name": "fractions_product_created_at_idx",
+          "columns": [
+            {
+              "expression": "product_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "created_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "fractions_created_by_fkey": {
+          "name": "fractions_created_by_fkey",
+          "tableFrom": "fractions",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "fractions_portion_product_id_fkey": {
+          "name": "fractions_portion_product_id_fkey",
+          "tableFrom": "fractions",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "portion_product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fractions_product_id_fkey": {
+          "name": "fractions_product_id_fkey",
+          "tableFrom": "fractions",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "fractions_request_id_key": {
+          "columns": [
+            "request_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "fractions_request_id_key"
+        }
+      },
+      "checkConstraints": {
+        "fractions_distinct_products": {
+          "name": "fractions_distinct_products",
+          "value": "product_id <> portion_product_id"
+        },
+        "fractions_portion_price_check": {
+          "name": "fractions_portion_price_check",
+          "value": "portion_price > (0)::numeric"
+        },
+        "fractions_portion_unit_cost_check": {
+          "name": "fractions_portion_unit_cost_check",
+          "value": "portion_unit_cost > (0)::numeric"
+        },
+        "fractions_portions_check": {
+          "name": "fractions_portions_check",
+          "value": "(portions >= 2) AND (portions <= 1000)"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.consignment_items": {
+      "name": "consignment_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "consignment_items_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delivered_qty": {
+          "name": "delivered_qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "sold_qty": {
+          "name": "sold_qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "returned_qty": {
+          "name": "returned_qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "shrinkage_qty": {
+          "name": "shrinkage_qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "consignment_items_client_id_idx": {
+          "name": "consignment_items_client_id_idx",
+          "columns": [
+            {
+              "expression": "client_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "consignment_items_client_id_fkey": {
+          "name": "consignment_items_client_id_fkey",
+          "tableFrom": "consignment_items",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "consignment_items_product_id_fkey": {
+          "name": "consignment_items_product_id_fkey",
+          "tableFrom": "consignment_items",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "consignment_items_client_product_key": {
+          "columns": [
+            "client_id",
+            "product_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "consignment_items_client_product_key"
+        }
+      },
+      "checkConstraints": {
+        "consignment_items_delivered_qty_check": {
+          "name": "consignment_items_delivered_qty_check",
+          "value": "delivered_qty >= 0"
+        },
+        "consignment_items_returned_qty_check": {
+          "name": "consignment_items_returned_qty_check",
+          "value": "returned_qty >= 0"
+        },
+        "consignment_items_shrinkage_qty_check": {
+          "name": "consignment_items_shrinkage_qty_check",
+          "value": "shrinkage_qty >= 0"
+        },
+        "consignment_items_sold_qty_check": {
+          "name": "consignment_items_sold_qty_check",
+          "value": "sold_qty >= 0"
+        },
+        "consignment_items_unit_cost_check": {
+          "name": "consignment_items_unit_cost_check",
+          "value": "unit_cost >= (0)::numeric"
+        },
+        "consignment_items_unit_price_check": {
+          "name": "consignment_items_unit_price_check",
+          "value": "unit_price >= (0)::numeric"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.vendor_stock": {
+      "name": "vendor_stock",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "vendor_stock_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unit_cost_with_shipping": {
+          "name": "unit_cost_with_shipping",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "vendor_stock_product_id_fkey": {
+          "name": "vendor_stock_product_id_fkey",
+          "tableFrom": "vendor_stock",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "vendor_stock_profile_id_fkey": {
+          "name": "vendor_stock_profile_id_fkey",
+          "tableFrom": "vendor_stock",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_stock_profile_product_key": {
+          "columns": [
+            "profile_id",
+            "product_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "vendor_stock_profile_product_key"
+        }
+      },
+      "checkConstraints": {
+        "vendor_stock_qty_check": {
+          "name": "vendor_stock_qty_check",
+          "value": "qty >= 0"
+        },
+        "vendor_stock_unit_cost_with_shipping_check": {
+          "name": "vendor_stock_unit_cost_with_shipping_check",
+          "value": "(unit_cost_with_shipping IS NULL) OR (unit_cost_with_shipping > (0)::numeric)"
+        },
+        "vendor_stock_unit_price_check": {
+          "name": "vendor_stock_unit_price_check",
+          "value": "(unit_price IS NULL) OR (unit_price > (0)::numeric)"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.stock_movements": {
+      "name": "stock_movements",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "stock_movements_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "holder_profile_id": {
+          "name": "holder_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "direct_sale_id": {
+          "name": "direct_sale_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fraction_id": {
+          "name": "fraction_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "stock_movements_direct_sale_product_key": {
+          "name": "stock_movements_direct_sale_product_key",
+          "columns": [
+            {
+              "expression": "direct_sale_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "product_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(type = 'direct_sale'::text)",
+          "with": {}
+        },
+        "stock_movements_product_created_idx": {
+          "name": "stock_movements_product_created_idx",
+          "columns": [
+            {
+              "expression": "product_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "created_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "stock_movements_request_holder_key": {
+          "name": "stock_movements_request_holder_key",
+          "columns": [
+            {
+              "expression": "request_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "holder_profile_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(request_id IS NOT NULL)",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "stock_movements_client_id_fkey": {
+          "name": "stock_movements_client_id_fkey",
+          "tableFrom": "stock_movements",
+          "tableTo": "clients",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "stock_movements_created_by_fkey": {
+          "name": "stock_movements_created_by_fkey",
+          "tableFrom": "stock_movements",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "stock_movements_direct_sale_id_fkey": {
+          "name": "stock_movements_direct_sale_id_fkey",
+          "tableFrom": "stock_movements",
+          "tableTo": "direct_sales",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "direct_sale_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "stock_movements_fraction_id_fkey": {
+          "name": "stock_movements_fraction_id_fkey",
+          "tableFrom": "stock_movements",
+          "tableTo": "fractions",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "fraction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "stock_movements_holder_profile_id_fkey": {
+          "name": "stock_movements_holder_profile_id_fkey",
+          "tableFrom": "stock_movements",
+          "tableTo": "profiles",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "holder_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "stock_movements_product_id_fkey": {
+          "name": "stock_movements_product_id_fkey",
+          "tableFrom": "stock_movements",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "stock_movements_direct_sale_type_check": {
+          "name": "stock_movements_direct_sale_type_check",
+          "value": "(direct_sale_id IS NULL) OR (type = ANY (ARRAY['direct_sale'::text, 'direct_sale_void'::text]))"
+        },
+        "stock_movements_fraction_type_check": {
+          "name": "stock_movements_fraction_type_check",
+          "value": "(fraction_id IS NULL) OR (type = ANY (ARRAY['fraction_out'::text, 'fraction_in'::text]))"
+        },
+        "stock_movements_qty_check": {
+          "name": "stock_movements_qty_check",
+          "value": "qty <> 0"
+        },
+        "stock_movements_qty_sign_check": {
+          "name": "stock_movements_qty_sign_check",
+          "value": "CHECK (\nCASE\n    WHEN (type = ANY (ARRAY['initial'::text, 'purchase'::text])) THEN ((holder_profile_id IS NULL) AND (qty > 0))\n    WHEN (type = 'delivery'::text) THEN (((holder_profile_id IS NULL) AND (qty < 0)) OR ((holder_profile_id IS NOT NULL) AND (qty > 0)))\n    WHEN (type = 'return'::text) THEN (((holder_profile_id IS NULL) AND (qty > 0)) OR ((holder_profile_id IS NOT NULL) AND (qty < 0)))\n    WHEN (type = ANY (ARRAY['direct_sale'::text, 'shrinkage'::text, 'fraction_out'::text])) THEN (qty < 0)\n    WHEN (type = ANY (ARRAY['direct_sale_void'::text, 'shrinkage_void'::text, 'fraction_in'::text])) THEN (qty > 0)\n    WHEN (type = 'adjustment'::text) THEN (qty <> 0)\n    ELSE false\nEND)"
+        },
+        "stock_movements_shrinkage_reason_check": {
+          "name": "stock_movements_shrinkage_reason_check",
+          "value": "(type <> 'shrinkage'::text) OR (reason IS NULL) OR (reason = ANY (ARRAY['lost'::text, 'damaged'::text, 'expired'::text, 'other'::text]))"
+        },
+        "stock_movements_type_check": {
+          "name": "stock_movements_type_check",
+          "value": "type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text, 'fraction_out'::text, 'fraction_in'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.restock_orders": {
+      "name": "restock_orders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "restock_orders_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "restock_orders_created_at_idx": {
+          "name": "restock_orders_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "restock_orders_created_by_fkey": {
+          "name": "restock_orders_created_by_fkey",
+          "tableFrom": "restock_orders",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "restock_orders_request_id_key": {
+          "columns": [
+            "request_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "restock_orders_request_id_key"
+        }
+      },
+      "checkConstraints": {
+        "restock_orders_closed_at_check": {
+          "name": "restock_orders_closed_at_check",
+          "value": "(status = 'closed'::text) = (closed_at IS NOT NULL)"
+        },
+        "restock_orders_note_check": {
+          "name": "restock_orders_note_check",
+          "value": "(note IS NULL) OR ((char_length(note) >= 1) AND (char_length(note) <= 500))"
+        },
+        "restock_orders_status_check": {
+          "name": "restock_orders_status_check",
+          "value": "status = ANY (ARRAY['draft'::text, 'closed'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    },
+    "public.restock_order_lines": {
+      "name": "restock_order_lines",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "restock_order_lines_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_cost": {
+          "name": "unit_cost",
+          "type": "numeric(10, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "custom_name": {
+          "name": "custom_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "restock_order_lines_custom_key": {
+          "name": "restock_order_lines_custom_key",
+          "columns": [
+            {
+              "expression": "order_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": true
+            },
+            {
+              "expression": "lower(custom_name)",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": true
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(custom_name IS NOT NULL)",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "restock_order_lines_order_id_fkey": {
+          "name": "restock_order_lines_order_id_fkey",
+          "tableFrom": "restock_order_lines",
+          "tableTo": "restock_orders",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "restock_order_lines_product_id_fkey": {
+          "name": "restock_order_lines_product_id_fkey",
+          "tableFrom": "restock_order_lines",
+          "tableTo": "products",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "restock_order_lines_product_key": {
+          "columns": [
+            "order_id",
+            "product_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "restock_order_lines_product_key"
+        }
+      },
+      "checkConstraints": {
+        "restock_order_lines_custom_name_check": {
+          "name": "restock_order_lines_custom_name_check",
+          "value": "(custom_name IS NULL) OR ((char_length(custom_name) >= 1) AND (char_length(custom_name) <= 120))"
+        },
+        "restock_order_lines_kind_check": {
+          "name": "restock_order_lines_kind_check",
+          "value": "((product_id IS NOT NULL) AND (custom_name IS NULL) AND (unit_cost IS NOT NULL)) OR ((product_id IS NULL) AND (custom_name IS NOT NULL))"
+        },
+        "restock_order_lines_qty_check": {
+          "name": "restock_order_lines_qty_check",
+          "value": "qty > 0"
+        },
+        "restock_order_lines_unit_cost_check": {
+          "name": "restock_order_lines_unit_cost_check",
+          "value": "unit_cost >= (0)::numeric"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {
+      "products": {
+        "columns": {
+          "benefits": {
+            "isArray": true,
+            "dimensions": 1,
+            "rawType": "text"
+          }
+        }
+      }
+    }
+  }
+}

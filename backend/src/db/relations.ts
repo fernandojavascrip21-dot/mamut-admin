@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { clients, profiles, usersInAuth, sales, consignmentItems, cuts, debtors, products, directSales, directSaleItems, cutItems, creditPayments, shrinkage, categories, fractions, vendorStock, stockMovements } from "./schema";
+import { clients, profiles, usersInAuth, sales, consignmentItems, cuts, debtors, products, directSales, directSaleItems, cutItems, creditPayments, shrinkage, categories, fractions, vendorStock, stockMovements, restockOrders, restockOrderLines } from "./schema";
 
 export const profilesRelations = relations(profiles, ({one, many}) => ({
 	client: one(clients, {
@@ -72,6 +72,7 @@ export const clientsRelations = relations(clients, ({many}) => ({
 export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({
 	profiles: many(profiles),
 	fractions: many(fractions),
+	restockOrders: many(restockOrders),
 }));
 
 export const salesRelations = relations(sales, ({one, many}) => ({
@@ -184,6 +185,7 @@ export const productsRelations = relations(products, ({one, many}) => ({
 	consignmentItems: many(consignmentItems),
 	vendorStocks: many(vendorStock),
 	stockMovements: many(stockMovements),
+	restockOrderLines: many(restockOrderLines),
 }));
 
 export const directSaleItemsRelations = relations(directSaleItems, ({one}) => ({
@@ -342,6 +344,25 @@ export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
 	}),
 	product: one(products, {
 		fields: [stockMovements.productId],
+		references: [products.id]
+	}),
+}));
+
+export const restockOrdersRelations = relations(restockOrders, ({one, many}) => ({
+	usersInAuth: one(usersInAuth, {
+		fields: [restockOrders.createdBy],
+		references: [usersInAuth.id]
+	}),
+	restockOrderLines: many(restockOrderLines),
+}));
+
+export const restockOrderLinesRelations = relations(restockOrderLines, ({one}) => ({
+	restockOrder: one(restockOrders, {
+		fields: [restockOrderLines.orderId],
+		references: [restockOrders.id]
+	}),
+	product: one(products, {
+		fields: [restockOrderLines.productId],
 		references: [products.id]
 	}),
 }));

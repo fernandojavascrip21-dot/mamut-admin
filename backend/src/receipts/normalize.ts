@@ -22,3 +22,9 @@ export function stripSupplierTags(readName: string): string {
 export function matchKey(readName: string): string {
   return normalizeName(stripSupplierTags(readName))
 }
+
+// Nombre que se propone para dar de alta: sin etiquetas, con los espacios juntos y las mayúsculas
+// originales, para que el administrador lo reconozca tal como lo escribió el proveedor.
+export function suggestedName(readName: string): string {
+  return stripSupplierTags(readName).replace(/\s+/g, ' ').trim()
+}
