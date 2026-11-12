@@ -22,8 +22,17 @@ Para la base de prueba en Docker, `npm run db:start` desde la raíz. Los bloques
 | `SUPABASE_ANON_KEY` | Llave pública: valida tokens y hace login. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Llave secreta: crea y edita cuentas de Auth. Nunca se expone al navegador. |
 | `ALLOWED_ORIGINS` | Orígenes del frontend permitidos por CORS, separados por coma. Deben ser exactos: no se aceptan patrones con `*`. |
+| `ANTHROPIC_API_KEY` | Opcional. Clave de la API de Claude para leer **PDF e imágenes** de remisiones (`/api/receipts/preview`). Sin ella esos archivos responden `500`; el Excel no la necesita. Solo servidor. |
 
 `.env` está ignorado por git; `.env.example` no lleva valores reales.
+
+## Lectura de remisiones en PDF e imagen
+
+- `POST /api/receipts/preview` lee Excel (`.xlsx`) sin servicios externos. Los PDF y las imágenes (JPG/PNG) se mandan a la API de Claude (modelo `RECEIPT_AI_MODEL` en `src/receipts/constants.ts`).
+- Requiere `ANTHROPIC_API_KEY` en `.env`. Sin ella, esos archivos responden `500`.
+- El archivo no se guarda: solo viaja a la API para leerlo. Tiene 60 s de tiempo de espera y un reintento.
+- Límites: PDF de hasta 20 páginas, imagen de hasta 5 MB.
+- La prueba real con Claude (`tests/receipts.test.ts`) se salta sin la clave.
 
 ## Scripts
 

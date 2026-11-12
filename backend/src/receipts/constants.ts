@@ -29,6 +29,31 @@ export const RECEIPT_AI_INSTRUCTIONS = [
   'Omite las filas de totales, subtotal, IVA, descuento y envío.',
   'Responde solo con el esquema pedido: name (texto), qty (entero o null) y unitCost (texto con el número o null).',
 ].join('\n')
+// Texto corto que acompaña al PDF o a la imagen en el mensaje del usuario.
+export const RECEIPT_AI_REQUEST_TEXT = 'Esta es la remisión del proveedor. Devuelve sus renglones de producto.'
+// Techo de la respuesta: una remisión de 200 renglones cabe holgadamente.
+export const RECEIPT_AI_MAX_TOKENS = 16_000
+// Salida estructurada: la API obliga a esta forma y el lector la vuelve a validar.
+export const RECEIPT_LINES_SCHEMA = {
+  type: 'object',
+  properties: {
+    lines: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          qty: { type: ['integer', 'null'] },
+          unitCost: { type: ['string', 'null'] },
+        },
+        required: ['name', 'qty', 'unitCost'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['lines'],
+  additionalProperties: false,
+} as const
 
 // Sinónimos de encabezado, ya normalizados (normalizeName). La comparación es por igualdad exacta.
 export const PRODUCT_HEADERS = ['producto', 'descripcion', 'nombre', 'articulo', 'concepto'] as const
