@@ -1,5 +1,4 @@
 import { eq, inArray, sql } from 'drizzle-orm'
-import { db } from '@db/client'
 import { isUniqueViolation, pgConstraintName } from '@db/errors'
 import { products, supplierReceiptLines, supplierReceipts } from '@db/schema'
 import { lockRows, withTransaction, type Tx } from '@db/transaction'
@@ -33,9 +32,8 @@ import type {
   ConfirmReceiptLineInput,
   Receipt,
   ReceiptActor,
+  ReceiptProductRow,
 } from './types'
-
-type ProductRow = typeof products.$inferSelect
 
 // Confirma una remisión (spec M9-t41 §3): registra la remisión, sus renglones, las entradas de los
 // renglones con producto y los alias, todo en una transacción. Devuelve `replayed: true` si la misma
@@ -47,23 +45,21 @@ export async function confirmReceipt(
   requireAdmin(actor)
   const data = validateConfirmInput(input)
 
-  let replayed = await isReplay(data)
-  if (!replayed) {
-    try {
-      replayed = await withTransaction(async (tx) => {
-        // El candado por requestId hace que dos peticiones iguales a la vez pasen una después de otra:
-        // la segunda encuentra la remisión de la primera y responde como repetición.
-        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${data.requestId}))`)
-        if (await isReplay(data)) return true
-        await writeReceipt(tx, data, actor.userId)
-        return false
-      })
-    } catch (err) {
-      // Respaldo si el candado no alcanzó: la restricción única de requestId deja una sola remisión.
-      if (!isUniqueViolation(err) || pgConstraintName(err) !== RECEIPT_REQUEST_KEY) throw err
-      if (!(await isReplay(data))) throw conflict(REQUEST_MISMATCH)
-      replayed = true
-    }
+  let replayed: boolean
+  try {
+    replayed = await withTransaction(async (tx) => {
+      // El candado por requestId hace que dos peticiones iguales a la vez pasen una después de otra:
+      // la segunda encuentra la remisión de la primera y responde como repetición.
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${data.requestId}))`)
+      if (await isReplay(tx, data)) return true
+      await writeReceipt(tx, data, actor.userId)
+      return false
+    })
+  } catch (err) {
+    // Respaldo si el candado no alcanzó: la restricción única de requestId deja una sola remisión.
+    if (!isUniqueViolation(err) || pgConstraintName(err) !== RECEIPT_REQUEST_KEY) throw err
+    if (!(await withTransaction((tx) => isReplay(tx, data)))) throw conflict(REQUEST_MISMATCH)
+    replayed = true
   }
 
   // Se relee después del commit para que `units` traiga el stock ya movido.
@@ -74,13 +70,15 @@ export async function confirmReceipt(
 
 // Una remisión con el mismo requestId: true si los datos son los mismos (repetición), 409 si son
 // otros, false si todavía no existe. El nombre del archivo no cuenta para la comparación.
-async function isReplay(data: ConfirmReceiptInput): Promise<boolean> {
-  const [stored] = await db.select({ id: supplierReceipts.id, source: supplierReceipts.source })
+// Se lee con la misma transacción: después del candado, la conexión de la transacción es la que ve lo
+// ya confirmado, sin depender de otra conexión del pool.
+async function isReplay(tx: Tx, data: ConfirmReceiptInput): Promise<boolean> {
+  const [stored] = await tx.select({ id: supplierReceipts.id, source: supplierReceipts.source })
     .from(supplierReceipts)
     .where(eq(supplierReceipts.requestId, data.requestId))
   if (!stored) return false
 
-  const lines = await db.select()
+  const lines = await tx.select()
     .from(supplierReceiptLines)
     .where(eq(supplierReceiptLines.receiptId, stored.id))
     .orderBy(supplierReceiptLines.position)
@@ -101,7 +99,10 @@ function sameLine(stored: ReceiptLineRow, line: ConfirmReceiptLineInput): boolea
 // Escribe la remisión dentro de la transacción. Los productos se bloquean antes de leer su costo, para
 // que el «costo anterior» sea el de ese momento.
 async function writeReceipt(tx: Tx, data: ConfirmReceiptInput, userId: string): Promise<void> {
+  // Ids únicos y en orden ascendente: dos remisiones que compartan productos bloquean siempre en el
+  // mismo orden y no pueden esperarse en ciclo (deadlock).
   const productIds = [...new Set(data.lines.flatMap((line) => (line.productId === null ? [] : [line.productId])))]
+    .sort((a, b) => a - b)
   const catalog = await lockProducts(tx, productIds)
 
   const [receipt] = await tx.insert(supplierReceipts)
@@ -138,7 +139,7 @@ async function writeReceipt(tx: Tx, data: ConfirmReceiptInput, userId: string): 
 
 // Valores de un renglón. Con producto entra ya (`received`); si el costo leído difiere del guardado,
 // solo el costo queda pendiente. Sin producto queda `pending` («Producto nuevo») sin mover inventario.
-function lineValues(line: ConfirmReceiptLineInput, position: number, catalog: Map<number, ProductRow>) {
+function lineValues(line: ConfirmReceiptLineInput, position: number, catalog: Map<number, ReceiptProductRow>) {
   const product = line.productId === null ? undefined : catalog.get(line.productId)
   const costChanged = product !== undefined && line.unitCost !== null
     && compareMoney(line.unitCost, 4, product.unitCost, 4) !== 0
@@ -156,18 +157,18 @@ function lineValues(line: ConfirmReceiptLineInput, position: number, catalog: Ma
 
 // Bloquea los productos del request y valida que existan y estén activos. Un producto desactivado da
 // 409 antes de tocar nada: la transacción se deshace y no queda ningún renglón.
-async function lockProducts(tx: Tx, ids: number[]): Promise<Map<number, ProductRow>> {
-  if (ids.length === 0) return new Map<number, ProductRow>()
+async function lockProducts(tx: Tx, ids: number[]): Promise<Map<number, ReceiptProductRow>> {
+  if (ids.length === 0) return new Map<number, ReceiptProductRow>()
   const rows = await lockRows(tx, products, inArray(products.id, ids))
   if (rows.length !== ids.length) throw notFound()
   for (const row of rows) {
     if (!row.active) throw conflict(PRODUCT_INACTIVE)
   }
-  return new Map<number, ProductRow>(rows.map((row) => [row.id, row] as const))
+  return new Map<number, ReceiptProductRow>(rows.map((row) => [row.id, row] as const))
 }
 
 // Validación de la confirmación (422). Devuelve los datos ya normalizados: requestId en minúsculas y
-// costos con 4 decimales. El costo pasa por requireMoney: nunca se redondea en silencio.
+// costos con 4 decimales (normalizeCost). Nunca se redondea en silencio.
 function validateConfirmInput(input: ConfirmReceiptInput): ConfirmReceiptInput {
   if (!UUID.test(input.requestId)) throw validation(INVALID_REQUEST_ID)
   if (!RECEIPT_SOURCES.includes(input.source)) throw validation(INVALID_SOURCE)

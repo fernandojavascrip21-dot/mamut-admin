@@ -1,7 +1,7 @@
 import { requireRole } from '@auth'
 import { validation } from '@lib/errors'
 import { handle, parseRouteId, readJson, requireMoney, requireString } from '@lib/handler'
-import { createProductFromLine } from '@receipts'
+import { createProductFromLine, INVALID_CATEGORY_ID } from '@receipts'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -16,7 +16,7 @@ export const POST = handle<Ctx>(async (request, { params }) => {
   let categoryId: number | null = null
   if (categoryIdRaw !== null && categoryIdRaw !== undefined) {
     if (typeof categoryIdRaw !== 'number' || !Number.isInteger(categoryIdRaw)) {
-      throw validation('El campo categoryId debe ser un número o null')
+      throw validation(INVALID_CATEGORY_ID)
     }
     categoryId = categoryIdRaw
   }

@@ -160,6 +160,14 @@ export interface CreateProductFromLineInput {
 
 export type ReceiptProductRow = typeof products.$inferSelect
 
+// Columnas de la remisión que se leen del Excel: producto y piezas son obligatorias; el costo es opcional.
+export interface HeaderColumns {
+  row: number
+  product: number
+  qty: number
+  cost: number | null
+}
+
 export interface CreateProductFromLineResult {
   product: ReceiptProductRow
   line: ReceiptLine

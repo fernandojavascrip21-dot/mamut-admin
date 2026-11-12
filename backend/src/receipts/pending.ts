@@ -1,6 +1,6 @@
 import { asc, desc, eq, sql } from 'drizzle-orm'
 import { db } from '@db/client'
-import { isForeignKeyViolation, isUniqueViolation } from '@db/errors'
+import { isForeignKeyViolation, isUniqueViolation, pgConstraintName } from '@db/errors'
 import { products, supplierReceiptLines, supplierReceipts } from '@db/schema'
 import { lockRows, withTransaction, type Tx } from '@db/transaction'
 import { conflict, notFound, validation } from '@lib/errors'
@@ -16,6 +16,7 @@ import {
   MISSING_UNIT_COST,
   PENDING_LIMIT,
   PRODUCT_INACTIVE,
+  PRODUCT_NAME_KEY,
 } from './constants'
 import { suggestedName } from './normalize'
 import { toProductRef, toReceiptLine, upsertAlias, type ReceiptLineRow } from './records'
@@ -130,7 +131,11 @@ export async function createProductFromLine(
       }
     })
   } catch (err) {
-    if (isUniqueViolation(err)) throw conflict(DUPLICATE_NAME)
+    // Solo la restricción única del nombre es «nombre duplicado». Otra violación única (p. ej. la del
+    // movimiento del renglón) quiere decir que el pendiente ya se resolvió en otra petición.
+    if (isUniqueViolation(err)) {
+      throw pgConstraintName(err) === PRODUCT_NAME_KEY ? conflict(DUPLICATE_NAME) : conflict(LINE_ALREADY_RESOLVED)
+    }
     if (isForeignKeyViolation(err)) throw validation(CATEGORY_NOT_FOUND)
     throw err
   }

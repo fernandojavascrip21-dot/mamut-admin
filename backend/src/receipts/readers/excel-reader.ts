@@ -2,15 +2,7 @@ import ExcelJS from 'exceljs'
 import { validation } from '@lib/errors'
 import { COST_HEADERS, HEADER_SCAN_ROWS, IGNORED_ROW_NAMES, NO_HEADER, PRODUCT_HEADERS, QTY_HEADERS, UNSUPPORTED_FILE } from '../constants'
 import { normalizeName } from '../normalize'
-import type { RawReceiptLine } from '../types'
-
-// Columnas que se leen de la remisión: producto y piezas son obligatorias; el costo es opcional.
-interface HeaderColumns {
-  row: number
-  product: number
-  qty: number
-  cost: number | null
-}
+import type { HeaderColumns, RawReceiptLine } from '../types'
 
 // Lee la primera hoja de un .xlsx y devuelve los renglones bajo el encabezado con el texto crudo;
 // la validación de piezas y costos queda en preview.ts. Un archivo que no abre como .xlsx es 422.

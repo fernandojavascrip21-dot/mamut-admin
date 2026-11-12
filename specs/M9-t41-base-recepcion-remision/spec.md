@@ -46,8 +46,8 @@ Hay dos razones para no reusar `@purchases`:
   - la columna `stock_movements.receipt_line_id`.
 - **Dependencias del backend:**
   - `exceljs` `4.4.0`, la misma versión que ya usa el frontend.
-  - `@anthropic-ai/sdk`, con la versión exacta vigente al implementar (sin `^`).
-- **Variable de entorno:** `ANTHROPIC_API_KEY` en `backend/.env` y `backend/.env.example`, documentada en `backend/README.md`.
+  - `@google/genai`, con la versión exacta vigente al implementar (sin `^`). Reemplaza a `@anthropic-ai/sdk` (decisión del usuario del 2026-11-12, §9), que se desinstala.
+- **Variable de entorno:** `GEMINI_API_KEY` (opcional; sin ella solo se lee Excel) en `backend/.env` y `backend/.env.example`, documentada en `backend/README.md`. `ANTHROPIC_API_KEY` se quita de los dos.
 - **Cambios en `@products`, sin cambiar su comportamiento actual:**
   - `insertProduct(tx, input)`: el `insert` de `products` sale de `createProduct`, que pasa a usarlo.
   - `setUnitCost(tx, id, unitCost)`: cambia solo el costo de fábrica.
@@ -56,7 +56,7 @@ Hay dos razones para no reusar `@purchases`:
   - `index.ts`, `constants.ts` y `types.ts`;
   - `access.ts`: `requireAdmin`;
   - `normalize.ts`: normaliza nombres;
-  - `readers/excel-reader.ts` y `readers/claude-reader.ts` (PDF e imagen);
+  - `readers/excel-reader.ts` y `readers/gemini-reader.ts` (PDF e imagen);
   - `preview.ts`, `receipts.ts` y `pending.ts`: los casos de uso.
 - **Casos de uso, todos solo administrador:**
   - `previewReceipt`;
@@ -127,7 +127,7 @@ Ejemplo: «Proteína  WHEY-Gold 2 lb» → `proteina whey gold 2 lb`.
 **Archivo**
 
 - Va en el campo `file`.
-- Pesa hasta 10 MB; si pesa más, `422`. Una imagen pesa hasta 5 MB (`MAX_IMAGE_BYTES`, el tope de la API de Claude por imagen); si pesa más, `422` «La imagen pesa más de 5 MB».
+- Pesa hasta 10 MB; si pesa más, `422`. Una imagen pesa hasta 5 MB (`MAX_IMAGE_BYTES`: una captura o foto de remisión pesa mucho menos, y así el envío en línea a la API queda acotado); si pesa más, `422` «La imagen pesa más de 5 MB».
 - El tipo se decide por los primeros bytes, no por la extensión:
   - `%PDF` → PDF;
   - `PK` → `.xlsx`;
@@ -156,11 +156,12 @@ Ejemplo: «Proteína  WHEY-Gold 2 lb» → `proteina whey gold 2 lb`.
   - Tiene que tener a lo más 4 decimales (`decimalPlaces`), estar entre `0` y `999999.9999`, y **nunca se redondea**.
   - Una celda de costo vacía da `unitCost: null`.
 
-**PDF e imagen (`claude-reader.ts`)**
+**PDF e imagen (`gemini-reader.ts`)**
 
-- Los dos se mandan a la API de Claude con el modelo `claude-sonnet-5-5`, la constante `RECEIPT_AI_MODEL`, y comparten la llamada, el esquema y las instrucciones:
-  - el PDF va como bloque `document` en base64, y la imagen como bloque `image` en base64 con su `media_type` (`image/jpeg` o `image/png`);
-  - la salida es estructurada con un esquema fijo: `{ lines: [{ name: string, qty: integer | null, unitCost: string | null }] }`;
+- Los dos se mandan a la API de Gemini (Google, capa gratuita de Google AI Studio) con su SDK oficial `@google/genai`, y comparten la llamada, el esquema y las instrucciones:
+  - el modelo es la constante `RECEIPT_AI_MODEL`: un modelo Flash de Gemini incluido en la capa gratuita. Su id exacto se confirma en Google AI Studio al crear la clave y la prueba real lo valida;
+  - el archivo va como `inlineData` en base64 con su `mimeType` (`application/pdf`, `image/jpeg` o `image/png`), seguido de un texto corto;
+  - la salida es JSON con un esquema fijo (`responseMimeType: 'application/json'` más el esquema): `{ lines: [{ name: string, qty: integer | null, unitCost: string | null }] }`;
   - la instrucción (`RECEIPT_AI_INSTRUCTIONS` en `constants.ts`) pide:
     - copiar los textos tal como aparecen, sin calcular nada;
     - si hay columnas de Mayoreo y de Distribuidor, tomar piezas de «Cant. Distribuidor» y costo de «Precio Distribuidor»;
@@ -168,10 +169,10 @@ Ejemplo: «Proteína  WHEY-Gold 2 lb» → `proteina whey gold 2 lb`.
 - **Límites:**
   - PDF: 20 páginas, contadas con la heurística de `/Type /Page` sobre los bytes. Con más → `422` antes de llamar a la API;
   - imagen: 5 MB (ver «Archivo»);
-  - un tiempo de espera de 60 s.
+  - un tiempo de espera de 60 s, sin reintentos.
 - **Errores:**
-  - sin `ANTHROPIC_API_KEY` → `500` con el mensaje «La lectura de PDF e imágenes no está configurada»;
-  - una falla de la API o un tiempo agotado → `500` «No se pudo leer el archivo; intenta de nuevo o sube el Excel».
+  - sin `GEMINI_API_KEY` → `500` con el mensaje «La lectura de PDF e imágenes no está configurada»;
+  - una falla de la API, un límite de la capa gratuita agotado (`429`), un tiempo agotado o una respuesta bloqueada o que no cumple el esquema → `500` «No se pudo leer el archivo; intenta de nuevo o sube el Excel».
 - La salida del modelo **no se confía**. Cada renglón pasa por las mismas validaciones (etiquetas, piezas y costo) que el Excel.
 - **Inyección para pruebas.** Los lectores se reciben como dependencia: `previewReceipt(file, actor, deps = { readPdf, readImage })`. Las pruebas pasan unos falsos, y la ruta usa los reales.
 
@@ -450,7 +451,7 @@ export interface ConfirmReceiptInput {
 
 ## 5. Plan de implementación
 
-0. **Formato real de la remisión.** ✅ Hecho el 2026-11-11 con la imagen de `references/` (ver «Fuentes»). Ajustó §3: sinónimos de Distribuidor, la fila `envio`, `stripSupplierTags`/`matchKey` y la lectura de imágenes. No se sube ningún binario: las pruebas arman en memoria un Excel con el mismo encabezado, y la prueba real con Claude lee la imagen local si existe.
+0. **Formato real de la remisión.** ✅ Hecho el 2026-11-11 con la imagen de `references/` (ver «Fuentes»). Ajustó §3: sinónimos de Distribuidor, la fila `envio`, `stripSupplierTags`/`matchKey` y la lectura de imágenes. No se sube ningún binario: las pruebas arman en memoria un Excel con el mismo encabezado, y la prueba real con Gemini lee la imagen local si existe.
 1. **Migración.**
    - Escribir `supabase/migrations/20261111000000_supplier_receipts.sql` (§4) y comprobarla con `npm run db:reset`.
    - Aplicarla a producción a mano en el SQL Editor:
@@ -473,11 +474,11 @@ export interface ConfirmReceiptInput {
    - Escribir la ruta `preview`. Al terminar, la vista previa con Excel funciona de punta a punta.
 5. **Confirmar y releer.** `receipts.ts`, con `confirmReceipt` (transacción, candado, `findReplay`, movimientos y alias) y `getReceipt`, más sus dos rutas.
 6. **Pendientes.** `pending.ts`, con la lista y las cuatro acciones, más sus rutas.
-7. **PDF e imagen con Claude.**
-   - Instalar `@anthropic-ai/sdk` con la versión exacta.
-   - Escribir `readers/claude-reader.ts`: modelo, `document` o `image` en base64, salida estructurada, instrucciones, límite de páginas y tiempo de espera.
+7. **PDF e imagen con Gemini.** (Se implementó primero con Claude; el 2026-11-12 se cambió a Gemini por costo, §9.)
+   - Desinstalar `@anthropic-ai/sdk` e instalar `@google/genai` con la versión exacta.
+   - Reemplazar `readers/claude-reader.ts` por `readers/gemini-reader.ts`: modelo, `inlineData` en base64, salida JSON con esquema, instrucciones, límite de páginas y tiempo de espera.
    - Conectar `readPdf` y `readImage` por omisión en la ruta.
-   - Agregar `ANTHROPIC_API_KEY` a `backend/.env.example` y a `backend/README.md`. No se agrega a CI; la prueba real se salta sin la clave.
+   - Cambiar `ANTHROPIC_API_KEY` por `GEMINI_API_KEY` en `backend/.env.example` y en `backend/README.md` (cómo sacar la clave gratis en Google AI Studio y el aviso de uso de datos de la capa gratuita). No se agrega a CI; la prueba real se salta sin la clave.
 8. **Pruebas.** Escribir `backend/tests/receipts.test.ts` (§7) y correr `npm run type-check`, `npm run build` y `npm test` con `SUPABASE_SERVICE_ROLE_KEY`.
 9. **Índice y Jira.**
    - Actualizar `specs/README.md`: estado y relaciones.
@@ -516,7 +517,7 @@ export interface ConfirmReceiptInput {
   - un PDF de más de 20 páginas.
 - [ ] Con un `readPdf` falso que devuelve dos renglones válidos y uno con `qty: null`, la vista previa de un PDF trae dos `lines` y un `skipped`, con `source: 'pdf'`.
 - [ ] Con un `readImage` falso, una imagen JPG y otra PNG (bytes mínimos con su firma) dan `source: 'image'`, y el lector recibe `image/jpeg` o `image/png` según los bytes. Un renglón con etiqueta que devuelve el lector se corta igual que en Excel.
-- [ ] Sin `ANTHROPIC_API_KEY`, los lectores reales responden `500` «La lectura de PDF e imágenes no está configurada», tanto con PDF como con imagen.
+- [ ] Sin `GEMINI_API_KEY`, los lectores reales responden `500` «La lectura de PDF e imágenes no está configurada», tanto con PDF como con imagen.
 
 **Confirmar**
 
@@ -575,8 +576,8 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
 - **Casos:**
   - uno por criterio de §6, llamando a los casos de uso con un actor `{ userId, role }`, como en `fractions.test.ts`;
   - para `normalizeName`, `stripSupplierTags`, `matchKey`, `excel-reader` y la validación de renglones, pruebas puras en el mismo archivo, que no tocan la base.
-- **Prueba real con Claude:**
-  - un caso con `it.skipIf(!process.env.ANTHROPIC_API_KEY || !existsSync(<imagen>))` lee la imagen de `references/` (ruta en una constante local del test) con el `readImage` real y comprueba que devuelve al menos 20 renglones con nombre y piezas, y ninguno llamado «ENVIO»;
+- **Prueba real con Gemini:**
+  - un caso con `it.skipIf(!process.env.GEMINI_API_KEY || !existsSync(<imagen>))` lee la imagen de `references/` (ruta en una constante local del test) con el `readImage` real y comprueba que devuelve al menos 20 renglones con nombre y piezas, y ninguno llamado «ENVIO»;
   - la imagen no se sube (`references/` está en `.gitignore`): en CI y en clones nuevos el caso se salta, y el job `backend-db` avisa que hay pruebas saltadas.
 - **Limpieza, en este orden:**
   1. los movimientos con `receipt_line_id` de las remisiones de prueba, del más nuevo al más viejo (revierte saldos);
@@ -601,8 +602,9 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
 | Una foto torcida o borrosa se lee mal. | Igual que el PDF: validaciones, vista previa sin escritura y corrección en HU-42. El mensaje de error sugiere el Excel. |
 | El costo de Excel trae ruido de flotante, o la celda tiene formato de moneda. | Se lee `cell.text`, se limpia `$`/comas y se valida con `decimalPlaces`. Si no pasa, va a `skipped` con `invalid_cost` y nunca se redondea. |
 | El modelo lee mal un PDF (piezas o nombres inventados). | La salida pasa por las mismas validaciones, la vista previa no escribe nada y HU-42 permite corregir antes de confirmar. Para remisiones críticas está el Excel. |
-| El PDF del proveedor sale de la red hacia la API de Anthropic. | Decisión del usuario (§9). Solo se manda el archivo, sin datos de la cuenta, y el archivo no se guarda. Si el proveedor lo prohíbe, se usa el Excel. |
-| La API de Claude cuesta dinero o falla. | Solo se llama con PDF o imagen. Tiene tiempo de espera de 60 s y un `500` con un mensaje que sugiere el Excel, y CI nunca la llama. |
+| El PDF o la imagen del proveedor salen hacia la API de Gemini, y en la capa gratuita Google puede usarlos para mejorar sus productos y personas pueden revisarlos. | Decisión del usuario (§9). Solo se manda el archivo, sin datos de la cuenta ni del administrador, y el archivo no se guarda. Si el proveedor lo prohíbe, se usa el Excel; si más adelante importa, se pasa a la capa de pago de Gemini, donde no se usan. |
+| La capa gratuita tiene límites diarios que fija Google y que pueden cambiar, o la API falla. | Solo se llama con PDF o imagen. Tiempo de espera de 60 s, sin reintentos, y un `500` con un mensaje que sugiere el Excel; CI nunca la llama. Excel nunca depende de Gemini. |
+| El modelo Flash gratuito elegido se retira o deja la capa gratuita. | El id vive en `RECEIPT_AI_MODEL` (`constants.ts`): cambiarlo es una línea. La prueba real lo valida cuando hay clave. |
 | El conteo de páginas por `/Type /Page` falla con PDF comprimidos (object streams). | Es solo un tope barato antes de llamar. Si se escapa uno grande, la API responde con error y el usuario ve el `500` de lectura. |
 | Dos productos activos con el mismo nombre normalizado («Whey 2lb» y «WHEY 2 LB»). | Se tratan como sin emparejar, y HU-42 elige uno. Al confirmar se guarda el alias, así que la siguiente remisión ya empareja. |
 | Un alias viejo empareja mal después de renombrar productos. | El alias apunta al `product_id`, no al nombre. Si el administrador corrige el emparejamiento al confirmar, el *upsert* lo reemplaza. |
@@ -615,17 +617,18 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
 
 **Lectura**
 
-- **Sí:** el Excel se lee con `exceljs` y columnas buscadas por encabezado, y el PDF con la API de Claude con salida estructurada (decisión del usuario).
+- **Sí:** el Excel se lee con `exceljs` y columnas buscadas por encabezado, y el PDF y la imagen con un modelo de IA con salida estructurada (decisión del usuario; hoy Gemini, ver abajo).
   - **No:** todo con IA, que hace costosa y externa cada lectura de Excel.
   - **No:** plantillas de texto por proveedor, que se rompen al cambiar el formato.
   - **No:** solo Excel en este spec.
-- **Sí:** modelo `claude-sonnet-5-5`, con el lector inyectable para que las pruebas usen uno falso. La prueba real corre solo con `ANTHROPIC_API_KEY`. Límite de 10 MB y 20 páginas (decisión del usuario).
-  - **No:** Haiku 5.5, que lee peor las tablas.
-  - **No:** Opus 5.5, por su costo.
+- **Sí (2026-11-12):** PDF e imagen con **Gemini** en la capa gratuita de Google AI Studio (modelo Flash en `RECEIPT_AI_MODEL`), con el lector inyectable para que las pruebas usen uno falso. La prueba real corre solo con `GEMINI_API_KEY`. Límite de 10 MB y 20 páginas (decisión del usuario).
+  - **No (antes Sí):** la API de Claude con `claude-sonnet-5-5`. Leía bien, pero cuesta unos 2–4 centavos de dólar por remisión y el usuario prefirió una opción gratuita. Se implementó y se reemplazó.
+  - **No:** OCR local con `tesseract.js`. Se probó contra la captura real: con la imagen agrandada lee bien ~70 % de los renglones, la columna de piezas casi no se lee y ~6 de 27 nombres salen con errores que impiden emparejar.
+  - **No:** solo Excel, porque el proveedor a veces solo manda la captura.
 - **Sí:** un solo spec, con la lectura del PDF como último paso del plan para que todo funcione antes con Excel (decisión del usuario).
   - **No:** dividir T-41 en dos specs.
 - **Sí:** escribir el spec sin remisión de ejemplo, con el paso 0 para confirmar el formato (decisión del usuario).
-- **Sí (paso 0, 2026-11-11):** leer también la remisión como imagen JPG/PNG con Claude, en este mismo spec, porque el proveedor a veces solo manda la captura (decisión del usuario). Comparte lector, esquema y validaciones con el PDF; tope de 5 MB por el límite de la API.
+- **Sí (paso 0, 2026-11-11):** leer también la remisión como imagen JPG/PNG, en este mismo spec, porque el proveedor a veces solo manda la captura (decisión del usuario). Comparte lector, esquema y validaciones con el PDF; tope de 5 MB.
   - **No:** dejar las imágenes para otro spec.
 - **Sí (paso 0):** piezas de «Cant. Distribuidor» y costo de «Precio Distribuidor»; las columnas de Mayoreo se ignoran (decisión del usuario).
 - **Sí (paso 0):** quitar las etiquetas del proveedor (`*OFERTA*`, `"NUEVO"`…) desde el primer `*` o comilla, tanto para emparejar y guardar alias como para `suggestedName` (decisión del usuario).

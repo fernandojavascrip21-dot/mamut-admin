@@ -1,16 +1,16 @@
 import { requireRole } from '@auth'
-import { validation } from '@lib/errors'
 import { handle } from '@lib/handler'
 import { UUID } from '@lib/constants'
-import { getReceipt, INVALID_REQUEST_ID } from '@receipts'
+import { getReceipt, RECEIPT_NOT_FOUND } from '@receipts'
+import { notFound } from '@lib/errors'
 
 type Ctx = { params: Promise<{ requestId: string }> }
 
 // Releer una remisión por su requestId, p. ej. si se perdió la respuesta de la confirmación (HU-42).
-// Un requestId que no es UUID da 422; uno que no es de una remisión, 404.
+// Un requestId que no es UUID no puede existir: 404, igual que uno que no es de una remisión.
 export const GET = handle<Ctx>(async (request, { params }) => {
   const actor = await requireRole(request, 'admin')
   const { requestId } = await params
-  if (!UUID.test(requestId)) throw validation(INVALID_REQUEST_ID)
+  if (!UUID.test(requestId)) throw notFound(RECEIPT_NOT_FOUND)
   return Response.json({ receipt: await getReceipt(requestId.toLowerCase(), actor) })
 })

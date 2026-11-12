@@ -4,7 +4,7 @@ import type { SkipReason } from './types'
 export { MAX_QTY, PRODUCT_INACTIVE } from '@purchases'
 export { PRICE_BELOW_COST } from '@products'
 
-// Tamaños: el Excel y el PDF pesan hasta 10 MB; una imagen, hasta 5 MB (tope de la API de Claude por imagen).
+// Tamaños: el Excel y el PDF pesan hasta 10 MB; una imagen, hasta 5 MB (tope por imagen de la lectura con Gemini).
 export const MAX_FILE_BYTES = 10 * 1024 * 1024
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 export const MAX_PDF_PAGES = 20
@@ -17,11 +17,13 @@ export const MAX_FILE_NAME_LENGTH = 255
 // El encabezado se busca solo en las primeras filas: una remisión real pone la tabla arriba.
 export const HEADER_SCAN_ROWS = 20
 
-// Tiempo máximo de la llamada a la API de Claude para PDF e imagen.
+// Tiempo máximo de la llamada a la API de Gemini para PDF e imagen.
 export const AI_TIMEOUT_MS = 60_000
 
-// Modelo y instrucciones de la lectura de PDF e imagen (spec M9-t41 §3).
-export const RECEIPT_AI_MODEL = 'claude-sonnet-5-5'
+// Modelo de la lectura de PDF e imagen (spec M9-t41 §3): id de ejemplo del README de @google/genai 3.2.0.
+// Es un Flash de la capa gratuita; el id vigente se confirma en Google AI Studio al crear la clave.
+export const RECEIPT_AI_MODEL = 'gemini-3.8-flash'
+// Instrucciones de la lectura de PDF e imagen (systemInstruction).
 export const RECEIPT_AI_INSTRUCTIONS = [
   'Lee la tabla de productos de la remisión de proveedor adjunta.',
   'Copia los textos tal como aparecen, sin calcular ni corregir nada.',
@@ -31,9 +33,7 @@ export const RECEIPT_AI_INSTRUCTIONS = [
 ].join('\n')
 // Texto corto que acompaña al PDF o a la imagen en el mensaje del usuario.
 export const RECEIPT_AI_REQUEST_TEXT = 'Esta es la remisión del proveedor. Devuelve sus renglones de producto.'
-// Techo de la respuesta: una remisión de 200 renglones cabe holgadamente.
-export const RECEIPT_AI_MAX_TOKENS = 16_000
-// Salida estructurada: la API obliga a esta forma y el lector la vuelve a validar.
+// Salida estructurada (responseJsonSchema): la API obliga a esta forma y el lector la vuelve a validar.
 export const RECEIPT_LINES_SCHEMA = {
   type: 'object',
   properties: {
@@ -95,7 +95,9 @@ export const INVALID_LINE = 'Cada renglón de la remisión debe ser un objeto'
 export const INVALID_READ_NAME = 'El nombre del renglón debe tener de 1 a 200 caracteres'
 export const INVALID_QTY = 'Las piezas deben ser un entero mayor a 0 y dentro del máximo'
 export const INVALID_UNIT_COST = 'El costo del renglón debe ser texto o número'
-export const INVALID_COST_VALUE = 'El costo debe tener hasta 4 decimales y estar entre 0 y 999999.9999'
+export const INVALID_CATEGORY_ID = 'El campo categoryId debe ser un número o null'
+export const PRODUCT_NAME_KEY = 'products_name_lower_key'
+export const INVALID_COST_VALUE ='El costo debe tener hasta 4 decimales y estar entre 0 y 999999.9999'
 export const INVALID_PRODUCT_ID = 'El productId debe ser un entero positivo o null'
 export const INVALID_FILE_NAME = 'El nombre del archivo debe tener de 1 a 255 caracteres'
 

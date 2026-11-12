@@ -9,6 +9,7 @@ import { requireAdmin } from './access'
 import {
   DIGITS_ONLY,
   FILE_TOO_LARGE,
+  IGNORED_ROW_NAMES,
   IMAGE_TOO_LARGE,
   JPEG_SIGNATURE,
   MAX_FILE_BYTES,
@@ -26,7 +27,7 @@ import {
   XLSX_SIGNATURE,
 } from './constants'
 import { readExcel } from './readers/excel-reader'
-import { readImage, readPdf } from './readers/claude-reader'
+import { readImage, readPdf } from './readers/gemini-reader'
 import { matchKey, normalizeName, stripSupplierTags, suggestedName } from './normalize'
 import type {
   Catalog,
@@ -98,6 +99,8 @@ async function buildPreview(source: ReceiptSource, rows: RawReceiptLine[]): Prom
   const stock = new Map<number, { productId: number; before: number; after: number }>()
 
   for (const row of rows) {
+    // Totales y envío se ignoran sin motivo también cuando los devuelve Gemini (no solo en el Excel).
+    if (isIgnoredRow(row)) continue
     const check = checkRow(row)
     if (!check.ok) {
       skipped.push(toSkipped(row.position, (row.name ?? '').trim(), check.reason))
@@ -135,6 +138,12 @@ async function buildPreview(source: ReceiptSource, rows: RawReceiptLine[]): Prom
 
   if (lines.length + skipped.length > MAX_LINES) throw validation(TOO_MANY_LINES)
   return { source, lines, skipped, stock: [...stock.values()] }
+}
+
+// Filas de total, subtotal, IVA, descuento y envío: no son productos y no van ni a lines ni a skipped.
+function isIgnoredRow(row: RawReceiptLine): boolean {
+  const ignored: readonly string[] = IGNORED_ROW_NAMES
+  return ignored.includes(normalizeName(row.name ?? ''))
 }
 
 // Valida un renglón en el orden de la spec: nombre, piezas y costo. El emparejamiento viene después.
