@@ -1,6 +1,6 @@
 # Spec técnico — T-41 · Base de recepción: leer la remisión del proveedor y registrar la entrada a bodega (backend)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:**
 > - M1-t07-stock-por-movimientos (`specs/M1-t07-stock-por-movimientos/spec.md`): las piezas solo cambian insertando `stock_movements` con `insertMovements`, y el trigger mantiene `products.stock`.
 > - M1-t08-dinero-sin-flotantes (`specs/M1-t08-dinero-sin-flotantes/spec.md`): el costo viaja como texto, con hasta 4 decimales y sin redondeo silencioso.
