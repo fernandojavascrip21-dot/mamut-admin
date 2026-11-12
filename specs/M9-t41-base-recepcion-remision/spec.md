@@ -156,20 +156,24 @@ Ejemplo: «Proteína  WHEY-Gold 2 lb» → `proteina whey gold 2 lb`.
   - Tiene que tener a lo más 4 decimales (`decimalPlaces`), estar entre `0` y `999999.9999`, y **nunca se redondea**.
   - Una celda de costo vacía da `unitCost: null`.
 
-**PDF (`pdf-reader.ts`)**
+**PDF e imagen (`claude-reader.ts`)**
 
-- Se manda a la API de Claude con el modelo `claude-sonnet-5-5`, la constante `RECEIPT_PDF_MODEL`:
-  - el PDF va como bloque `document` en base64;
+- Los dos se mandan a la API de Claude con el modelo `claude-sonnet-5-5`, la constante `RECEIPT_AI_MODEL`, y comparten la llamada, el esquema y las instrucciones:
+  - el PDF va como bloque `document` en base64, y la imagen como bloque `image` en base64 con su `media_type` (`image/jpeg` o `image/png`);
   - la salida es estructurada con un esquema fijo: `{ lines: [{ name: string, qty: integer | null, unitCost: string | null }] }`;
-  - la instrucción pide copiar los textos tal como aparecen y no calcular nada.
+  - la instrucción (`RECEIPT_AI_INSTRUCTIONS` en `constants.ts`) pide:
+    - copiar los textos tal como aparecen, sin calcular nada;
+    - si hay columnas de Mayoreo y de Distribuidor, tomar piezas de «Cant. Distribuidor» y costo de «Precio Distribuidor»;
+    - omitir las filas de totales y de envío.
 - **Límites:**
-  - 20 páginas, contadas con la heurística de `/Type /Page` sobre los bytes. Con más → `422` antes de llamar a la API;
+  - PDF: 20 páginas, contadas con la heurística de `/Type /Page` sobre los bytes. Con más → `422` antes de llamar a la API;
+  - imagen: 5 MB (ver «Archivo»);
   - un tiempo de espera de 60 s.
 - **Errores:**
-  - sin `ANTHROPIC_API_KEY` → `500` con el mensaje «La lectura de PDF no está configurada»;
-  - una falla de la API o un tiempo agotado → `500` «No se pudo leer el PDF; intenta de nuevo o sube el Excel».
-- La salida del modelo **no se confía**. Cada renglón pasa por las mismas validaciones de piezas y costo que el Excel.
-- **Inyección para pruebas.** El lector se recibe como dependencia: `previewReceipt(file, actor, deps = { readPdf })`. Las pruebas pasan uno falso, y la ruta usa el real.
+  - sin `ANTHROPIC_API_KEY` → `500` con el mensaje «La lectura de PDF e imágenes no está configurada»;
+  - una falla de la API o un tiempo agotado → `500` «No se pudo leer el archivo; intenta de nuevo o sube el Excel».
+- La salida del modelo **no se confía**. Cada renglón pasa por las mismas validaciones (etiquetas, piezas y costo) que el Excel.
+- **Inyección para pruebas.** Los lectores se reciben como dependencia: `previewReceipt(file, actor, deps = { readPdf, readImage })`. Las pruebas pasan unos falsos, y la ruta usa los reales.
 
 **Renglones que no se leen**
 
@@ -187,8 +191,10 @@ Van a `skipped`, con `{ position, text, reason }`. Los motivos (`SkipReason`), c
 
 **Emparejar cada renglón, en este orden**
 
-1. **Alias:** hay un `supplier_product_aliases` con ese `normalized_name` y su producto está activo → `match: 'alias'`. Un alias cuyo producto está desactivado se ignora y se sigue al paso 2.
-2. **Nombre:** hay exactamente un producto activo cuyo nombre normalizado es igual → `match: 'name'`.
+La llave del renglón es `matchKey(readName)`.
+
+1. **Alias:** hay un `supplier_product_aliases` con esa llave como `normalized_name` y su producto está activo → `match: 'alias'`. Un alias cuyo producto está desactivado se ignora y se sigue al paso 2.
+2. **Nombre:** hay exactamente un producto activo cuyo `normalizeName(name)` es igual a la llave → `match: 'name'`.
    - Si hay más de uno, se trata como sin emparejar.
    - Si solo coincide un producto desactivado, el renglón va a `skipped` con `inactive_product`.
 3. **Sin emparejar** → `match: 'none'` y `product: null`.
@@ -198,7 +204,7 @@ Las bolsitas activas sí se emparejan, igual que en HU-27.
 **Cada renglón propuesto trae:**
 
 - `position` y `readName` (el texto tal cual);
-- `suggestedName`: `readName` sin espacios repetidos ni en los extremos, con las mayúsculas originales;
+- `suggestedName`: `stripSupplierTags(readName)` sin espacios repetidos ni en los extremos, con las mayúsculas originales;
 - `qty` y `unitCost`;
 - `match`, y `product` (`{ id, name, image, unitCost }`) o `null`;
 - `costChanged`: `true` si hay producto, el costo leído no es `null` y `compareMoney(unitCost, 4, product.unitCost, 4) !== 0`.
@@ -218,7 +224,7 @@ Las bolsitas activas sí se emparejan, igual que en HU-27.
 ```json
 {
   "requestId": "<uuid>",
-  "source": "excel | pdf",
+  "source": "excel | pdf | image",
   "fileName": "<texto o null>",
   "lines": [
     { "readName": "...", "qty": 0, "unitCost": "<texto o null>", "productId": 0 }
@@ -257,7 +263,7 @@ Las bolsitas activas sí se emparejan, igual que en HU-27.
    - **Las piezas entran ya**: solo el cambio de costo queda pendiente.
    - **Nunca cambia `products.unit_cost`.**
 4. **Renglón sin producto** → `status 'pending'` («Producto nuevo»). No mueve inventario y guarda las piezas y el costo leídos.
-5. **Alias:** cada renglón con producto hace un *upsert* de `normalize(readName)` → `productId`. Si el administrador cambió el emparejamiento, gana el último.
+5. **Alias:** cada renglón con producto hace un *upsert* de `matchKey(readName)` → `productId`. Si el administrador cambió el emparejamiento, gana el último.
 
 **Respuesta:** `201` con `{ receipt, replayed: false }`.
 
@@ -316,7 +322,7 @@ Reglas comunes:
   1. `insertProduct(tx, …)` con `stock = 0`, sin fraccionar y sin foto.
   2. Un `purchase` de la bodega por las piezas del renglón, con su `receipt_line_id`.
   3. El renglón pasa a `status 'created'`, con su `product_id`, `resolved_at` y `resolved_by`.
-  4. *Upsert* del alias `normalize(readName)` → el producto nuevo.
+  4. *Upsert* del alias `matchKey(readName)` → el producto nuevo.
 - **Respuesta:** `201` con `{ product, line, stock: { before: 0, after: qty } }`.
 
 **Descartar un producto nuevo (`POST …/lines/[id]/discard`)**
@@ -359,7 +365,7 @@ create table public.supplier_receipts (
   created_by uuid not null references auth.users (id),
   created_at timestamptz not null default now(),
   constraint supplier_receipts_request_id_key unique (request_id),
-  constraint supplier_receipts_source_check check (source in ('excel', 'pdf')),
+  constraint supplier_receipts_source_check check (source in ('excel', 'pdf', 'image')),
   constraint supplier_receipts_file_name_check check (file_name is null or char_length(file_name) between 1 and 255)
 );
 
@@ -413,7 +419,8 @@ create unique index stock_movements_receipt_line_key on public.stock_movements (
 Tipos de `backend/src/receipts/types.ts`. Son los nombres reales; los campos son los de §3:
 
 ```ts
-export type ReceiptSource = 'excel' | 'pdf'
+export type ReceiptSource = 'excel' | 'pdf' | 'image'
+export type ReceiptImageType = 'image/jpeg' | 'image/png'
 export type MatchKind = 'alias' | 'name' | 'none'
 export type SkipReason = 'missing_name' | 'invalid_qty' | 'invalid_cost' | 'inactive_product'
 export type ReceiptLineStatus = 'received' | 'pending' | 'created' | 'discarded'
@@ -422,6 +429,7 @@ export type CostStatus = 'pending' | 'accepted' | 'rejected'
 // Lo que devuelve un lector (Excel o PDF) antes de validar: textos crudos.
 export interface RawReceiptLine { position: number; name: string | null; qty: unknown; unitCost: unknown }
 export type PdfReader = (bytes: Uint8Array) => Promise<RawReceiptLine[]>
+export type ImageReader = (bytes: Uint8Array, mediaType: ReceiptImageType) => Promise<RawReceiptLine[]>
 
 export interface ReceiptPreview {
   source: ReceiptSource
@@ -442,11 +450,7 @@ export interface ConfirmReceiptInput {
 
 ## 5. Plan de implementación
 
-0. **Formato real de la remisión.**
-   - Antes de programar los lectores, el usuario pone una remisión real en `references/` (Excel y, si hay, PDF).
-   - Se confirman contra ella los sinónimos de encabezado y las filas que se ignoran de §3. Si cambian, se ajusta esta sección del spec antes del paso 4.
-   - Se hace una copia anonimizada para `backend/tests/fixtures/` (sin precios ni nombres reales del proveedor si el usuario lo pide).
-   - Si no hay remisión, se sigue con los sinónimos de §3 y el riesgo queda abierto (§8).
+0. **Formato real de la remisión.** ✅ Hecho el 2026-11-11 con la imagen de `references/` (ver «Fuentes»). Ajustó §3: sinónimos de Distribuidor, la fila `envio`, `stripSupplierTags`/`matchKey` y la lectura de imágenes. No se sube ningún binario: las pruebas arman en memoria un Excel con el mismo encabezado, y la prueba real con Claude lee la imagen local si existe.
 1. **Migración.**
    - Escribir `supabase/migrations/20261111000000_supplier_receipts.sql` (§4) y comprobarla con `npm run db:reset`.
    - Aplicarla a producción a mano en el SQL Editor:
@@ -460,19 +464,19 @@ export interface ConfirmReceiptInput {
    - Agregar `setUnitCost(tx, id, unitCost)` y `productsForMatching()`.
    - Los tests de productos con commit pasan sin cambios.
 3. **Módulo `receipts`.**
-   - Crear `backend/src/receipts/`: `index.ts`, `constants.ts` (mensajes, sinónimos, motivos, límites y `RECEIPT_PDF_MODEL`), `types.ts`, `access.ts` y `normalize.ts`.
+   - Crear `backend/src/receipts/`: `index.ts`, `constants.ts` (mensajes, sinónimos, motivos, límites, `RECEIPT_AI_MODEL` y `RECEIPT_AI_INSTRUCTIONS`), `types.ts`, `access.ts` y `normalize.ts`.
    - Agregar el alias `@receipts` en `backend/tsconfig.json`.
    - `npm run type-check` pasa.
 4. **Excel y vista previa.**
    - Instalar `exceljs@4.4.0` en `backend/`.
-   - Escribir `readers/excel-reader.ts` y `preview.ts`: detección del tipo, validación de renglones, emparejamiento y `stock`. La rama de PDF todavía responde `422`, con el mismo mensaje que un tipo no aceptado.
+   - Escribir `readers/excel-reader.ts` y `preview.ts`: detección del tipo, validación de renglones, emparejamiento y `stock`. Las ramas de PDF e imagen ya llaman a `deps.readPdf` / `deps.readImage`; sin lector real todavía.
    - Escribir la ruta `preview`. Al terminar, la vista previa con Excel funciona de punta a punta.
 5. **Confirmar y releer.** `receipts.ts`, con `confirmReceipt` (transacción, candado, `findReplay`, movimientos y alias) y `getReceipt`, más sus dos rutas.
 6. **Pendientes.** `pending.ts`, con la lista y las cuatro acciones, más sus rutas.
-7. **PDF con Claude.**
+7. **PDF e imagen con Claude.**
    - Instalar `@anthropic-ai/sdk` con la versión exacta.
-   - Escribir `readers/pdf-reader.ts`: modelo, `document` en base64, salida estructurada, límite de páginas y tiempo de espera.
-   - Conectarlo como `readPdf` por omisión en la ruta.
+   - Escribir `readers/claude-reader.ts`: modelo, `document` o `image` en base64, salida estructurada, instrucciones, límite de páginas y tiempo de espera.
+   - Conectar `readPdf` y `readImage` por omisión en la ruta.
    - Agregar `ANTHROPIC_API_KEY` a `backend/.env.example` y a `backend/README.md`. No se agrega a CI; la prueba real se salta sin la clave.
 8. **Pruebas.** Escribir `backend/tests/receipts.test.ts` (§7) y correr `npm run type-check`, `npm run build` y `npm test` con `SUPABASE_SERVICE_ROLE_KEY`.
 9. **Índice y Jira.**
@@ -491,6 +495,8 @@ export interface ConfirmReceiptInput {
 **Vista previa**
 
 - [ ] Con un Excel con encabezado «Descripción | Cant. | Costo unitario», tres productos, una fila «TOTAL» y una fila vacía, devuelve tres `lines` y nada en `skipped`.
+- [ ] Con un Excel con el formato del proveedor («Nombre | Precio Mayoreo | Precio Distribuidor | Cant. Mayoreo | Cant. Distribuidor | Total Mayoreo | Total Distribuidor» y una fila «ENVIO»), las piezas salen de «Cant. Distribuidor», el costo de «Precio Distribuidor» (`1,580.00` → `"1580.00"`), y «ENVIO» no aparece ni en `lines` ni en `skipped`. Una fila con «Cant. Distribuidor» vacía va a `skipped` con `invalid_qty`.
+- [ ] Etiquetas: «DRAGON CREATINE MONOHYDRATE 1 KG UNFLAVORED \*OFERTA\*» empareja por nombre con el producto «Dragon Creatine Monohydrate 1 kg Unflavored»; «… \*CAD 07/27» y «… "NUEVO"» también se cortan; `suggestedName` sale sin la etiqueta y `readName` la conserva. El alias guardado al confirmar es la llave sin etiqueta, así que la siguiente remisión con `*NUEVO*` en vez de `*OFERTA*` empareja por alias.
 - [ ] La vista previa no agrega filas a `supplier_receipts`, `supplier_receipt_lines`, `supplier_product_aliases` ni `stock_movements`, y no cambia `products.stock`.
 - [ ] Emparejamiento:
   - un renglón con alias guardado sale con `match: 'alias'`;
@@ -503,11 +509,14 @@ export interface ConfirmReceiptInput {
 - [ ] `stock` trae `before` y `after` por producto, y suma dos renglones del mismo producto.
 - [ ] Responden `422`:
   - un archivo de más de 10 MB;
-  - un `.xls`, un `.csv` o una imagen;
+  - un `.xls`, un `.csv` o una imagen WebP/GIF;
+  - una imagen JPG o PNG de más de 5 MB;
   - un Excel sin encabezado reconocible;
   - más de 200 renglones;
   - un PDF de más de 20 páginas.
-- [ ] Con un `readPdf` falso que devuelve dos renglones válidos y uno con `qty: null`, la vista previa de un PDF trae dos `lines` y un `skipped`. Sin `ANTHROPIC_API_KEY`, el lector real responde `500` «La lectura de PDF no está configurada».
+- [ ] Con un `readPdf` falso que devuelve dos renglones válidos y uno con `qty: null`, la vista previa de un PDF trae dos `lines` y un `skipped`, con `source: 'pdf'`.
+- [ ] Con un `readImage` falso, una imagen JPG y otra PNG (bytes mínimos con su firma) dan `source: 'image'`, y el lector recibe `image/jpeg` o `image/png` según los bytes. Un renglón con etiqueta que devuelve el lector se corta igual que en Excel.
+- [ ] Sin `ANTHROPIC_API_KEY`, los lectores reales responden `500` «La lectura de PDF e imágenes no está configurada», tanto con PDF como con imagen.
 
 **Confirmar**
 
@@ -562,14 +571,13 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
   - un vendedor `test-auth-` (`createTestUser`) para el `403`.
 - **Archivos:**
   - Los Excel se arman en memoria con `exceljs` dentro de cada caso, no hay binarios con commit. Si el paso 0 deja una remisión anonimizada en `backend/tests/fixtures/`, se agrega un caso que la lee.
-  - Los PDF de los casos sin API son unos bytes mínimos que empiezan con `%PDF`, más un `readPdf` falso.
+  - Los PDF de los casos sin API son unos bytes mínimos que empiezan con `%PDF`, más un `readPdf` falso. Las imágenes, bytes mínimos con la firma JPEG (`FF D8 FF`) o PNG (`89 50 4E 47`), más un `readImage` falso.
 - **Casos:**
   - uno por criterio de §6, llamando a los casos de uso con un actor `{ userId, role }`, como en `fractions.test.ts`;
-  - para `normalize`, `excel-reader` y la validación de renglones, pruebas puras en el mismo archivo, que no tocan la base.
+  - para `normalizeName`, `stripSupplierTags`, `matchKey`, `excel-reader` y la validación de renglones, pruebas puras en el mismo archivo, que no tocan la base.
 - **Prueba real con Claude:**
-  - un caso con `it.skipIf(!process.env.ANTHROPIC_API_KEY)` lee el PDF anonimizado de `backend/tests/fixtures/` y comprueba que devuelve al menos un renglón con nombre y piezas;
-  - si el paso 0 no deja un PDF, este caso no se escribe y se anota en `SCRUM-103`;
-  - en CI se salta, y el job `backend-db` avisa que hay pruebas saltadas.
+  - un caso con `it.skipIf(!process.env.ANTHROPIC_API_KEY || !existsSync(<imagen>))` lee la imagen de `references/` (ruta en una constante local del test) con el `readImage` real y comprueba que devuelve al menos 20 renglones con nombre y piezas, y ninguno llamado «ENVIO»;
+  - la imagen no se sube (`references/` está en `.gitignore`): en CI y en clones nuevos el caso se salta, y el job `backend-db` avisa que hay pruebas saltadas.
 - **Limpieza, en este orden:**
   1. los movimientos con `receipt_line_id` de las remisiones de prueba, del más nuevo al más viejo (revierte saldos);
   2. los renglones y las remisiones;
@@ -588,11 +596,13 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
 
 | Riesgo | Mitigación |
 | --- | --- |
-| No hay remisión de ejemplo: los sinónimos de encabezado pueden no coincidir con el Excel real del proveedor. | Paso 0 del plan. Los encabezados se buscan por nombre, no por posición, y los sinónimos viven en `constants.ts`, así que ajustarlos es cambiar una lista. |
+| La remisión de ejemplo es una captura, no el `.xlsx`: el texto real de las celdas de encabezado puede diferir (saltos de línea, espacios). | `normalizeName` junta espacios y quita puntuación. Los encabezados se buscan por nombre, no por posición, y los sinónimos viven en `constants.ts`, así que ajustarlos es cambiar una lista. Se confirma con el primer Excel real que llegue. |
+| `stripSupplierTags` corta un nombre legítimo que tenga `*` o comillas. | No se vio ninguno en el catálogo ni en la remisión. `readName` guarda el original y HU-42 deja corregir el emparejamiento. |
+| Una foto torcida o borrosa se lee mal. | Igual que el PDF: validaciones, vista previa sin escritura y corrección en HU-42. El mensaje de error sugiere el Excel. |
 | El costo de Excel trae ruido de flotante, o la celda tiene formato de moneda. | Se lee `cell.text`, se limpia `$`/comas y se valida con `decimalPlaces`. Si no pasa, va a `skipped` con `invalid_cost` y nunca se redondea. |
 | El modelo lee mal un PDF (piezas o nombres inventados). | La salida pasa por las mismas validaciones, la vista previa no escribe nada y HU-42 permite corregir antes de confirmar. Para remisiones críticas está el Excel. |
 | El PDF del proveedor sale de la red hacia la API de Anthropic. | Decisión del usuario (§9). Solo se manda el archivo, sin datos de la cuenta, y el archivo no se guarda. Si el proveedor lo prohíbe, se usa el Excel. |
-| La API de Claude cuesta dinero o falla. | Solo se llama con PDF. Tiene tiempo de espera de 60 s y un `500` con un mensaje que sugiere el Excel, y CI nunca la llama. |
+| La API de Claude cuesta dinero o falla. | Solo se llama con PDF o imagen. Tiene tiempo de espera de 60 s y un `500` con un mensaje que sugiere el Excel, y CI nunca la llama. |
 | El conteo de páginas por `/Type /Page` falla con PDF comprimidos (object streams). | Es solo un tope barato antes de llamar. Si se escapa uno grande, la API responde con error y el usuario ve el `500` de lectura. |
 | Dos productos activos con el mismo nombre normalizado («Whey 2lb» y «WHEY 2 LB»). | Se tratan como sin emparejar, y HU-42 elige uno. Al confirmar se guarda el alias, así que la siguiente remisión ya empareja. |
 | Un alias viejo empareja mal después de renombrar productos. | El alias apunta al `product_id`, no al nombre. Si el administrador corrige el emparejamiento al confirmar, el *upsert* lo reemplaza. |
@@ -615,6 +625,12 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
 - **Sí:** un solo spec, con la lectura del PDF como último paso del plan para que todo funcione antes con Excel (decisión del usuario).
   - **No:** dividir T-41 en dos specs.
 - **Sí:** escribir el spec sin remisión de ejemplo, con el paso 0 para confirmar el formato (decisión del usuario).
+- **Sí (paso 0, 2026-11-11):** leer también la remisión como imagen JPG/PNG con Claude, en este mismo spec, porque el proveedor a veces solo manda la captura (decisión del usuario). Comparte lector, esquema y validaciones con el PDF; tope de 5 MB por el límite de la API.
+  - **No:** dejar las imágenes para otro spec.
+- **Sí (paso 0):** piezas de «Cant. Distribuidor» y costo de «Precio Distribuidor»; las columnas de Mayoreo se ignoran (decisión del usuario).
+- **Sí (paso 0):** quitar las etiquetas del proveedor (`*OFERTA*`, `"NUEVO"`…) desde el primer `*` o comilla, tanto para emparejar y guardar alias como para `suggestedName` (decisión del usuario).
+  - **No:** quitarlas solo al emparejar, o dejarlas y depender del alias.
+- **Sí (paso 0):** la fila «ENVIO» se ignora; el costo de envío del proveedor queda fuera de este spec.
 
 **Emparejar**
 
@@ -656,5 +672,5 @@ Las pruebas van contra la base real. Como el resto, se saltan sin `SUPABASE_SERV
 - Pantallas de HU-42 y cualquier cambio en el frontend.
 - Guardar el archivo, ligar a pedidos de resurtir o comparar lo pedido contra lo recibido.
 - Proveedor como dato, código del proveedor, emparejar por parecido o con IA.
-- Borradores de remisión, `.xls`/CSV/imágenes, cambiar el precio al aceptar un costo, reabrir pendientes o deshacer remisiones.
+- Borradores de remisión, `.xls`/CSV/imágenes que no sean JPG o PNG, el costo de envío, cambiar el precio al aceptar un costo, reabrir pendientes o deshacer remisiones.
 - Cambios en `@purchases`, `@restock`, el seed o la importación del inventario (T-38).
