@@ -1,6 +1,8 @@
 import { desc, eq, ilike, inArray } from 'drizzle-orm'
 import ExcelJS from 'exceljs'
 import { randomUUID } from 'node:crypto'
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { db, sql } from '@db/client'
 import { products, stockMovements } from '@db/schema'
@@ -12,10 +14,12 @@ import {
   discardLine,
   getReceipt,
   listPendingReceiptLines,
+  matchKey,
   normalizeName,
   previewReceipt,
   readExcel,
   rejectLineCost,
+  stripSupplierTags,
 } from '@receipts'
 import { cleanupTestData, createTestUser, hasServiceKey, type TestUser } from './helpers/users'
 
@@ -33,7 +37,7 @@ async function buildXlsx(rows: Cell[][]): Promise<Uint8Array> {
   for (const row of rows) sheet.addRow(row)
   return new Uint8Array(await workbook.xlsx.writeBuffer())
 }
-const toFile = (bytes: Uint8Array, name = 'remision.xlsx') => new File([bytes], name)
+const toFile = (bytes: Uint8Array, name = 'remision.xlsx') => new File([new Uint8Array(bytes)], name)
 const HEADER: Cell[] = ['Descripción', 'Cant.', 'Costo unitario']
 
 // Movimientos de remisión del más nuevo al más viejo (revierten saldos), luego renglones,
@@ -72,6 +76,25 @@ describe('normalizeName (T-41, pura)', () => {
   })
 })
 
+describe('stripSupplierTags y matchKey (T-41, puras)', () => {
+  it('corta desde el primer * y recorta: «… *CAD 07/27»', () => {
+    expect(stripSupplierTags('WHEY GOLD 5 LB *CAD 07/27')).toBe('WHEY GOLD 5 LB')
+  })
+  it('corta desde la primera comilla recta o tipográfica: «… "NUEVO"»', () => {
+    expect(stripSupplierTags('WHEY GOLD "NUEVO"')).toBe('WHEY GOLD')
+    expect(stripSupplierTags('WHEY GOLD \u201cNUEVA PRESENTACIÓN\u201d')).toBe('WHEY GOLD')
+  })
+  it('quita *NUEVO* al final sin tocar el resto', () => {
+    expect(stripSupplierTags('RAW CREATINE MONOHYDRATE 250 SERV UNFLAVORED *NUEVO*')).toBe('RAW CREATINE MONOHYDRATE 250 SERV UNFLAVORED')
+  })
+  it('un nombre que es solo etiqueta queda vacío', () => {
+    expect(stripSupplierTags('*OFERTA*')).toBe('')
+  })
+  it('matchKey es normalizeName de stripSupplierTags', () => {
+    expect(matchKey('Proteína  WHEY-Gold *OFERTA*')).toBe('proteina whey gold')
+  })
+})
+
 describe('readExcel (T-41, puro)', () => {
   it('lee las filas bajo el encabezado y reconoce sinónimos con acentos y puntos', async () => {
     const bytes = await buildXlsx([HEADER, ['Whey', 3, '12.5'], ['Creatina', 2, '$1,200.50']])
@@ -91,6 +114,18 @@ describe('readExcel (T-41, puro)', () => {
   it('una celda de costo vacía da unitCost null', async () => {
     const bytes = await buildXlsx([HEADER, ['Whey', 1, null]])
     expect((await readExcel(bytes))[0]!.unitCost).toBeNull()
+  })
+  it('lee el formato del proveedor: usa Precio y Cant. Distribuidor, ignora ENVIO y quita comas del costo', async () => {
+    const bytes = await buildXlsx([
+      ['Nombre', 'Precio Mayoreo', 'Precio Distribuidor', 'Cant. Mayoreo', 'Cant. Distribuidor', 'Total Mayoreo', 'Total Distribuidor'],
+      ['WHEY *OFERTA*', '1,700.00', '1,580.00', 0, 3, '0.00', '4,740.00'],
+      ['ENVIO', null, null, null, null, null, '200.00'],
+    ])
+    const lines = await readExcel(bytes)
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatchObject({ name: 'WHEY *OFERTA*' })
+    expect(String(lines[0]!.unitCost).replace(/[$,\s]/g, '')).toBe('1580.00')
+    expect(Number(lines[0]!.qty)).toBe(3)
   })
   it('responde 422 si no hay columnas de producto y piezas', async () => {
     const bytes = await buildXlsx([['Foo', 'Bar'], ['a', 'b']])
@@ -137,9 +172,9 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
     join supplier_receipts r on r.id = l.receipt_id
     where r.request_id = ${requestId} order by m.id`
   const aliasOf = async (readName: string) =>
-    (await sql`select product_id from supplier_product_aliases where normalized_name = ${normalizeName(readName)}`)[0]?.product_id as number | undefined
+    (await sql`select product_id from supplier_product_aliases where normalized_name = ${matchKey(readName)}`)[0]?.product_id as number | undefined
 
-  const confirmInput = (lines: { readName: string; qty: number; unitCost: string | null; productId: number | null }[], requestId = randomUUID()) =>
+  const confirmInput = (lines: { readName: string; qty: number; unitCost: string | null; productId: number | null }[], requestId: string = randomUUID()) =>
     ({ requestId, source: 'excel' as const, fileName: 'remision.xlsx', lines })
 
   const preview = async (rows: Cell[][]) => previewReceipt(toFile(await buildXlsx([HEADER, ...rows])), asAdmin())
@@ -233,7 +268,7 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
       ['una imagen', new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), 'remision.png'],
     ])('responde 422 con %s', async (_label, bytes, name) => {
       await expect(previewReceipt(toFile(bytes, name), asAdmin())).rejects.toMatchObject({
-        code: 'validation', message: 'Solo se aceptan remisiones en PDF o Excel (.xlsx)',
+        code: 'validation', message: 'Solo se aceptan remisiones en PDF, Excel (.xlsx) o imagen (JPG o PNG)',
       })
     })
 
@@ -271,17 +306,116 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
       expect(result.skipped[0]).toMatchObject({ reason: 'invalid_qty' })
     })
 
-    it('sin ANTHROPIC_API_KEY el lector real responde 500 «La lectura de PDF no está configurada»', async () => {
+    it('sin ANTHROPIC_API_KEY el lector real responde 500 «La lectura de PDF e imágenes no está configurada»', async () => {
       const saved = process.env.ANTHROPIC_API_KEY
       delete process.env.ANTHROPIC_API_KEY
       try {
         await expect(previewReceipt(toFile(PDF_BYTES, 'r.pdf'), asAdmin())).rejects.toMatchObject({
-          code: 'internal', message: 'La lectura de PDF no está configurada',
+          code: 'internal', message: 'La lectura de PDF e imágenes no está configurada',
         })
       } finally {
         if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved
       }
     })
+
+    it('formato proveedor: la fila ENVIO no sale ni en lines ni en skipped y Cant. Distribuidor vacía va a invalid_qty', async () => {
+      const rows: Cell[][] = [
+        ['Nombre', 'Precio Mayoreo', 'Precio Distribuidor', 'Cant. Mayoreo', 'Cant. Distribuidor', 'Total Mayoreo', 'Total Distribuidor'],
+        ['uno', '1,700.00', '1,580.00', 0, 2, '0.00', '3,160.00'],
+        ['sin surtir', '100.00', '90.00', 0, null, '0.00', '0.00'],
+        ['ENVIO', null, null, null, null, null, '200.00'],
+      ]
+      const result = await previewReceipt(toFile(await buildXlsx(rows)), asAdmin())
+      expect(result.lines).toHaveLength(1)
+      expect(result.lines[0]).toMatchObject({ readName: 'uno', qty: 2, unitCost: '1580.00' })
+      expect(result.skipped).toHaveLength(1)
+      expect(result.skipped[0]).toMatchObject({ reason: 'invalid_qty' })
+    })
+
+    it('un nombre que es solo etiqueta va a skipped con missing_name', async () => {
+      const result = await preview([['*OFERTA*', 1, null]])
+      expect(result.skipped[0]).toMatchObject({ reason: 'missing_name' })
+    })
+
+    it('empareja por nombre aunque lleve etiqueta: suggestedName sin etiqueta y readName con ella', async () => {
+      const p = await newProduct('etiqueta')
+      const readName = `${p.name} *OFERTA*`
+      const result = await preview([[readName, 1, null]])
+      expect(result.lines[0]).toMatchObject({ match: 'name', product: { id: p.id }, readName, suggestedName: p.name })
+    })
+
+    it('guarda el alias sin etiqueta y la siguiente remisión con *NUEVO* empareja por alias', async () => {
+      const p = await newProduct('aliastag')
+      const base = `${PREFIX}distinto-${Date.now()} 2 LB`
+      await confirmReceipt(confirmInput([{ readName: `${base} *OFERTA*`, qty: 1, unitCost: null, productId: p.id }]), asAdmin())
+      expect(await aliasOf(base)).toBe(p.id)
+      const result = await preview([[`${base} *NUEVO*`, 1, null]])
+      expect(result.lines[0]).toMatchObject({ match: 'alias', product: { id: p.id } })
+    })
+
+    it('lee una imagen JPEG con un readImage falso, recibe image/jpeg y devuelve source image', async () => {
+      const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10])
+      let seenType: string | null = null
+      const readImage = async (_bytes: Uint8Array, mediaType: string) => {
+        seenType = mediaType
+        return [{ position: 1, name: 'uno', qty: 1, unitCost: '10' }, { position: 2, name: 'dos', qty: null, unitCost: null }]
+      }
+      const result = await previewReceipt(toFile(jpeg, 'r.jpg'), asAdmin(), { readImage })
+      expect(seenType).toBe('image/jpeg')
+      expect(result.source).toBe('image')
+      expect(result.lines).toHaveLength(1)
+      expect(result.skipped).toHaveLength(1)
+    })
+
+    it('una imagen PNG se lee como image/png', async () => {
+      const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+      let seenType: string | null = null
+      const readImage = async (_bytes: Uint8Array, mediaType: string) => { seenType = mediaType; return [] }
+      await previewReceipt(toFile(png, 'r.png'), asAdmin(), { readImage })
+      expect(seenType).toBe('image/png')
+    })
+
+    it('responde 422 con una imagen de más de 5 MB', async () => {
+      const big = new Uint8Array(5 * 1024 * 1024 + 1)
+      big.set([0xff, 0xd8, 0xff])
+      await expect(previewReceipt(toFile(big, 'r.jpg'), asAdmin(), { readImage: async () => [] })).rejects.toMatchObject({
+        code: 'validation', message: 'La imagen pesa más de 5 MB',
+      })
+    })
+
+    it.each([
+      ['WebP', new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])],
+      ['GIF', new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39, 0x61])],
+    ])('responde 422 con una imagen %s', async (_label, bytes) => {
+      await expect(previewReceipt(toFile(bytes, 'r.img'), asAdmin(), { readImage: async () => [] })).rejects.toMatchObject({
+        code: 'validation', message: 'Solo se aceptan remisiones en PDF, Excel (.xlsx) o imagen (JPG o PNG)',
+      })
+    })
+
+    it('sin ANTHROPIC_API_KEY el lector real de imagen responde 500 «La lectura de PDF e imágenes no está configurada»', async () => {
+      const saved = process.env.ANTHROPIC_API_KEY
+      delete process.env.ANTHROPIC_API_KEY
+      try {
+        await expect(previewReceipt(toFile(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]), 'r.jpg'), asAdmin())).rejects.toMatchObject({
+          code: 'internal', message: 'La lectura de PDF e imágenes no está configurada',
+        })
+      } finally {
+        if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved
+      }
+    })
+
+    const realImage = resolve(process.cwd(), '..', 'references', 'WhatsApp Image 2026-07-29 at 10.27.24.jpeg')
+    it.skipIf(!process.env.ANTHROPIC_API_KEY || !existsSync(realImage))('lee la remisión real con Claude: al menos 20 renglones con nombre y piezas, ninguno ENVIO', async () => {
+      const bytes = new Uint8Array(readFileSync(realImage))
+      const result = await previewReceipt(toFile(bytes, 'remision.jpeg'), asAdmin())
+      expect(result.source).toBe('image')
+      expect(result.lines.length).toBeGreaterThanOrEqual(20)
+      for (const line of result.lines) {
+        expect(line.readName.length).toBeGreaterThan(0)
+        expect(line.qty).toBeGreaterThan(0)
+        expect(normalizeName(line.readName)).not.toBe('envio')
+      }
+    }, 90_000)
   })
 
   describe('Confirmar', () => {
@@ -382,6 +516,13 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
       expect(await aliasOf(readName)).toBe(first.id)
       await confirmReceipt(confirmInput([{ readName, qty: 1, unitCost: null, productId: second.id }]), asAdmin())
       expect(await aliasOf(readName)).toBe(second.id)
+    })
+
+    it('confirmar admite source image', async () => {
+      const p = await newProduct('img')
+      const input = { ...confirmInput([{ readName: `${p.name} i`, qty: 1, unitCost: null, productId: p.id }]), source: 'image' as const }
+      const { receipt } = await confirmReceipt(input, asAdmin())
+      expect(receipt.source).toBe('image')
     })
 
     it('getReceipt devuelve la remisión con los estados actuales y 404 si no existe', async () => {
