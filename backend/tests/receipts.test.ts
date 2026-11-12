@@ -306,15 +306,15 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
       expect(result.skipped[0]).toMatchObject({ reason: 'invalid_qty' })
     })
 
-    it('sin ANTHROPIC_API_KEY el lector real responde 500 «La lectura de PDF e imágenes no está configurada»', async () => {
-      const saved = process.env.ANTHROPIC_API_KEY
-      delete process.env.ANTHROPIC_API_KEY
+    it('sin GEMINI_API_KEY el lector real responde 500 «La lectura de PDF e imágenes no está configurada»', async () => {
+      const saved = process.env.GEMINI_API_KEY
+      delete process.env.GEMINI_API_KEY
       try {
         await expect(previewReceipt(toFile(PDF_BYTES, 'r.pdf'), asAdmin())).rejects.toMatchObject({
           code: 'internal', message: 'La lectura de PDF e imágenes no está configurada',
         })
       } finally {
-        if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved
+        if (saved !== undefined) process.env.GEMINI_API_KEY = saved
       }
     })
 
@@ -392,20 +392,20 @@ describe.skipIf(!hasServiceKey)('Recepción de remisiones (T-41, base real)', ()
       })
     })
 
-    it('sin ANTHROPIC_API_KEY el lector real de imagen responde 500 «La lectura de PDF e imágenes no está configurada»', async () => {
-      const saved = process.env.ANTHROPIC_API_KEY
-      delete process.env.ANTHROPIC_API_KEY
+    it('sin GEMINI_API_KEY el lector real de imagen responde 500 «La lectura de PDF e imágenes no está configurada»', async () => {
+      const saved = process.env.GEMINI_API_KEY
+      delete process.env.GEMINI_API_KEY
       try {
         await expect(previewReceipt(toFile(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]), 'r.jpg'), asAdmin())).rejects.toMatchObject({
           code: 'internal', message: 'La lectura de PDF e imágenes no está configurada',
         })
       } finally {
-        if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved
+        if (saved !== undefined) process.env.GEMINI_API_KEY = saved
       }
     })
 
     const realImage = resolve(process.cwd(), '..', 'references', 'WhatsApp Image 2026-07-29 at 10.27.24.jpeg')
-    it.skipIf(!process.env.ANTHROPIC_API_KEY || !existsSync(realImage))('lee la remisión real con Claude: al menos 20 renglones con nombre y piezas, ninguno ENVIO', async () => {
+    it.skipIf(!process.env.GEMINI_API_KEY || !existsSync(realImage))('lee la remisión real con Gemini: al menos 20 renglones con nombre y piezas, ninguno ENVIO', async () => {
       const bytes = new Uint8Array(readFileSync(realImage))
       const result = await previewReceipt(toFile(bytes, 'remision.jpeg'), asAdmin())
       expect(result.source).toBe('image')
