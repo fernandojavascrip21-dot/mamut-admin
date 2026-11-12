@@ -8,7 +8,7 @@
 > - M9-t36-base-resurtir (`specs/M9-t36-base-resurtir/spec.md`): de ahí salen la forma del módulo solo para administrador, la idempotencia con candado y el límite de 200 renglones.
 > - HU-27 «Entrada a bodega» (`SCRUM-77`, módulo `@purchases`, sin carpeta de spec): registra una sola entrada por petición. Este spec no lo cambia; reusa `MAX_QTY` y `PRODUCT_INACTIVE`.
 > **Fecha:** 2026-11-11
-> **Objetivo:** que el administrador suba la remisión del proveedor (Excel o PDF), reciba del backend los renglones propuestos y, al confirmar, registre en una sola operación idempotente las entradas `purchase` de los productos reconocidos, y deje como pendientes los productos nuevos y los cambios de costo.
+> **Objetivo:** que el administrador suba la remisión del proveedor (Excel, PDF o imagen), reciba del backend los renglones propuestos y, al confirmar, registre en una sola operación idempotente las entradas `purchase` de los productos reconocidos, y deje como pendientes los productos nuevos y los cambios de costo.
 
 Fuentes:
 
@@ -22,6 +22,7 @@ Fuentes:
   - `supabase/migrations/20261030000000_stock_movements_request_id.sql`: el índice `stock_movements_request_holder_key` es único por `(request_id, titular)`.
   - `supabase/migrations/20261107000000_fractions.sql`: la columna `fraction_id` y su check de tipo.
 - **Decisiones del usuario del 2026-11-11** (§9). Cierran el «Por decidir» de `SCRUM-103`.
+- **Remisión real** (paso 0, 2026-11-11): `references/WhatsApp Image 2026-07-29 at 10.27.24.jpeg`, una captura del Excel del proveedor. `references/` está en `.gitignore`, así que no se sube. Columnas: «Nombre | Precio Mayoreo | Precio Distribuidor | Cant. Mayoreo | Cant. Distribuidor | Total Mayoreo | Total Distribuidor», y al final una fila «ENVIO». Los nombres traen etiquetas como `*OFERTA*`, `*NUEVO*`, `*CAD 07/27` o `"NUEVA PRESENTACIÓN"`. El proveedor manda a veces el Excel y a veces solo la imagen.
 
 ## 1. Por qué existe este spec
 
@@ -55,7 +56,7 @@ Hay dos razones para no reusar `@purchases`:
   - `index.ts`, `constants.ts` y `types.ts`;
   - `access.ts`: `requireAdmin`;
   - `normalize.ts`: normaliza nombres;
-  - `readers/excel-reader.ts` y `readers/pdf-reader.ts`;
+  - `readers/excel-reader.ts` y `readers/claude-reader.ts` (PDF e imagen);
   - `preview.ts`, `receipts.ts` y `pending.ts`: los casos de uso.
 - **Casos de uso, todos solo administrador:**
   - `previewReceipt`;
@@ -83,7 +84,8 @@ Hay dos razones para no reusar `@purchases`:
 - El proveedor como dato o catálogo (pendiente heredado de la v1), y el código del proveedor en `products`.
 - Emparejar por parecido (`pg_trgm`) o con IA. Solo hay alias y nombre normalizado.
 - Un borrador de remisión guardado: la vista previa no se guarda.
-- Excel antiguo (`.xls`), CSV, imágenes y fotos de la remisión.
+- Excel antiguo (`.xls`), CSV, e imágenes que no sean JPG o PNG (WebP, HEIC).
+- El costo de envío de la fila «ENVIO»: se ignora.
 - Cambiar el precio de venta al aceptar un costo nuevo.
 - Reabrir un pendiente ya resuelto, o deshacer una remisión confirmada.
 - Cambios en `@purchases`, en `@restock`, en el seed o en la importación del inventario (T-38).
@@ -105,37 +107,49 @@ Pasos, en este orden:
 
 Ejemplo: «Proteína  WHEY-Gold 2 lb» → `proteina whey gold 2 lb`.
 
-Se usa igual para:
+`normalizeName` se usa tal cual para reconocer encabezados de Excel.
 
-- emparejar con el catálogo;
-- guardar alias;
-- reconocer encabezados de Excel.
+**Etiquetas del proveedor (`stripSupplierTags`).** El proveedor agrega al nombre etiquetas que cambian entre remisiones (`*OFERTA*`, `*NUEVO*`, `*CAD 07/27`, `"NUEVA PRESENTACIÓN"`, `*EDICION LIMITADA*`).
+
+- Se corta el nombre desde el primer `*`, `"`, `“` o `”` hasta el final, y se recortan los espacios de los extremos.
+- Si no queda nada, el renglón va a `skipped` con `missing_name`.
+- Ejemplo: «RAW CREATINE MONOHYDRATE 250 SERV UNFLAVORED \*NUEVO\*» → «RAW CREATINE MONOHYDRATE 250 SERV UNFLAVORED».
+
+**Llave para emparejar (`matchKey`)** = `normalizeName(stripSupplierTags(readName))`. Se usa para:
+
+- emparejar con el catálogo (el nombre del producto pasa solo por `normalizeName`);
+- guardar alias al confirmar y al dar de alta un pendiente.
+
+`readName` siempre guarda el texto original, con etiquetas.
 
 ### Vista previa (`POST /api/receipts/preview`)
 
 **Archivo**
 
 - Va en el campo `file`.
-- Pesa hasta 10 MB; si pesa más, `422`.
+- Pesa hasta 10 MB; si pesa más, `422`. Una imagen pesa hasta 5 MB (`MAX_IMAGE_BYTES`, el tope de la API de Claude por imagen); si pesa más, `422` «La imagen pesa más de 5 MB».
 - El tipo se decide por los primeros bytes, no por la extensión:
   - `%PDF` → PDF;
   - `PK` → `.xlsx`;
-  - cualquier otro → `422` «Solo se aceptan remisiones en PDF o Excel (.xlsx)».
+  - `FF D8 FF` → imagen `image/jpeg`;
+  - `89 50 4E 47` → imagen `image/png`;
+  - cualquier otro → `422` «Solo se aceptan remisiones en PDF, Excel (.xlsx) o imagen (JPG o PNG)».
 
 **Excel (`excel-reader.ts`)**
 
 - Se lee la primera hoja.
 - **Encabezado.** Es la primera fila, dentro de las primeras 20, que tiene a la vez una celda de producto y una de piezas, comparando el texto ya normalizado contra los sinónimos de `constants.ts`:
   - producto: `producto`, `descripcion`, `nombre`, `articulo`, `concepto`;
-  - piezas: `cantidad`, `cant`, `piezas`, `pzas`, `unidades`;
-  - costo (opcional): `costo`, `costo unitario`, `precio unitario`, `p u`, `precio`.
+  - piezas: `cant distribuidor`, `cantidad`, `cant`, `piezas`, `pzas`, `unidades`;
+  - costo (opcional): `precio distribuidor`, `costo`, `costo unitario`, `precio unitario`, `p u`, `precio`.
+- La comparación es por igualdad exacta: «Cant. Mayoreo» (`cant mayoreo`), «Precio Mayoreo» y las columnas «Total …» no coinciden y se ignoran. Si en el encabezado coinciden varias celdas del mismo tipo, gana la del sinónimo que va primero en la lista.
 - Sin encabezado → `422` «No encontré las columnas de producto y piezas en la remisión».
 - **Filas que se ignoran sin motivo:**
   - vacías;
-  - cuyo nombre normalizado es `total`, `subtotal`, `iva` o `descuento`.
+  - cuyo nombre normalizado es `total`, `subtotal`, `iva`, `descuento` o `envio`.
 - **Piezas.**
   - Se acepta un número entero, o un texto que solo tiene dígitos.
-  - Si hay piezas, tienen que ir de 1 a `MAX_QTY`.
+  - Tienen que ir de 1 a `MAX_QTY`. Una celda vacía o `0` va a `skipped` con `invalid_qty`: en la remisión real es un producto que se listó pero no se surtió («BLOOM SPARKLING…», total `0.00`), y el administrador lo ve como no leído.
 - **Costo.**
   - Se lee el texto que muestra la celda (`cell.text`), no el `number` interno. Así no aparece ruido de flotante como `12.300000000001`.
   - Se quitan `$`, los espacios y las comas de miles.
