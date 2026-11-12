@@ -20,9 +20,9 @@ export const HEADER_SCAN_ROWS = 20
 // Tiempo máximo de la llamada a la API de Gemini para PDF e imagen.
 export const AI_TIMEOUT_MS = 60_000
 
-// Modelo de la lectura de PDF e imagen (spec M9-t41 §3): id de ejemplo del README de @google/genai 3.2.0.
-// Es un Flash de la capa gratuita; el id vigente se confirma en Google AI Studio al crear la clave.
-export const RECEIPT_AI_MODEL = 'gemini-3.8-flash'
+// Modelo de la lectura de PDF e imagen (spec M9-t41 §3): un Flash de la capa gratuita. El 2026-11-12
+// gemini-3.6/3.7/3.8-flash respondían 503 «high demand» en la capa gratuita y gemini-3.5-flash sí respondió.
+export const RECEIPT_AI_MODEL = 'gemini-3.5-flash'
 // Instrucciones de la lectura de PDF e imagen (systemInstruction).
 export const RECEIPT_AI_INSTRUCTIONS = [
   'Lee la tabla de productos de la remisión de proveedor adjunta.',
