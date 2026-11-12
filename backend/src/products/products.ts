@@ -2,7 +2,7 @@ import { and, asc, eq, sql } from 'drizzle-orm'
 import { db } from '@db/client'
 import { isForeignKeyViolation, isUniqueViolation } from '@db/errors'
 import { products } from '@db/schema'
-import { withTransaction } from '@db/transaction'
+import { withTransaction, type Tx } from '@db/transaction'
 import { conflict, notFound, validation } from '@lib/errors'
 import { compareMoney } from '@lib/money'
 import { insertMovements } from '@stock'
@@ -54,6 +54,48 @@ export function listProducts() {
     .orderBy(asc(products.name))
 }
 
+// Solo inserta la fila de `products` dentro de la transacción que reciba. El producto nace con
+// stock 0: las piezas entran después como movimiento (RNF-05), no como columna. Lo usan el alta
+// normal (con su `initial`) y el alta de un producto nuevo desde una remisión (T-41).
+export async function insertProduct(tx: Tx, input: CreateProductInput) {
+  const [product] = await tx
+    .insert(products)
+    .values({
+      name: input.name,
+      categoryId: input.categoryId,
+      price: input.price,
+      unitCost: input.unitCost,
+      fractionable: input.fractionable,
+      portionSize: input.fractionable ? input.portionSize : null,
+      image: input.image ?? '',
+    })
+    .returning()
+  return product!
+}
+
+// Cambia solo el costo de fábrica. Precio, piezas y el resto del producto no se tocan; la regla
+// «precio no menor que el costo» la valida quien llama, porque depende del precio actual.
+export async function setUnitCost(tx: Tx, id: number, unitCost: string): Promise<void> {
+  await tx.update(products).set({ unitCost }).where(eq(products.id, id))
+}
+
+// Catálogo completo para emparejar renglones de una remisión (T-41): incluye inactivos, porque
+// un renglón puede coincidir con un producto desactivado y hay que avisarlo, no ignorarlo.
+// Trae el costo y las piezas en bodega para mostrar el cambio de costo y el stock antes → después.
+export function productsForMatching() {
+  return db
+    .select({
+      id: products.id,
+      name: products.name,
+      image: products.image,
+      unitCost: products.unitCost,
+      stock: products.stock,
+      active: products.active,
+    })
+    .from(products)
+    .orderBy(asc(products.id))
+}
+
 // Inserta el producto y su movimiento `initial` en una sola transacción (RNF-05: las piezas
 // que entran nacen como un movimiento de stock, nunca como un número suelto). El producto nace
 // con stock 0 y el trigger de stock_movements lo sube (T-07), por eso se relee al final. Traduce la
@@ -67,28 +109,17 @@ export async function createProduct(input: CreateProductInput, createdBy: string
 
   try {
     return await withTransaction(async (tx) => {
-      const [product] = await tx
-        .insert(products)
-        .values({
-          name: input.name,
-          categoryId: input.categoryId,
-          price: input.price,
-          unitCost: input.unitCost,
-          fractionable: input.fractionable,
-          portionSize: input.fractionable ? input.portionSize : null,
-          image: input.image ?? '',
-        })
-        .returning()
+      const product = await insertProduct(tx, input)
 
       await insertMovements(tx, [{
-        productId: product!.id,
+        productId: product.id,
         type: 'initial',
         qty: input.initialQty,
         holderProfileId: null,
         createdBy,
       }])
 
-      const [created] = await tx.select().from(products).where(eq(products.id, product!.id))
+      const [created] = await tx.select().from(products).where(eq(products.id, product.id))
       return created!
     })
   } catch (err) {

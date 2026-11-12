@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { clients, profiles, usersInAuth, sales, consignmentItems, cuts, debtors, products, directSales, directSaleItems, cutItems, creditPayments, shrinkage, categories, fractions, vendorStock, stockMovements } from "./schema";
+import { clients, profiles, usersInAuth, sales, consignmentItems, cuts, debtors, products, directSales, directSaleItems, cutItems, creditPayments, shrinkage, categories, fractions, vendorStock, stockMovements, supplierReceiptLines, restockOrders, supplierReceipts, restockOrderLines, supplierProductAliases } from "./schema";
 
 export const profilesRelations = relations(profiles, ({one, many}) => ({
 	client: one(clients, {
@@ -72,6 +72,10 @@ export const clientsRelations = relations(clients, ({many}) => ({
 export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({
 	profiles: many(profiles),
 	fractions: many(fractions),
+	restockOrders: many(restockOrders),
+	supplierReceiptLines: many(supplierReceiptLines),
+	supplierReceipts: many(supplierReceipts),
+	supplierProductAliases: many(supplierProductAliases),
 }));
 
 export const salesRelations = relations(sales, ({one, many}) => ({
@@ -184,6 +188,9 @@ export const productsRelations = relations(products, ({one, many}) => ({
 	consignmentItems: many(consignmentItems),
 	vendorStocks: many(vendorStock),
 	stockMovements: many(stockMovements),
+	supplierReceiptLines: many(supplierReceiptLines),
+	restockOrderLines: many(restockOrderLines),
+	supplierProductAliases: many(supplierProductAliases),
 }));
 
 export const directSaleItemsRelations = relations(directSaleItems, ({one}) => ({
@@ -343,5 +350,63 @@ export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
 	product: one(products, {
 		fields: [stockMovements.productId],
 		references: [products.id]
+	}),
+	supplierReceiptLine: one(supplierReceiptLines, {
+		fields: [stockMovements.receiptLineId],
+		references: [supplierReceiptLines.id]
+	}),
+}));
+
+export const supplierReceiptLinesRelations = relations(supplierReceiptLines, ({one, many}) => ({
+	stockMovements: many(stockMovements),
+	product: one(products, {
+		fields: [supplierReceiptLines.productId],
+		references: [products.id]
+	}),
+	supplierReceipt: one(supplierReceipts, {
+		fields: [supplierReceiptLines.receiptId],
+		references: [supplierReceipts.id]
+	}),
+	usersInAuth: one(usersInAuth, {
+		fields: [supplierReceiptLines.resolvedBy],
+		references: [usersInAuth.id]
+	}),
+}));
+
+export const restockOrdersRelations = relations(restockOrders, ({one, many}) => ({
+	usersInAuth: one(usersInAuth, {
+		fields: [restockOrders.createdBy],
+		references: [usersInAuth.id]
+	}),
+	restockOrderLines: many(restockOrderLines),
+}));
+
+export const supplierReceiptsRelations = relations(supplierReceipts, ({one, many}) => ({
+	supplierReceiptLines: many(supplierReceiptLines),
+	usersInAuth: one(usersInAuth, {
+		fields: [supplierReceipts.createdBy],
+		references: [usersInAuth.id]
+	}),
+}));
+
+export const restockOrderLinesRelations = relations(restockOrderLines, ({one}) => ({
+	restockOrder: one(restockOrders, {
+		fields: [restockOrderLines.orderId],
+		references: [restockOrders.id]
+	}),
+	product: one(products, {
+		fields: [restockOrderLines.productId],
+		references: [products.id]
+	}),
+}));
+
+export const supplierProductAliasesRelations = relations(supplierProductAliases, ({one}) => ({
+	product: one(products, {
+		fields: [supplierProductAliases.productId],
+		references: [products.id]
+	}),
+	usersInAuth: one(usersInAuth, {
+		fields: [supplierProductAliases.updatedBy],
+		references: [usersInAuth.id]
 	}),
 }));

@@ -35,6 +35,7 @@
       "@purchases": ["./src/purchases"],
       "@restock": ["./src/restock"],
       "@cuts": ["./src/cuts"],
+      "@receipts": ["./src/receipts"],
       "@api/*": ["./app/api/*"]
     }
   },
