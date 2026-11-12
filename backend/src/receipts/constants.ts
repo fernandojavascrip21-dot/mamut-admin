@@ -70,6 +70,7 @@ export const INVALID_LINE = 'Cada renglón de la remisión debe ser un objeto'
 export const INVALID_READ_NAME = 'El nombre del renglón debe tener de 1 a 200 caracteres'
 export const INVALID_QTY = 'Las piezas deben ser un entero mayor a 0 y dentro del máximo'
 export const INVALID_UNIT_COST = 'El costo del renglón debe ser texto o número'
+export const INVALID_COST_VALUE = 'El costo debe tener hasta 4 decimales y estar entre 0 y 999999.9999'
 export const INVALID_PRODUCT_ID = 'El productId debe ser un entero positivo o null'
 export const INVALID_FILE_NAME = 'El nombre del archivo debe tener de 1 a 255 caracteres'
 

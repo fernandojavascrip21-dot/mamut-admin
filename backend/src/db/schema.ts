@@ -1,5 +1,11 @@
-import { pgTable, unique, bigint, text, integer, timestamp, boolean, foreignKey, check, uuid, index, numeric, uniqueIndex } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, unique, bigint, text, integer, timestamp, boolean, foreignKey, check, uuid, index, numeric, uniqueIndex } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
+
+const authSchema = pgSchema("auth")
+export const usersInAuth = authSchema.table("users", {
+	id: uuid().primaryKey(),
+})
+const users = usersInAuth
 
 
 
@@ -409,13 +415,13 @@ export const products = pgTable("products", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	categoryId: bigint("category_id", { mode: "number" }),
 	name: text().notNull(),
-	brand: text().default(').notNull(),
-	size: text().default(').notNull(),
-	flavor: text().default(').notNull(),
-	description: text().default(').notNull(),
+	brand: text().default('').notNull(),
+	size: text().default('').notNull(),
+	flavor: text().default('').notNull(),
+	description: text().default('').notNull(),
 	benefits: text().array().default([""]).notNull(),
-	usage: text().default(').notNull(),
-	image: text().default(').notNull(),
+	usage: text().default('').notNull(),
+	image: text().default('').notNull(),
 	price: numeric({ precision: 10, scale:  2 }).notNull(),
 	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }).default('0').notNull(),
 	stock: integer().default(0).notNull(),
@@ -568,9 +574,12 @@ export const stockMovements = pgTable("stock_movements", {
 	requestId: uuid("request_id"),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	fractionId: bigint("fraction_id", { mode: "number" }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	receiptLineId: bigint("receipt_line_id", { mode: "number" }),
 }, (table) => [
 	uniqueIndex("stock_movements_direct_sale_product_key").using("btree", table.directSaleId.asc().nullsLast().op("int8_ops"), table.productId.asc().nullsLast().op("int8_ops")).where(sql`(type = 'direct_sale'::text)`),
-	index("stock_movements_product_created_idx").using("btree", table.productId.asc().nullsLast().op("timestamptz_ops"), table.createdAt.desc().nullsFirst().op("timestamptz_ops")),
+	index("stock_movements_product_created_idx").using("btree", table.productId.asc().nullsLast().op("int8_ops"), table.createdAt.desc().nullsFirst().op("int8_ops")),
+	uniqueIndex("stock_movements_receipt_line_key").using("btree", table.receiptLineId.asc().nullsLast().op("int8_ops")).where(sql`(receipt_line_id IS NOT NULL)`),
 	uniqueIndex("stock_movements_request_holder_key").using("btree", table.requestId.asc().nullsLast().op("uuid_ops"), table.holderProfileId.asc().nullsLast().op("uuid_ops")).where(sql`(request_id IS NOT NULL)`),
 	foreignKey({
 			columns: [table.clientId],
@@ -602,6 +611,11 @@ export const stockMovements = pgTable("stock_movements", {
 			foreignColumns: [products.id],
 			name: "stock_movements_product_id_fkey"
 		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.receiptLineId],
+			foreignColumns: [supplierReceiptLines.id],
+			name: "stock_movements_receipt_line_id_fkey"
+		}).onDelete("restrict"),
 	check("stock_movements_direct_sale_type_check", sql`(direct_sale_id IS NULL) OR (type = ANY (ARRAY['direct_sale'::text, 'direct_sale_void'::text]))`),
 	check("stock_movements_fraction_type_check", sql`(fraction_id IS NULL) OR (type = ANY (ARRAY['fraction_out'::text, 'fraction_in'::text]))`),
 	check("stock_movements_qty_check", sql`qty <> 0`),
@@ -615,6 +629,7 @@ CASE
     WHEN (type = 'adjustment'::text) THEN (qty <> 0)
     ELSE false
 END)`),
+	check("stock_movements_receipt_line_type_check", sql`(receipt_line_id IS NULL) OR (type = 'purchase'::text)`),
 	check("stock_movements_shrinkage_reason_check", sql`(type <> 'shrinkage'::text) OR (reason IS NULL) OR (reason = ANY (ARRAY['lost'::text, 'damaged'::text, 'expired'::text, 'other'::text]))`),
 	check("stock_movements_type_check", sql`type = ANY (ARRAY['initial'::text, 'purchase'::text, 'adjustment'::text, 'delivery'::text, 'return'::text, 'direct_sale'::text, 'direct_sale_void'::text, 'shrinkage'::text, 'shrinkage_void'::text, 'fraction_out'::text, 'fraction_in'::text])`),
 ]);
@@ -640,6 +655,49 @@ export const restockOrders = pgTable("restock_orders", {
 	check("restock_orders_closed_at_check", sql`(status = 'closed'::text) = (closed_at IS NOT NULL)`),
 	check("restock_orders_note_check", sql`(note IS NULL) OR ((char_length(note) >= 1) AND (char_length(note) <= 500))`),
 	check("restock_orders_status_check", sql`status = ANY (ARRAY['draft'::text, 'closed'::text])`),
+]);
+
+export const supplierReceiptLines = pgTable("supplier_receipt_lines", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "supplier_receipt_lines_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	receiptId: bigint("receipt_id", { mode: "number" }).notNull(),
+	position: integer().notNull(),
+	readName: text("read_name").notNull(),
+	qty: integer().notNull(),
+	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	productId: bigint("product_id", { mode: "number" }),
+	status: text().notNull(),
+	costStatus: text("cost_status"),
+	previousUnitCost: numeric("previous_unit_cost", { precision: 10, scale:  4 }),
+	resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: 'string' }),
+	resolvedBy: uuid("resolved_by"),
+}, (table) => [
+	index("supplier_receipt_lines_pending_idx").using("btree", table.receiptId.asc().nullsLast().op("int8_ops")).where(sql`((status = 'pending'::text) OR (cost_status = 'pending'::text))`),
+	foreignKey({
+			columns: [table.productId],
+			foreignColumns: [products.id],
+			name: "supplier_receipt_lines_product_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.receiptId],
+			foreignColumns: [supplierReceipts.id],
+			name: "supplier_receipt_lines_receipt_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.resolvedBy],
+			foreignColumns: [users.id],
+			name: "supplier_receipt_lines_resolved_by_fkey"
+		}),
+	unique("supplier_receipt_lines_position_key").on(table.receiptId, table.position),
+	check("supplier_receipt_lines_cost_status_check", sql`(cost_status IS NULL) OR ((cost_status = ANY (ARRAY['pending'::text, 'accepted'::text, 'rejected'::text])) AND (status = 'received'::text) AND (unit_cost IS NOT NULL) AND (previous_unit_cost IS NOT NULL))`),
+	check("supplier_receipt_lines_position_check", sql`"position" > 0`),
+	check("supplier_receipt_lines_product_check", sql`(status = ANY (ARRAY['received'::text, 'created'::text])) = (product_id IS NOT NULL)`),
+	check("supplier_receipt_lines_qty_check", sql`qty > 0`),
+	check("supplier_receipt_lines_read_name_check", sql`(char_length(read_name) >= 1) AND (char_length(read_name) <= 200)`),
+	check("supplier_receipt_lines_status_check", sql`status = ANY (ARRAY['received'::text, 'pending'::text, 'created'::text, 'discarded'::text])`),
+	check("supplier_receipt_lines_unit_cost_check", sql`(unit_cost IS NULL) OR (unit_cost >= (0)::numeric)`),
 ]);
 
 export const restockOrderLines = pgTable("restock_order_lines", {
@@ -669,4 +727,47 @@ export const restockOrderLines = pgTable("restock_order_lines", {
 	check("restock_order_lines_kind_check", sql`((product_id IS NOT NULL) AND (custom_name IS NULL) AND (unit_cost IS NOT NULL)) OR ((product_id IS NULL) AND (custom_name IS NOT NULL))`),
 	check("restock_order_lines_qty_check", sql`qty > 0`),
 	check("restock_order_lines_unit_cost_check", sql`unit_cost >= (0)::numeric`),
+]);
+
+export const supplierReceipts = pgTable("supplier_receipts", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "supplier_receipts_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	requestId: uuid("request_id").notNull(),
+	source: text().notNull(),
+	fileName: text("file_name"),
+	createdBy: uuid("created_by").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("supplier_receipts_created_at_idx").using("btree", table.createdAt.desc().nullsFirst().op("timestamptz_ops")),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "supplier_receipts_created_by_fkey"
+		}),
+	unique("supplier_receipts_request_id_key").on(table.requestId),
+	check("supplier_receipts_file_name_check", sql`(file_name IS NULL) OR ((char_length(file_name) >= 1) AND (char_length(file_name) <= 255))`),
+	check("supplier_receipts_source_check", sql`source = ANY (ARRAY['excel'::text, 'pdf'::text, 'image'::text])`),
+]);
+
+export const supplierProductAliases = pgTable("supplier_product_aliases", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "supplier_product_aliases_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	normalizedName: text("normalized_name").notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	productId: bigint("product_id", { mode: "number" }).notNull(),
+	updatedBy: uuid("updated_by").notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.productId],
+			foreignColumns: [products.id],
+			name: "supplier_product_aliases_product_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.updatedBy],
+			foreignColumns: [users.id],
+			name: "supplier_product_aliases_updated_by_fkey"
+		}),
+	unique("supplier_product_aliases_name_key").on(table.normalizedName),
+	check("supplier_product_aliases_normalized_name_check", sql`(char_length(normalized_name) >= 1) AND (char_length(normalized_name) <= 200)`),
 ]);

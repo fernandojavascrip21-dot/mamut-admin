@@ -3,13 +3,13 @@ import { db } from '@db/client'
 import { isUniqueViolation, pgConstraintName } from '@db/errors'
 import { products, supplierReceiptLines, supplierReceipts } from '@db/schema'
 import { lockRows, withTransaction, type Tx } from '@db/transaction'
-import { UUID } from '@lib/constants'
+import { MONEY_MAX, UUID } from '@lib/constants'
 import { conflict, notFound, validation } from '@lib/errors'
-import { requireMoney } from '@lib/handler'
-import { compareMoney } from '@lib/money'
+import { compareMoney, decimalPlaces, fromMinorUnits, toMinorUnits } from '@lib/money'
 import { insertMovements, type NewStockMovement } from '@stock'
 import { requireAdmin } from './access'
 import {
+  INVALID_COST_VALUE,
   INVALID_FILE_NAME,
   INVALID_LINES_COUNT,
   INVALID_PRODUCT_ID,
@@ -190,10 +190,17 @@ function validateLine(line: ConfirmReceiptLineInput): ConfirmReceiptLineInput {
   if (line.productId !== null && (!Number.isSafeInteger(line.productId) || line.productId < 1)) {
     throw validation(INVALID_PRODUCT_ID)
   }
-  const unitCost = line.unitCost === null
-    ? null
-    : requireMoney({ unitCost: line.unitCost }, 'unitCost', { scale: 4, label: 'El costo' })
+  const unitCost = line.unitCost === null ? null : normalizeCost(line.unitCost)
   return { ...line, unitCost }
+}
+
+// Costo del renglón: texto con hasta 4 decimales, entre 0 y 999999.9999 (columna numeric(10,4)). Cero
+// es válido: la base lo admite y la vista previa lo propone. Nunca se redondea: un texto con más
+// decimales da 422.
+function normalizeCost(text: string): string {
+  const places = decimalPlaces(text)
+  if (places === null || places > 4 || compareMoney(text, 4, MONEY_MAX[4], 4) > 0) throw validation(INVALID_COST_VALUE)
+  return fromMinorUnits(toMinorUnits(text, 4), 4)
 }
 
 // Una remisión por su requestId (spec §3). Un requestId que no es UUID no puede existir: 404.
