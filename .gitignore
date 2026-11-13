@@ -56,3 +56,8 @@ Thumbs.db
 
 # Desbloqueos de tests por rama (los controla solo Fernando)
 /.claude/desbloqueos/
+
+# Reportes y resultados de Playwright (pruebas e2e)
+/playwright-report/
+/test-results/
+/blob-report/

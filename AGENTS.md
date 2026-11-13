@@ -23,12 +23,15 @@ npm test                                    # ng test: Vitest runner, jsdom (not
 ng test --include src/app/core/auth/services/auth.service.spec.ts   # one file
 ng test --filter "AuthService"                                      # by name
 npm run check:architecture                  # layer boundaries of src/app — run it with the build
+npm run test:e2e                            # Playwright end-to-end (desktop + 375 px) against local Supabase; starts :3000/:4200 or reuses them
 npm run config:prepare                      # PrimeNG license + API URL files (the pre* hooks run it); ui:prepare / api:prepare run each alone
 ```
 
 Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY` and `API_BASE_URL`. `API_BASE_URL` (spec `M7-t31`) is the backend origin read at build time from the env or the root `.env`: absolute URL, `http:` only for localhost/127.0.0.1, no path; if missing or invalid the build fails. `scripts/prepare-api-url.mjs` writes the git-ignored `core/api-base-url.generated.ts`, which only `core/api-base-url.ts` re-exports. There is no lint script.
 
 **CI** (spec `M7-t32`): `.github/workflows/ci.yml` runs on every PR and push to `main` with three jobs, which are the required checks of `main` (renaming one means updating the branch protection in the same change): `frontend` (`config:prepare` with the `PRIMENG_LICENSE_KEY` secret, `node --test scripts/*.test.mjs`, `ng build`, `check:architecture`, `ng test --watch=false`), `backend` (`type-check`, `build`, `architecture.test.ts`) and `backend-db` (Supabase local in the runner with the demo keys and the full backend suite; it fails if the DB is not `127.0.0.1` or `SUPABASE_SERVICE_ROLE_KEY` is missing, and warns about skipped tests). Node version comes from `.nvmrc`.
+
+**End-to-end** (Playwright, `playwright.config.ts`, tests in `e2e/`): runs locally only (not in CI yet), one worker, projects `escritorio` and `movil` (375 px). The config stops before starting any server if the active block of `backend/.env` does not point `DATABASE_URL` and `SUPABASE_URL` at `127.0.0.1`/`localhost`: never run it against PRODUCCIÓN. Needs `npm run db:start`; log in with the seed accounts through `e2e/support/login.ts`; data a test creates is prefixed `test-e2e-` and cleaned up. `/spec-impl` writes `e2e/<spec>.spec.ts` for the criteria with a screen and runs the whole suite after the last block; committed e2e specs are frozen like the others.
 
 ### Backend (`cd backend` — own `package.json`, `node_modules`, `.env`)
 
