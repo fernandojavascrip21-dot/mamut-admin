@@ -6,6 +6,7 @@ export * from './readers/excel-reader'
 export * from './preview'
 export * from './receipts'
 export * from './pending'
+export * from './catalog'
 export type {
   AcceptLineCostResult,
   ConfirmReceiptInput,
@@ -20,6 +21,7 @@ export type {
   PreviewLine,
   Receipt,
   ReceiptActor,
+  ReceiptCatalogItem,
   ReceiptImageType,
   ReceiptLine,
   ReceiptLineStatus,

@@ -1,41 +1,66 @@
-import { Injectable } from '@angular/core';
-import type { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { map, type Observable } from 'rxjs';
+import { CATEGORIES_URL, RECEIPTS_URL } from '../constants/receipts.constants';
 import type {
-  ConfirmReceiptPayload, ConfirmReceiptResponse, CreateProductFromLinePayload, CreateProductFromLineResult,
-  AcceptLineCostResult, PendingReceiptLines, Receipt, ReceiptCatalogItem, ReceiptCategory, ReceiptLineResult, ReceiptPreview,
+  AcceptLineCostResult, ConfirmReceiptPayload, ConfirmReceiptResponse, CreateProductFromLinePayload,
+  CreateProductFromLineResult, PendingReceiptLines, Receipt, ReceiptCatalogItem, ReceiptCategory,
+  ReceiptLineResult, ReceiptPreview,
 } from '../interfaces/receipt.models';
 
-// Cliente de /api/receipts (HU-42). Pendiente de implementar.
+// Cliente de /api/receipts (HU-42). El Bearer token lo agrega authInterceptor. Los errores no se
+// capturan aquí: la página decide qué mostrar según el status.
 @Injectable({ providedIn: 'root' })
 export class ReceiptsService {
+  private readonly http = inject(HttpClient);
+
+  // Lee el archivo sin guardar nada: el campo «file» es el que espera el backend.
   preview(file: File): Observable<ReceiptPreview> {
-    throw new Error(`No implementado ${file.name}`);
+    const body = new FormData();
+    body.append('file', file);
+    return this.http.post<ReceiptPreview>(`${RECEIPTS_URL}/preview`, body);
   }
+
+  // Catálogo para corregir renglones (solo activos); el backend lo envuelve en { products }.
   getProducts(): Observable<ReceiptCatalogItem[]> {
-    throw new Error('No implementado');
+    return this.http.get<{ products: ReceiptCatalogItem[] }>(`${RECEIPTS_URL}/products`).pipe(
+      map((body) => body.products),
+    );
   }
+
+  // Registra la entrada. 201 es nueva y 200 una repetición del mismo requestId.
   confirm(payload: ConfirmReceiptPayload): Observable<ConfirmReceiptResponse> {
-    throw new Error(`No implementado ${payload.requestId}`);
+    return this.http.post<ConfirmReceiptResponse>(RECEIPTS_URL, payload);
   }
+
+  // Una remisión ya registrada; el backend la envuelve en { receipt }.
   get(requestId: string): Observable<Receipt> {
-    throw new Error(`No implementado ${requestId}`);
+    return this.http.get<{ receipt: Receipt }>(`${RECEIPTS_URL}/${requestId}`).pipe(
+      map((body) => body.receipt),
+    );
   }
+
   getPending(): Observable<PendingReceiptLines> {
-    throw new Error('No implementado');
+    return this.http.get<PendingReceiptLines>(`${RECEIPTS_URL}/pending`);
   }
+
   createProduct(lineId: number, payload: CreateProductFromLinePayload): Observable<CreateProductFromLineResult> {
-    throw new Error(`No implementado ${lineId} ${payload.name}`);
+    return this.http.post<CreateProductFromLineResult>(`${RECEIPTS_URL}/lines/${lineId}/product`, payload);
   }
+
   discard(lineId: number): Observable<ReceiptLineResult> {
-    throw new Error(`No implementado ${lineId}`);
+    return this.http.post<ReceiptLineResult>(`${RECEIPTS_URL}/lines/${lineId}/discard`, {});
   }
+
   acceptCost(lineId: number): Observable<AcceptLineCostResult> {
-    throw new Error(`No implementado ${lineId}`);
+    return this.http.post<AcceptLineCostResult>(`${RECEIPTS_URL}/lines/${lineId}/cost/accept`, {});
   }
+
   rejectCost(lineId: number): Observable<ReceiptLineResult> {
-    throw new Error(`No implementado ${lineId}`);
+    return this.http.post<ReceiptLineResult>(`${RECEIPTS_URL}/lines/${lineId}/cost/reject`, {});
   }
+
   getCategories(): Observable<ReceiptCategory[]> {
-    throw new Error('No implementado');
+    return this.http.get<ReceiptCategory[]>(CATEGORIES_URL);
   }
 }
