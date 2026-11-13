@@ -33,3 +33,11 @@ export function httpErrorMessage(error: unknown): string | null {
   if (detail === null || !('message' in detail)) return null;
   return typeof detail.message === 'string' ? detail.message : null;
 }
+
+// Código que manda el backend (`DUPLICATE_NAME`, `COST_ABOVE_PRICE`…), o null. Sirve para distinguir dos
+// respuestas con el mismo status, como un 409 de nombre repetido y uno de pendiente ya resuelto.
+export function httpErrorCode(error: unknown): string | null {
+  const detail = backendErrorDetail(error);
+  if (detail === null || !('code' in detail)) return null;
+  return typeof detail.code === 'string' ? detail.code : null;
+}

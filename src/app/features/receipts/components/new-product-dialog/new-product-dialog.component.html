@@ -1,1 +1,80 @@
+<app-modal-panel [title]="texts.title" [closable]="!saving()" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
+    @if (formError()) {
+      <p class="alert-danger m-0 text-sm font-semibold" role="alert">{{ formError() }}</p>
+    }
 
+    <div class="flex flex-col gap-1.5">
+      <label for="new-product-name" class="field-label">{{ texts.name }}</label>
+      <input
+        pInputText
+        id="new-product-name"
+        type="text"
+        formControlName="name"
+        class="receipt-name h-[52px] w-full"
+        [invalid]="!!nameError() || !!errorOf('name')"
+      />
+      @if (nameError(); as message) {
+        <p class="receipt-field-error field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+      } @else if (errorOf('name'); as message) {
+        <p class="receipt-field-error field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="flex flex-col gap-1.5">
+        <label for="new-product-price" class="field-label">{{ texts.price }}</label>
+        <input
+          pInputText
+          id="new-product-price"
+          type="text"
+          inputmode="decimal"
+          formControlName="price"
+          class="receipt-price h-[52px] w-full"
+          [invalid]="!!errorOf('price')"
+        />
+        @if (errorOf('price'); as message) {
+          <p class="receipt-field-error field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+        }
+        @if (belowCost()) {
+          <p class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ texts.belowCost }}</p>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="new-product-cost" class="field-label">{{ texts.unitCost }}</label>
+        <input
+          pInputText
+          id="new-product-cost"
+          type="text"
+          inputmode="decimal"
+          formControlName="unitCost"
+          class="receipt-cost h-[52px] w-full"
+          [invalid]="!!errorOf('unitCost')"
+        />
+        @if (errorOf('unitCost'); as message) {
+          <p class="receipt-field-error field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="new-product-category" class="field-label">{{ texts.category }}</label>
+      <p-select
+        inputId="new-product-category"
+        formControlName="categoryId"
+        [options]="categoryOptions()"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+      />
+    </div>
+
+    <p class="m-0 text-sm font-semibold text-muted">{{ stockNote() }}</p>
+
+    <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <button pButton type="button" severity="secondary" [text]="true" class="h-11 px-4 text-sm" [disabled]="saving()" (click)="closed.emit()">{{ texts.cancel }}</button>
+      <button pButton type="submit" class="h-11 px-4 text-sm" [disabled]="saving()">{{ texts.submit }}</button>
+    </div>
+  </form>
+</app-modal-panel>

@@ -27,3 +27,9 @@ export const RECEIPT_LEAVE_CONFIRMATION: ConfirmOptions = {
   cancelLabel: 'Seguir revisando',
   tone: 'default',
 };
+
+// Fechas de las remisiones en la hora de la bodega (Intl, no el reloj del equipo).
+export const RECEIPT_TIME_ZONE = 'America/Mexico_City';
+
+// Largo máximo del nombre de un producto nuevo (mismo tope que el catálogo).
+export const NEW_PRODUCT_NAME_MAX = 200;
