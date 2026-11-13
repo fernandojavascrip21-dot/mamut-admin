@@ -1,4 +1,4 @@
-<app-modal-panel [title]="texts.title" [closable]="!saving()" (closed)="closed.emit()">
+<app-modal-panel [title]="texts.title" [closable]="!saving()" (closed)="closed.emit()" >
   <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
     @if (formError()) {
       <p class="alert-danger m-0 text-sm font-semibold" role="alert">{{ formError() }}</p>
@@ -67,7 +67,6 @@
         optionLabel="label"
         optionValue="value"
         class="w-full"
-        appendTo="body"
       />
     </div>
 
