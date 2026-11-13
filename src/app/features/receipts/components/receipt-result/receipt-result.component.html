@@ -6,7 +6,13 @@
       <li class="surface-card flex flex-wrap items-center justify-between gap-3 p-3">
         <div class="flex min-w-0 flex-col gap-0.5">
           <p class="m-0 break-words text-base font-bold text-ink">{{ entry.name }}</p>
-          <p class="m-0 text-sm font-semibold text-muted tabular-nums">Bodega {{ entry.before }} → {{ entry.after }}</p>
+          <p class="m-0 text-sm font-semibold text-muted tabular-nums">
+            @if (entry.before === null) {
+              Bodega {{ entry.after }}
+            } @else {
+              Bodega {{ entry.before }} → {{ entry.after }}
+            }
+          </p>
         </div>
         <p class="m-0 text-base font-bold text-success-text tabular-nums">+{{ entry.qty }}</p>
       </li>

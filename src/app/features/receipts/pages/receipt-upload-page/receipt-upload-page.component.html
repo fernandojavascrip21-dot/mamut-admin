@@ -1,4 +1,12 @@
 <app-modal-panel [title]="texts.title" [wide]="true" [closable]="!busy()" (closed)="close()">
+  @if (state() !== 'pick') {
+    <div class="mb-4 flex justify-end">
+      <a
+        [routerLink]="pendingLink"
+        class="text-sm font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >Pendientes de remisiones</a>
+    </div>
+  }
   @if (state() === 'pick') {
     <app-receipt-file-picker (fileSelected)="onFilePicked($event)" />
   }

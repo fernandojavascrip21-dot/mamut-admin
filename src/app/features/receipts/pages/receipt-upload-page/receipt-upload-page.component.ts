@@ -1,6 +1,6 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
@@ -29,7 +29,7 @@ import { RECEIPT_UPLOAD_PAGE_TEXTS } from './receipt-upload-page.constants';
 @Component({
   imports: [
     ButtonDirective, Skeleton, ModalPanelComponent, ReceiptFilePickerComponent, ReceiptPreviewFormComponent,
-    ReceiptResultComponent, ReceiptSkippedListComponent,
+    ReceiptResultComponent, ReceiptSkippedListComponent, RouterLink,
   ],
   selector: 'app-receipt-upload-page',
   templateUrl: './receipt-upload-page.component.html',
@@ -43,6 +43,8 @@ export class ReceiptUploadPageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly texts = RECEIPT_UPLOAD_PAGE_TEXTS;
+  // Enlace fijo del pop-up: cierra la ventana y lleva a pendientes (en «pick» lo pone el picker).
+  readonly pendingLink = leaveModalLink(RECEIPT_PENDING_SEGMENTS);
 
   // --- Estado del pop-up ---
   readonly state = signal<ReceiptUploadState>('pick');

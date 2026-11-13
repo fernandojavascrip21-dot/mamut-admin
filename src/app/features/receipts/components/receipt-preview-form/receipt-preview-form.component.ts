@@ -104,7 +104,10 @@ export class ReceiptPreviewFormComponent implements OnInit {
   confirm(): void {
     if (this.disabled() || this.rows().length === 0) return;
     this.showErrors.set(true);
-    if (this.lines.invalid) return;
+    if (this.lines.invalid) {
+      this.lines.markAllAsTouched();
+      return;
+    }
     this.confirmed.emit(buildConfirmPayload({
       requestId: this.requestId(),
       source: this.preview().source,
