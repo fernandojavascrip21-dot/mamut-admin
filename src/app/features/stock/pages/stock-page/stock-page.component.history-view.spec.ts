@@ -190,10 +190,10 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
       expect(lines('app-shrinkage-history-line')).toHaveLength(0);
     });
 
-    it('sigue habiendo siete movimientos rápidos y ningún enlace «Ver mermas» ni «Ver fraccionados»', async () => {
+    it('sigue habiendo ocho movimientos rápidos y ningún enlace «Ver mermas» ni «Ver fraccionados»', async () => {
       await open();
       const labels = Array.from(el().querySelectorAll('a')).map((a) => a.textContent!.trim());
-      expect(lines('a.quick-action')).toHaveLength(7);
+      expect(lines('a.quick-action')).toHaveLength(8);
       expect(labels).not.toContain('Ver mermas');
       expect(labels).not.toContain('Ver fraccionados');
     });
@@ -401,7 +401,7 @@ describe('StockPageComponent · selector de vista «Productos | Mermas | Fraccio
       expect(lowButton()!.getAttribute('aria-haspopup')).toBe('dialog');
       const lastLink = lines('a.quick-action').at(-1)!;
       expect(lastLink.compareDocumentPosition(lowButton()!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(lines('a.quick-action')).toHaveLength(7);
+      expect(lines('a.quick-action')).toHaveLength(8);
     });
 
     it('con un vendedor también aparece ahí y los enlaces siguen siendo 3', async () => {

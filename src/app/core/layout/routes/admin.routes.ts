@@ -7,12 +7,14 @@ import {
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
   MODAL_PURCHASE_PATH,
+  MODAL_RECEIPT_PATH,
   MODAL_RESTOCK_HISTORY_PATH,
   MODAL_RESTOCK_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '@shared/constants/modal.constants';
 import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
 import { unsavedRestockGuard } from '@features/restock/guards/unsaved-restock.guard';
+import { unsavedReceiptGuard } from '@features/receipts/guards/unsaved-receipt.guard';
 
 // Hijos de /admin, cargados con loadChildren: este archivo (y cada feature) solo se descarga
 // cuando roleGuard ya dejó pasar a un administrador, así que el vendedor nunca lo baja.
@@ -158,5 +160,21 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'vendedores',
     loadChildren: () => import('@features/sellers/sellers.routes').then((m) => m.SELLER_ADMIN_ROUTES),
+  },
+  // «Cargar remisión» (HU-42): pop-up en el outlet `ventana`; no se sale con una revisión sin registrar.
+  {
+    path: MODAL_RECEIPT_PATH,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [unsavedReceiptGuard],
+    loadComponent: () =>
+      import('@features/receipts/pages/receipt-upload-page/receipt-upload-page.component').then(
+        (m) => m.ReceiptUploadPageComponent,
+      ),
+    data: { title: 'Cargar remisión' },
+  },
+  // Pendientes de remisiones (HU-42): la página completa vive en la feature receipts.
+  {
+    path: 'remisiones',
+    loadChildren: () => import('@features/receipts/receipts.routes').then((m) => m.RECEIPT_ROUTES),
   },
 ];

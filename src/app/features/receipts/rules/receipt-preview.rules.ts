@@ -61,8 +61,9 @@ export function buildConfirmPayload(params: {
   return { requestId: params.requestId, source: params.source, fileName: params.fileName, lines };
 }
 
-// Piezas válidas como número: entero de 1 al tope; cualquier otra cosa devuelve null.
-function validQty(value: string): number | null {
+// Piezas válidas como número: entero de 1 al tope; cualquier otra cosa devuelve null. Se exporta para
+// sumar las piezas de la barra con la misma regla que el validador.
+export function validQty(value: string): number | null {
   const text = value.trim();
   if (!QTY_DIGITS.test(text)) return null;
   const qty = Number(text);

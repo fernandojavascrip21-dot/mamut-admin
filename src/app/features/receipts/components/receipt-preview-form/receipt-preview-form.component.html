@@ -1,1 +1,39 @@
+<div class="flex flex-col gap-4">
+  @if (fileName(); as name) {
+    <p class="m-0 text-sm font-semibold text-muted break-words">{{ texts.file }}: {{ name }}</p>
+  }
 
+  @if (rows().length === 0) {
+    <p class="m-0 font-semibold text-ink">{{ texts.noLines }}</p>
+  }
+
+  @for (row of rows(); track row.group; let i = $index) {
+    <app-receipt-preview-line
+      [proposed]="row.proposed"
+      [group]="row.group"
+      [catalog]="catalog()"
+      [catalogError]="catalogError()"
+      [showErrors]="showErrors()"
+      [stockBefore]="stockBeforeOf(row.group.controls.productId.value)"
+      [stockAfter]="stockAfterOf(row.group.controls.productId.value)"
+      [disabled]="disabled()"
+      (removed)="removeLine(i)"
+      (catalogRetry)="catalogRetry.emit()"
+    />
+  }
+
+  <app-receipt-skipped-list [skipped]="preview().skipped" />
+
+  <div class="sticky bottom-0 -mx-1 flex flex-col gap-3 border-t border-line-strong bg-white px-1 pt-3 pb-1 sm:flex-row sm:items-center sm:justify-between">
+    <p class="m-0 text-sm font-semibold text-ink tabular-nums">
+      {{ summary().lines }} {{ texts.lines }} · {{ summary().pieces }} {{ texts.pieces }} · {{ summary().newProducts }} {{ texts.newProducts }} · {{ summary().costChanges }} {{ texts.costChanges }}
+    </p>
+    <button
+      pButton
+      type="button"
+      class="h-12 px-6 text-sm"
+      [disabled]="disabled() || rows().length === 0"
+      (click)="confirm()"
+    >{{ texts.confirm }}</button>
+  </div>
+</div>

@@ -1,1 +1,112 @@
+<div class="surface-card flex flex-col gap-3 p-4" [formGroup]="group()">
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 flex-col gap-0.5">
+      <p class="m-0 break-words text-base font-bold text-ink">{{ proposed().readName }}</p>
+      <p class="m-0 text-xs font-semibold text-muted">{{ statusLabel() }}</p>
+    </div>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [text]="true"
+      class="h-11 shrink-0 px-3 text-sm"
+      [disabled]="disabled()"
+      (click)="removed.emit()"
+    >{{ texts.remove }}</button>
+  </div>
 
+  @if (catalogError()) {
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <span class="font-semibold text-danger">{{ texts.catalogError }}</span>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        class="h-11 px-3 text-sm"
+        [disabled]="disabled()"
+        (click)="catalogRetry.emit()"
+      >{{ texts.retry }}</button>
+    </div>
+  }
+
+  <div class="flex flex-col gap-1.5">
+    <label class="field-label" [attr.for]="'receipt-product-' + proposed().position">{{ texts.product }}</label>
+    <p-select
+      [inputId]="'receipt-product-' + proposed().position"
+      formControlName="productId"
+      [options]="options()"
+      optionLabel="label"
+      optionValue="value"
+      [filter]="true"
+      filterBy="label"
+      [filterPlaceholder]="texts.productFilter"
+      [placeholder]="texts.newProduct"
+      [showClear]="false"
+      class="h-[52px] min-w-0 w-full"
+    >
+      <ng-template #item let-option>
+        <div class="flex w-full items-center gap-3 py-1 whitespace-normal">
+          @if (option.image) {
+            <img [src]="option.image" alt="" loading="lazy" class="h-12 w-12 flex-shrink-0 rounded-md object-cover" />
+          }
+          <span class="min-w-0 flex-1 text-sm leading-tight font-bold break-words">{{ option.label }}</span>
+        </div>
+      </ng-template>
+    </p-select>
+    @if (productId() === '') {
+      <p class="m-0 text-sm font-semibold text-muted">
+        {{ texts.suggestedPrefix }} {{ proposed().suggestedName }}
+      </p>
+      <p class="m-0 text-sm font-semibold text-muted">{{ texts.pendingNew }}</p>
+    }
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1.5">
+      <label class="field-label" [attr.for]="'receipt-qty-' + proposed().position">{{ texts.qty }}</label>
+      <input
+        pInputText
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="receipt-qty h-[52px] min-w-0 w-full"
+        [id]="'receipt-qty-' + proposed().position"
+        formControlName="qty"
+        [invalid]="showErrors() && !!qtyErrors()"
+      />
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label class="field-label" [attr.for]="'receipt-cost-' + proposed().position">{{ texts.unitCost }}</label>
+      <input
+        pInputText
+        type="text"
+        inputmode="decimal"
+        autocomplete="off"
+        class="receipt-cost h-[52px] min-w-0 w-full"
+        [id]="'receipt-cost-' + proposed().position"
+        formControlName="unitCost"
+        [invalid]="showErrors() && !!costErrors()"
+      />
+      <p class="m-0 text-xs text-muted">{{ texts.unitCostHint }}</p>
+    </div>
+  </div>
+
+  @if (showErrors() && qtyMessage(); as message) {
+    <p class="receipt-line-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+  }
+  @if (showErrors() && costMessage(); as message) {
+    <p class="receipt-line-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+  }
+
+  @if (stockVisible()) {
+    <p class="m-0 text-sm font-bold text-ink tabular-nums">
+      +{{ qty() }} · Bodega {{ stockBefore() }} → {{ stockAfter() }}
+    </p>
+  }
+
+  @if (costDiffers()) {
+    <p class="alert-warning m-0 text-sm">
+      {{ texts.costDifferTitle }}: ${{ catalogProduct()?.unitCost }} → ${{ unitCost() }} · {{ texts.costDifferPending }}
+    </p>
+  }
+</div>

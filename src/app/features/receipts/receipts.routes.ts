@@ -1,4 +1,12 @@
 import type { Routes } from '@angular/router';
 
-// Pendiente de implementar (HU-42): '' → pendientes y la página de pendientes.
-export const RECEIPT_ROUTES: Routes = [];
+// Rutas de la feature, montadas en /admin/remisiones. La raíz lleva a la página de pendientes.
+export const RECEIPT_ROUTES: Routes = [
+  { path: '', pathMatch: 'full', redirectTo: 'pendientes' },
+  {
+    path: 'pendientes',
+    title: 'Pendientes de remisiones',
+    loadComponent: () =>
+      import('./pages/receipt-pending-page/receipt-pending-page.component').then((m) => m.ReceiptPendingPageComponent),
+  },
+];

@@ -1,1 +1,80 @@
+<app-modal-panel [title]="texts.title" [wide]="true" [closable]="!busy()" (closed)="close()">
+  @if (state() === 'pick') {
+    <app-receipt-file-picker (fileSelected)="onFilePicked($event)" />
+  }
 
+  @if (state() === 'reading') {
+    <div class="flex flex-col gap-3" role="status" aria-live="polite">
+      <p-skeleton height="48px" />
+      <p-skeleton height="160px" />
+      <p class="m-0 text-base font-semibold text-ink">{{ texts.reading }}</p>
+      <p class="m-0 text-sm text-muted">{{ texts.readingHint }}</p>
+    </div>
+  }
+
+  @if (state() === 'readError') {
+    <div class="flex flex-col items-start gap-4">
+      <p role="alert" class="alert-danger m-0 w-full text-sm font-semibold">{{ readError() }}</p>
+      <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="chooseAnother()">
+        {{ texts.chooseAnother }}
+      </button>
+    </div>
+  }
+
+  @if (state() === 'empty') {
+    @if (preview(); as current) {
+      <div class="flex flex-col gap-4">
+        <p class="m-0 text-base font-semibold text-ink">{{ texts.noProducts }}</p>
+        <app-receipt-skipped-list [skipped]="current.skipped" />
+        <div>
+          <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="chooseAnother()">
+            {{ texts.chooseAnother }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  @if (formVisible()) {
+    @if (confirmError(); as message) {
+      <div role="alert" class="alert-danger mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="m-0 text-sm font-semibold">{{ message }}</p>
+        @if (conflict()) {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            class="h-11 shrink-0 px-4 text-sm"
+            [disabled]="busy()"
+            (click)="viewRegistered()"
+          >{{ texts.viewRegistered }}</button>
+        }
+      </div>
+    }
+    @if (preview(); as current) {
+      <app-receipt-preview-form
+        [preview]="current"
+        [catalog]="catalog()"
+        [catalogError]="catalogError()"
+        [requestId]="requestId"
+        [fileName]="fileName()"
+        [disabled]="state() === 'confirming'"
+        (confirmed)="onConfirm($event)"
+        (catalogRetry)="reloadCatalog()"
+        (dirtyChange)="onDirtyChange($event)"
+      />
+    }
+  }
+
+  @if (state() === 'done') {
+    @if (receipt(); as saved) {
+      <app-receipt-result
+        [receipt]="saved"
+        [stockBefore]="stockBeforeById()"
+        (another)="onAnother()"
+        (closed)="close()"
+        (pendingRequested)="goToPending()"
+      />
+    }
+  }
+</app-modal-panel>
