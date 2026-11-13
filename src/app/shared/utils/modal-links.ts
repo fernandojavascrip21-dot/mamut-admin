@@ -93,3 +93,8 @@ export function openModalPath(tree: UrlTree): string | null {
   };
   return find(tree.root);
 }
+
+// «Cargar remisión» (HU-42): pendiente de implementar.
+export function receiptModalLink(): unknown[] {
+  throw new Error('No implementado');
+}
