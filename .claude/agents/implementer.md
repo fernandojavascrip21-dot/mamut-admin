@@ -35,5 +35,6 @@ Implementas en mamut-admin (Angular 22 + backend Next.js) el código que hace pa
 
 ## Al terminar
 1. Corre **una sola vez** los tests afectados, `npx ng build` y `npm run check:architecture` (y `cd backend && npm run type-check` si tocaste el backend). Eres el único que verifica: nadie más lo repite.
+   - **Si la tarea dice que es el último bloque del spec**, corre además la suite de punta a punta completa: `npm run test:e2e` (Playwright, escritorio y 375 px, contra Supabase local). Un fallo de e2e sigue el mismo protocolo de 3 intentos: se corrige el código, nunca el test con commit. Si se detiene porque `backend/.env` no apunta a la base local, o porque no levanta un servidor (puerto ocupado, Supabase apagado), no es un intento: detente y dilo sin cambiar `.env` ni matar procesos.
 2. No hagas commit.
 3. Entrega en **≤150 palabras**: archivos cambiados, conteos de tests (pasan/fallan), y solo las decisiones o dudas que el usuario deba revisar. Sin repetir el spec.
