@@ -1,0 +1,41 @@
+<div class="flex flex-col gap-4">
+  <p class="m-0 text-lg font-bold text-ink">{{ entries().length }} entradas registradas</p>
+
+  <ul class="m-0 flex list-none flex-col gap-2 p-0">
+    @for (entry of entries(); track entry.id) {
+      <li class="surface-card flex flex-wrap items-center justify-between gap-3 p-3">
+        <div class="flex min-w-0 flex-col gap-0.5">
+          <p class="m-0 break-words text-base font-bold text-ink">{{ entry.name }}</p>
+          <p class="m-0 text-sm font-semibold text-muted tabular-nums">
+            @if (entry.before === null) {
+              Bodega {{ entry.after }}
+            } @else {
+              Bodega {{ entry.before }} → {{ entry.after }}
+            }
+          </p>
+        </div>
+        <p class="m-0 text-base font-bold text-success-text tabular-nums">+{{ entry.qty }}</p>
+      </li>
+    }
+  </ul>
+
+  @if (pendingTotal() > 0) {
+    <div class="alert-warning flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="m-0 text-sm font-semibold">
+        {{ pendingNew() }} productos nuevos y {{ pendingCost() }} cambios de costo quedaron pendientes
+      </p>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        class="h-11 shrink-0 px-4 text-sm"
+        (click)="pendingRequested.emit()"
+      >Ver pendientes ({{ pendingTotal() }})</button>
+    </div>
+  }
+
+  <div class="flex flex-wrap items-center justify-end gap-2">
+    <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="another.emit()">Cargar otra remisión</button>
+    <button pButton type="button" severity="secondary" [text]="true" class="h-11 px-4 text-sm" (click)="closed.emit()">Cerrar</button>
+  </div>
+</div>

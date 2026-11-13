@@ -178,3 +178,12 @@ export interface AcceptLineCostResult {
   line: ReceiptLine
   product: { id: number; unitCost: string }
 }
+
+// Producto que el administrador puede elegir al corregir una vista previa (HU-42).
+export interface ReceiptCatalogItem {
+  id: number
+  name: string
+  image: string | null
+  unitCost: string // costo de fábrica actual, «123.4500»
+  units: number // piezas en bodega
+}

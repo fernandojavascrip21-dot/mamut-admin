@@ -17,3 +17,5 @@ export const MODAL_PURCHASE_PATH = 'entrada';
 export const MODAL_RESTOCK_PATH = 'resurtir';
 // Ventanas «Pedidos anteriores» (`resurtir/pedidos`) y su detalle (`resurtir/pedidos/:id`) (HU-32).
 export const MODAL_RESTOCK_HISTORY_PATH = 'resurtir/pedidos';
+// Ventana «Cargar remisión» (HU-42): sin parámetros.
+export const MODAL_RECEIPT_PATH = 'remision';

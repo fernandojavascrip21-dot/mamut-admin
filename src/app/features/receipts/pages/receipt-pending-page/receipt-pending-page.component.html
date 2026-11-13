@@ -1,0 +1,81 @@
+<section class="flex flex-col gap-5">
+  <header class="flex flex-col items-start gap-3">
+    <h1 class="page-title m-0">{{ texts.title }}</h1>
+    <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
+  </header>
+
+  @if (loadStatus() === 'error') {
+    <div class="surface-card flex flex-col items-start gap-3 p-5" role="alert">
+      <p class="m-0 text-base font-semibold text-danger-text">{{ texts.loadFailed }}</p>
+      <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="reload()">{{ texts.retry }}</button>
+    </div>
+  } @else if (loadStatus() !== 'ready') {
+    <div class="grid grid-cols-1 gap-3 xl:grid-cols-2" aria-busy="true">
+      @for (row of skeletonRows; track row) {
+        <p-skeleton height="136px" borderRadius="16px" />
+      }
+    </div>
+  } @else {
+    <p-selectbutton
+      [options]="tabOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="activeTab()"
+      (ngModelChange)="activeTab.set($event)"
+      [allowEmpty]="false"
+      [fluid]="true"
+      [attr.aria-label]="texts.tabsLabel"
+    />
+
+    @if (activeTab() === 'new') {
+      @if (newProducts().length === 0) {
+        <div class="surface-card flex flex-col items-start gap-3 p-5">
+          <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyNew }}</p>
+          <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          @for (item of newProducts(); track item.lineId) {
+            <app-pending-new-product-card
+              [item]="item"
+              [busy]="busyLineId() === item.lineId"
+              (createRequested)="openCreate(item)"
+              (discardRequested)="discard(item)"
+            />
+          }
+        </div>
+      }
+    } @else {
+      @if (costChanges().length === 0) {
+        <div class="surface-card flex flex-col items-start gap-3 p-5">
+          <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyCost }}</p>
+          <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          @for (item of costChanges(); track item.lineId) {
+            <app-pending-cost-change-card
+              [item]="item"
+              [busy]="busyLineId() === item.lineId"
+              [showEditLink]="editLinkLineId() === item.lineId"
+              (acceptRequested)="acceptCost(item)"
+              (rejectRequested)="rejectCost(item)"
+            />
+          }
+        </div>
+      }
+    }
+  }
+</section>
+
+@if (creating(); as item) {
+  <app-new-product-dialog
+    [item]="item"
+    [categories]="categories()"
+    [saving]="saving()"
+    [nameError]="nameError()"
+    [formError]="formError()"
+    (saved)="saveProduct($event)"
+    (closed)="closeCreate()"
+  />
+}

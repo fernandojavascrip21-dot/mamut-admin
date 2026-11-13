@@ -6,7 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { API_BASE_URL } from '@core/api-base-url';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { deliveryModalLink, editHoldingModalLink, fractionModalLink, purchaseModalLink, restockModalLink, returnModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
+import { deliveryModalLink, editHoldingModalLink, fractionModalLink, purchaseModalLink, receiptModalLink, restockModalLink, returnModalLink, shrinkageModalLink } from '@shared/utils/modal-links';
 import type { ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import type { StockOverview } from '../../interfaces/stock-overview.models';
 import { StockPageComponent } from './stock-page.component';
@@ -144,10 +144,11 @@ describe('StockPageComponent', () => {
       expect(whey.querySelector('.breakdown')?.textContent?.trim()).toBe('Bodega 4 · Luis 6');
     });
 
-    it('ofrece los siete movimientos rápidos con sus destinos', () => {
-      expect(actionLabels()).toEqual(['Entrada a bodega', 'Resurtir', 'Dejar a vendedor', 'Vender', 'Registrar merma', 'Fraccionar', 'Nuevo producto']);
+    it('ofrece los ocho movimientos rápidos con sus destinos', () => {
+      expect(actionLabels()).toEqual(['Entrada a bodega', 'Cargar remisión', 'Resurtir', 'Dejar a vendedor', 'Vender', 'Registrar merma', 'Fraccionar', 'Nuevo producto']);
       expect(actionHrefs()).toEqual([
         hrefOf(purchaseModalLink()),
+        hrefOf(receiptModalLink()),
         hrefOf(restockModalLink()),
         hrefOf(deliveryModalLink()),
         '/admin/productos',

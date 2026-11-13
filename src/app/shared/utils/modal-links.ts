@@ -6,6 +6,7 @@ import {
   MODAL_OUTLET,
   MODAL_PURCHASE_PATH,
   MODAL_RESTOCK_HISTORY_PATH,
+  MODAL_RECEIPT_PATH,
   MODAL_RESTOCK_PATH,
   MODAL_RETURN_PATH,
   MODAL_SHRINKAGE_PATH,
@@ -92,4 +93,9 @@ export function openModalPath(tree: UrlTree): string | null {
     return null;
   };
   return find(tree.root);
+}
+
+// «Cargar remisión» (HU-42): pop-up de la bodega, sin parámetros.
+export function receiptModalLink(): unknown[] {
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RECEIPT_PATH] } }];
 }

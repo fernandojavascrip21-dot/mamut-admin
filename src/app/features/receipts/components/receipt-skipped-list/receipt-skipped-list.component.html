@@ -1,0 +1,13 @@
+@if (skipped().length > 0) {
+  <details class="rounded-xl border border-line bg-white p-3 text-sm">
+    <summary class="cursor-pointer font-semibold text-ink">No leídos ({{ skipped().length }})</summary>
+    <ul class="m-0 mt-3 flex list-none flex-col gap-2 p-0">
+      @for (line of skipped(); track line.position) {
+        <li class="flex flex-col gap-0.5 border-t border-line pt-2">
+          <span class="break-words text-ink">{{ line.text }}</span>
+          <span class="text-muted">{{ line.label }}</span>
+        </li>
+      }
+    </ul>
+  </details>
+}
