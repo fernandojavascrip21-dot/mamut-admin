@@ -657,51 +657,6 @@ export const restockOrders = pgTable("restock_orders", {
 	check("restock_orders_status_check", sql`status = ANY (ARRAY['draft'::text, 'closed'::text])`),
 ]);
 
-export const supplierReceiptLines = pgTable("supplier_receipt_lines", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "supplier_receipt_lines_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	receiptId: bigint("receipt_id", { mode: "number" }).notNull(),
-	position: integer().notNull(),
-	readName: text("read_name").notNull(),
-	qty: integer(),
-	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	productId: bigint("product_id", { mode: "number" }),
-	status: text().notNull(),
-	costStatus: text("cost_status"),
-	previousUnitCost: numeric("previous_unit_cost", { precision: 10, scale:  4 }),
-	resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: 'string' }),
-	resolvedBy: uuid("resolved_by"),
-}, (table) => [
-	index("supplier_receipt_lines_pending_idx").using("btree", table.receiptId.asc().nullsLast().op("int8_ops")).where(sql`((status = ANY (ARRAY['pending'::text, 'incomplete'::text])) OR (cost_status = 'pending'::text))`),
-	foreignKey({
-			columns: [table.productId],
-			foreignColumns: [products.id],
-			name: "supplier_receipt_lines_product_id_fkey"
-		}).onDelete("restrict"),
-	foreignKey({
-			columns: [table.receiptId],
-			foreignColumns: [supplierReceipts.id],
-			name: "supplier_receipt_lines_receipt_id_fkey"
-		}).onDelete("restrict"),
-	foreignKey({
-			columns: [table.resolvedBy],
-			foreignColumns: [users.id],
-			name: "supplier_receipt_lines_resolved_by_fkey"
-		}),
-	unique("supplier_receipt_lines_position_key").on(table.receiptId, table.position),
-	check("supplier_receipt_lines_cost_status_check", sql`(cost_status IS NULL) OR ((cost_status = ANY (ARRAY['pending'::text, 'accepted'::text, 'rejected'::text])) AND (status = 'received'::text) AND (unit_cost IS NOT NULL) AND (previous_unit_cost IS NOT NULL))`),
-	check("supplier_receipt_lines_position_check", sql`"position" > 0`),
-	check("supplier_receipt_lines_product_check", sql`(status = ANY (ARRAY['received'::text, 'created'::text])) = (product_id IS NOT NULL)`),
-	check("supplier_receipt_lines_incomplete_check", sql`(status <> 'incomplete'::text) OR (qty IS NULL)`),
-	check("supplier_receipt_lines_no_qty_check", sql`(qty IS NOT NULL) OR (status = ANY (ARRAY['incomplete'::text, 'discarded'::text]))`),
-	check("supplier_receipt_lines_qty_check", sql`(qty IS NULL) OR (qty > 0)`),
-	check("supplier_receipt_lines_read_name_check", sql`(char_length(read_name) >= 1) AND (char_length(read_name) <= 200)`),
-	check("supplier_receipt_lines_status_check", sql`status = ANY (ARRAY['received'::text, 'pending'::text, 'created'::text, 'discarded'::text, 'incomplete'::text])`),
-	check("supplier_receipt_lines_unit_cost_check", sql`(unit_cost IS NULL) OR (unit_cost >= (0)::numeric)`),
-]);
-
 export const restockOrderLines = pgTable("restock_order_lines", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "restock_order_lines_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
@@ -749,6 +704,51 @@ export const supplierReceipts = pgTable("supplier_receipts", {
 	unique("supplier_receipts_request_id_key").on(table.requestId),
 	check("supplier_receipts_file_name_check", sql`(file_name IS NULL) OR ((char_length(file_name) >= 1) AND (char_length(file_name) <= 255))`),
 	check("supplier_receipts_source_check", sql`source = ANY (ARRAY['excel'::text, 'pdf'::text, 'image'::text])`),
+]);
+
+export const supplierReceiptLines = pgTable("supplier_receipt_lines", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "supplier_receipt_lines_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	receiptId: bigint("receipt_id", { mode: "number" }).notNull(),
+	position: integer().notNull(),
+	readName: text("read_name").notNull(),
+	qty: integer(),
+	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	productId: bigint("product_id", { mode: "number" }),
+	status: text().notNull(),
+	costStatus: text("cost_status"),
+	previousUnitCost: numeric("previous_unit_cost", { precision: 10, scale:  4 }),
+	resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: 'string' }),
+	resolvedBy: uuid("resolved_by"),
+}, (table) => [
+	index("supplier_receipt_lines_pending_idx").using("btree", table.receiptId.asc().nullsLast().op("int8_ops")).where(sql`((status = ANY (ARRAY['pending'::text, 'incomplete'::text])) OR (cost_status = 'pending'::text))`),
+	foreignKey({
+			columns: [table.productId],
+			foreignColumns: [products.id],
+			name: "supplier_receipt_lines_product_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.receiptId],
+			foreignColumns: [supplierReceipts.id],
+			name: "supplier_receipt_lines_receipt_id_fkey"
+		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.resolvedBy],
+			foreignColumns: [users.id],
+			name: "supplier_receipt_lines_resolved_by_fkey"
+		}),
+	unique("supplier_receipt_lines_position_key").on(table.receiptId, table.position),
+	check("supplier_receipt_lines_cost_status_check", sql`(cost_status IS NULL) OR ((cost_status = ANY (ARRAY['pending'::text, 'accepted'::text, 'rejected'::text])) AND (status = 'received'::text) AND (unit_cost IS NOT NULL) AND (previous_unit_cost IS NOT NULL))`),
+	check("supplier_receipt_lines_incomplete_check", sql`(status <> 'incomplete'::text) OR (qty IS NULL)`),
+	check("supplier_receipt_lines_no_qty_check", sql`(qty IS NOT NULL) OR (status = ANY (ARRAY['incomplete'::text, 'discarded'::text]))`),
+	check("supplier_receipt_lines_position_check", sql`"position" > 0`),
+	check("supplier_receipt_lines_product_check", sql`(status = ANY (ARRAY['received'::text, 'created'::text])) = (product_id IS NOT NULL)`),
+	check("supplier_receipt_lines_qty_check", sql`(qty IS NULL) OR (qty > 0)`),
+	check("supplier_receipt_lines_read_name_check", sql`(char_length(read_name) >= 1) AND (char_length(read_name) <= 200)`),
+	check("supplier_receipt_lines_status_check", sql`status = ANY (ARRAY['received'::text, 'pending'::text, 'created'::text, 'discarded'::text, 'incomplete'::text])`),
+	check("supplier_receipt_lines_unit_cost_check", sql`(unit_cost IS NULL) OR (unit_cost >= (0)::numeric)`),
 ]);
 
 export const supplierProductAliases = pgTable("supplier_product_aliases", {
