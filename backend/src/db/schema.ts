@@ -664,7 +664,7 @@ export const supplierReceiptLines = pgTable("supplier_receipt_lines", {
 	receiptId: bigint("receipt_id", { mode: "number" }).notNull(),
 	position: integer().notNull(),
 	readName: text("read_name").notNull(),
-	qty: integer().notNull(),
+	qty: integer(),
 	unitCost: numeric("unit_cost", { precision: 10, scale:  4 }),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	productId: bigint("product_id", { mode: "number" }),
@@ -674,7 +674,7 @@ export const supplierReceiptLines = pgTable("supplier_receipt_lines", {
 	resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: 'string' }),
 	resolvedBy: uuid("resolved_by"),
 }, (table) => [
-	index("supplier_receipt_lines_pending_idx").using("btree", table.receiptId.asc().nullsLast().op("int8_ops")).where(sql`((status = 'pending'::text) OR (cost_status = 'pending'::text))`),
+	index("supplier_receipt_lines_pending_idx").using("btree", table.receiptId.asc().nullsLast().op("int8_ops")).where(sql`((status = ANY (ARRAY['pending'::text, 'incomplete'::text])) OR (cost_status = 'pending'::text))`),
 	foreignKey({
 			columns: [table.productId],
 			foreignColumns: [products.id],
@@ -694,9 +694,11 @@ export const supplierReceiptLines = pgTable("supplier_receipt_lines", {
 	check("supplier_receipt_lines_cost_status_check", sql`(cost_status IS NULL) OR ((cost_status = ANY (ARRAY['pending'::text, 'accepted'::text, 'rejected'::text])) AND (status = 'received'::text) AND (unit_cost IS NOT NULL) AND (previous_unit_cost IS NOT NULL))`),
 	check("supplier_receipt_lines_position_check", sql`"position" > 0`),
 	check("supplier_receipt_lines_product_check", sql`(status = ANY (ARRAY['received'::text, 'created'::text])) = (product_id IS NOT NULL)`),
-	check("supplier_receipt_lines_qty_check", sql`qty > 0`),
+	check("supplier_receipt_lines_incomplete_check", sql`(status <> 'incomplete'::text) OR (qty IS NULL)`),
+	check("supplier_receipt_lines_no_qty_check", sql`(qty IS NOT NULL) OR (status = ANY (ARRAY['incomplete'::text, 'discarded'::text]))`),
+	check("supplier_receipt_lines_qty_check", sql`(qty IS NULL) OR (qty > 0)`),
 	check("supplier_receipt_lines_read_name_check", sql`(char_length(read_name) >= 1) AND (char_length(read_name) <= 200)`),
-	check("supplier_receipt_lines_status_check", sql`status = ANY (ARRAY['received'::text, 'pending'::text, 'created'::text, 'discarded'::text])`),
+	check("supplier_receipt_lines_status_check", sql`status = ANY (ARRAY['received'::text, 'pending'::text, 'created'::text, 'discarded'::text, 'incomplete'::text])`),
 	check("supplier_receipt_lines_unit_cost_check", sql`(unit_cost IS NULL) OR (unit_cost >= (0)::numeric)`),
 ]);
 

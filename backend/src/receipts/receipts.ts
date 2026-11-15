@@ -30,6 +30,7 @@ import { loadReceipt, upsertAlias, type ReceiptLineRow } from './records'
 import type {
   ConfirmReceiptInput,
   ConfirmReceiptLineInput,
+  IncompleteLine,
   Receipt,
   ReceiptActor,
   ReceiptProductRow,
@@ -78,13 +79,17 @@ async function isReplay(tx: Tx, data: ConfirmReceiptInput): Promise<boolean> {
     .where(eq(supplierReceipts.requestId, data.requestId))
   if (!stored) return false
 
+  // Los renglones se guardan en orden: primero los de producto y después los por completar (ver writeReceipt).
+  const incomplete = data.incomplete ?? []
   const lines = await tx.select()
     .from(supplierReceiptLines)
     .where(eq(supplierReceiptLines.receiptId, stored.id))
     .orderBy(supplierReceiptLines.position)
   const same = stored.source === data.source
-    && lines.length === data.lines.length
-    && lines.every((line, index) => sameLine(line, data.lines[index]!))
+    && lines.length === data.lines.length + incomplete.length
+    && lines.every((line, index) => index < data.lines.length
+      ? sameLine(line, data.lines[index]!)
+      : sameIncomplete(line, incomplete[index - data.lines.length]!))
   if (!same) throw conflict(REQUEST_MISMATCH)
   return true
 }
@@ -92,8 +97,18 @@ async function isReplay(tx: Tx, data: ConfirmReceiptInput): Promise<boolean> {
 // Compara un renglón guardado con el que llegó: texto, piezas, producto y costo (por valor, no por texto).
 function sameLine(stored: ReceiptLineRow, line: ConfirmReceiptLineInput): boolean {
   if (stored.readName !== line.readName || stored.qty !== line.qty || stored.productId !== line.productId) return false
-  if (stored.unitCost === null || line.unitCost === null) return stored.unitCost === line.unitCost
-  return compareMoney(stored.unitCost, 4, line.unitCost, 4) === 0
+  return sameCost(stored.unitCost, line.unitCost)
+}
+
+// Un renglón por completar no tiene piezas ni producto: se compara su nombre y su costo leído.
+function sameIncomplete(stored: ReceiptLineRow, line: IncompleteLine): boolean {
+  return stored.status === 'incomplete' && stored.readName === line.readName && stored.qty === null
+    && stored.productId === null && sameCost(stored.unitCost, line.unitCost)
+}
+
+function sameCost(stored: string | null, value: string | null): boolean {
+  if (stored === null || value === null) return stored === value
+  return compareMoney(stored, 4, value, 4) === 0
 }
 
 // Escribe la remisión dentro de la transacción. Los productos se bloquean antes de leer su costo, para
@@ -109,11 +124,19 @@ async function writeReceipt(tx: Tx, data: ConfirmReceiptInput, userId: string): 
     .values({ requestId: data.requestId, source: data.source, fileName: data.fileName, createdBy: userId })
     .returning({ id: supplierReceipts.id })
 
+  // Posiciones consecutivas: primero los renglones con producto o pendientes, luego los por completar.
+  const incomplete = data.incomplete ?? []
   const inserted = await tx.insert(supplierReceiptLines)
-    .values(data.lines.map((line, index) => ({
-      ...lineValues(line, index + 1, catalog),
-      receiptId: receipt!.id,
-    })))
+    .values([
+      ...data.lines.map((line, index) => ({
+        ...lineValues(line, index + 1, catalog),
+        receiptId: receipt!.id,
+      })),
+      ...incomplete.map((line, index) => ({
+        ...incompleteValues(line, data.lines.length + index + 1),
+        receiptId: receipt!.id,
+      })),
+    ])
     .returning()
   const lineIdByPosition = new Map<number, number>(inserted.map((row) => [row.position, row.id] as const))
 
@@ -155,6 +178,21 @@ function lineValues(line: ConfirmReceiptLineInput, position: number, catalog: Ma
   }
 }
 
+// Un renglón por completar: nombre y costo leídos, sin piezas ni producto (status incomplete, qty null).
+// No mueve inventario: sus piezas llegan al darlo de alta.
+function incompleteValues(line: IncompleteLine, position: number) {
+  return {
+    position,
+    readName: line.readName,
+    qty: null,
+    unitCost: line.unitCost,
+    productId: null,
+    status: 'incomplete',
+    costStatus: null,
+    previousUnitCost: null,
+  }
+}
+
 // Bloquea los productos del request y valida que existan y estén activos. Un producto desactivado da
 // 409 antes de tocar nada: la transacción se deshace y no queda ningún renglón.
 async function lockProducts(tx: Tx, ids: number[]): Promise<Map<number, ReceiptProductRow>> {
@@ -175,14 +213,24 @@ function validateConfirmInput(input: ConfirmReceiptInput): ConfirmReceiptInput {
   if (input.fileName !== null && (input.fileName.length < 1 || input.fileName.length > MAX_FILE_NAME_LENGTH)) {
     throw validation(INVALID_FILE_NAME)
   }
-  if (input.lines.length < 1 || input.lines.length > MAX_LINES) throw validation(INVALID_LINES_COUNT)
+  // Una remisión puede traer solo renglones por completar: se exige al menos uno de los dos grupos.
+  const incomplete = input.incomplete ?? []
+  const total = input.lines.length + incomplete.length
+  if (total < 1 || total > MAX_LINES) throw validation(INVALID_LINES_COUNT)
 
   return {
     requestId: input.requestId.toLowerCase(),
     source: input.source,
     fileName: input.fileName,
     lines: input.lines.map(validateLine),
+    incomplete: incomplete.map(validateIncomplete),
   }
+}
+
+// Un renglón por completar: nombre (1–200) y costo opcional con las mismas reglas que un renglón.
+function validateIncomplete(line: IncompleteLine): IncompleteLine {
+  if (line.readName.length < 1 || line.readName.length > MAX_NAME_LENGTH) throw validation(INVALID_READ_NAME)
+  return { readName: line.readName, unitCost: line.unitCost === null ? null : normalizeCost(line.unitCost) }
 }
 
 function validateLine(line: ConfirmReceiptLineInput): ConfirmReceiptLineInput {

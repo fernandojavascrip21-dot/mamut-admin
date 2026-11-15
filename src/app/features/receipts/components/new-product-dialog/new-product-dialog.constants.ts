@@ -11,7 +11,7 @@ export const NEW_PRODUCT_DIALOG_TEXTS = {
   belowCost: 'El precio es menor que el costo',
   cancel: 'Cancelar',
   submit: 'Dar de alta',
-  stockNote: (qty: number) => `Entrarán ${qty} piezas a bodega. La foto se agrega después en Editar producto.`,
+  stockNote: (qty: number | null) => `Entrarán ${qty} piezas a bodega. La foto se agrega después en Editar producto.`,
 } as const;
 
 // Mensaje por cada error de validación, según el campo y la clave que devolvió el validador.

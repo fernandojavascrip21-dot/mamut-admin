@@ -1,7 +1,7 @@
 export type ReceiptSource = 'excel' | 'pdf' | 'image';
 export type MatchKind = 'alias' | 'name' | 'none';
 export type SkipReason = 'missing_name' | 'invalid_qty' | 'invalid_cost' | 'inactive_product';
-export type ReceiptLineStatus = 'received' | 'pending' | 'created' | 'discarded';
+export type ReceiptLineStatus = 'received' | 'pending' | 'created' | 'discarded' | 'incomplete';
 export type CostStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface ReceiptProductRef {
@@ -14,7 +14,7 @@ export interface PreviewLine {
   position: number;
   readName: string;
   suggestedName: string;
-  qty: number;
+  qty: number | null;
   unitCost: string | null;
   match: MatchKind;
   product: (ReceiptProductRef & { unitCost: string }) | null;
@@ -28,10 +28,18 @@ export interface SkippedLine {
   label: string;
 }
 
+// Renglón con piezas inválidas que el backend rescata con el costo que sí leyó.
+export interface IncompleteLine {
+  position?: number;
+  readName: string;
+  unitCost: string | null;
+}
+
 export interface ReceiptPreview {
   source: ReceiptSource;
   lines: PreviewLine[];
   skipped: SkippedLine[];
+  incomplete?: IncompleteLine[];
   stock: { productId: number; before: number; after: number }[];
 }
 
@@ -47,6 +55,7 @@ export interface ConfirmReceiptPayload {
   source: ReceiptSource;
   fileName: string | null;
   lines: ConfirmReceiptLinePayload[];
+  incomplete?: IncompleteLine[];
 }
 
 export interface ReceiptLine {
@@ -78,7 +87,7 @@ export interface PendingNewProduct {
   lineId: number;
   receipt: { requestId: string; createdAt: string };
   suggestedName: string;
-  qty: number;
+  qty: number | null;
   unitCost: string | null;
 }
 
@@ -95,6 +104,7 @@ export interface PendingCostChange {
 export interface PendingReceiptLines {
   newProducts: PendingNewProduct[];
   costChanges: PendingCostChange[];
+  incompleteProducts?: PendingNewProduct[];
 }
 
 export interface ReceiptCatalogItem {
@@ -110,6 +120,7 @@ export interface CreateProductFromLinePayload {
   price: string;
   categoryId: number | null;
   unitCost?: string;
+  qty?: number;
 }
 
 export interface CreateProductFromLineResult {

@@ -12,7 +12,7 @@ export const RECEIPT_PENDING_PAGE_TEXTS = {
   emptyCost: 'No hay cambios de costo pendientes',
   discardTitle: 'Descartar producto',
   discardConfirm: 'Descartar',
-  discardMessage: (name: string, qty: number) => `¿Descartar ${name}? Sus ${qty} piezas no entrarán a bodega.`,
+  discardMessage: (name: string, qty: number | null) => `¿Descartar ${name}? Sus ${qty} piezas no entrarán a bodega.`,
   discarded: 'Producto descartado',
   discardFailed: 'No pudimos descartar el producto. Inténtalo de nuevo.',
   acceptTitle: 'Cambiar costo',

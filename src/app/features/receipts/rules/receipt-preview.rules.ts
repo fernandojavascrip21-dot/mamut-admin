@@ -2,7 +2,7 @@ import { compareMoney } from '@shared/utils/money';
 import type { ReceiptLineFormValue } from '../components/receipt-preview-form/receipt-preview-form.models';
 import { MAX_QTY, QTY_DIGITS } from '../constants/receipts.constants';
 import type {
-  ConfirmReceiptPayload, PreviewLine, ReceiptCatalogItem, ReceiptPreview, ReceiptSource,
+  ConfirmReceiptPayload, IncompleteLine, PreviewLine, ReceiptCatalogItem, ReceiptPreview, ReceiptSource,
 } from '../interfaces/receipt.models';
 
 // Anticipa lo que decidirá el backend al confirmar (HU-42). Son funciones puras: la pantalla las usa
@@ -46,6 +46,7 @@ export function buildConfirmPayload(params: {
   fileName: string | null;
   proposed: PreviewLine[];
   values: ReceiptLineFormValue[];
+  incomplete?: IncompleteLine[];
 }): ConfirmReceiptPayload {
   const lines = params.values.flatMap((value, index) => {
     const line = params.proposed[index];
