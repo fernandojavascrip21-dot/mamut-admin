@@ -1,6 +1,6 @@
 # Spec — HU-42 · Cargar la remisión del proveedor al inventario y dar de alta productos nuevos
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:**
 > - M9-t41-base-recepcion-remision (`specs/M9-t41-base-recepcion-remision/spec.md`): todo el backend de la remisión (`/api/receipts/*`, módulo `@receipts`). Este spec lo consume y solo le suma una lectura.
 > - M2-t16-ventanas-dejar-retirar (`specs/M2-t16-ventanas-dejar-retirar/spec.md`): el outlet `ventana` y `modal-panel`.
