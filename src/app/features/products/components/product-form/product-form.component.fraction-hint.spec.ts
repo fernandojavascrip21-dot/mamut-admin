@@ -23,7 +23,10 @@ describe('ProductFormComponent · porción del producto', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Se fracciona en bolsitas');
   });
 
-  it('la etiqueta dice «Porción del producto», explica qué es y se ve aun sin marcar la casilla', () => {
+  it('la etiqueta dice «Porción del producto», explica qué es y solo se ve al marcar la casilla', () => {
+    expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(true);
+    el<HTMLInputElement>('#fractionable').click();
+    fixture.detectChanges();
     expect(el('#portion-size').parentElement?.classList.contains('hidden')).toBe(false);
     expect(el('label[for="portion-size"]').textContent).toContain('Porción del producto');
     expect(el('#portion-size-hint').textContent).toContain('Cuánto trae una porción de este producto');

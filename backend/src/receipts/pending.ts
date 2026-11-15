@@ -11,8 +11,10 @@ import { requireAdmin } from './access'
 import {
   CATEGORY_NOT_FOUND,
   COST_ABOVE_PRICE,
+  INVALID_QTY,
   LINE_ALREADY_RESOLVED,
   LINE_NOT_FOUND,
+  MAX_QTY,
   MISSING_UNIT_COST,
   PENDING_LIMIT,
   PRODUCT_INACTIVE,
@@ -45,6 +47,18 @@ export async function listPendingReceiptLines(actor: ReceiptActor): Promise<Pend
     .orderBy(desc(supplierReceipts.createdAt), asc(supplierReceiptLines.position))
     .limit(PENDING_LIMIT)
 
+  // Renglones por completar: sin piezas leídas y sin producto; el alta pide las piezas.
+  const incompleteRows = await db.select({
+    line: supplierReceiptLines,
+    requestId: supplierReceipts.requestId,
+    createdAt: supplierReceipts.createdAt,
+  })
+    .from(supplierReceiptLines)
+    .innerJoin(supplierReceipts, eq(supplierReceipts.id, supplierReceiptLines.receiptId))
+    .where(eq(supplierReceiptLines.status, 'incomplete'))
+    .orderBy(desc(supplierReceipts.createdAt), asc(supplierReceiptLines.position))
+    .limit(PENDING_LIMIT)
+
   const costRows = await db.select({
     line: supplierReceiptLines,
     requestId: supplierReceipts.requestId,
@@ -59,18 +73,25 @@ export async function listPendingReceiptLines(actor: ReceiptActor): Promise<Pend
     .limit(PENDING_LIMIT)
 
   return {
+    incompleteProducts: incompleteRows.map((row) => ({
+      lineId: row.line.id,
+      receipt: { requestId: row.requestId, createdAt: row.createdAt },
+      suggestedName: suggestedName(row.line.readName),
+      qty: null,
+      unitCost: row.line.unitCost,
+    })),
     newProducts: newRows.map((row) => ({
       lineId: row.line.id,
       receipt: { requestId: row.requestId, createdAt: row.createdAt },
       suggestedName: suggestedName(row.line.readName),
-      qty: row.line.qty,
+      qty: required(row.line.qty, 'las piezas del renglón'),
       unitCost: row.line.unitCost,
     })),
     costChanges: costRows.map((row) => ({
       lineId: row.line.id,
       receipt: { requestId: row.requestId, createdAt: row.createdAt },
       product: { ...toProductRef(row.product), active: row.product.active },
-      qty: row.line.qty,
+      qty: required(row.line.qty, 'las piezas del renglón'),
       currentUnitCost: row.product.unitCost,
       previousUnitCost: required(row.line.previousUnitCost, 'el costo anterior'),
       newUnitCost: required(row.line.unitCost, 'el costo nuevo'),
@@ -89,7 +110,10 @@ export async function createProductFromLine(
   try {
     return await withTransaction(async (tx) => {
       const line = await lockLine(tx, lineId)
-      if (line.status !== 'pending') throw conflict(LINE_ALREADY_RESOLVED)
+      if (!isUnresolved(line)) throw conflict(LINE_ALREADY_RESOLVED)
+
+      // Un renglón por completar no tiene piezas leídas: el alta las pide. Las demás usan las de la remisión.
+      const qty = line.status === 'incomplete' ? incompleteQty(input.qty) : required(line.qty, 'las piezas del renglón')
 
       // El costo es el que escribió el administrador o, si no lo dio, el que leyó la remisión.
       const unitCost = input.unitCost ?? line.unitCost
@@ -110,13 +134,13 @@ export async function createProductFromLine(
       await insertMovements(tx, [{
         productId: created.id,
         type: 'purchase',
-        qty: line.qty,
+        qty,
         holderProfileId: null,
         createdBy: actor.userId,
         receiptLineId: line.id,
       }])
       const [updated] = await tx.update(supplierReceiptLines)
-        .set({ status: 'created', productId: created.id, resolvedAt: sql`now()`, resolvedBy: actor.userId })
+        .set({ status: 'created', productId: created.id, qty, resolvedAt: sql`now()`, resolvedBy: actor.userId })
         .where(eq(supplierReceiptLines.id, line.id))
         .returning()
       await upsertAlias(tx, line.readName, created.id, actor.userId)
@@ -146,7 +170,7 @@ export async function discardLine(lineId: number, actor: ReceiptActor): Promise<
   requireAdmin(actor)
   return withTransaction(async (tx) => {
     const line = await lockLine(tx, lineId)
-    if (line.status !== 'pending') throw conflict(LINE_ALREADY_RESOLVED)
+    if (!isUnresolved(line)) throw conflict(LINE_ALREADY_RESOLVED)
     const [updated] = await tx.update(supplierReceiptLines)
       .set({ status: 'discarded', resolvedAt: sql`now()`, resolvedBy: actor.userId })
       .where(eq(supplierReceiptLines.id, line.id))
@@ -206,6 +230,18 @@ async function lockLine(tx: Tx, lineId: number): Promise<ReceiptLineRow> {
   const [line] = await lockRows(tx, supplierReceiptLines, eq(supplierReceiptLines.id, lineId))
   if (!line) throw notFound(LINE_NOT_FOUND)
   return line
+}
+
+// Un renglón sin resolver: pendiente de alta o por completar. Ambos se dan de alta o se descartan.
+function isUnresolved(line: ReceiptLineRow): boolean {
+  return line.status === 'pending' || line.status === 'incomplete'
+}
+
+// Las piezas de un renglón por completar las captura el administrador al darlo de alta: entero de 1 a
+// MAX_QTY. Sin ellas no hay entrada a bodega, así que es un 422 y no un movimiento vacío.
+function incompleteQty(value: number | undefined): number {
+  if (value === undefined || !Number.isSafeInteger(value) || value < 1 || value > MAX_QTY) throw validation(INVALID_QTY)
+  return value
 }
 
 // Un cambio de costo pendiente siempre tiene producto: lo garantiza el CHECK de la base.

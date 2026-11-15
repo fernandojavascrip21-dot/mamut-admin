@@ -114,6 +114,7 @@ export class ReceiptPreviewFormComponent implements OnInit {
       fileName: this.fileName(),
       proposed: this.rows().map((row) => row.proposed),
       values: this.lines.getRawValue(),
+      incomplete: this.preview().incomplete,
     }));
   }
 

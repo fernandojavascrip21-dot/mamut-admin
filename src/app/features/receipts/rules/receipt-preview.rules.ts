@@ -2,7 +2,7 @@ import { compareMoney } from '@shared/utils/money';
 import type { ReceiptLineFormValue } from '../components/receipt-preview-form/receipt-preview-form.models';
 import { MAX_QTY, QTY_DIGITS } from '../constants/receipts.constants';
 import type {
-  ConfirmReceiptPayload, PreviewLine, ReceiptCatalogItem, ReceiptPreview, ReceiptSource,
+  ConfirmReceiptPayload, IncompleteLine, PreviewLine, ReceiptCatalogItem, ReceiptPreview, ReceiptSource,
 } from '../interfaces/receipt.models';
 
 // Anticipa lo que decidirá el backend al confirmar (HU-42). Son funciones puras: la pantalla las usa
@@ -40,12 +40,15 @@ export function costChanged(line: ReceiptLineFormValue, product: ReceiptCatalogI
 
 // Arma el cuerpo de confirmar. `values` y `proposed` van en paralelo: un renglón quitado de la pantalla
 // sale de `values` y del `proposed` correspondiente. «Producto nuevo» y costo vacío viajan como null.
+// `incomplete` solo viaja si hay renglones por completar: el backend los rescata con el nombre y costo
+// que sí se leyeron, y no hay nada que mandar cuando una remisión no tiene ninguno.
 export function buildConfirmPayload(params: {
   requestId: string;
   source: ReceiptSource;
   fileName: string | null;
   proposed: PreviewLine[];
   values: ReceiptLineFormValue[];
+  incomplete?: IncompleteLine[];
 }): ConfirmReceiptPayload {
   const lines = params.values.flatMap((value, index) => {
     const line = params.proposed[index];
@@ -58,7 +61,12 @@ export function buildConfirmPayload(params: {
       productId: value.productId === '' ? null : Number(value.productId),
     }];
   });
-  return { requestId: params.requestId, source: params.source, fileName: params.fileName, lines };
+  const payload: ConfirmReceiptPayload = { requestId: params.requestId, source: params.source, fileName: params.fileName, lines };
+  if (params.incomplete && params.incomplete.length > 0) {
+    // Solo nombre y costo: la posición y demás datos de la vista previa no son parte del contrato.
+    payload.incomplete = params.incomplete.map((item) => ({ readName: item.readName, unitCost: item.unitCost }));
+  }
+  return payload;
 }
 
 // Piezas válidas como número: entero de 1 al tope; cualquier otra cosa devuelve null. Se exporta para

@@ -18,24 +18,25 @@ export class ReceiptResultComponent {
   readonly closed = output<void>();
   readonly pendingRequested = output<void>();
 
-  // Solo los renglones que sumaron piezas: un producto nuevo queda pendiente y todavía no entra a bodega.
+  // Solo los renglones que sumaron piezas: un producto nuevo queda pendiente y todavía no entra a bodega,
+  // y un renglón por completar no tiene piezas todavía (qty null).
   readonly entries = computed<ReceiptResultEntry[]>(() => {
     const { lines, units } = this.receipt();
-    return lines
-      .filter((line) => line.status === 'received')
-      .map((line) => {
-        const productId = line.product?.id ?? null;
-        return {
-          id: line.id,
-          name: line.product?.name ?? line.readName,
-          qty: line.qty,
-          before: productId === null ? null : (this.stockBefore()[productId] ?? null),
-          after: productId === null ? null : (units.find((unit) => unit.productId === productId)?.units ?? null),
-        };
-      });
+    return lines.flatMap((line) => {
+      if (line.status !== 'received' || line.qty === null) return [];
+      const productId = line.product?.id ?? null;
+      return [{
+        id: line.id,
+        name: line.product?.name ?? line.readName,
+        qty: line.qty,
+        before: productId === null ? null : (this.stockBefore()[productId] ?? null),
+        after: productId === null ? null : (units.find((unit) => unit.productId === productId)?.units ?? null),
+      }];
+    });
   });
 
   readonly pendingNew = computed(() => this.receipt().lines.filter((line) => line.status === 'pending').length);
   readonly pendingCost = computed(() => this.receipt().lines.filter((line) => line.costStatus === 'pending').length);
-  readonly pendingTotal = computed(() => this.pendingNew() + this.pendingCost());
+  readonly pendingIncomplete = computed(() => this.receipt().lines.filter((line) => line.status === 'incomplete').length);
+  readonly pendingTotal = computed(() => this.pendingNew() + this.pendingCost() + this.pendingIncomplete());
 }
