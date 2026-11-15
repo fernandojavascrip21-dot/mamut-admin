@@ -266,10 +266,12 @@ describe('ReceiptUploadPageComponent', () => {
   });
 
   describe('resultado', () => {
+    let confirmedRequestId = '';
     const toDone = async () => {
       await setup();
       await toReview();
-      const request = await confirmWith(payload(form().componentInstance.requestId()));
+      confirmedRequestId = form().componentInstance.requestId();
+      const request = await confirmWith(payload(confirmedRequestId));
       request.flush({ receipt: RECEIPT, replayed: false }, { status: 201, statusText: 'Created' });
       await settle();
       return fixture.debugElement.query(By.directive(ReceiptResultComponent)).componentInstance as ReceiptResultComponent;
@@ -277,7 +279,7 @@ describe('ReceiptUploadPageComponent', () => {
 
     it('«Cargar otra remisión» vuelve a elegir archivo y el siguiente intento usa otro requestId', async () => {
       const result = await toDone();
-      const first = payload('x').requestId;
+      const first = confirmedRequestId;
       result.another.emit();
       await settle();
       expect(picker()).not.toBeNull();
