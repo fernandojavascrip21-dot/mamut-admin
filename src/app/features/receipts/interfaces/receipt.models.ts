@@ -62,7 +62,8 @@ export interface ReceiptLine {
   id: number;
   position: number;
   readName: string;
-  qty: number;
+  // null solo en los renglones «incomplete» (por completar): sus piezas aún no se capturan.
+  qty: number | null;
   unitCost: string | null;
   status: ReceiptLineStatus;
   costStatus: CostStatus | null;

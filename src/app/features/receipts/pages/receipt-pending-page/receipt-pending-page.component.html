@@ -27,42 +27,64 @@
       [attr.aria-label]="texts.tabsLabel"
     />
 
-    @if (activeTab() === 'new') {
-      @if (newProducts().length === 0) {
-        <div class="surface-card flex flex-col items-start gap-3 p-5">
-          <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyNew }}</p>
-          <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
-        </div>
-      } @else {
-        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          @for (item of newProducts(); track item.lineId) {
-            <app-pending-new-product-card
-              [item]="item"
-              [busy]="busyLineId() === item.lineId"
-              (createRequested)="openCreate(item)"
-              (discardRequested)="discard(item)"
-            />
-          }
-        </div>
+    @switch (activeTab()) {
+      @case ('new') {
+        @if (newProducts().length === 0) {
+          <div class="surface-card flex flex-col items-start gap-3 p-5">
+            <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyNew }}</p>
+            <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            @for (item of newProducts(); track item.lineId) {
+              <app-pending-new-product-card
+                [item]="item"
+                [busy]="busyLineId() === item.lineId"
+                (createRequested)="openCreate(item)"
+                (discardRequested)="discard(item)"
+              />
+            }
+          </div>
+        }
       }
-    } @else {
-      @if (costChanges().length === 0) {
-        <div class="surface-card flex flex-col items-start gap-3 p-5">
-          <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyCost }}</p>
-          <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
-        </div>
-      } @else {
-        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          @for (item of costChanges(); track item.lineId) {
-            <app-pending-cost-change-card
-              [item]="item"
-              [busy]="busyLineId() === item.lineId"
-              [showEditLink]="editLinkLineId() === item.lineId"
-              (acceptRequested)="acceptCost(item)"
-              (rejectRequested)="rejectCost(item)"
-            />
-          }
-        </div>
+      @case ('cost') {
+        @if (costChanges().length === 0) {
+          <div class="surface-card flex flex-col items-start gap-3 p-5">
+            <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyCost }}</p>
+            <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            @for (item of costChanges(); track item.lineId) {
+              <app-pending-cost-change-card
+                [item]="item"
+                [busy]="busyLineId() === item.lineId"
+                [showEditLink]="editLinkLineId() === item.lineId"
+                (acceptRequested)="acceptCost(item)"
+                (rejectRequested)="rejectCost(item)"
+              />
+            }
+          </div>
+        }
+      }
+      @case ('incomplete') {
+        @if (incompleteProducts().length === 0) {
+          <div class="surface-card flex flex-col items-start gap-3 p-5">
+            <p class="m-0 text-base font-semibold text-ink">{{ texts.emptyIncomplete }}</p>
+            <button pButton type="button" severity="secondary" class="h-11 px-4 text-sm" (click)="openUpload()">{{ texts.upload }}</button>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            @for (item of incompleteProducts(); track item.lineId) {
+              <app-pending-new-product-card
+                [item]="item"
+                [busy]="busyLineId() === item.lineId"
+                (createRequested)="openCreate(item)"
+                (discardRequested)="discard(item)"
+              />
+            }
+          </div>
+        }
       }
     }
   }

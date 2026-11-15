@@ -21,9 +21,16 @@
 
   @if (pendingTotal() > 0) {
     <div class="alert-warning flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p class="m-0 text-sm font-semibold">
-        {{ pendingNew() }} productos nuevos y {{ pendingCost() }} cambios de costo quedaron pendientes
-      </p>
+      <div class="flex flex-col gap-1">
+        @if (pendingNew() + pendingCost() > 0) {
+          <p class="m-0 text-sm font-semibold">
+            {{ pendingNew() }} productos nuevos y {{ pendingCost() }} cambios de costo quedaron pendientes
+          </p>
+        }
+        @if (pendingIncomplete() > 0) {
+          <p class="m-0 text-sm font-semibold">{{ pendingIncomplete() }} por completar</p>
+        }
+      </div>
       <button
         pButton
         type="button"

@@ -21,6 +21,24 @@
       }
     </div>
 
+    @if (item().qty === null) {
+      <div class="flex flex-col gap-1.5">
+        <label for="new-product-qty" class="field-label">{{ texts.qty }}</label>
+        <input
+          pInputText
+          id="new-product-qty"
+          type="text"
+          inputmode="numeric"
+          formControlName="qty"
+          class="receipt-qty h-[52px] w-full"
+          [invalid]="!!errorOf('qty')"
+        />
+        @if (errorOf('qty'); as message) {
+          <p class="receipt-field-error field-error m-0 text-[13px] font-semibold text-danger" role="alert">{{ message }}</p>
+        }
+      </div>
+    }
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div class="flex flex-col gap-1.5">
         <label for="new-product-price" class="field-label">{{ texts.price }}</label>

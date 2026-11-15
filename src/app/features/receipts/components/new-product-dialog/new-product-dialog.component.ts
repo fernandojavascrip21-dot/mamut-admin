@@ -7,6 +7,7 @@ import { Select } from 'primeng/select';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
 import { compareMoney } from '@shared/utils/money';
 import type { CreateProductFromLinePayload, PendingNewProduct, ReceiptCategory } from '../../interfaces/receipt.models';
+import { receiptQty } from '../../validators/receipt-line.validators';
 import { newProductName, productPrice, productUnitCost } from '../../validators/new-product.validators';
 import { NEW_PRODUCT_DIALOG_TEXTS, NEW_PRODUCT_FIELD_ERRORS } from './new-product-dialog.constants';
 import type { NewProductField, NewProductFormGroup, NewProductLiveValues } from './new-product-dialog.models';
@@ -58,13 +59,15 @@ export class NewProductDialogComponent implements OnInit {
     this.loadInitialValue();
   }
 
-  // El costo es obligatorio solo si la remisión no trajo uno.
+  // El costo es obligatorio solo si la remisión no trajo uno; las piezas solo si son por completar (qty null).
   private createEmptyForm(): void {
+    const needsQty = this.item().qty === null;
     this.form = this.formBuilder.nonNullable.group({
       name: ['', newProductName()],
       price: ['', productPrice()],
       categoryId: [''],
       unitCost: ['', productUnitCost(this.item().unitCost === null)],
+      qty: ['', needsQty ? receiptQty() : []],
     });
   }
 
@@ -90,13 +93,15 @@ export class NewProductDialogComponent implements OnInit {
   }
 
   // El costo viaja solo si cambió o si la remisión no traía uno: el backend no reescribe un costo sin motivo.
+  // Las piezas viajan solo en un renglón por completar: son las que entran a bodega.
   private prepareSavePayload(): CreateProductFromLinePayload {
-    const { name, price, categoryId, unitCost } = this.form.getRawValue();
+    const { name, price, categoryId, unitCost, qty } = this.form.getRawValue();
     const payload: CreateProductFromLinePayload = {
       name: name.trim(),
       price: price.trim(),
       categoryId: categoryId === '' ? null : Number(categoryId),
     };
+    if (this.item().qty === null) payload.qty = Number(qty.trim());
     const cost = unitCost.trim();
     const readCost = this.item().unitCost;
     if (cost !== '' && (readCost === null || compareMoney(cost, 4, readCost, 4) !== 0)) {

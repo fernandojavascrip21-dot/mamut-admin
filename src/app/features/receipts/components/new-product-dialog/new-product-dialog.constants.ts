@@ -11,7 +11,12 @@ export const NEW_PRODUCT_DIALOG_TEXTS = {
   belowCost: 'El precio es menor que el costo',
   cancel: 'Cancelar',
   submit: 'Dar de alta',
-  stockNote: (qty: number | null) => `Entrarán ${qty} piezas a bodega. La foto se agrega después en Editar producto.`,
+  qty: 'Piezas que entran a bodega',
+  // Sin piezas leídas la nota no nombra una cantidad: la captura del administrador la define.
+  stockNote: (qty: number | null) =>
+    qty === null
+      ? 'Entrarán las piezas que captures aquí. La foto se agrega después en Editar producto.'
+      : `Entrarán ${qty} piezas a bodega. La foto se agrega después en Editar producto.`,
 } as const;
 
 // Mensaje por cada error de validación, según el campo y la clave que devolvió el validador.
@@ -28,5 +33,10 @@ export const NEW_PRODUCT_FIELD_ERRORS: Record<NewProductField, Record<string, st
   unitCost: {
     required: 'La remisión no trae costo: escribe el costo de fábrica.',
     cost: 'Usa hasta 4 decimales, de 0 a 999999.9999.',
+  },
+  qty: {
+    required: 'Escribe las piezas que entran a bodega.',
+    integer: 'Las piezas son un número entero de 1 o más.',
+    tooLarge: 'Son demasiadas piezas.',
   },
 };

@@ -40,6 +40,8 @@ export function costChanged(line: ReceiptLineFormValue, product: ReceiptCatalogI
 
 // Arma el cuerpo de confirmar. `values` y `proposed` van en paralelo: un renglón quitado de la pantalla
 // sale de `values` y del `proposed` correspondiente. «Producto nuevo» y costo vacío viajan como null.
+// `incomplete` solo viaja si hay renglones por completar: el backend los rescata con el nombre y costo
+// que sí se leyeron, y no hay nada que mandar cuando una remisión no tiene ninguno.
 export function buildConfirmPayload(params: {
   requestId: string;
   source: ReceiptSource;
@@ -59,7 +61,12 @@ export function buildConfirmPayload(params: {
       productId: value.productId === '' ? null : Number(value.productId),
     }];
   });
-  return { requestId: params.requestId, source: params.source, fileName: params.fileName, lines };
+  const payload: ConfirmReceiptPayload = { requestId: params.requestId, source: params.source, fileName: params.fileName, lines };
+  if (params.incomplete && params.incomplete.length > 0) {
+    // Solo nombre y costo: la posición y demás datos de la vista previa no son parte del contrato.
+    payload.incomplete = params.incomplete.map((item) => ({ readName: item.readName, unitCost: item.unitCost }));
+  }
+  return payload;
 }
 
 // Piezas válidas como número: entero de 1 al tope; cualquier otra cosa devuelve null. Se exporta para

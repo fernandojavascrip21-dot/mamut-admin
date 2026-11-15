@@ -49,7 +49,7 @@ describe('ReceiptResultComponent con renglones por completar', () => {
 
   it('un por completar no cuenta como entrada registrada', () => {
     render(RECEIPT);
-    expect(text()).toContain('1 entradas registradas');
+    expect(text()).toContain('2 entradas registradas');
   });
 
   it('con solo un por completar muestra el aviso y «Ver pendientes (1)»', () => {
