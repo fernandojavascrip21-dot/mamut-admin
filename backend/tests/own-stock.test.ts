@@ -150,8 +150,10 @@ describe.skipIf(!hasServiceKey)('Mi stock del vendedor (HU-14, con cuentas reale
       expect(text).not.toContain(forbidden)
     }
     // Ni el costo con envío (310) ni el precio general (471) de un producto con precio propio.
-    expect(text).not.toContain('310')
-    expect(text).not.toContain('471')
+    // Se comparan los valores y no el texto crudo: los nombres de prueba llevan Date.now() y pueden contener «471».
+    const prices = body.products.map((p) => p.price)
+    expect(prices).not.toContain('310.00')
+    expect(prices).not.toContain('471.00')
   })
 
   it('un producto retirado por completo sale de la lista y no suma, y la fila conserva su precio', async () => {
