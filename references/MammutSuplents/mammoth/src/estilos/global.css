@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-fondo font-sans text-crema;
+    font-variant-numeric: tabular-nums;
+  }
+  a {
+    @apply text-ambar no-underline;
+  }
+  a:hover {
+    @apply text-crema;
+  }
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-ambar;
+  }
+}
+
+@layer components {
+  /* Superficies */
+  .panel { @apply border border-crema/10 bg-superficie; }
+
+  /* Botones */
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-[13px] font-semibold uppercase tracking-wider transition-colors; }
+  .btn-primario { @apply btn border border-ambar bg-ambar text-fondo hover:border-oxido hover:bg-oxido hover:text-crema; }
+  .btn-fantasma { @apply btn border border-crema/20 bg-transparent text-crema hover:border-ambar hover:bg-ambar/10; }
+  .btn-admin { @apply btn border border-ambar bg-ambar text-papel hover:border-oxido hover:bg-oxido; }
+  .btn-admin-fantasma { @apply btn border border-tinta/20 bg-transparent text-tinta hover:border-ambar hover:text-oxido; }
+
+  /* Formularios (panel de administración: paleta invertida) */
+  .campo { @apply w-full rounded-sm border border-tinta/20 bg-white px-3 py-2.5 text-[14px] text-tinta placeholder:text-tinta/40 focus:border-ambar focus:outline-none; }
+  .campo-error { @apply border-ladrillo; }
+  .etiqueta { @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-tinta/60; }
+  .mensaje-error { @apply mt-1 block text-[12.5px] text-ladrillo; }
+
+  /* Tipografía */
+  .titulo-seccion { @apply font-slab text-[clamp(26px,3vw,38px)] font-normal leading-none; }
+  .precio { @apply font-slab font-normal leading-none; }
+  .nombre-producto { @apply font-cond text-[21px] font-bold leading-tight; }
+  .dato { @apply text-[12.5px] leading-snug text-tan; }
+
+  /* Insignias de existencia */
+  .insignia { @apply inline-block whitespace-nowrap rounded-sm border px-2 py-1 text-[10.5px] font-semibold uppercase tracking-[0.09em]; }
+  .insignia-disponible { @apply border-oliva/50 bg-oliva/15 text-[#A6C070]; }
+  .insignia-ultimas { @apply border-ambar/55 bg-ambar/15 text-[#E0A468]; }
+  .insignia-agotado { @apply border-ladrillo/55 bg-ladrillo/15 text-[#E39C90]; }
+}
+
+@layer utilities {
+  /* Textura de grano muy sutil, coherente con el desgaste del logo */
+  .grano::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .sin-barra::-webkit-scrollbar { display: none; }
+  .sin-barra { scrollbar-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

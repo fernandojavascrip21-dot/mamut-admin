@@ -1,0 +1,154 @@
+[
+  {
+    "id": 1,
+    "nombre": "Gold Standard 100% Whey",
+    "marca": "Optimum Nutrition",
+    "presentacion": "2 lb",
+    "sabor": "Chocolate",
+    "precio": 1290,
+    "existencia": 8,
+    "categoria": "Proteínas",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Proteína de suero aislada y concentrada, la referencia del mercado. Perfil completo de aminoácidos con muy poca grasa y azúcar por servicio.",
+    "beneficios": [
+      "24 g de proteína por servicio",
+      "Recuperación muscular después del entrenamiento",
+      "Se disuelve fácil en agua o leche"
+    ],
+    "modoUso": "Un scoop en 200 ml de agua o leche, justo después de entrenar. En días de descanso, entre comidas."
+  },
+  {
+    "id": 2,
+    "nombre": "Nitro-Tech Whey Gold",
+    "marca": "MuscleTech",
+    "presentacion": "5.5 lb",
+    "sabor": "Vainilla",
+    "precio": 2150,
+    "existencia": 3,
+    "categoria": "Proteínas",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Mezcla de aislado y péptidos de suero con creatina añadida. Bote grande para quien entrena todos los días.",
+    "beneficios": [
+      "24 g de proteína y 5.5 g de BCAA",
+      "Incluye creatina monohidratada",
+      "Rinde 71 servicios"
+    ],
+    "modoUso": "Un scoop con 250 ml de agua. Dos servicios al día en etapa de volumen."
+  },
+  {
+    "id": 3,
+    "nombre": "Mass Gainer Serious",
+    "marca": "Optimum Nutrition",
+    "presentacion": "12 lb",
+    "sabor": "Chocolate",
+    "precio": 2890,
+    "existencia": 1,
+    "categoria": "Proteínas",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Ganador de peso con 1250 calorías por servicio. Para quien no logra subir de peso solo con la comida del día.",
+    "beneficios": [
+      "1250 calorías y 50 g de proteína por servicio",
+      "Carbohidratos complejos de avena",
+      "Vitaminas y minerales añadidos"
+    ],
+    "modoUso": "Dos scoops en 500 ml de leche entre comidas o después de entrenar."
+  },
+  {
+    "id": 4,
+    "nombre": "C4 Original",
+    "marca": "Cellucor",
+    "presentacion": "30 servicios",
+    "sabor": "Ponche de frutas",
+    "precio": 780,
+    "existencia": 12,
+    "categoria": "Pre-entrenos",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Pre-entreno clásico con cafeína, beta-alanina y creatina nitrato. Energía sin exagerar la dosis de estimulante.",
+    "beneficios": [
+      "150 mg de cafeína por servicio",
+      "Beta-alanina para resistencia",
+      "Efecto entre 20 y 30 minutos"
+    ],
+    "modoUso": "Un scoop en 180 ml de agua, 20 a 30 minutos antes de entrenar. No tomar por la noche."
+  },
+  {
+    "id": 5,
+    "nombre": "Creatina Monohidratada",
+    "marca": "Birdman",
+    "presentacion": "300 g",
+    "sabor": "Sin sabor",
+    "precio": 520,
+    "existencia": 0,
+    "categoria": "Creatinas",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Creatina monohidratada micronizada, sin sabor. El suplemento con más respaldo científico para fuerza.",
+    "beneficios": [
+      "5 g por servicio, 60 servicios",
+      "Micronizada, se disuelve mejor",
+      "Sin sabor: se mezcla con cualquier bebida"
+    ],
+    "modoUso": "5 g al día, a cualquier hora. No requiere fase de carga."
+  },
+  {
+    "id": 6,
+    "nombre": "Animal Pak",
+    "marca": "Universal Nutrition",
+    "presentacion": "44 packs",
+    "sabor": "—",
+    "precio": 990,
+    "existencia": 5,
+    "categoria": "Vitaminas",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Multivitamínico en sobres para atletas de fuerza. Cubre el desgaste de entrenamientos pesados.",
+    "beneficios": [
+      "Vitaminas y minerales en dosis alta",
+      "Aminoácidos y enzimas digestivas",
+      "Un sobre cubre el día completo"
+    ],
+    "modoUso": "Un pack al día con la comida más abundante."
+  },
+  {
+    "id": 7,
+    "nombre": "Omega 3 Fish Oil",
+    "marca": "Now Foods",
+    "presentacion": "100 cápsulas",
+    "sabor": "—",
+    "precio": 410,
+    "existencia": 15,
+    "categoria": "Vitaminas",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Aceite de pescado destilado molecularmente, con EPA y DHA en proporción estándar.",
+    "beneficios": [
+      "180 mg de EPA y 120 mg de DHA por cápsula",
+      "Apoya articulaciones y salud cardiovascular",
+      "Sin sabor a pescado al repetir"
+    ],
+    "modoUso": "Una o dos cápsulas al día con alimentos."
+  },
+  {
+    "id": 8,
+    "nombre": "BCAA 2:1:1",
+    "marca": "Xtreme",
+    "presentacion": "60 servicios",
+    "sabor": "Sandía",
+    "precio": 640,
+    "existencia": 2,
+    "categoria": "Aminoácidos",
+    "activo": true,
+    "imagen": "",
+    "descripcion": "Aminoácidos de cadena ramificada en proporción 2:1:1 para tomar durante el entrenamiento.",
+    "beneficios": [
+      "5 g de BCAA por servicio",
+      "Reduce la fatiga durante la sesión",
+      "Se toma frío, sabe a agua de sandía"
+    ],
+    "modoUso": "Un scoop en 500 ml de agua, durante el entrenamiento."
+  }
+]

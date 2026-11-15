@@ -5,8 +5,9 @@
 /tmp
 /out-tsc
 /bazel-out
-/references/*
-!/references/Excel_Calculos_Gananciass/
+# references/ se versiona (diseño de referencia), salvo lo que lleva precios y costos reales.
+/references/Excel_Calculos_Gananciass/
+/references/WhatsApp*
 
 # Node
 /node_modules
