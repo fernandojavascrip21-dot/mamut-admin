@@ -6,6 +6,9 @@
         <li class="flex flex-col gap-0.5 border-t border-line pt-2">
           <span class="break-words text-ink">{{ line.text }}</span>
           <span class="text-muted">{{ line.label }}</span>
+          @if (line.reason === 'invalid_qty') {
+            <span class="text-muted">Se guardará en Por completar con su costo leído</span>
+          }
         </li>
       }
     </ul>

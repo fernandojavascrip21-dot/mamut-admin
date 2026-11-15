@@ -3,7 +3,7 @@ import { MONEY_MAX } from '@lib/constants'
 import { db } from '@db/client'
 import { supplierProductAliases } from '@db/schema'
 import { validation } from '@lib/errors'
-import { compareMoney, decimalPlaces } from '@lib/money'
+import { compareMoney, decimalPlaces, fromMinorUnits, toMinorUnits } from '@lib/money'
 import { productsForMatching } from '@products'
 import { requireAdmin } from './access'
 import {
@@ -34,6 +34,7 @@ import type {
   CatalogProduct,
   DetectedFile,
   Match,
+  PreviewIncompleteLine,
   PreviewLine,
   RawReceiptLine,
   ReceiptActor,
@@ -96,6 +97,7 @@ async function buildPreview(source: ReceiptSource, rows: RawReceiptLine[]): Prom
   const catalog = await loadCatalog(rows)
   const lines: PreviewLine[] = []
   const skipped: ReceiptPreview['skipped'] = []
+  const incomplete: PreviewIncompleteLine[] = []
   const stock = new Map<number, { productId: number; before: number; after: number }>()
 
   for (const row of rows) {
@@ -103,7 +105,12 @@ async function buildPreview(source: ReceiptSource, rows: RawReceiptLine[]): Prom
     if (isIgnoredRow(row)) continue
     const check = checkRow(row)
     if (!check.ok) {
-      skipped.push(toSkipped(row.position, (row.name ?? '').trim(), check.reason))
+      const readName = (row.name ?? '').trim()
+      skipped.push(toSkipped(row.position, readName, check.reason))
+      // Un renglón sin piezas válidas se rescata: se guarda por completar con el nombre y costo leídos.
+      if (check.reason === 'invalid_qty') {
+        incomplete.push({ position: row.position, readName, unitCost: check.unitCost ?? null })
+      }
       continue
     }
 
@@ -137,7 +144,7 @@ async function buildPreview(source: ReceiptSource, rows: RawReceiptLine[]): Prom
   }
 
   if (lines.length + skipped.length > MAX_LINES) throw validation(TOO_MANY_LINES)
-  return { source, lines, skipped, stock: [...stock.values()] }
+  return { source, lines, skipped, incomplete, stock: [...stock.values()] }
 }
 
 // Filas de total, subtotal, IVA, descuento y envío: no son productos y no van ni a lines ni a skipped.
@@ -151,8 +158,9 @@ function checkRow(row: RawReceiptLine): RowCheck {
   const readName = (row.name ?? '').trim()
   if (stripSupplierTags(readName) === '') return { ok: false, reason: 'missing_name' }
 
+  // El costo se lee también aquí: si las piezas fallan, el renglón se rescata con su costo.
   const qty = parseQty(row.qty)
-  if (qty === null) return { ok: false, reason: 'invalid_qty' }
+  if (qty === null) return { ok: false, reason: 'invalid_qty', unitCost: readCostForIncomplete(row.unitCost) }
 
   const cost = parseCost(row.unitCost)
   if (cost === null) return { ok: false, reason: 'invalid_cost' }
@@ -183,6 +191,14 @@ function parseCost(value: unknown): { value: string | null } | null {
   if (places === null || places > 4) return null
   if (compareMoney(cleaned, 4, MONEY_MAX[4], 4) > 0) return null
   return { value: cleaned }
+}
+
+// Costo de un renglón por completar: el texto validado, con sus 4 decimales (como en la base); null si
+// no hay costo o no es válido.
+function readCostForIncomplete(value: unknown): string | null {
+  const cost = parseCost(value)
+  if (cost === null || cost.value === null) return null
+  return fromMinorUnits(toMinorUnits(cost.value, 4), 4)
 }
 
 // Carga lo que hace falta para emparejar: el catálogo completo (con inactivos) y los alias de las llaves

@@ -1,7 +1,11 @@
 <article class="surface-card flex flex-col gap-4 p-4">
   <div class="flex min-w-0 flex-col gap-1">
     <h2 class="m-0 break-words text-base font-bold text-ink">{{ item().suggestedName }}</h2>
-    <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ item().qty }} piezas</p>
+    @if (item().qty === null) {
+      <p class="m-0 text-sm font-semibold text-muted">Piezas por capturar</p>
+    } @else {
+      <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ item().qty }} piezas</p>
+    }
     @if (item().unitCost !== null) {
       <p class="m-0 text-sm text-muted tabular-nums">Costo leído {{ item().unitCost | currency: 'MXN' : 'symbol-narrow' : '1.2-4' }}</p>
     } @else {

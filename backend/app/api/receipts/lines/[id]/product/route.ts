@@ -1,7 +1,7 @@
 import { requireRole } from '@auth'
 import { validation } from '@lib/errors'
 import { handle, parseRouteId, readJson, requireMoney, requireString } from '@lib/handler'
-import { createProductFromLine, INVALID_CATEGORY_ID } from '@receipts'
+import { createProductFromLine, INVALID_CATEGORY_ID, INVALID_QTY } from '@receipts'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -21,6 +21,10 @@ export const POST = handle<Ctx>(async (request, { params }) => {
     categoryId = categoryIdRaw
   }
 
+  // `qty` solo la pide un renglón por completar; el caso de uso decide si hace falta.
+  const qtyRaw = body['qty']
+  if (qtyRaw !== undefined && qtyRaw !== null && typeof qtyRaw !== 'number') throw validation(INVALID_QTY)
+
   const unitCostRaw = body['unitCost']
   const result = await createProductFromLine(lineId, {
     name: requireString(body, 'name').trim(),
@@ -29,6 +33,7 @@ export const POST = handle<Ctx>(async (request, { params }) => {
     unitCost: unitCostRaw === undefined || unitCostRaw === null
       ? undefined
       : requireMoney(body, 'unitCost', { scale: 4, label: 'El costo' }),
+    qty: typeof qtyRaw === 'number' ? qtyRaw : undefined,
   }, actor)
   return Response.json(result, { status: 201 })
 })

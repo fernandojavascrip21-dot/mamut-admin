@@ -71,11 +71,14 @@ export class ReceiptPendingPageComponent {
   // Copias de la lista del servidor que se van quitando al resolver; cada carga nueva las reemplaza.
   readonly newProducts = linkedSignal<PendingNewProduct[]>(() => this.pendingLines()?.newProducts ?? []);
   readonly costChanges = linkedSignal<PendingCostChange[]>(() => this.pendingLines()?.costChanges ?? []);
+  // Renglones sin piezas leídas: se dan de alta igual que los nuevos, pero el pop-up pide las piezas.
+  readonly incompleteProducts = linkedSignal<PendingNewProduct[]>(() => this.pendingLines()?.incompleteProducts ?? []);
   // Cada carga vuelve a decidir el apartado de entrada; elegir uno lo mantiene hasta la siguiente carga.
   readonly activeTab = linkedSignal<PendingTab>(() => initialPendingTab(this.pendingLines()));
   readonly tabOptions = computed<PendingTabOption[]>(() => [
     { label: `${this.texts.newTab} (${this.newProducts().length})`, value: 'new' },
     { label: `${this.texts.costTab} (${this.costChanges().length})`, value: 'cost' },
+    { label: `${this.texts.incompleteTab} (${this.incompleteProducts().length})`, value: 'incomplete' },
   ]);
 
   // --- Acciones en curso ---
@@ -138,7 +141,7 @@ export class ReceiptPendingPageComponent {
   private onProductCreated(item: PendingNewProduct, result: CreateProductFromLineResult): void {
     this.saving.set(false);
     this.creating.set(null);
-    this.newProducts.update((list) => list.filter((pending) => pending.lineId !== item.lineId));
+    this.removeNewProduct(item.lineId);
     this.stockChanges.notify();
     this.toast.success(this.texts.created(result.product.name, result.stock.before, result.stock.after));
   }
@@ -178,11 +181,17 @@ export class ReceiptPendingPageComponent {
       .subscribe({
         next: () => {
           this.busyLineId.set(null);
-          this.newProducts.update((list) => list.filter((pending) => pending.lineId !== item.lineId));
+          this.removeNewProduct(item.lineId);
           this.toast.success(this.texts.discarded);
         },
         error: (error: unknown) => this.onResolveFailed(error, this.texts.discardFailed),
       });
+  }
+
+  // Quita el pendiente de la lista que lo tenga: un «por completar» vive en su propio apartado.
+  private removeNewProduct(lineId: number): void {
+    this.newProducts.update((list) => list.filter((pending) => pending.lineId !== lineId));
+    this.incompleteProducts.update((list) => list.filter((pending) => pending.lineId !== lineId));
   }
 
   // --- Cambios de costo ---

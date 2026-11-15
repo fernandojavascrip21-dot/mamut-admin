@@ -5,7 +5,8 @@
 /tmp
 /out-tsc
 /bazel-out
-/references
+/references/*
+!/references/Excel_Calculos_Gananciass/
 
 # Node
 /node_modules

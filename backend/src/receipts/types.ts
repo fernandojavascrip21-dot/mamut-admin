@@ -4,7 +4,7 @@ export type ReceiptSource = 'excel' | 'pdf' | 'image'
 export type ReceiptImageType = 'image/jpeg' | 'image/png'
 export type MatchKind = 'alias' | 'name' | 'none'
 export type SkipReason = 'missing_name' | 'invalid_qty' | 'invalid_cost' | 'inactive_product'
-export type ReceiptLineStatus = 'received' | 'pending' | 'created' | 'discarded'
+export type ReceiptLineStatus = 'received' | 'pending' | 'created' | 'discarded' | 'incomplete'
 export type CostStatus = 'pending' | 'accepted' | 'rejected'
 
 // Quien registra, consulta o resuelve una remisión; solo el administrador puede.
@@ -43,10 +43,22 @@ export interface PreviewLine {
   costChanged: boolean
 }
 
+// Renglón con piezas inválidas que se rescata como «por completar»: nombre y costo leídos, sin piezas.
+export interface IncompleteLine {
+  readName: string
+  unitCost: string | null
+}
+
+// Lo que devuelve la vista previa: el mismo renglón con su posición en la remisión.
+export interface PreviewIncompleteLine extends IncompleteLine {
+  position: number
+}
+
 export interface ReceiptPreview {
   source: ReceiptSource
   lines: PreviewLine[]
   skipped: { position: number; text: string; reason: SkipReason; label: string }[]
+  incomplete: PreviewIncompleteLine[]
   stock: { productId: number; before: number; after: number }[]
 }
 
@@ -63,13 +75,14 @@ export interface ConfirmReceiptInput {
   source: ReceiptSource
   fileName: string | null
   lines: ConfirmReceiptLineInput[]
+  incomplete?: IncompleteLine[]
 }
 
 export interface ReceiptLine {
   id: number
   position: number
   readName: string
-  qty: number
+  qty: number | null
   unitCost: string | null
   status: ReceiptLineStatus
   costStatus: CostStatus | null
@@ -104,10 +117,19 @@ export interface PendingCostChange {
   newUnitCost: string
 }
 
+export interface PendingIncompleteProduct {
+  lineId: number
+  receipt: { requestId: string; createdAt: string }
+  suggestedName: string
+  qty: null
+  unitCost: string | null
+}
+
 // Las dos listas van juntas; el filtro entre ellas es de HU-42.
 export interface PendingReceiptLines {
   newProducts: PendingNewProduct[]
   costChanges: PendingCostChange[]
+  incompleteProducts: PendingIncompleteProduct[]
 }
 
 // Lectores de PDF e imagen que recibe la vista previa; las pruebas pasan unos falsos (spec §3).
@@ -123,9 +145,10 @@ export type DetectedFile =
   | { source: 'image'; mediaType: ReceiptImageType }
 
 // Resultado de validar un renglón leído: o un motivo de salto, o los datos ya limpios.
+// Un renglón con piezas inválidas trae el costo leído (ya normalizado, o null) para rescatarlo.
 export type RowCheck =
   | { ok: true; readName: string; qty: number; unitCost: string | null }
-  | { ok: false; reason: SkipReason }
+  | { ok: false; reason: SkipReason; unitCost?: string | null }
 
 // Producto del catálogo para emparejar: incluye inactivos, para avisar y no ignorar.
 export interface CatalogProduct {
@@ -156,6 +179,8 @@ export interface CreateProductFromLineInput {
   price: string
   categoryId: number | null
   unitCost?: string
+  // Obligatorias solo para un renglón por completar (sin piezas leídas).
+  qty?: number
 }
 
 export type ReceiptProductRow = typeof products.$inferSelect
