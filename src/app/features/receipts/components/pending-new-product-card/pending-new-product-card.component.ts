@@ -3,6 +3,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import type { PendingNewProduct } from '../../interfaces/receipt.models';
 import { formatReceiptDate } from '../../rules/receipt-dates.rules';
+import { PENDING_NEW_PRODUCT_CARD_TEXTS } from './pending-new-product-card.constants';
 
 // Tarjeta de un producto nuevo que espera alta (HU-42 §3). Solo muestra y emite: la página decide.
 @Component({
@@ -11,6 +12,7 @@ import { formatReceiptDate } from '../../rules/receipt-dates.rules';
   templateUrl: './pending-new-product-card.component.html',
 })
 export class PendingNewProductCardComponent {
+  readonly texts = PENDING_NEW_PRODUCT_CARD_TEXTS;
   readonly item = input.required<PendingNewProduct>();
   readonly busy = input(false);
   readonly createRequested = output<void>();

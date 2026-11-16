@@ -56,6 +56,11 @@ export class ReceiptPreviewFormComponent implements OnInit {
       costChanges: values.filter((value) => costChanged(value, this.catalogProduct(value.productId))).length,
     };
   });
+  // Texto de la barra: la plantilla lo pinta tal cual; las cuentas salen de `summary`.
+  readonly barText = computed(() => {
+    const { lines, pieces, newProducts, costChanges } = this.summary();
+    return this.texts.summary(lines, pieces, newProducts, costChanges);
+  });
 
   ngOnInit(): void {
     this.createEmptyForm();

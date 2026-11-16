@@ -61,7 +61,7 @@ describe('ReceiptPreviewFormComponent', () => {
 
   it('la barra resume renglones, piezas, productos nuevos y cambios de costo', () => {
     render();
-    expect(text()).toContain('3 renglones · 9 piezas · 1 productos nuevos · 1 cambios de costo');
+    expect(text()).toContain('3 renglones · 9 piezas · 1 producto nuevo · 1 cambio de costo');
   });
 
   it('la barra se recalcula al cambiar las piezas', () => {

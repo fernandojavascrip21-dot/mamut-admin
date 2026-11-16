@@ -10,7 +10,7 @@
       @if (inactive()) {
         <p class="m-0 text-sm font-semibold text-danger-text">Desactivado</p>
       }
-      <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ item().qty }} piezas recibidas</p>
+      <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ texts.received(item().qty) }}</p>
     </div>
   </div>
 

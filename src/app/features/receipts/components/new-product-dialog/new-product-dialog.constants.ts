@@ -1,3 +1,4 @@
+import { pluralize } from '@shared/utils/pluralize';
 import type { NewProductField } from './new-product-dialog.models';
 
 // Textos del pop-up «Dar de alta producto» (HU-42 §3).
@@ -13,10 +14,11 @@ export const NEW_PRODUCT_DIALOG_TEXTS = {
   submit: 'Dar de alta',
   qty: 'Piezas que entran a bodega',
   // Sin piezas leídas la nota no nombra una cantidad: la captura del administrador la define.
+  // El verbo concuerda con las piezas: «Entrará 1 pieza», «Entrarán 3 piezas».
   stockNote: (qty: number | null) =>
     qty === null
       ? 'Entrarán las piezas que captures aquí. La foto se agrega después en Editar producto.'
-      : `Entrarán ${qty} piezas a bodega. La foto se agrega después en Editar producto.`,
+      : `${pluralize(qty, 'Entrará', 'Entrarán')} ${qty} ${pluralize(qty, 'pieza', 'piezas')} a bodega. La foto se agrega después en Editar producto.`,
 } as const;
 
 // Mensaje por cada error de validación, según el campo y la clave que devolvió el validador.
