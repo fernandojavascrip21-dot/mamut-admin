@@ -10,3 +10,12 @@ export const GET = handle<Ctx>(async (request, { params }) => {
   const { id } = await params
   return Response.json(await getSeller(parseUuid(id)))
 })
+
+// Esqueletos del spec M13-t42: se implementan después de las pruebas.
+export const PUT = async (): Promise<Response> => {
+  throw new Error('Sin implementar')
+}
+
+export const DELETE = async (): Promise<Response> => {
+  throw new Error('Sin implementar')
+}

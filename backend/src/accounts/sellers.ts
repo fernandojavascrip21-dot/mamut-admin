@@ -82,3 +82,8 @@ export async function getSellerName(id: string): Promise<{ id: string; fullName:
   if (!profile) throw notFound()
   return profile
 }
+
+// Esqueleto del spec M13-t42: se implementa después de las pruebas.
+export function normalizeBusinessName(_raw: unknown): string | null {
+  throw new Error('Sin implementar')
+}
