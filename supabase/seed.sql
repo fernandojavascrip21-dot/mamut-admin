@@ -36,11 +36,11 @@ from auth.users
 where email like '%@mammut.local';
 
 -- Los vendedores necesitan teléfono de 10 dígitos (spec T-10); el administrador no.
-insert into public.profiles (id, role, full_name, phone, active) values
-  ('a0000000-0000-4000-8000-000000000001', 'admin', 'Ana Administradora', null, true),
-  ('a0000000-0000-4000-8000-000000000002', 'vendedor', 'Víctor Vendedor', '5510000001', true),
-  ('a0000000-0000-4000-8000-000000000003', 'vendedor', 'Valeria Vendedora', '5510000002', true),
-  ('a0000000-0000-4000-8000-000000000004', 'vendedor', 'Iván Inactivo', '5510000003', false);
+insert into public.profiles (id, role, full_name, phone, active, business_name) values
+  ('a0000000-0000-4000-8000-000000000001', 'admin', 'Ana Administradora', null, true, null),
+  ('a0000000-0000-4000-8000-000000000002', 'vendedor', 'Víctor Vendedor', '5510000001', true, null),
+  ('a0000000-0000-4000-8000-000000000003', 'vendedor', 'Valeria Vendedora', '5510000002', true, 'Gimnasio Fuerza Norte'),
+  ('a0000000-0000-4000-8000-000000000004', 'vendedor', 'Iván Inactivo', '5510000003', false, null);
 
 -- 2. Catálogo -----------------------------------------------------------------
 

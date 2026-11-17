@@ -1,14 +1,136 @@
 import { relations } from "drizzle-orm/relations";
-import { clients, profiles, usersInAuth, sales, consignmentItems, cuts, debtors, products, directSales, directSaleItems, cutItems, creditPayments, shrinkage, categories, fractions, vendorStock, stockMovements, supplierReceiptLines, restockOrders, restockOrderLines, supplierReceipts, supplierProductAliases } from "./schema";
+import { clients, consignmentItems, products, directSales, creditPayments, profiles, sales, cuts, cutItems, debtors, categories, directSaleItems, shrinkage, fractions, usersInAuth, vendorStock, supplierProductAliases, restockOrders, stockMovements, supplierReceiptLines, restockOrderLines, supplierReceipts } from "./schema";
 
-export const profilesRelations = relations(profiles, ({one, many}) => ({
+export const consignmentItemsRelations = relations(consignmentItems, ({one, many}) => ({
 	client: one(clients, {
-		fields: [profiles.clientId],
+		fields: [consignmentItems.clientId],
 		references: [clients.id]
 	}),
-	usersInAuth: one(usersInAuth, {
-		fields: [profiles.id],
-		references: [usersInAuth.id]
+	product: one(products, {
+		fields: [consignmentItems.productId],
+		references: [products.id]
+	}),
+	sales: many(sales),
+	shrinkages: many(shrinkage),
+}));
+
+export const clientsRelations = relations(clients, ({many}) => ({
+	consignmentItems: many(consignmentItems),
+	cuts: many(cuts),
+	debtors: many(debtors),
+	sales: many(sales),
+	shrinkages: many(shrinkage),
+	profiles: many(profiles),
+	stockMovements: many(stockMovements),
+}));
+
+export const productsRelations = relations(products, ({one, many}) => ({
+	consignmentItems: many(consignmentItems),
+	cutItems: many(cutItems),
+	category: one(categories, {
+		fields: [products.categoryId],
+		references: [categories.id]
+	}),
+	product: one(products, {
+		fields: [products.parentProductId],
+		references: [products.id],
+		relationName: "products_parentProductId_products_id"
+	}),
+	products: many(products, {
+		relationName: "products_parentProductId_products_id"
+	}),
+	directSaleItems: many(directSaleItems),
+	sales: many(sales),
+	shrinkages: many(shrinkage),
+	fractions_productId: many(fractions, {
+		relationName: "fractions_productId_products_id"
+	}),
+	fractions_portionProductId: many(fractions, {
+		relationName: "fractions_portionProductId_products_id"
+	}),
+	vendorStocks: many(vendorStock),
+	supplierProductAliases: many(supplierProductAliases),
+	stockMovements: many(stockMovements),
+	restockOrderLines: many(restockOrderLines),
+	supplierReceiptLines: many(supplierReceiptLines),
+}));
+
+export const creditPaymentsRelations = relations(creditPayments, ({one}) => ({
+	directSale: one(directSales, {
+		fields: [creditPayments.directSaleId],
+		references: [directSales.id]
+	}),
+	profile_receivedBy: one(profiles, {
+		fields: [creditPayments.receivedBy],
+		references: [profiles.id],
+		relationName: "creditPayments_receivedBy_profiles_id"
+	}),
+	sale: one(sales, {
+		fields: [creditPayments.saleId],
+		references: [sales.id]
+	}),
+	profile_voidedBy: one(profiles, {
+		fields: [creditPayments.voidedBy],
+		references: [profiles.id],
+		relationName: "creditPayments_voidedBy_profiles_id"
+	}),
+}));
+
+export const directSalesRelations = relations(directSales, ({one, many}) => ({
+	creditPayments: many(creditPayments),
+	debtor: one(debtors, {
+		fields: [directSales.debtorId],
+		references: [debtors.id]
+	}),
+	profile_soldBy: one(profiles, {
+		fields: [directSales.soldBy],
+		references: [profiles.id],
+		relationName: "directSales_soldBy_profiles_id"
+	}),
+	profile_uncollectibleBy: one(profiles, {
+		fields: [directSales.uncollectibleBy],
+		references: [profiles.id],
+		relationName: "directSales_uncollectibleBy_profiles_id"
+	}),
+	profile_voidedBy: one(profiles, {
+		fields: [directSales.voidedBy],
+		references: [profiles.id],
+		relationName: "directSales_voidedBy_profiles_id"
+	}),
+	profile_holderProfileId: one(profiles, {
+		fields: [directSales.holderProfileId],
+		references: [profiles.id],
+		relationName: "directSales_holderProfileId_profiles_id"
+	}),
+	directSaleItems: many(directSaleItems),
+	stockMovements: many(stockMovements),
+}));
+
+export const profilesRelations = relations(profiles, ({one, many}) => ({
+	creditPayments_receivedBy: many(creditPayments, {
+		relationName: "creditPayments_receivedBy_profiles_id"
+	}),
+	creditPayments_voidedBy: many(creditPayments, {
+		relationName: "creditPayments_voidedBy_profiles_id"
+	}),
+	cuts_cancelledBy: many(cuts, {
+		relationName: "cuts_cancelledBy_profiles_id"
+	}),
+	cuts_createdBy: many(cuts, {
+		relationName: "cuts_createdBy_profiles_id"
+	}),
+	debtors: many(debtors),
+	directSales_soldBy: many(directSales, {
+		relationName: "directSales_soldBy_profiles_id"
+	}),
+	directSales_uncollectibleBy: many(directSales, {
+		relationName: "directSales_uncollectibleBy_profiles_id"
+	}),
+	directSales_voidedBy: many(directSales, {
+		relationName: "directSales_voidedBy_profiles_id"
+	}),
+	directSales_holderProfileId: many(directSales, {
+		relationName: "directSales_holderProfileId_profiles_id"
 	}),
 	sales_soldBy: many(sales, {
 		relationName: "sales_soldBy_profiles_id"
@@ -19,31 +141,6 @@ export const profilesRelations = relations(profiles, ({one, many}) => ({
 	sales_voidedBy: many(sales, {
 		relationName: "sales_voidedBy_profiles_id"
 	}),
-	directSales_holderProfileId: many(directSales, {
-		relationName: "directSales_holderProfileId_profiles_id"
-	}),
-	directSales_soldBy: many(directSales, {
-		relationName: "directSales_soldBy_profiles_id"
-	}),
-	directSales_uncollectibleBy: many(directSales, {
-		relationName: "directSales_uncollectibleBy_profiles_id"
-	}),
-	directSales_voidedBy: many(directSales, {
-		relationName: "directSales_voidedBy_profiles_id"
-	}),
-	debtors: many(debtors),
-	cuts_cancelledBy: many(cuts, {
-		relationName: "cuts_cancelledBy_profiles_id"
-	}),
-	cuts_createdBy: many(cuts, {
-		relationName: "cuts_createdBy_profiles_id"
-	}),
-	creditPayments_receivedBy: many(creditPayments, {
-		relationName: "creditPayments_receivedBy_profiles_id"
-	}),
-	creditPayments_voidedBy: many(creditPayments, {
-		relationName: "creditPayments_voidedBy_profiles_id"
-	}),
 	shrinkages_reportedBy: many(shrinkage, {
 		relationName: "shrinkage_reportedBy_profiles_id"
 	}),
@@ -51,6 +148,14 @@ export const profilesRelations = relations(profiles, ({one, many}) => ({
 		relationName: "shrinkage_voidedBy_profiles_id"
 	}),
 	vendorStocks: many(vendorStock),
+	client: one(clients, {
+		fields: [profiles.clientId],
+		references: [clients.id]
+	}),
+	usersInAuth: one(usersInAuth, {
+		fields: [profiles.id],
+		references: [usersInAuth.id]
+	}),
 	stockMovements_createdBy: many(stockMovements, {
 		relationName: "stockMovements_createdBy_profiles_id"
 	}),
@@ -59,26 +164,8 @@ export const profilesRelations = relations(profiles, ({one, many}) => ({
 	}),
 }));
 
-export const clientsRelations = relations(clients, ({many}) => ({
-	profiles: many(profiles),
-	sales: many(sales),
-	debtors: many(debtors),
-	cuts: many(cuts),
-	shrinkages: many(shrinkage),
-	consignmentItems: many(consignmentItems),
-	stockMovements: many(stockMovements),
-}));
-
-export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({
-	profiles: many(profiles),
-	fractions: many(fractions),
-	restockOrders: many(restockOrders),
-	supplierReceipts: many(supplierReceipts),
-	supplierReceiptLines: many(supplierReceiptLines),
-	supplierProductAliases: many(supplierProductAliases),
-}));
-
 export const salesRelations = relations(sales, ({one, many}) => ({
+	creditPayments: many(creditPayments),
 	client: one(clients, {
 		fields: [sales.clientId],
 		references: [clients.id]
@@ -114,24 +201,21 @@ export const salesRelations = relations(sales, ({one, many}) => ({
 		references: [profiles.id],
 		relationName: "sales_voidedBy_profiles_id"
 	}),
-	creditPayments: many(creditPayments),
 }));
 
-export const consignmentItemsRelations = relations(consignmentItems, ({one, many}) => ({
-	sales: many(sales),
-	shrinkages: many(shrinkage),
-	client: one(clients, {
-		fields: [consignmentItems.clientId],
-		references: [clients.id]
+export const cutItemsRelations = relations(cutItems, ({one}) => ({
+	cut: one(cuts, {
+		fields: [cutItems.cutId],
+		references: [cuts.id]
 	}),
 	product: one(products, {
-		fields: [consignmentItems.productId],
+		fields: [cutItems.productId],
 		references: [products.id]
 	}),
 }));
 
 export const cutsRelations = relations(cuts, ({one, many}) => ({
-	sales: many(sales),
+	cutItems: many(cutItems),
 	profile_cancelledBy: one(profiles, {
 		fields: [cuts.cancelledBy],
 		references: [profiles.id],
@@ -146,12 +230,10 @@ export const cutsRelations = relations(cuts, ({one, many}) => ({
 		references: [profiles.id],
 		relationName: "cuts_createdBy_profiles_id"
 	}),
-	cutItems: many(cutItems),
+	sales: many(sales),
 }));
 
 export const debtorsRelations = relations(debtors, ({one, many}) => ({
-	sales: many(sales),
-	directSales: many(directSales),
 	client: one(clients, {
 		fields: [debtors.clientId],
 		references: [clients.id]
@@ -160,37 +242,12 @@ export const debtorsRelations = relations(debtors, ({one, many}) => ({
 		fields: [debtors.createdBy],
 		references: [profiles.id]
 	}),
+	directSales: many(directSales),
+	sales: many(sales),
 }));
 
-export const productsRelations = relations(products, ({one, many}) => ({
-	sales: many(sales),
-	directSaleItems: many(directSaleItems),
-	cutItems: many(cutItems),
-	shrinkages: many(shrinkage),
-	category: one(categories, {
-		fields: [products.categoryId],
-		references: [categories.id]
-	}),
-	product: one(products, {
-		fields: [products.parentProductId],
-		references: [products.id],
-		relationName: "products_parentProductId_products_id"
-	}),
-	products: many(products, {
-		relationName: "products_parentProductId_products_id"
-	}),
-	fractions_portionProductId: many(fractions, {
-		relationName: "fractions_portionProductId_products_id"
-	}),
-	fractions_productId: many(fractions, {
-		relationName: "fractions_productId_products_id"
-	}),
-	consignmentItems: many(consignmentItems),
-	vendorStocks: many(vendorStock),
-	stockMovements: many(stockMovements),
-	restockOrderLines: many(restockOrderLines),
-	supplierReceiptLines: many(supplierReceiptLines),
-	supplierProductAliases: many(supplierProductAliases),
+export const categoriesRelations = relations(categories, ({many}) => ({
+	products: many(products),
 }));
 
 export const directSaleItemsRelations = relations(directSaleItems, ({one}) => ({
@@ -201,68 +258,6 @@ export const directSaleItemsRelations = relations(directSaleItems, ({one}) => ({
 	product: one(products, {
 		fields: [directSaleItems.productId],
 		references: [products.id]
-	}),
-}));
-
-export const directSalesRelations = relations(directSales, ({one, many}) => ({
-	directSaleItems: many(directSaleItems),
-	debtor: one(debtors, {
-		fields: [directSales.debtorId],
-		references: [debtors.id]
-	}),
-	profile_holderProfileId: one(profiles, {
-		fields: [directSales.holderProfileId],
-		references: [profiles.id],
-		relationName: "directSales_holderProfileId_profiles_id"
-	}),
-	profile_soldBy: one(profiles, {
-		fields: [directSales.soldBy],
-		references: [profiles.id],
-		relationName: "directSales_soldBy_profiles_id"
-	}),
-	profile_uncollectibleBy: one(profiles, {
-		fields: [directSales.uncollectibleBy],
-		references: [profiles.id],
-		relationName: "directSales_uncollectibleBy_profiles_id"
-	}),
-	profile_voidedBy: one(profiles, {
-		fields: [directSales.voidedBy],
-		references: [profiles.id],
-		relationName: "directSales_voidedBy_profiles_id"
-	}),
-	creditPayments: many(creditPayments),
-	stockMovements: many(stockMovements),
-}));
-
-export const cutItemsRelations = relations(cutItems, ({one}) => ({
-	cut: one(cuts, {
-		fields: [cutItems.cutId],
-		references: [cuts.id]
-	}),
-	product: one(products, {
-		fields: [cutItems.productId],
-		references: [products.id]
-	}),
-}));
-
-export const creditPaymentsRelations = relations(creditPayments, ({one}) => ({
-	directSale: one(directSales, {
-		fields: [creditPayments.directSaleId],
-		references: [directSales.id]
-	}),
-	profile_receivedBy: one(profiles, {
-		fields: [creditPayments.receivedBy],
-		references: [profiles.id],
-		relationName: "creditPayments_receivedBy_profiles_id"
-	}),
-	sale: one(sales, {
-		fields: [creditPayments.saleId],
-		references: [sales.id]
-	}),
-	profile_voidedBy: one(profiles, {
-		fields: [creditPayments.voidedBy],
-		references: [profiles.id],
-		relationName: "creditPayments_voidedBy_profiles_id"
 	}),
 }));
 
@@ -291,37 +286,61 @@ export const shrinkageRelations = relations(shrinkage, ({one}) => ({
 	}),
 }));
 
-export const categoriesRelations = relations(categories, ({many}) => ({
-	products: many(products),
-}));
-
 export const fractionsRelations = relations(fractions, ({one, many}) => ({
-	usersInAuth: one(usersInAuth, {
-		fields: [fractions.createdBy],
-		references: [usersInAuth.id]
+	product_productId: one(products, {
+		fields: [fractions.productId],
+		references: [products.id],
+		relationName: "fractions_productId_products_id"
 	}),
 	product_portionProductId: one(products, {
 		fields: [fractions.portionProductId],
 		references: [products.id],
 		relationName: "fractions_portionProductId_products_id"
 	}),
-	product_productId: one(products, {
-		fields: [fractions.productId],
-		references: [products.id],
-		relationName: "fractions_productId_products_id"
+	usersInAuth: one(usersInAuth, {
+		fields: [fractions.createdBy],
+		references: [usersInAuth.id]
 	}),
 	stockMovements: many(stockMovements),
 }));
 
+export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({
+	fractions: many(fractions),
+	supplierProductAliases: many(supplierProductAliases),
+	profiles: many(profiles),
+	restockOrders: many(restockOrders),
+	supplierReceipts: many(supplierReceipts),
+	supplierReceiptLines: many(supplierReceiptLines),
+}));
+
 export const vendorStockRelations = relations(vendorStock, ({one}) => ({
-	product: one(products, {
-		fields: [vendorStock.productId],
-		references: [products.id]
-	}),
 	profile: one(profiles, {
 		fields: [vendorStock.profileId],
 		references: [profiles.id]
 	}),
+	product: one(products, {
+		fields: [vendorStock.productId],
+		references: [products.id]
+	}),
+}));
+
+export const supplierProductAliasesRelations = relations(supplierProductAliases, ({one}) => ({
+	product: one(products, {
+		fields: [supplierProductAliases.productId],
+		references: [products.id]
+	}),
+	usersInAuth: one(usersInAuth, {
+		fields: [supplierProductAliases.updatedBy],
+		references: [usersInAuth.id]
+	}),
+}));
+
+export const restockOrdersRelations = relations(restockOrders, ({one, many}) => ({
+	usersInAuth: one(usersInAuth, {
+		fields: [restockOrders.createdBy],
+		references: [usersInAuth.id]
+	}),
+	restockOrderLines: many(restockOrderLines),
 }));
 
 export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
@@ -334,6 +353,15 @@ export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
 		references: [profiles.id],
 		relationName: "stockMovements_createdBy_profiles_id"
 	}),
+	product: one(products, {
+		fields: [stockMovements.productId],
+		references: [products.id]
+	}),
+	profile_holderProfileId: one(profiles, {
+		fields: [stockMovements.holderProfileId],
+		references: [profiles.id],
+		relationName: "stockMovements_holderProfileId_profiles_id"
+	}),
 	directSale: one(directSales, {
 		fields: [stockMovements.directSaleId],
 		references: [directSales.id]
@@ -341,15 +369,6 @@ export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
 	fraction: one(fractions, {
 		fields: [stockMovements.fractionId],
 		references: [fractions.id]
-	}),
-	profile_holderProfileId: one(profiles, {
-		fields: [stockMovements.holderProfileId],
-		references: [profiles.id],
-		relationName: "stockMovements_holderProfileId_profiles_id"
-	}),
-	product: one(products, {
-		fields: [stockMovements.productId],
-		references: [products.id]
 	}),
 	supplierReceiptLine: one(supplierReceiptLines, {
 		fields: [stockMovements.receiptLineId],
@@ -359,26 +378,18 @@ export const stockMovementsRelations = relations(stockMovements, ({one}) => ({
 
 export const supplierReceiptLinesRelations = relations(supplierReceiptLines, ({one, many}) => ({
 	stockMovements: many(stockMovements),
-	product: one(products, {
-		fields: [supplierReceiptLines.productId],
-		references: [products.id]
-	}),
 	supplierReceipt: one(supplierReceipts, {
 		fields: [supplierReceiptLines.receiptId],
 		references: [supplierReceipts.id]
+	}),
+	product: one(products, {
+		fields: [supplierReceiptLines.productId],
+		references: [products.id]
 	}),
 	usersInAuth: one(usersInAuth, {
 		fields: [supplierReceiptLines.resolvedBy],
 		references: [usersInAuth.id]
 	}),
-}));
-
-export const restockOrdersRelations = relations(restockOrders, ({one, many}) => ({
-	usersInAuth: one(usersInAuth, {
-		fields: [restockOrders.createdBy],
-		references: [usersInAuth.id]
-	}),
-	restockOrderLines: many(restockOrderLines),
 }));
 
 export const restockOrderLinesRelations = relations(restockOrderLines, ({one}) => ({
@@ -398,15 +409,4 @@ export const supplierReceiptsRelations = relations(supplierReceipts, ({one, many
 		references: [usersInAuth.id]
 	}),
 	supplierReceiptLines: many(supplierReceiptLines),
-}));
-
-export const supplierProductAliasesRelations = relations(supplierProductAliases, ({one}) => ({
-	product: one(products, {
-		fields: [supplierProductAliases.productId],
-		references: [products.id]
-	}),
-	usersInAuth: one(usersInAuth, {
-		fields: [supplierProductAliases.updatedBy],
-		references: [usersInAuth.id]
-	}),
 }));
