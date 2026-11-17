@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import type { Receipt } from '../../interfaces/receipt.models';
+import { RECEIPT_RESULT_TEXTS } from './receipt-result.constants';
 import type { ReceiptResultEntry } from './receipt-result.models';
 
 // Resultado de una remisión registrada (HU-42 §3): las entradas con su bodega antes → después y los
@@ -11,6 +12,7 @@ import type { ReceiptResultEntry } from './receipt-result.models';
   templateUrl: './receipt-result.component.html',
 })
 export class ReceiptResultComponent {
+  readonly texts = RECEIPT_RESULT_TEXTS;
   readonly receipt = input.required<Receipt>();
   // Piezas de bodega que tenía la pantalla antes de confirmar, por id de producto.
   readonly stockBefore = input<Record<number, number>>({});

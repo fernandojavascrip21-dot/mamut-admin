@@ -55,7 +55,7 @@ describe('ReceiptResultComponent', () => {
 
   it('avisa de los productos nuevos y cambios de costo pendientes con «Ver pendientes (K + C)»', () => {
     render(RECEIPT);
-    expect(text()).toContain('1 productos nuevos y 1 cambios de costo quedaron pendientes');
+    expect(text()).toContain('1 producto nuevo y 1 cambio de costo quedaron pendientes');
     expect(button('Ver pendientes (2)')).toBeDefined();
   });
 

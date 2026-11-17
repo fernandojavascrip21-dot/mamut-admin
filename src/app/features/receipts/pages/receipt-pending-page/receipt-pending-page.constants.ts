@@ -1,3 +1,5 @@
+import { pluralize } from '@shared/utils/pluralize';
+
 // Textos de la página «Pendientes de remisiones» (HU-42 §3). Las funciones arman los mensajes con datos.
 export const RECEIPT_PENDING_PAGE_TEXTS = {
   title: 'Pendientes de remisiones',
@@ -14,9 +16,12 @@ export const RECEIPT_PENDING_PAGE_TEXTS = {
   emptyIncomplete: 'No hay productos por completar',
   discardTitle: 'Descartar producto',
   discardConfirm: 'Descartar',
-  // Sin piezas leídas (por completar) no hay cantidad que nombrar.
+  // Sin piezas leídas (por completar) no hay cantidad que nombrar. Con piezas, el posesivo y el verbo
+  // concuerdan: «Su 1 pieza no entrará», «Sus 3 piezas no entrarán».
   discardMessage: (name: string, qty: number | null) =>
-    qty === null ? `¿Descartar ${name}? No entrará a bodega.` : `¿Descartar ${name}? Sus ${qty} piezas no entrarán a bodega.`,
+    qty === null
+      ? `¿Descartar ${name}? No entrará a bodega.`
+      : `¿Descartar ${name}? ${pluralize(qty, 'Su', 'Sus')} ${qty} ${pluralize(qty, 'pieza', 'piezas')} no ${pluralize(qty, 'entrará', 'entrarán')} a bodega.`,
   discarded: 'Producto descartado',
   discardFailed: 'No pudimos descartar el producto. Inténtalo de nuevo.',
   acceptTitle: 'Cambiar costo',

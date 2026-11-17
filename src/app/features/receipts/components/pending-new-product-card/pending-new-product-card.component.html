@@ -4,7 +4,7 @@
     @if (item().qty === null) {
       <p class="m-0 text-sm font-semibold text-muted">Piezas por capturar</p>
     } @else {
-      <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ item().qty }} piezas</p>
+      <p class="m-0 text-sm font-semibold text-muted tabular-nums">{{ texts.pieces(item().qty!) }}</p>
     }
     @if (item().unitCost !== null) {
       <p class="m-0 text-sm text-muted tabular-nums">Costo leído {{ item().unitCost | currency: 'MXN' : 'symbol-narrow' : '1.2-4' }}</p>

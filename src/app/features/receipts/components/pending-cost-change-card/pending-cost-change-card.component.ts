@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { compareMoney } from '@shared/utils/money';
 import type { PendingCostChange } from '../../interfaces/receipt.models';
+import { PENDING_COST_CHANGE_CARD_TEXTS } from './pending-cost-change-card.constants';
 
 // Tarjeta de un cambio de costo pendiente (HU-42 §3). Solo muestra y emite: la página decide y confirma.
 @Component({
@@ -12,6 +13,7 @@ import type { PendingCostChange } from '../../interfaces/receipt.models';
   templateUrl: './pending-cost-change-card.component.html',
 })
 export class PendingCostChangeCardComponent {
+  readonly texts = PENDING_COST_CHANGE_CARD_TEXTS;
   readonly item = input.required<PendingCostChange>();
   readonly busy = input(false);
   // true tras un «COST_ABOVE_PRICE»: la tarjeta ofrece el enlace «Editar producto».
