@@ -1,12 +1,18 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
+import { revokeSessions } from '@auth'
 import { db } from '@db/client'
-import { profiles } from '@db/schema'
-import { notFound, validation } from '@lib/errors'
+import { isForeignKeyViolation } from '@db/errors'
+import { profiles, vendorStock } from '@db/schema'
+import { lockRows, withTransaction } from '@db/transaction'
+import { conflict, notFound, validation } from '@lib/errors'
+import { supabaseAdmin } from '@lib/supabase'
 import { stockOfHolder, unitsByHolder, type HolderStockLine } from '@stock'
-import { createAccount, toView, type AccountView } from './accounts'
+import { createAccount, normalizeEmail, toView, validatePassword, type AccountView } from './accounts'
 import {
   MAX_BUSINESS_NAME,
   PHONE_SEPARATORS,
+  SELLER_HAS_HISTORY,
+  SELLER_HAS_UNITS,
   SELLER_STATUS_INVALID,
   TEN_DIGITS,
 } from './constants'
@@ -139,4 +145,120 @@ export async function getSellerName(id: string): Promise<{ id: string; fullName:
     .where(and(eq(profiles.id, id), eq(profiles.role, 'vendedor')))
   if (!profile) throw notFound()
   return profile
+}
+
+type Profile = typeof profiles.$inferSelect
+
+export interface UpdateSellerInput {
+  fullName: string
+  businessName: string | null
+  phone: string
+  email: string
+}
+
+// Vendedor de cualquier estado, o 404. Un administrador, un UUID inexistente y un id de otro tipo
+// responden igual: no se dice cuál de los tres fue.
+async function findSeller(id: string): Promise<Profile> {
+  const [profile] = await db.select().from(profiles).where(and(eq(profiles.id, id), isSeller))
+  if (!profile) throw notFound()
+  return profile
+}
+
+// Mismo criterio que createAccount: Supabase Auth responde `email_exists` si el correo ya lo usa otra cuenta.
+function isEmailTaken(error: { code?: string; message: string }): boolean {
+  return error.code === 'email_exists' || /already.*regist/i.test(error.message)
+}
+
+// Al CAMBIAR el correo, Supabase Auth responde 500 («Error updating user») en vez de 422 si otra cuenta
+// ya lo usa; por eso se mira en auth.users antes de tocar Auth, para dar el 409 de la regla.
+async function emailUsedByOther(email: string, id: string): Promise<boolean> {
+  const rows = await db.execute(
+    sql`select id from auth.users where lower(email) = ${email} and id <> ${id} limit 1`,
+  )
+  return rows.length > 0
+}
+
+// Editar a un vendedor, activo o no (spec M13-t42). El correo es su usuario de Auth: si cambia, se
+// cambia primero en Auth sin correo de confirmación y, si luego falla `profiles`, se regresa el
+// anterior. Todo se valida antes de tocar Auth o la base, para no dejar un correo cambiado a medias.
+export async function updateSeller(id: string, input: UpdateSellerInput): Promise<SellerView> {
+  const fullName = input.fullName.trim()
+  if (fullName === '') throw validation('El nombre es obligatorio')
+  const businessName = normalizeBusinessName(input.businessName)
+  const phone = normalizePhone(input.phone)
+  const email = normalizeEmail(input.email)
+  await findSeller(id)
+
+  const admin = supabaseAdmin()
+  const { data } = await admin.auth.admin.getUserById(id)
+  const currentEmail = data.user?.email ?? null
+  const emailChanged = email !== currentEmail
+  if (emailChanged) {
+    if (await emailUsedByOther(email, id)) throw conflict('Ya existe un acceso con ese correo')
+    const { error } = await admin.auth.admin.updateUserById(id, { email, email_confirm: true })
+    if (error) {
+      if (isEmailTaken(error)) throw conflict('Ya existe un acceso con ese correo')
+      throw error
+    }
+  }
+
+  try {
+    await db.update(profiles).set({ fullName, businessName, phone }).where(eq(profiles.id, id))
+  } catch (err) {
+    // Compensación: sin ella el correo nuevo quedaría en Auth con los datos viejos en `profiles`.
+    if (emailChanged && currentEmail !== null) {
+      await admin.auth.admin.updateUserById(id, { email: currentEmail, email_confirm: true })
+    }
+    throw err
+  }
+  return sellerView(await findSeller(id))
+}
+
+// Desactivar a un vendedor (spec M13-t42). Con piezas a su cargo no se desactiva: el inventario no
+// debe quedar en manos de alguien sin acceso. El candado sobre su perfil y sus filas de vendor_stock
+// impide que una entrega se cuele entre la lectura del saldo y el cambio de `active`.
+export async function deactivateSeller(id: string): Promise<SellerView> {
+  await withTransaction(async (tx) => {
+    const [seller] = await lockRows(tx, profiles, eq(profiles.id, id))
+    if (!seller || seller.role !== 'vendedor') throw notFound()
+    // Ya desactivado: responde igual, sin revisar piezas (idempotente, como setLoginActive).
+    if (!seller.active) return
+    const rows = await lockRows(tx, vendorStock, eq(vendorStock.profileId, id))
+    const units = rows.reduce((total, row) => total + row.qty, 0)
+    if (units > 0) throw conflict(SELLER_HAS_UNITS)
+    await tx.update(profiles).set({ active: false }).where(eq(profiles.id, id))
+  })
+  return sellerView(await findSeller(id))
+}
+
+// Reactivar a un vendedor (spec M13-t42). Ya activo responde sin cambios.
+export async function reactivateSeller(id: string): Promise<SellerView> {
+  const seller = await findSeller(id)
+  if (seller.active) return sellerView(seller)
+  const [updated] = await db.update(profiles).set({ active: true }).where(eq(profiles.id, id)).returning()
+  return sellerView(updated!)
+}
+
+// Eliminar un alta hecha por error (spec M13-t42). Con historial, la FK `restrict` impide borrar el
+// perfil: 409. Primero se borra el perfil; la cuenta de Auth solo se elimina si eso salió bien.
+export async function deleteSeller(id: string): Promise<void> {
+  await findSeller(id)
+  try {
+    await db.delete(profiles).where(eq(profiles.id, id))
+  } catch (err) {
+    if (isForeignKeyViolation(err)) throw conflict(SELLER_HAS_HISTORY)
+    throw err
+  }
+  const { error } = await supabaseAdmin().auth.admin.deleteUser(id)
+  if (error) throw error
+}
+
+// Contraseña temporal que escribe el administrador (spec M13-t42). Después se cierran todas las
+// sesiones del vendedor: un celular con la app abierta debe pedir entrar de nuevo.
+export async function setSellerPassword(id: string, password: string): Promise<void> {
+  validatePassword(password)
+  await findSeller(id)
+  const { error } = await supabaseAdmin().auth.admin.updateUserById(id, { password })
+  if (error) throw error
+  await revokeSessions(id)
 }

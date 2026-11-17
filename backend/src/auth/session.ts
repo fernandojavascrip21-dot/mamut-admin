@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import type { Session } from '@supabase/supabase-js'
 import { db } from '@db/client'
 import { profiles } from '@db/schema'
@@ -49,4 +49,11 @@ export async function refresh(refreshToken: string): Promise<SessionResult> {
 // Invalida la sesión en Supabase: el token deja de servir aunque no haya expirado.
 export async function logout(accessToken: string): Promise<void> {
   await supabaseAdmin().auth.admin.signOut(accessToken)
+}
+
+// Cierra todas las sesiones de una cuenta (spec M13-t42). supabase-js no tiene un administrador que
+// cierre las sesiones de otra cuenta por su id, así que se borran en `auth.sessions`; sus refresh
+// tokens se van en cascada. Sirve para un cambio de contraseña: la sesión vieja no debe seguir abierta.
+export async function revokeSessions(userId: string): Promise<void> {
+  await db.execute(sql`delete from auth.sessions where user_id = ${userId}`)
 }

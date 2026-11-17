@@ -14,3 +14,7 @@ export const MAX_BUSINESS_NAME = 80
 
 // Valor de `?status=` que no es válido en la lista o en el detalle (spec M13-t42): 422.
 export const SELLER_STATUS_INVALID = 'El parámetro status no es válido'
+
+// Desactivar con piezas a su cargo, y eliminar con historial (spec M13-t42): 409.
+export const SELLER_HAS_UNITS = 'Retírale sus piezas antes de desactivarlo'
+export const SELLER_HAS_HISTORY = 'Tiene historial: solo se puede desactivar'
