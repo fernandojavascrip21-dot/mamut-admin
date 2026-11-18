@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
 import type {
-  CreateSellerInput, DeliveryHistoryItem, Seller, SellerDetail, SellerSummary, UpdateSellerInput,
+  CreateSellerInput, DeliveryHistoryItem, EmailStatus, Seller, SellerDetail, SellerListStatus, SellerSummary,
+  UpdateSellerInput,
 } from '../interfaces/seller.models';
 
 // Cliente HTTP hacia /api/sellers. El Bearer token lo agrega authInterceptor.
@@ -18,7 +19,8 @@ export class SellersService {
   }
 
   // Vendedores activos con su total de piezas («Mis vendedores», HU-09).
-  list(): Observable<SellerSummary[]> {
+  list(status: SellerListStatus = 'active'): Observable<SellerSummary[]> {
+    void status;
     return this.http.get<SellerSummary[]>(`${API_BASE_URL}/api/sellers`);
   }
 
@@ -35,5 +37,24 @@ export class SellersService {
   // Últimas entregas que se le dejaron al vendedor, de la más nueva a la más vieja (HU-11).
   deliveries(id: string): Observable<DeliveryHistoryItem[]> {
     return this.http.get<DeliveryHistoryItem[]>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}/deliveries`);
+  }
+
+  // Esqueleto (spec M13-hu44): el detalle de un vendedor activo o desactivado (`?status=any`).
+  getAny(id: string): Observable<SellerDetail> {
+    return EMPTY;
+  }
+
+  // Esqueleto: desactivar y reactivar responden el vendedor y cómo salió el aviso por correo.
+  deactivate(id: string): Observable<Seller & { emailStatus: EmailStatus | null }> {
+    return EMPTY;
+  }
+
+  reactivate(id: string): Observable<Seller & { emailStatus: EmailStatus | null }> {
+    return EMPTY;
+  }
+
+  // Esqueleto: elimina un alta hecha por error (204).
+  remove(id: string): Observable<void> {
+    return EMPTY;
   }
 }

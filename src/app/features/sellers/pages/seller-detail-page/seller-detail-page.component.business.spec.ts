@@ -12,6 +12,7 @@ import type { SellerDetail } from '../../interfaces/seller.models';
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
+const SELLER_GET_URL = `${SELLER_URL}?status=any`;
 
 const SELLER: SellerDetail = {
   id: ID,
@@ -61,7 +62,7 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
   }
   // Responde el detalle y los tres historiales que se piden después.
   async function answer(seller: SellerDetail) {
-    httpMock.expectOne(SELLER_URL).flush(seller);
+    httpMock.expectOne(SELLER_GET_URL).flush(seller);
     await tick();
     httpMock.expectOne(`${SELLER_URL}/deliveries`).flush([]);
     httpMock.expectOne(`${SELLER_URL}/returns`).flush([]);
@@ -111,7 +112,7 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
 
     expect(text()).not.toContain('Cargando vendedor…');
     expect(text()).toContain('Gimnasio Fuerza Norte');
-    httpMock.expectOne(SELLER_URL).flush({ ...SELLER, businessName: 'Café Centro' });
+    httpMock.expectOne(SELLER_GET_URL).flush({ ...SELLER, businessName: 'Café Centro' });
     await tick();
     httpMock.match(`${SELLER_URL}/deliveries`).forEach((req) => req.flush([]));
     httpMock.match(`${SELLER_URL}/returns`).forEach((req) => req.flush([]));

@@ -131,3 +131,15 @@ export type UpdateSellerFailure = 'duplicate-email' | 'invalid' | 'not-found' | 
 
 export type UpdateSellerResult =
   { ok: true; seller: Seller } | { ok: false; reason: UpdateSellerFailure; message?: string };
+
+// Filtro de GET /api/sellers (T-42): sin parámetro = activos.
+export type SellerListStatus = 'active' | 'inactive';
+
+export type SellerStatusFailure = 'has-units' | 'has-history' | 'not-found' | 'offline';
+
+// Cómo salió el aviso por correo de las dos rutas POST; null = el estado ya era ese y no se intentó.
+export type EmailStatus = 'sent' | 'failed' | 'skipped';
+
+// Resultado de desactivar / reactivar (con el vendedor y cómo salió el correo) o eliminar (seller: null).
+export type SellerStatusResult =
+  { ok: true; seller: Seller | null; emailStatus: EmailStatus | null } | { ok: false; reason: SellerStatusFailure };

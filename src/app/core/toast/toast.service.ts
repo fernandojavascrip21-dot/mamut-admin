@@ -32,6 +32,11 @@ export class ToastService {
     this.show('error', message);
   }
 
+  // Esqueleto (spec M13-hu44): aviso de advertencia, igual que success y error.
+  warn(message: string): void {
+    void message;
+  }
+
   dismiss(): void {
     this.pending = null;
     this.messages.clear();

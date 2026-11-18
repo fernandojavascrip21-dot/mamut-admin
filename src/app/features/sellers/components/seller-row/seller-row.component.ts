@@ -17,6 +17,8 @@ export class SellerRowComponent {
   readonly cardPassThrough = SELLER_ROW_CARD_PASS_THROUGH;
 
   readonly seller = input.required<SellerSummary>();
+  // Vendedor desactivado (HU-44): en lugar de las piezas muestra una etiqueta «Desactivado».
+  readonly inactive = input(false);
 
   readonly initials = computed(() => initialsOf(this.seller().fullName));
   readonly units = computed(() => unitsLabel(this.seller().units));
