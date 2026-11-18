@@ -5,7 +5,7 @@ import { isForeignKeyViolation } from '@db/errors'
 import { profiles, vendorStock } from '@db/schema'
 import { lockRows, withTransaction } from '@db/transaction'
 import { conflict, notFound, validation } from '@lib/errors'
-import { sendSellerStatusEmail, type EmailStatus } from '@notifications'
+import { sendSellerPasswordEmail, sendSellerStatusEmail, type EmailStatus } from '@notifications'
 import { supabaseAdmin } from '@lib/supabase'
 import { stockOfHolder, unitsByHolder, type HolderStockLine } from '@stock'
 import { createAccount, normalizeEmail, toView, validatePassword, type AccountView } from './accounts'
@@ -282,12 +282,15 @@ export async function deleteSeller(id: string): Promise<void> {
   if (error) throw error
 }
 
-// Contraseña temporal que escribe el administrador (spec M13-t42). Después se cierran todas las
-// sesiones del vendedor: un celular con la app abierta debe pedir entrar de nuevo.
-export async function setSellerPassword(id: string, password: string): Promise<void> {
+// Contraseña temporal que escribe el administrador (spec M13-t42, M13-hu45). Después se cierran todas
+// las sesiones del vendedor: un celular con la app abierta debe pedir entrar de nuevo. El aviso por correo
+// sale al final y nunca recibe la contraseña; si falla, la contraseña ya cambió.
+export async function setSellerPassword(id: string, password: string): Promise<{ emailStatus: EmailStatus }> {
   validatePassword(password)
-  await findSeller(id)
-  const { error } = await supabaseAdmin().auth.admin.updateUserById(id, { password })
+  const profile = await findSeller(id)
+  const { data, error } = await supabaseAdmin().auth.admin.updateUserById(id, { password })
   if (error) throw error
   await revokeSessions(id)
+  const emailStatus = await sendSellerPasswordEmail({ to: data.user?.email ?? null, name: profile.fullName })
+  return { emailStatus }
 }

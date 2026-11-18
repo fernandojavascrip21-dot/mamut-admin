@@ -1,4 +1,11 @@
-// Esqueleto (spec M13-hu45): el texto del aviso de contraseña cambiada se implementa en el paso 1.
-export function sellerPasswordEmail(_name: string): { subject: string; variables: Record<string, string> } {
-  return { subject: '', variables: {} }
+import { SELLER_PASSWORD_TEXTS, type SellerPasswordVariables } from './constants'
+import { escapeHtml } from './escape-html'
+
+// Asunto y variables de la plantilla «Contraseña cambiada»; el asunto es el título para no depender de la plantilla.
+export function sellerPasswordEmail(name: string): { subject: string; variables: SellerPasswordVariables } {
+  const text = SELLER_PASSWORD_TEXTS
+  return {
+    subject: text.headline,
+    variables: { NAME: escapeHtml(name), HEADLINE: text.headline, MESSAGE: text.message, NOTE: text.note },
+  }
 }

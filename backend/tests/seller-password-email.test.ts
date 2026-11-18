@@ -5,7 +5,7 @@ import { PUT as passwordRoute } from '@api/sellers/[id]/password/route'
 import { db } from '@db/client'
 import { profiles } from '@db/schema'
 import * as notifications from '@notifications'
-import { sellerPasswordEmail } from '../src/notifications/seller-password-email'
+import { sellerPasswordEmail } from '@notifications'
 import { cleanupTestData, createTestUser, hasServiceKey, TEST_PASSWORD, type TestUser } from './helpers/users'
 
 // Aviso por correo al cambiar la contraseña de un vendedor (spec M13-hu45). `fetch` se reemplaza:
