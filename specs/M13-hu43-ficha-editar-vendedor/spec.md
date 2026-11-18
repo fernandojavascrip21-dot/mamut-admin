@@ -1,6 +1,6 @@
 # Spec — HU-43 · Ver la ficha de un vendedor y editar sus datos (nombre, negocio, teléfono y correo)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:**
 > - M13-t42-base-gestion-vendedores (`specs/M13-t42-base-gestion-vendedores/spec.md`): `PUT /api/sellers/[id]`, `businessName` en el alta y en las vistas, y los mensajes del backend. Este spec no toca el backend.
 > - M2-hu08-alta-vendedor (`specs/M2-hu08-alta-vendedor/spec.md`): `create-seller-page`, `SellerSaveService` y los mensajes de campo del alta.
@@ -49,7 +49,7 @@ T-42 dejó listo el backend para editar a un vendedor y guardar el nombre de su 
 
 **No entra en este spec:**
 
-- Cambios en el backend o en la base: todo lo necesario lo dejó T-42.
+- Cambios en el backend o en la base: todo lo necesario lo dejó T-42. **Excepción al implementar:** `backend/src/lib/cors.ts` agrega `PUT` a `Access-Control-Allow-Methods`; sin eso el preflight del navegador bloqueaba el guardado (T-42 no lo tocó).
 - Abrir la ficha de un vendedor desactivado (`?status=any`), el filtro «Activos | Desactivados» y los botones desactivar, reactivar y eliminar: HU-44. En HU-43 la ficha sigue pidiendo el detalle sin `status`, así que el `Tag` siempre dice «Activo».
 - «Cambiar contraseña»: HU-45.
 - Que el vendedor edite su propio perfil o vea su negocio en su app.
@@ -220,25 +220,25 @@ Servicios:
 
 Criterios de Jira (`SCRUM-107`):
 
-- [ ] **1.** La ficha muestra nombre, negocio (o «Sin negocio»), teléfono con el pipe `phone`, correo, `Tag` «Activo», «Alta dd/MM/yyyy» y sus piezas; las secciones de stock e historiales de HU-09, HU-11, HU-12 y HU-26 siguen igual.
-- [ ] **2.** «Editar datos» abre el pop-up `(ventana:vendedor/<id>)` con nombre (obligatorio), negocio (opcional), teléfono (10 dígitos) y correo precargados; los errores de campo se ven solo al enviar.
-- [ ] **3.** Con el correo de otra cuenta, el pop-up muestra «Ya existe un acceso con ese correo» bajo el campo correo; mientras guarda, el botón dice «Guardando…», está deshabilitado y un segundo clic no manda otra petición.
-- [ ] **4.** Al guardar, aparece «Datos de «{nombre}» guardados», el pop-up se cierra y la ficha, «Mis vendedores» y la barra «Viendo» muestran el dato nuevo sin recargar la página.
-- [ ] **5.** El alta de vendedor tiene el campo opcional «Nombre del negocio»; con «  Café Centro  » se crea con «Café Centro» y vacío se crea sin negocio.
-- [ ] **6.** «Mis vendedores» muestra el negocio debajo del nombre solo cuando lo tiene.
-- [ ] **7.** El pop-up tiene cargando, «No encontramos a este vendedor» y error con «Reintentar»; ficha, pop-up, alta, «Mis vendedores» y «Viendo» se ven sin desbordarse a 375 px.
+- [x] **1.** La ficha muestra nombre, negocio (o «Sin negocio»), teléfono con el pipe `phone`, correo, `Tag` «Activo», «Alta dd/MM/yyyy» y sus piezas; las secciones de stock e historiales de HU-09, HU-11, HU-12 y HU-26 siguen igual.
+- [x] **2.** «Editar datos» abre el pop-up `(ventana:vendedor/<id>)` con nombre (obligatorio), negocio (opcional), teléfono (10 dígitos) y correo precargados; los errores de campo se ven solo al enviar.
+- [x] **3.** Con el correo de otra cuenta, el pop-up muestra «Ya existe un acceso con ese correo» bajo el campo correo; mientras guarda, el botón dice «Guardando…», está deshabilitado y un segundo clic no manda otra petición.
+- [x] **4.** Al guardar, aparece «Datos de «{nombre}» guardados», el pop-up se cierra y la ficha, «Mis vendedores» y la barra «Viendo» muestran el dato nuevo sin recargar la página.
+- [x] **5.** El alta de vendedor tiene el campo opcional «Nombre del negocio»; con «  Café Centro  » se crea con «Café Centro» y vacío se crea sin negocio.
+- [x] **6.** «Mis vendedores» muestra el negocio debajo del nombre solo cuando lo tiene.
+- [x] **7.** El pop-up tiene cargando, «No encontramos a este vendedor» y error con «Reintentar»; ficha, pop-up, alta, «Mis vendedores» y «Viendo» se ven sin desbordarse a 375 px.
 
 Criterios propios:
 
-- [ ] «Viendo» muestra «Víctor Vendedor · Gimnasio Fuerza Norte» para un vendedor con negocio y solo el nombre para uno sin negocio.
-- [ ] Un teléfono escrito «55 1234 5678» se envía como `5512345678`; un negocio de solo espacios se envía como `null`.
-- [ ] Un negocio de 81 caracteres muestra «El nombre del negocio debe tener como máximo 80 caracteres» bajo su campo, al enviar, sin llamar al backend.
-- [ ] Cerrar el pop-up con cambios pregunta «¿Salir sin guardar?»; «Seguir editando» conserva lo escrito y «Salir» lo cierra. Sin cambios cierra sin preguntar. Mientras guarda no se cierra.
-- [ ] Sin red, el pop-up muestra «No se pudo guardar» con «Reintentar», que reenvía el mismo payload.
-- [ ] Después de cambiar el correo, el vendedor entra con el correo nuevo (e2e).
-- [ ] `ng build`, `npm run check:architecture` y `ng test` pasan sin cambiar pruebas con commit (o solo las que el usuario desbloqueó con `./desbloquear`).
-- [ ] `npm run test:e2e` pasa completo contra la base local.
-- [ ] `specs/README.md` está actualizado.
+- [x] «Viendo» muestra «Víctor Vendedor · Gimnasio Fuerza Norte» para un vendedor con negocio y solo el nombre para uno sin negocio.
+- [x] Un teléfono escrito «55 1234 5678» se envía como `5512345678`; un negocio de solo espacios se envía como `null`.
+- [x] Un negocio de 81 caracteres muestra «El nombre del negocio debe tener como máximo 80 caracteres» bajo su campo, al enviar, sin llamar al backend.
+- [x] Cerrar el pop-up con cambios pregunta «¿Salir sin guardar?»; «Seguir editando» conserva lo escrito y «Salir» lo cierra. Sin cambios cierra sin preguntar. Mientras guarda no se cierra.
+- [x] Sin red, el pop-up muestra «No se pudo guardar» con «Reintentar», que reenvía el mismo payload.
+- [x] Después de cambiar el correo, el vendedor entra con el correo nuevo (e2e).
+- [x] `ng build`, `npm run check:architecture` y `ng test` pasan sin cambiar pruebas con commit (o solo las que el usuario desbloqueó con `./desbloquear`).
+- [x] `npm run test:e2e` pasa completo contra la base local.
+- [x] `specs/README.md` está actualizado.
 
 ## 7. Plan de pruebas
 

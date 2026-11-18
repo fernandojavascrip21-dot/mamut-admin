@@ -5,7 +5,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { formatPhone } from '@shared/utils/phone';
+import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { notBlank } from '@shared/validators/validators';
 import { MAX_BUSINESS_NAME } from '../../constants/sellers.constants';
 import type { Seller, UpdateSellerInput } from '../../interfaces/seller.models';
@@ -18,12 +18,14 @@ import type { SellerEditField } from './seller-edit-form.models';
 // cuatro datos por `save` y avisa `cancel`. La consulta y el guardado son de la página.
 @Component({
   imports: [ButtonDirective, InputText, ReactiveFormsModule],
+  providers: [PhonePipe],
   selector: 'app-seller-edit-form',
   templateUrl: './seller-edit-form.component.html',
 })
 export class SellerEditFormComponent implements OnInit {
   // --- Dependencias ---
   private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly phonePipe = inject(PhonePipe);
 
   // --- Entradas y salidas ---
   readonly seller = input.required<Seller>();
@@ -104,7 +106,7 @@ export class SellerEditFormComponent implements OnInit {
     this.form.patchValue({
       fullName: seller.fullName,
       businessName: seller.businessName ?? '',
-      phone: formatPhone(seller.phone),
+      phone: this.phonePipe.transform(seller.phone),
       email: seller.email ?? '',
     });
   }

@@ -9,9 +9,10 @@ import { closeModalLink } from '@shared/utils/modal-links';
 import { SellerEditFormComponent } from '../../components/seller-edit-form/seller-edit-form.component';
 import type { SellerEditField } from '../../components/seller-edit-form/seller-edit-form.models';
 import {
-  CONNECTION_HINT, EDIT_BACKEND_MESSAGE_FIELD, EDIT_DUPLICATE_EMAIL, EDIT_SELLER_LOAD_ERROR, EDIT_SELLER_LOADING,
+  CONNECTION_HINT, EDIT_BACKEND_MESSAGE_FIELD, EDIT_INVALID_FALLBACK, EDIT_SELLER_LOAD_ERROR, EDIT_SELLER_LOADING,
   EDIT_SELLER_NOT_FOUND, EDIT_SELLER_OFFLINE_TITLE, EDIT_SELLER_TITLE, SELLER_GONE_NOTICE,
 } from '../../constants/edit-seller-page.constants';
+import { DUPLICATE_EMAIL } from '../../constants/sellers.constants';
 import type { Seller, SellerDetail, UpdateSellerInput, UpdateSellerResult } from '../../interfaces/seller.models';
 import type {
   EditSellerLeaveTarget, EditSellerSaveState, EditSellerState,
@@ -127,11 +128,11 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
         this.close();
         return;
       case 'duplicate-email':
-        this.toastService.error(EDIT_DUPLICATE_EMAIL);
-        this.serverErrors.set({ email: EDIT_DUPLICATE_EMAIL });
+        this.toastService.error(DUPLICATE_EMAIL);
+        this.serverErrors.set({ email: DUPLICATE_EMAIL });
         return;
       case 'invalid': {
-        const message = result.message ?? EDIT_SELLER_OFFLINE_TITLE;
+        const message = result.message ?? EDIT_INVALID_FALLBACK;
         this.toastService.error(message);
         const field = EDIT_BACKEND_MESSAGE_FIELD[message];
         if (field) this.serverErrors.set({ [field]: message });

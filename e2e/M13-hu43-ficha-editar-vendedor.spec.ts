@@ -79,7 +79,7 @@ test.describe('Ficha y edición de un vendedor (HU-43)', () => {
     await loginAsAdmin(page);
     await page.goto(`/admin/vendedores/${seller.id}`);
     await expect(page.getByRole('heading', { level: 1, name: seller.fullName })).toBeVisible();
-    await expect(page.getByText(SELLER_BUSINESS)).toBeVisible();
+    await expect(page.getByText(SELLER_BUSINESS, { exact: true })).toBeVisible();
     await expect(page.getByText('Activo', { exact: true })).toBeVisible();
 
     await page.getByRole('link', { name: 'Editar datos' }).click();
@@ -93,7 +93,7 @@ test.describe('Ficha y edición de un vendedor (HU-43)', () => {
 
     await expect(page.getByText(`Datos de «${seller.fullName}» guardados`)).toBeVisible();
     await expect(dialog).toBeHidden();
-    await expect(page.getByText(SELLER_NEW_BUSINESS)).toBeVisible();
+    await expect(page.getByText(SELLER_NEW_BUSINESS, { exact: true })).toBeVisible();
     await expect(page.getByText(SELLER_NEW_PHONE)).toBeVisible();
     await expect(page.getByText(newEmail)).toBeVisible();
     await page.getByRole('combobox', { name: 'Viendo' }).click();

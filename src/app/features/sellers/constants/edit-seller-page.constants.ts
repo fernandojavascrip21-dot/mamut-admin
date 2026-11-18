@@ -19,7 +19,8 @@ export const EDIT_SELLER_NOT_FOUND = 'No encontramos a este vendedor';
 export const EDIT_SELLER_LOAD_ERROR = 'No pudimos cargar al vendedor';
 export const EDIT_SELLER_OFFLINE_TITLE = 'No se pudo guardar';
 export const CONNECTION_HINT = 'Revisa tu conexión e inténtalo de nuevo.';
-export const EDIT_DUPLICATE_EMAIL = 'Ya existe un acceso con ese correo';
+// Un 422 sin texto del backend: se pide revisar lo escrito.
+export const EDIT_INVALID_FALLBACK = 'Revisa los datos del vendedor.';
 
 // Un 422 del backend trae uno de estos textos; así se pinta bajo su campo. Uno que no esté aquí
 // solo sale en el aviso flotante.
