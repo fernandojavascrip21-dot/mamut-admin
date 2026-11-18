@@ -2,6 +2,7 @@ import { definePreset } from '@primeuix/themes';
 import AuraCheckbox from '@primeuix/themes/aura/checkbox';
 import AuraCard from '@primeuix/themes/aura/card';
 import AuraConfirmDialog from '@primeuix/themes/aura/confirmdialog';
+import AuraDataTable from '@primeuix/themes/aura/datatable';
 import AuraDataView from '@primeuix/themes/aura/dataview';
 import AuraDialog from '@primeuix/themes/aura/dialog';
 import AuraInputText from '@primeuix/themes/aura/inputtext';
@@ -353,8 +354,8 @@ export const MAMMUT_THEME = definePreset({
       },
       body: { padding: '0', gap: '0' },
     },
-    // «Agotado» (contraste, tinta), «Fraccionado» (secundaria, dorado) y «Baja existencia» (advertencia,
-    // ámbar); se omiten los demás tonos de Aura.
+    // «Agotado» (contraste, tinta), «Fraccionado» (secundaria, dorado), «Baja existencia» (advertencia,
+    // ámbar) y «Activo» de un vendedor (éxito, verde); se omiten los demás tonos de Aura.
     tag: {
       root: {
         fontSize: '0.6875rem',
@@ -365,6 +366,7 @@ export const MAMMUT_THEME = definePreset({
         roundedBorderRadius: 'var(--radius-xl)',
       },
       icon: AuraTag.icon,
+      success: { background: 'var(--color-success-bg)', color: 'var(--color-success-text)' },
       secondary: { background: 'var(--color-accent-2-bg)', color: 'var(--color-accent-2-text)' },
       contrast: { background: 'var(--color-ink)', color: 'var(--color-white)' },
       warn: { background: 'var(--color-warning-bg)', color: 'var(--color-warning-text)' },
@@ -428,6 +430,29 @@ export const MAMMUT_THEME = definePreset({
         sm: { padding: '0.5rem 0.75rem' },
         lg: { padding: '0.5rem 0.75rem' },
       },
+    },
+    // Grid compartido (`shared/components/data-grid`): fondo blanco de la tarjeta que la envuelve, líneas
+    // de marca y hover en el color de página. Se reemplazan los tokens de Aura que apuntan a `surface.*`
+    // o `primary.100`, que este tema no define.
+    datatable: {
+      ...AuraDataTable,
+      root: { ...AuraDataTable.root, borderColor: 'var(--color-line)' },
+      header: { ...AuraDataTable.header, borderColor: 'var(--color-line)' },
+      headerCell: { ...AuraDataTable.headerCell, borderColor: 'var(--color-line)', padding: '0.625rem 0.875rem' },
+      columnTitle: { ...AuraDataTable.columnTitle, fontSize: '0.75rem' },
+      row: { ...AuraDataTable.row, stripedBackground: 'var(--color-page)' },
+      bodyCell: {
+        ...AuraDataTable.bodyCell,
+        padding: '0.625rem 0.875rem',
+        fontWeight: '{typography.font.weight}',
+        fontSize: '0.875rem',
+        borderColor: 'var(--color-line)',
+        selectedBorderColor: 'var(--color-line)',
+      },
+      footerCell: { ...AuraDataTable.footerCell, borderColor: 'var(--color-line)' },
+      footer: { ...AuraDataTable.footer, borderColor: 'var(--color-line)' },
+      paginatorTop: { ...AuraDataTable.paginatorTop, borderColor: 'var(--color-line)' },
+      paginatorBottom: { ...AuraDataTable.paginatorBottom, borderColor: 'var(--color-line)' },
     },
     dataview: {
       ...AuraDataView,

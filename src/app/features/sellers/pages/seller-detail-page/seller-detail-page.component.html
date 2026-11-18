@@ -1,5 +1,5 @@
-<div class="flex w-full flex-col px-5 py-6">
-  <a pButton [text]="true" routerLink="/admin/vendedores" class="h-[52px] text-sm w-fit px-0">‹ Vendedores</a>
+<div class="flex w-full flex-col px-5 py-5 lg:px-6 lg:py-6">
+  <a pButton [text]="true" routerLink="/admin/vendedores" class="h-10 w-fit px-0 text-sm">‹ Vendedores</a>
   @if (state() === 'loading') {
     <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
       <svg
@@ -38,174 +38,111 @@
       }
     </div>
   } @else if (seller(); as seller) {
-    <section class="mt-2 surface-card p-4" aria-labelledby="seller-name">
-     <div class="flex items-center gap-4">
-      <span
-        class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-accent-2-bg text-lg font-bold text-accent-2-text"
-        aria-hidden="true"
-        >{{ initials() }}</span
-      >
-      <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-        <h1 id="seller-name" class="page-title m-0 text-[26px] break-words">
-          {{ seller.fullName }}
-        </h1>
-        @if (seller.businessName) {
-          <p class="business m-0 text-sm font-semibold break-words">{{ seller.businessName }}</p>
-        } @else {
-          <p class="business m-0 text-sm break-words text-muted">Sin negocio</p>
-        }
-        <p class="phone m-0 font-mono text-sm">{{ seller.phone | phone }}</p>
-        @if (seller.email) {
-          <p class="m-0 text-sm break-all text-muted">{{ seller.email }}</p>
-        }
-        <p class="m-0 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-          <p-tag
-            [value]="seller.active ? 'Activo' : 'Desactivado'"
-            [severity]="seller.active ? 'success' : 'secondary'"
-          />
-          <span>Alta {{ seller.createdAt | date: 'dd/MM/yyyy' }}</span>
-        </p>
+    <!-- Cabecera: el mismo estilo en todos los tamaños (identidad, datos con su etiqueta en celdas y
+         botones con borde del mismo alto). Computadora (lg): arriba la identidad con los tres botones a
+         la derecha y abajo Teléfono · Correo · Alta en tres columnas. Teléfono y tableta: la identidad,
+         luego los datos (Teléfono | Alta y el Correo a todo el ancho; en tableta, las tres columnas) y
+         los botones al final; la fila superior usa `contents` y `order` para ese acomodo. -->
+    <section class="mt-1 flex flex-col overflow-hidden surface-card" aria-labelledby="seller-name">
+      <div class="contents lg:order-1 lg:flex lg:items-center lg:justify-between lg:gap-6 lg:px-5 lg:py-4">
+        <div class="order-1 flex min-w-0 items-center gap-4 p-4 lg:p-0">
+          <span
+            class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-accent-2-bg text-lg font-bold text-accent-2-text"
+            aria-hidden="true"
+            >{{ initials() }}</span
+          >
+          <div class="flex min-w-0 flex-1 flex-col">
+            <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+              <h1 id="seller-name" class="page-title m-0 text-[26px] break-words">
+                {{ seller.fullName }}
+              </h1>
+              <p-tag
+                [value]="seller.active ? 'Activo' : 'Desactivado'"
+                [severity]="seller.active ? 'success' : 'secondary'"
+              />
+            </div>
+            @if (seller.businessName) {
+              <p class="business m-0 text-sm font-semibold break-words">{{ seller.businessName }}</p>
+            } @else {
+              <p class="business m-0 text-sm break-words text-muted">Sin negocio</p>
+            }
+          </div>
+        </div>
+
+        <!-- Teléfono: «Dejar» y «Retirar» lado a lado y «Editar datos» abajo a todo el ancho. Desde md, en
+             fila con su ancho natural: «Editar datos», «Retirar» y «Dejar» (el principal al final). -->
+        <div
+          class="order-3 grid w-full grid-cols-2 gap-2 p-4 md:flex md:w-auto md:flex-shrink-0 md:items-center md:justify-end lg:p-0"
+        >
+          <a
+            pButton
+            [severity]="deliverySeverity()"
+            [routerLink]="deliveryLink()"
+            class="deliver h-[52px] text-[16px] md:order-last md:h-11 md:px-5 md:text-[15px]"
+            [class.col-span-2]="!canReturn()"
+          >
+            Dejar producto
+          </a>
+          @if (canReturn()) {
+            <a
+              pButton
+              [severity]="returnSeverity()"
+              [routerLink]="returnLink()"
+              class="return h-[52px] text-[15px] md:h-11 md:px-5"
+            >
+              Retirar producto
+            </a>
+          }
+          <a
+            pButton
+            severity="secondary"
+            [routerLink]="editLink()"
+            class="edit col-span-2 h-11 text-[15px] md:order-first md:px-5"
+            >Editar datos</a
+          >
+        </div>
       </div>
-     </div>
-     <div class="mt-2 flex justify-end">
-       <a pButton [text]="true" [routerLink]="editLink()" class="edit h-11 px-3 text-sm">Editar datos</a>
-     </div>
+
+      <dl
+        class="order-2 m-0 grid grid-cols-2 border-y border-line bg-page/50 text-sm sm:grid-cols-3 lg:border-b-0"
+      >
+        <div class="order-1 flex min-w-0 flex-col border-r border-line px-4 py-2.5 lg:px-5 lg:py-3">
+          <dt class="text-[11px] font-semibold tracking-wide text-muted uppercase">Teléfono</dt>
+          <dd class="phone m-0 font-mono text-ink">{{ seller.phone | phone }}</dd>
+        </div>
+        @if (seller.email) {
+          <div
+            class="order-3 col-span-2 flex min-w-0 flex-col border-t border-line px-4 py-2.5 sm:order-2 sm:col-span-1 sm:border-t-0 sm:border-r lg:px-5 lg:py-3"
+          >
+            <dt class="text-[11px] font-semibold tracking-wide text-muted uppercase">Correo</dt>
+            <dd class="m-0 break-all text-ink">{{ seller.email }}</dd>
+          </div>
+        }
+        <div class="order-2 flex min-w-0 flex-col px-4 py-2.5 sm:order-3 lg:px-5 lg:py-3">
+          <!-- El espacio explícito mantiene «Alta 12/11/2026» como una frase al leer el texto de la ficha. -->
+          <dt class="text-[11px] font-semibold tracking-wide text-muted uppercase">Alta</dt>{{ ' ' }}<dd class="m-0 text-ink">{{ seller.createdAt | date: 'dd/MM/yyyy' }}</dd>
+        </div>
+      </dl>
     </section>
 
-    <div class="mt-4 grid gap-3" [class.grid-cols-2]="canReturn()">
-      <a pButton
-        [severity]="deliverySeverity()"
-        [routerLink]="deliveryLink()"
-        class="h-[52px] text-[17px] deliver"
-      >
-        Dejar producto
-      </a>
-      @if (canReturn()) {
-        <a pButton [severity]="returnSeverity()" [routerLink]="returnLink()" class="h-[52px] text-[15px] return">
-          Retirar producto
-        </a>
-      }
-    </div>
-
-    <div class="mt-6 flex items-baseline justify-between gap-3">
-      <h2 class="m-0 text-base font-bold">Su stock</h2>
-      <p class="total m-0 font-mono text-lg font-bold">{{ units() }}</p>
-    </div>
-
-    <p-dataview [value]="seller.stock" layout="list" class="mt-3 block">
-      <ng-template #list>
-        <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
-          @for (line of seller.stock; track line.productId) {
-            <li><app-seller-stock-line [line]="line" (edit)="editHolding($event)" /></li>
-          }
-        </ul>
-      </ng-template>
-      <ng-template #emptymessage>
-        <p
-          class="empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-        >
-          Todavía no tiene producto.
-        </p>
-      </ng-template>
-    </p-dataview>
-
-    <h2 class="mt-8 mb-0 text-base font-bold">Últimas entregas</h2>
-    @if (historyState() === 'loading') {
-      <p class="history-loading mt-3 mb-0 text-sm text-muted" role="status">Cargando entregas…</p>
-    } @else if (historyState() === 'error') {
-      <div class="history-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
-        <p class="m-0 text-sm font-bold">No pudimos cargar las entregas</p>
-        <button pButton severity="secondary"
-          type="button"
-          class="retry-history h-11 px-4 text-sm"
-          (click)="retryHistory()"
-        >
-          Reintentar
-        </button>
+    <!-- Cuerpo: un solo grid (`app-data-grid`) para el stock y los movimientos; su filtro elige la lista. -->
+    <app-data-grid
+      class="mt-6 block"
+      [columns]="gridColumns()"
+      [rows]="gridRows()"
+      [state]="gridState()"
+      [texts]="gridTexts()"
+      [options]="viewOptions()"
+      [selected]="view()"
+      [filterLabel]="filterLabel"
+      (selectedChange)="selectView($event)"
+      (rowAction)="onRowAction($event)"
+      (retry)="retryGrid()"
+    >
+      <div gridTitle class="flex items-baseline gap-3">
+        <h2 class="m-0 text-base font-bold">Su stock y movimientos</h2>
+        <p class="total m-0 font-mono text-base font-bold text-muted">{{ units() }}</p>
       </div>
-    } @else {
-      <p-dataview [value]="history()" layout="list" class="mt-3 block">
-        <ng-template #list>
-          <ul class="history m-0 flex list-none flex-col gap-2.5 p-0">
-            @for (item of history(); track $index) {
-              <li><app-delivery-history-line [item]="item" /></li>
-            }
-          </ul>
-        </ng-template>
-        <ng-template #emptymessage>
-          <p
-            class="history-empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-          >
-            Todavía no le has dejado producto.
-          </p>
-        </ng-template>
-      </p-dataview>
-    }
-
-    <h2 class="mt-8 mb-0 text-base font-bold">Últimos retiros</h2>
-    @if (returnsState() === 'loading') {
-      <p class="returns-loading mt-3 mb-0 text-sm text-muted" role="status">Cargando retiros…</p>
-    } @else if (returnsState() === 'error') {
-      <div class="returns-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
-        <p class="m-0 text-sm font-bold">No pudimos cargar los retiros</p>
-        <button pButton severity="secondary"
-          type="button"
-          class="retry-returns h-11 px-4 text-sm"
-          (click)="retryReturns()"
-        >
-          Reintentar
-        </button>
-      </div>
-    } @else {
-      <p-dataview [value]="returns()" layout="list" class="mt-3 block">
-        <ng-template #list>
-          <ul class="returns m-0 flex list-none flex-col gap-2.5 p-0">
-            @for (item of returns(); track $index) {
-              <li><app-return-history-line [item]="item" [sellerId]="seller.id" /></li>
-            }
-          </ul>
-        </ng-template>
-        <ng-template #emptymessage>
-          <p
-            class="returns-empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-          >
-            Todavía no le has retirado producto.
-          </p>
-        </ng-template>
-      </p-dataview>
-    }
-
-    <h2 class="mt-8 mb-0 text-base font-bold">Últimas mermas</h2>
-    @if (shrinkagesState() === 'loading') {
-      <p class="shrinkages-loading mt-3 mb-0 text-sm text-muted" role="status">Cargando mermas…</p>
-    } @else if (shrinkagesState() === 'error') {
-      <div class="shrinkages-error mt-3 flex flex-col items-start gap-2 alert-danger p-4" role="alert">
-        <p class="m-0 text-sm font-bold">No pudimos cargar las mermas</p>
-        <button pButton severity="secondary"
-          type="button"
-          class="retry-shrinkages h-11 px-4 text-sm"
-          (click)="retryShrinkages()"
-        >
-          Reintentar
-        </button>
-      </div>
-    } @else {
-      <p-dataview [value]="shrinkages()" layout="list" class="mt-3 block">
-        <ng-template #list>
-          <ul class="shrinkages m-0 flex list-none flex-col gap-2.5 p-0">
-            @for (item of shrinkages(); track $index) {
-              <li><app-shrinkage-history-line [item]="item" /></li>
-            }
-          </ul>
-        </ng-template>
-        <ng-template #emptymessage>
-          <p
-            class="shrinkages-empty m-0 surface-card border-dashed border-line-strong p-5 text-center text-sm text-muted"
-          >
-            Todavía no tiene mermas.
-          </p>
-        </ng-template>
-      </p-dataview>
-    }
+    </app-data-grid>
   }
 </div>

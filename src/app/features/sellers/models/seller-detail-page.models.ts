@@ -10,3 +10,7 @@ export type ReturnHistoryState = 'loading' | 'error' | 'ready';
 
 // Estado de «Últimas mermas» (HU-26): igual que el de los retiros, se carga aparte.
 export type ShrinkageHistoryState = 'loading' | 'error' | 'ready';
+
+// Lista que pinta el grid del detalle: su stock (HU-09/HU-11), sus entregas (HU-11), sus retiros
+// (HU-12) o sus mermas (HU-26).
+export type SellerDetailView = 'stock' | 'deliveries' | 'returns' | 'shrinkages';
