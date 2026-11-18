@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
@@ -40,6 +40,7 @@ describe('EditSellerPageComponent', () => {
       imports: [EditSellerPageComponent],
       providers: [
         MessageService,
+        ConfirmationService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),

@@ -12,7 +12,6 @@ export const UNSAVED_SELLER_CONFIRMATION: ConfirmOptions = {
   tone: 'default',
 };
 
-export const SELLER_GONE_NOTICE = 'Este vendedor ya no está disponible';
 
 export const EDIT_SELLER_LOADING = 'Cargando vendedor…';
 export const EDIT_SELLER_NOT_FOUND = 'No encontramos a este vendedor';
@@ -57,10 +56,8 @@ export const removeConfirmation = (name: string, hasChanges: boolean): ConfirmOp
 });
 
 export const sellerDeactivatedNotice = (name: string): string => `«${name}» desactivado`;
-export const sellerReactivatedToast = (name: string): string => `«${name}» reactivado`;
 export const sellerRemovedNotice = (name: string): string => `«${name}» eliminado`;
 export const DEACTIVATE_EMAIL_WARNING = 'Se desactivó, pero no se pudo avisarle por correo';
-export const REACTIVATE_EMAIL_WARNING_POPUP = 'Se reactivó, pero no se pudo avisarle por correo';
 
 // Aviso cuando la acción de estado no llega al backend o da 5xx.
 export const STATUS_OFFLINE_NOTICE = {

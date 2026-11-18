@@ -79,6 +79,4 @@ export const SELLER_INACTIVE_MESSAGE =
 // «Reactivar» y sus avisos.
 export const REACTIVATE_LABEL = 'Reactivar';
 export const REACTIVATING_LABEL = 'Reactivando…';
-export const REACTIVATE_EMAIL_WARNING = 'Se reactivó, pero no se pudo avisarle por correo';
 export const REACTIVATE_OFFLINE_NOTICE = 'No se pudo reactivar. Revisa tu conexión e inténtalo de nuevo.';
-export const sellerReactivatedNotice = (name: string): string => `«${name}» reactivado`;

@@ -22,6 +22,7 @@ const ALIASES: Record<string, string> = {
   '@inventory': 'src/inventory',
   '@sales': 'src/sales',
   '@cuts': 'src/cuts',
+  '@notifications': 'src/notifications',
 }
 
 const walk = (dir: string): string[] =>
@@ -100,6 +101,18 @@ describe('arquitectura del backend', () => {
         !imp.relative &&
         !INFRASTRUCTURE.some((infra) => areaOf(imp.target) === `src/${infra}`) &&
         !allowed.includes(areaOf(imp.target)),
+    )
+    expect(violations.map(describeImport)).toEqual([])
+  })
+
+  // notifications recibe nombre y correo como argumentos: no depende de ningún otro módulo (spec M13-hu44 §4).
+  it('notifications no importa otros módulos de negocio', () => {
+    const violations = allImports.filter(
+      (imp) =>
+        areaOf(imp.file) === 'src/notifications' &&
+        !imp.relative &&
+        !INFRASTRUCTURE.some((infra) => areaOf(imp.target) === `src/${infra}`) &&
+        areaOf(imp.target) !== 'src/notifications',
     )
     expect(violations.map(describeImport)).toEqual([])
   })

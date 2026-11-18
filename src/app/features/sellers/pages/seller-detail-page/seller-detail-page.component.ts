@@ -24,19 +24,17 @@ import { DataGridComponent } from '@shared/components/data-grid/data-grid.compon
 import type { DataGridOption, DataGridRow, DataGridState } from '@shared/components/data-grid/data-grid.models';
 import { SellerChangesService } from '../../services/seller-changes.service';
 import { SellerStatusService } from '../../services/seller-status.service';
-import { SELLER_GONE_NOTICE } from '../../constants/edit-seller-page.constants';
 import {
-  SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLERS_LIST_URL,
+  REACTIVATE_EMAIL_WARNING, SELLER_GONE_NOTICE, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLERS_LIST_URL,
+  sellerReactivatedNotice,
 } from '../../constants/sellers.constants';
 import {
   DEFAULT_SELLER_DETAIL_VIEW,
-  REACTIVATE_EMAIL_WARNING,
   REACTIVATE_LABEL,
   REACTIVATE_OFFLINE_NOTICE,
   REACTIVATING_LABEL,
   SELLER_INACTIVE_MESSAGE,
   SELLER_INACTIVE_TITLE,
-  sellerReactivatedNotice,
   SELLER_DETAIL_COLUMNS,
   SELLER_DETAIL_FILTER_LABEL,
   SELLER_DETAIL_TEXTS,

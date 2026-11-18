@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Injector, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,12 +12,13 @@ import { SellerEditFormComponent } from '../../components/seller-edit-form/selle
 import type { SellerEditField } from '../../components/seller-edit-form/seller-edit-form.models';
 import {
   CONNECTION_HINT, EDIT_BACKEND_MESSAGE_FIELD, EDIT_INVALID_FALLBACK, EDIT_SELLER_LOAD_ERROR, EDIT_SELLER_LOADING,
-  EDIT_SELLER_NOT_FOUND, EDIT_SELLER_OFFLINE_TITLE, EDIT_SELLER_TITLE, SELLER_GONE_NOTICE,
-  DEACTIVATE_EMAIL_WARNING, REACTIVATE_EMAIL_WARNING_POPUP, STATUS_OFFLINE_NOTICE, deactivateConfirmation,
-  removeConfirmation, sellerDeactivatedNotice, sellerReactivatedToast, sellerRemovedNotice,
+  EDIT_SELLER_NOT_FOUND, EDIT_SELLER_OFFLINE_TITLE, EDIT_SELLER_TITLE,
+  DEACTIVATE_EMAIL_WARNING, STATUS_OFFLINE_NOTICE, deactivateConfirmation,
+  removeConfirmation, sellerDeactivatedNotice, sellerRemovedNotice,
 } from '../../constants/edit-seller-page.constants';
 import {
-  DUPLICATE_EMAIL, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLER_HAS_HISTORY, SELLER_HAS_UNITS,
+  DUPLICATE_EMAIL, REACTIVATE_EMAIL_WARNING, SELLER_GONE_NOTICE, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLER_HAS_HISTORY, SELLER_HAS_UNITS,
+  sellerReactivatedNotice,
 } from '../../constants/sellers.constants';
 import type { Seller, SellerDetail, SellerStatusResult, UpdateSellerInput, UpdateSellerResult } from '../../interfaces/seller.models';
 import type {
@@ -45,8 +46,7 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
   private readonly sellersService = inject(SellersService);
   private readonly updateService = inject(SellerUpdateService);
   private readonly statusService = inject(SellerStatusService);
-  // Se resuelve al usarlo: solo las acciones de estado piden confirmación, no abrir ni guardar.
-  private readonly injector = inject(Injector);
+  private readonly confirmService = inject(ConfirmService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -172,7 +172,7 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
   async deactivate(): Promise<void> {
     const seller = this.seller();
     if (!seller || this.saving()) return;
-    if (!(await this.injector.get(ConfirmService).ask(deactivateConfirmation(seller.fullName, this.form()?.hasChanges() ?? false)))) {
+    if (!(await this.confirmService.ask(deactivateConfirmation(seller.fullName, this.form()?.hasChanges() ?? false)))) {
       return;
     }
     this.runStatus('deactivate', this.statusService.deactivate(this.sellerId), seller);
@@ -188,7 +188,7 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
   async remove(): Promise<void> {
     const seller = this.seller();
     if (!seller || this.saving()) return;
-    if (!(await this.injector.get(ConfirmService).ask(removeConfirmation(seller.fullName, this.form()?.hasChanges() ?? false)))) {
+    if (!(await this.confirmService.ask(removeConfirmation(seller.fullName, this.form()?.hasChanges() ?? false)))) {
       return;
     }
     this.runStatus('remove', this.statusService.remove(this.sellerId), seller);
@@ -199,6 +199,7 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
     void this.router.navigate(returnModalLink(this.sellerId));
   }
 
+  // Corre la acción de estado bloqueando el pop-up (saving()) y limpia la alerta de un 409 anterior.
   private runStatus(action: EditSellerStatusAction, request: Observable<SellerStatusResult>, seller: SellerDetail): void {
     if (this.saving()) return;
     this.statusNotice.set(null);
@@ -209,6 +210,7 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
     });
   }
 
+  // Traduce el resultado: los 409 se quedan como alerta en la sección; 404 y sin red avisan con un toast.
   private showStatusResult(action: EditSellerStatusAction, result: SellerStatusResult, seller: SellerDetail): void {
     if (result.ok) {
       this.onStatusDone(action, result, seller);
@@ -233,6 +235,7 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
     }
   }
 
+  // Éxito: avisa (y advierte si el correo no salió), marca todo como guardado para que el guard no pregunte y cierra.
   private onStatusDone(action: EditSellerStatusAction, result: Extract<SellerStatusResult, { ok: true }>, seller: SellerDetail): void {
     const name = seller.fullName;
     const failedEmail = result.emailStatus === 'failed' || result.emailStatus === 'skipped';
@@ -246,8 +249,8 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
       this.toastService.success(sellerDeactivatedNotice(name));
       if (failedEmail) this.toastService.warn(DEACTIVATE_EMAIL_WARNING);
     } else {
-      this.toastService.success(sellerReactivatedToast(name));
-      if (failedEmail) this.toastService.warn(REACTIVATE_EMAIL_WARNING_POPUP);
+      this.toastService.success(sellerReactivatedNotice(name));
+      if (failedEmail) this.toastService.warn(REACTIVATE_EMAIL_WARNING);
     }
     this.close();
   }
