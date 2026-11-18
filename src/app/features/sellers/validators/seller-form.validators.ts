@@ -3,6 +3,15 @@ import { normalizePhone } from '../rules/seller.rules';
 
 // Teléfono de 10 dígitos, aceptando espacios, guiones y paréntesis al escribirlo. Un campo
 // vacío no da este error: de eso se encarga `notBlank`, para mostrar un solo mensaje a la vez.
+// Largo lógico: se cuenta sin los espacios de los extremos, como se guarda. Un valor vacío no da
+// error, porque el campo es opcional.
+export function maxTrimmedLength(max: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const length = String(control.value ?? '').trim().length;
+    return length > max ? { maxTrimmedLength: { max, actual: length } } : null;
+  };
+}
+
 export function tenDigitPhone(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = String(control.value ?? '');

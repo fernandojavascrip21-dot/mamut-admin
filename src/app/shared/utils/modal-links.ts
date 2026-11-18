@@ -103,7 +103,5 @@ export function receiptModalLink(): unknown[] {
 
 // «Editar datos» del vendedor (HU-43): el id va en la ruta `vendedor/:sellerId`.
 export function editSellerModalLink(sellerId: string): unknown[] {
-  void sellerId;
-  void MODAL_EDIT_SELLER_PATH;
-  return [];
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_EDIT_SELLER_PATH, sellerId] } }];
 }

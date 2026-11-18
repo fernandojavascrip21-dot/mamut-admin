@@ -20,4 +20,11 @@ export class SellerRowComponent {
 
   readonly initials = computed(() => initialsOf(this.seller().fullName));
   readonly units = computed(() => unitsLabel(this.seller().units));
+
+  // El negocio entra en el nombre accesible solo cuando lo tiene, como en la línea visible.
+  readonly ariaLabel = computed(() => {
+    const { fullName, businessName } = this.seller();
+    const parts = ['Ver a ' + fullName, ...(businessName ? [businessName] : []), this.units()];
+    return parts.join(', ');
+  });
 }

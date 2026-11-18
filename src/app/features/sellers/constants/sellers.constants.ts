@@ -32,3 +32,5 @@ export const RETURN_FAILURE_MESSAGES = {
 
 // Mismo máximo que el backend para el nombre del negocio.
 export const MAX_BUSINESS_NAME = 80;
+
+export const BUSINESS_NAME_TOO_LONG = `El nombre del negocio debe tener como máximo ${MAX_BUSINESS_NAME} caracteres`;

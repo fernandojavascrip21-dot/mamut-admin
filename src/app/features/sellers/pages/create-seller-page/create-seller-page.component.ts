@@ -8,7 +8,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { normalizePhone } from '../../rules/seller.rules';
 import { SellerSaveService } from '../../services/seller-save.service';
-import { tenDigitPhone } from '../../validators/seller-form.validators';
+import { maxTrimmedLength, tenDigitPhone } from '../../validators/seller-form.validators';
+import { MAX_BUSINESS_NAME } from '../../constants/sellers.constants';
 import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { ToastService } from '@core/toast/toast.service';
 import { notBlank } from '@shared/validators/validators';
@@ -41,14 +42,18 @@ export class CreateSellerPageComponent implements OnInit {
   readonly createdSeller = signal<Seller | null>(null);
   readonly showPassword = signal(false);
   private readonly focusField = signal<SellerField | null>(null);
+  // Orden de los campos en pantalla: el foco y los errores van en este orden.
+  private readonly fieldOrder: SellerField[] = ['fullName', 'businessName', 'phone', 'email', 'password'];
   private lastInput: CreateSellerInput | null = null;
 
   private readonly fullNameInput = viewChild<ElementRef<HTMLInputElement>>('fullNameInput');
+  private readonly businessInput = viewChild<ElementRef<HTMLInputElement>>('businessInput');
   private readonly phoneInput = viewChild<ElementRef<HTMLInputElement>>('phoneInput');
   private readonly emailInput = viewChild<ElementRef<HTMLInputElement>>('emailInput');
   private readonly passwordInput = viewChild<ElementRef<HTMLInputElement>>('passwordInput');
   private readonly inputs: Record<SellerField, Signal<ElementRef<HTMLInputElement> | undefined>> = {
     fullName: this.fullNameInput,
+    businessName: this.businessInput,
     phone: this.phoneInput,
     email: this.emailInput,
     password: this.passwordInput,
@@ -80,6 +85,7 @@ export class CreateSellerPageComponent implements OnInit {
   private createEmptyForm() {
     return this.fb.group({
       fullName: ['', [notBlank()]],
+      businessName: ['', [maxTrimmedLength(MAX_BUSINESS_NAME)]],
       phone: ['', [notBlank(), tenDigitPhone()]],
       email: ['', [notBlank(), Validators.email]],
       password: ['', [Validators.required, Validators.minLength(MIN_PASSWORD)]],
@@ -119,13 +125,15 @@ export class CreateSellerPageComponent implements OnInit {
     this.state.set('form');
   }
 
-  // Nombre y correo sin espacios en los extremos; el teléfono ya solo con dígitos (el backend
-  // también lo normaliza). La contraseña va tal cual: un espacio puede ser parte de ella.
+  // Nombre, negocio y correo sin espacios en los extremos; el negocio vacío se manda como null (es
+  // opcional). El teléfono ya solo con dígitos (el backend también lo normaliza). La contraseña va
+  // tal cual: un espacio puede ser parte de ella.
   prepareSavePayload(): CreateSellerInput {
     const raw = this.form.getRawValue();
+    const businessName = raw.businessName.trim();
     return {
       fullName: raw.fullName.trim(),
-      businessName: null,
+      businessName: businessName === '' ? null : businessName,
       phone: normalizePhone(raw.phone) ?? raw.phone,
       email: raw.email.trim(),
       password: raw.password,
@@ -166,14 +174,14 @@ export class CreateSellerPageComponent implements OnInit {
 
   private showFieldErrors(): void {
     const errors: Partial<Record<SellerField, string>> = {};
-    for (const field of ['fullName', 'phone', 'email', 'password'] as const) {
+    for (const field of this.fieldOrder) {
       const control = this.form.controls[field];
       if (control.valid) continue;
       const empty = control.hasError('notBlank') || control.hasError('required');
       errors[field] = empty ? FIELD_MESSAGES[field].required : FIELD_MESSAGES[field].invalid;
     }
     this.fieldErrors.set(errors);
-    const first = (['fullName', 'phone', 'email', 'password'] as const).find((field) => errors[field]);
+    const first = this.fieldOrder.find((field) => errors[field]);
     this.focusField.set(first ?? null);
   }
 }
