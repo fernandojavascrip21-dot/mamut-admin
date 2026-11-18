@@ -1,10 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
-import { Component, computed, effect, inject, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { DataView } from 'primeng/dataview';
 import { filter, map } from 'rxjs';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
@@ -20,12 +19,24 @@ import {
   openModalPath,
   returnModalLink,
 } from '@shared/utils/modal-links';
-import { ShrinkageHistoryLineComponent } from '@shared/components/shrinkage-history-line/shrinkage-history-line.component';
-import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
-import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import type { DataGridOption, DataGridRow, DataGridState } from '@shared/components/data-grid/data-grid.models';
 import { SellerChangesService } from '../../services/seller-changes.service';
-import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
 import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
+import {
+  DEFAULT_SELLER_DETAIL_VIEW,
+  SELLER_DETAIL_COLUMNS,
+  SELLER_DETAIL_FILTER_LABEL,
+  SELLER_DETAIL_TEXTS,
+  SELLER_DETAIL_VIEWS,
+} from '../../constants/seller-detail-page.constants';
+import {
+  deliveryRows,
+  returnRows,
+  sellerDetailOptionLabel,
+  shrinkageRows,
+  stockRows,
+} from '../../rules/seller-detail-grid.rules';
 import type {
   DeliveryHistoryItem,
   ReturnHistoryItem,
@@ -36,6 +47,7 @@ import type {
   DeliveryHistoryState,
   ReturnHistoryState,
   SellerDetailState,
+  SellerDetailView,
   ShrinkageHistoryState,
 } from '../../models/seller-detail-page.models';
 import { SellerReturnsService } from '../../services/seller-returns.service';
@@ -44,18 +56,14 @@ import { SellersService } from '../../services/sellers.service';
 
 // Detalle de un vendedor (/admin/vendedores/:id, HU-09): sus datos, su total y su stock por
 // producto con los precios que le aplican (HU-11), los botones «Dejar producto» y «Retirar
-// producto» (HU-12), «Últimas entregas», «Últimos retiros» y «Últimas mermas» (HU-26). Sigue a la barra «Viendo» (HU-10):
-// abrir el detalle elige a ese vendedor, y elegir a otro en la barra abre el suyo (o la lista, con
+// producto» (HU-12) y una sola tabla con filtro para su stock, sus entregas, retiros y mermas
+// (HU-26). Sigue a la barra «Viendo» (HU-10): abrir el detalle elige a ese vendedor, y elegir a otro en la barra abre el suyo (o la lista, con
 // «Yo · bodega»).
 @Component({
   imports: [ButtonDirective, Tag, DatePipe,
     RouterLink,
-    DataView,
     PhonePipe,
-    SellerStockLineComponent,
-    DeliveryHistoryLineComponent,
-    ReturnHistoryLineComponent,
-    ShrinkageHistoryLineComponent,
+    DataGridComponent,
   ],
   selector: 'app-seller-detail-page',
   templateUrl: './seller-detail-page.component.html',
@@ -106,6 +114,17 @@ export class SellerDetailPageComponent {
   readonly returnLink = computed(() => returnModalLink(this.sellerId()));
   readonly editLink = computed(() => editSellerModalLink(this.sellerId()));
 
+  // El grid emite el valor como texto: solo se acepta una de las listas de SELLER_DETAIL_VIEWS.
+  selectView(value: string): void {
+    const view = SELLER_DETAIL_VIEWS.find((option) => option.value === value)?.value;
+    if (view) this.view.set(view);
+  }
+
+  // Tocar una línea del stock en el grid: su `actionId` es el productId (las de movimientos no tienen).
+  onRowAction(actionId: string): void {
+    this.editHolding(Number(actionId));
+  }
+
   // «Editar» de una línea del stock: abre la ventana de corrección de ese producto.
   editHolding(productId: number): void {
     void this.router.navigate(editHoldingModalLink(this.sellerId(), productId));
@@ -152,6 +171,45 @@ export class SellerDetailPageComponent {
     this.shrinkagesResource.hasValue() ? this.shrinkagesResource.value() : [],
   );
 
+  // Grid único (`app-data-grid`): el filtro elige si pinta el stock o uno de los historiales. Los historiales se cargan
+  // igual que antes, así que cambiar de filtro no pide nada; cada opción lleva su conteo cuando su
+  // lista ya cargó (el stock llega con el vendedor, siempre listo).
+  readonly view = signal<SellerDetailView>(DEFAULT_SELLER_DETAIL_VIEW);
+  readonly filterLabel = SELLER_DETAIL_FILTER_LABEL;
+  private readonly viewStates = computed<Record<SellerDetailView, DataGridState>>(() => ({
+    stock: 'ready',
+    deliveries: this.historyState(),
+    returns: this.returnsState(),
+    shrinkages: this.shrinkagesState(),
+  }));
+  private readonly viewCounts = computed<Record<SellerDetailView, number>>(() => ({
+    stock: this.seller()?.stock.length ?? 0,
+    deliveries: this.history().length,
+    returns: this.returns().length,
+    shrinkages: this.shrinkages().length,
+  }));
+  readonly viewOptions = computed<DataGridOption[]>(() =>
+    SELLER_DETAIL_VIEWS.map(({ value, label }) => ({
+      value,
+      label: sellerDetailOptionLabel(label, this.viewStates()[value] === 'ready' ? this.viewCounts()[value] : null),
+    })),
+  );
+  readonly gridState = computed(() => this.viewStates()[this.view()]);
+  readonly gridTexts = computed(() => SELLER_DETAIL_TEXTS[this.view()]);
+  readonly gridColumns = computed(() => SELLER_DETAIL_COLUMNS[this.view()]);
+  readonly gridRows = computed<DataGridRow[]>(() => {
+    switch (this.view()) {
+      case 'stock':
+        return stockRows(this.seller()?.stock ?? []);
+      case 'deliveries':
+        return deliveryRows(this.history());
+      case 'returns':
+        return returnRows(this.returns(), this.sellerId());
+      case 'shrinkages':
+        return shrinkageRows(this.shrinkages());
+    }
+  });
+
   readonly initials = computed(() => initialsOf(this.seller()?.fullName ?? ''));
   readonly units = computed(() => unitsLabel(this.seller()?.units ?? 0));
   // Sin piezas no hay nada que retirar: el botón «Retirar producto» no se muestra.
@@ -197,6 +255,21 @@ export class SellerDetailPageComponent {
   // Botón «Reintentar» del error de carga: vuelve a pedir al vendedor.
   retry(): void {
     this.sellerResource.reload();
+  }
+
+  // «Reintentar» del grid: vuelve a pedir solo el historial que está a la vista (el stock no tiene
+  // «Reintentar» propio: si falla, falla el detalle completo).
+  retryGrid(): void {
+    switch (this.view()) {
+      case 'stock':
+        return this.retry();
+      case 'deliveries':
+        return this.retryHistory();
+      case 'returns':
+        return this.retryReturns();
+      case 'shrinkages':
+        return this.retryShrinkages();
+    }
   }
 
   // «Reintentar» de «Últimas entregas».
