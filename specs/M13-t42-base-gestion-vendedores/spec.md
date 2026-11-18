@@ -1,6 +1,6 @@
 # Spec técnico — T-42 · Base de gestión de vendedores: editar, desactivar, reactivar, eliminar y contraseña (backend)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:**
 > - M2-t10-base-vendedores (`specs/M2-t10-base-vendedores/spec.md`): `profiles.phone` de 10 dígitos, obligatorio para `role = 'vendedor'`.
 > - M2-hu08-alta-vendedor (`specs/M2-hu08-alta-vendedor/spec.md`): `createSeller`, `normalizePhone` y `POST /api/sellers`.
