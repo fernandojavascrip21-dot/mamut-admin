@@ -47,15 +47,17 @@
       [serverErrors]="serverErrors()"
       (save)="save($event)"
       (cancel)="close()"
-    />
-    <app-seller-status-actions
-      [active]="seller()!.active"
-      [busy]="busy()"
-      [notice]="statusNotice()"
-      (deactivate)="deactivate()"
-      (reactivate)="reactivate()"
-      (remove)="remove()"
-      (returnUnits)="returnUnits()"
-    />
+    >
+      <app-seller-status-actions
+        class="sm:col-span-6"
+        [active]="seller()!.active"
+        [busy]="busy()"
+        [notice]="statusNotice()"
+        (deactivate)="deactivate()"
+        (reactivate)="reactivate()"
+        (remove)="remove()"
+        (returnUnits)="returnUnits()"
+      />
+    </app-seller-edit-form>
   }
 </app-modal-panel>

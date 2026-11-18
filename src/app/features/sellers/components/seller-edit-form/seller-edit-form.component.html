@@ -1,5 +1,5 @@
-<form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="onSubmit()" novalidate>
-  <div class="flex flex-col gap-1.5">
+<form [formGroup]="form" class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-6" (ngSubmit)="onSubmit()" novalidate>
+  <div class="flex min-w-0 flex-col gap-1.5 sm:col-span-3">
     <label for="edit-full-name" class="field-label">Nombre</label>
     <input
       pInputText
@@ -21,7 +21,7 @@
     }
   </div>
 
-  <div class="flex flex-col gap-1.5">
+  <div class="flex min-w-0 flex-col gap-1.5 sm:col-span-3">
     <label for="edit-business-name" class="field-label">Nombre del negocio</label>
     <input
       pInputText
@@ -46,7 +46,7 @@
     }
   </div>
 
-  <div class="flex flex-col gap-1.5">
+  <div class="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
     <label for="edit-phone" class="field-label">Teléfono</label>
     <input
       pInputText
@@ -70,7 +70,7 @@
     }
   </div>
 
-  <div class="flex flex-col gap-1.5">
+  <div class="flex min-w-0 flex-col gap-1.5 sm:col-span-4">
     <label for="edit-email" class="field-label">Correo para entrar</label>
     <input
       pInputText
@@ -98,11 +98,14 @@
     }
   </div>
 
-  <div class="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2">
-    <button pButton type="submit" [disabled]="saving()" class="h-[52px] min-w-0 text-[17px]">
+  <!-- Contenido proyectado (la sección de estado del pop-up) entre los campos y el pie de acciones. -->
+  <ng-content />
+
+  <div class="sticky bottom-0 z-10 flex flex-col gap-3 border-t border-line bg-page pt-4 sm:col-span-6 sm:flex-row-reverse sm:justify-start">
+    <button pButton type="submit" [disabled]="saving()" class="h-12 min-w-0 px-6 text-base sm:min-w-44">
       {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
     </button>
-    <button pButton severity="secondary" type="button" class="h-[52px] min-w-0 text-[17px]" (click)="cancel.emit()">
+    <button pButton severity="secondary" type="button" class="h-12 min-w-0 px-6 text-base sm:min-w-44" (click)="cancel.emit()">
       Cancelar
     </button>
   </div>
