@@ -167,11 +167,12 @@ describe('EditSellerPageComponent', () => {
     type('Nombre', 'Víctor Nuevo');
     submit();
     submit();
-    expect(httpMock.match(URL)).toHaveLength(1);
+    const pending = httpMock.match(URL);
+    expect(pending).toHaveLength(1);
     await settle();
     expect(button('Guardando…').disabled).toBe(true);
     expect(fixture.componentInstance.saving()).toBe(true);
-    conflict(409, 'Ya existe un acceso con ese correo');
+    pending[0]!.flush({ error: { code: 'x', message: 'Ya existe un acceso con ese correo' } }, { status: 409, statusText: 'Error' });
     await settle();
   });
 
