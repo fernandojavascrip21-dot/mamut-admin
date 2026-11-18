@@ -1,4 +1,4 @@
-import { deleteSeller, getSeller, normalizeBusinessName, parseDetailIncludesInactive, updateSeller } from '@accounts'
+import { deleteSeller, getSeller, parseDetailIncludesInactive, updateSeller } from '@accounts'
 import { requireRole } from '@auth'
 import { handle, parseUuid, readJson, requireString } from '@lib/handler'
 
@@ -21,7 +21,7 @@ export const PUT = handle<Ctx>(async (request, { params }) => {
   const body = await readJson(request)
   const seller = await updateSeller(id, {
     fullName: requireString(body, 'fullName'),
-    businessName: normalizeBusinessName(body['businessName']),
+    businessName: body['businessName'],
     phone: requireString(body, 'phone'),
     email: requireString(body, 'email'),
   })

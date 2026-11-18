@@ -151,7 +151,7 @@ type Profile = typeof profiles.$inferSelect
 
 export interface UpdateSellerInput {
   fullName: string
-  businessName: string | null
+  businessName?: unknown
   phone: string
   email: string
 }
@@ -190,7 +190,9 @@ export async function updateSeller(id: string, input: UpdateSellerInput): Promis
   await findSeller(id)
 
   const admin = supabaseAdmin()
-  const { data } = await admin.auth.admin.getUserById(id)
+  // Si Auth no responde, se aborta antes de tocar nada: sin el correo actual no se sabe si hay que compensar.
+  const { data, error: readError } = await admin.auth.admin.getUserById(id)
+  if (readError) throw readError
   const currentEmail = data.user?.email ?? null
   const emailChanged = email !== currentEmail
   if (emailChanged) {
@@ -202,16 +204,26 @@ export async function updateSeller(id: string, input: UpdateSellerInput): Promis
     }
   }
 
+  // `returning()` da la fila ya guardada: así la lectura posterior no puede fallar en `profiles`
+  // y disparar una compensación de un correo que sí se guardó.
+  let saved: typeof profiles.$inferSelect
   try {
-    await db.update(profiles).set({ fullName, businessName, phone }).where(eq(profiles.id, id))
+    const [row] = await db
+      .update(profiles)
+      .set({ fullName, businessName, phone })
+      .where(eq(profiles.id, id))
+      .returning()
+    saved = row!
   } catch (err) {
     // Compensación: sin ella el correo nuevo quedaría en Auth con los datos viejos en `profiles`.
+    // Si la compensación también falla, se responde el error original (el de `profiles`), que es la
+    // causa; el desfase queda visible en la ficha y se corrige reeditando el correo. No se loguean datos.
     if (emailChanged && currentEmail !== null) {
       await admin.auth.admin.updateUserById(id, { email: currentEmail, email_confirm: true })
     }
     throw err
   }
-  return sellerView(await findSeller(id))
+  return sellerView(saved)
 }
 
 // Desactivar a un vendedor (spec M13-t42). Con piezas a su cargo no se desactiva: el inventario no
