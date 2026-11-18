@@ -1,8 +1,5 @@
 import type { SellerField } from '../models/create-seller-page.models';
-import { BUSINESS_NAME_TOO_LONG, DUPLICATE_EMAIL } from './sellers.constants';
-
-// Mismo mínimo que valida el backend (`validatePassword` en backend/src/accounts/accounts.ts).
-export const MIN_PASSWORD = 8;
+import { BUSINESS_NAME_TOO_LONG, DUPLICATE_EMAIL, MIN_PASSWORD } from './sellers.constants';
 
 // Mensaje de cada campo cuando está vacío (`required`) o tiene un formato que no sirve (`invalid`).
 export const FIELD_MESSAGES: Record<SellerField, { required: string; invalid: string }> = {
@@ -17,7 +14,7 @@ export const FIELD_MESSAGES: Record<SellerField, { required: string; invalid: st
   },
 };
 
-export { DUPLICATE_EMAIL };
+export { DUPLICATE_EMAIL, MIN_PASSWORD };
 export const OFFLINE_MESSAGE = 'No se pudo guardar. Revisa tu conexión.';
 
 // Un 422 del backend trae uno de estos textos (los mismos de FIELD_MESSAGES); así se pinta bajo

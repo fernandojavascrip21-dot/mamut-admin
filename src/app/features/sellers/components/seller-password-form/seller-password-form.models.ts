@@ -6,3 +6,5 @@ export interface SellerPasswordFormValue {
 }
 
 export type SellerPasswordFormSave = SetSellerPasswordInput;
+
+export type SellerPasswordField = 'password' | 'confirmation';

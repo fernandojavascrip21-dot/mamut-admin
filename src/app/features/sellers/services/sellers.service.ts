@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
 import type {
   CreateSellerInput, DeliveryHistoryItem, EmailStatus, Seller, SellerDetail, SellerListStatus, SellerSummary,
@@ -68,8 +68,11 @@ export class SellersService {
     return this.http.delete<void>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}`);
   }
 
-  // Esqueleto (HU-45): la llamada real se implementa en el paso 3 del plan.
-  setPassword(_id: string, _input: SetSellerPasswordInput): Observable<SellerPasswordResponse> {
-    return throwError(() => new Error('sin implementar'));
+  // Cambia la contraseña temporal del vendedor (HU-45); responde si se pudo avisarle por correo.
+  setPassword(id: string, input: SetSellerPasswordInput): Observable<SellerPasswordResponse> {
+    return this.http.put<SellerPasswordResponse>(
+      `${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}/password`,
+      input,
+    );
   }
 }
