@@ -3,14 +3,17 @@
 export interface Seller {
   id: string;
   fullName: string;
+  businessName: string | null;
   email: string | null;
   phone: string;
   active: boolean;
+  createdAt: string;
 }
 
 // Cuerpo de POST /api/sellers. El «usuario» del vendedor es su correo (spec T-10).
 export interface CreateSellerInput {
   fullName: string;
+  businessName: string | null;
   phone: string;
   email: string;
   password: string;
@@ -27,6 +30,7 @@ export type CreateSellerResult =
 export interface SellerSummary {
   id: string;
   fullName: string;
+  businessName: string | null;
   units: number;
 }
 
@@ -114,3 +118,16 @@ export interface ShrinkageHistoryItem {
   holder: { id: string; fullName: string } | null;
   product: { id: number; name: string; image: string | null };
 }
+
+// Cuerpo de PUT /api/sellers/:id (T-42): siempre los cuatro datos.
+export interface UpdateSellerInput {
+  fullName: string;
+  businessName: string | null;
+  phone: string;
+  email: string;
+}
+
+export type UpdateSellerFailure = 'duplicate-email' | 'invalid' | 'not-found' | 'offline';
+
+export type UpdateSellerResult =
+  { ok: true; seller: Seller } | { ok: false; reason: UpdateSellerFailure; message?: string };

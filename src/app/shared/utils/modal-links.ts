@@ -2,6 +2,7 @@ import type { UrlSegmentGroup, UrlTree } from '@angular/router';
 import {
   MODAL_DELIVERY_PATH,
   MODAL_EDIT_HOLDING_PATH,
+  MODAL_EDIT_SELLER_PATH,
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_PURCHASE_PATH,
@@ -98,4 +99,11 @@ export function openModalPath(tree: UrlTree): string | null {
 // «Cargar remisión» (HU-42): pop-up de la bodega, sin parámetros.
 export function receiptModalLink(): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_RECEIPT_PATH] } }];
+}
+
+// «Editar datos» del vendedor (HU-43): el id va en la ruta `vendedor/:sellerId`.
+export function editSellerModalLink(sellerId: string): unknown[] {
+  void sellerId;
+  void MODAL_EDIT_SELLER_PATH;
+  return [];
 }

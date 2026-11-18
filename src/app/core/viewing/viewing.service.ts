@@ -74,7 +74,7 @@ export class ViewingService {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (rows) => {
-          const sellers = sortByName(rows.map(({ id, fullName }) => ({ id, fullName })));
+          const sellers = sortByName(rows.map(({ id, fullName }) => ({ id, fullName, businessName: null })));
           this.sellersSignal.set(sellers);
           this.statusSignal.set('ready');
           // Un id guardado que ya no está activo regresa a «Yo» sin aviso.

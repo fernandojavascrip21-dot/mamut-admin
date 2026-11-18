@@ -29,3 +29,6 @@ export const RETURN_FAILURE_MESSAGES = {
   invalid: 'Revisa los datos del retiro.',
   offline: 'No pudimos registrar el retiro',
 } as const;
+
+// Mismo máximo que el backend para el nombre del negocio.
+export const MAX_BUSINESS_NAME = 80;

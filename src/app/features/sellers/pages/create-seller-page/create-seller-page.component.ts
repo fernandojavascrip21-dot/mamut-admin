@@ -125,6 +125,7 @@ export class CreateSellerPageComponent implements OnInit {
     const raw = this.form.getRawValue();
     return {
       fullName: raw.fullName.trim(),
+      businessName: null,
       phone: normalizePhone(raw.phone) ?? raw.phone,
       email: raw.email.trim(),
       password: raw.password,
