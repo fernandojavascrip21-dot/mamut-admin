@@ -95,9 +95,9 @@ describe.skipIf(!hasServiceKey)('Mis vendedores (HU-09, con cuentas reales)', ()
   it('lista a los vendedores activos con su total de piezas', async () => {
     const res = await list(admin.token)
     expect(res.status).toBe(200)
-    const sellers: { id: string; fullName: string; units: number }[] = await res.json()
+    const sellers: { id: string; fullName: string; businessName: string | null; units: number }[] = await res.json()
 
-    expect(sellers.find((s) => s.id === seller.id)).toEqual({ id: seller.id, fullName: 'Prueba hu09-luis', units: 6 })
+    expect(sellers.find((s) => s.id === seller.id)).toEqual({ id: seller.id, fullName: 'Prueba hu09-luis', businessName: null, units: 6 })
     expect(sellers.find((s) => s.id === emptySeller.id)?.units).toBe(0)
     expect(sellers.some((s) => s.id === inactiveSeller.id)).toBe(false)
     expect(sellers.some((s) => s.id === admin.id)).toBe(false)

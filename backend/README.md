@@ -69,7 +69,7 @@ Todos devuelven errores como `{ error: { code, message } }` (401, 403, 404, 409,
 | Sesión | `GET /api/health`, `POST /api/auth/{login,refresh,logout}`, `GET /api/me` |
 | Catálogo | `/api/products`, `/api/products/:id`, `/api/products/photo`, `/api/categories` |
 | Inventario | `/api/stock`, `/api/me/stock`, `/api/sellers/:id/{deliveries,returns,shrinkages,stock/:productId}` |
-| Vendedores y cuentas | `/api/sellers`, `/api/sellers/:id`, `/api/admins`, `/api/clients`, `/api/logins` |
+| Vendedores y cuentas | `/api/sellers` (`GET` con `?status=active\|inactive`), `/api/sellers/:id` (`GET` con `?status=any`, `PUT` editar, `DELETE` solo sin historial), `/api/sellers/:id/{deactivate,reactivate}` (`POST`), `/api/sellers/:id/password` (`PUT`, cierra sus sesiones), `/api/admins`, `/api/clients`, `/api/logins` |
 | Ventas y cortes | `/api/sales`, `/api/sales/catalog`, `/api/cuts` |
 | Fraccionado y merma | `/api/fractions`, `/api/shrinkages` |
 

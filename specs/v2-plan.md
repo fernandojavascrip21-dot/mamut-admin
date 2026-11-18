@@ -13,6 +13,7 @@ La v1 (M0–M6) está implementada. M7 sigue abierto: `SCRUM-75` (Vercel) y `SCR
 | M10 · Venta avanzada e inventario | RF-12, RF-18, RF-05 | Precio especial en una venta con ganancia sobre ese precio; productos más vendidos; importar el inventario del Excel de `references/`. | L |
 | M11 · Merma con confirmación | RF-15 (parte), RF-16 | El vendedor reporta su merma, el administrador la confirma; reporte de la semana. Extiende la merma simple de M6. | M |
 | M12 · Cliente | RF-22 a RF-25, RF-04, `SCRUM-15` | Catálogo público con stock, uso y beneficios; botón de WhatsApp; avisos de ofertas; total comprado; filtros por categoría y fraccionado. | L |
+| M13 · Gestión de vendedores | RF-34 a RF-37 | Ficha del vendedor desde «Mis vendedores»: editar nombre, nombre del negocio, teléfono y correo; desactivar y reactivar (bloqueado si tiene piezas); contraseña temporal puesta por el administrador; eliminar solo sin historial. Agregado el 2026-11-16. | M |
 
 Orden: M7 (cerrar v1) → M8 → M9 → M10 → M11 → M12. M9 y M11 no dependen de M8 y pueden intercambiarse.
 
@@ -23,6 +24,7 @@ Orden: M7 (cerrar v1) → M8 → M9 → M10 → M11 → M12. M9 y M11 no depende
 - **Cliente:** `profiles.role` ya permite `'client'`; un rol nuevo **extiende**, no reemplaza. `clients`/`consignment_items` siguen reservadas para otro caso (distribuidor mayorista).
 - **Precio especial:** cada venta ya guarda precio y costo del momento; el precio especial se suma sin romper los cortes (HU-19 a HU-22).
 - **Importar Excel:** los inventarios entran solo como movimientos `initial`/`purchase` vía `insertMovements`.
+- **Gestión de vendedores (M13):** `src/accounts/logins.ts` ya edita, activa/desactiva, cambia contraseña y borra (409 con historial por la FK `restrict`) logins de cliente, y `admins.ts` desactiva con `withTransaction` + `lockRows`; se replica para el rol `'vendedor'`. Necesita la columna nueva `profiles.business_name` (migración `20261116000000_seller_business_name.sql`, que se aplica a mano en producción; ver el paso 11 de `M13-t42-base-gestion-vendedores`). Decidido el 2026-11-16: con piezas no se desactiva; la contraseña la pone el administrador (temporal, sin correo); con historial solo se desactiva; al cambiar la contraseña se cierran todas las sesiones del vendedor (`revokeSessions`).
 
 ## Decisiones por resolver
 
@@ -46,5 +48,6 @@ Por milestone, como en la v1: la épica de Jira pasa a Finalizada cuando cada hi
 | `SCRUM-80` M10 · Venta avanzada e inventario | T-37 `SCRUM-90`, HU-33 `SCRUM-91`, HU-34 `SCRUM-92`, T-38 `SCRUM-93`, HU-35 `SCRUM-94` |
 | `SCRUM-81` M11 · Merma con confirmación | T-39 `SCRUM-95`, HU-36 `SCRUM-96`, HU-37 `SCRUM-97` |
 | `SCRUM-82` M12 · Cliente | `SCRUM-15`, T-40 `SCRUM-98`, HU-38 `SCRUM-99`, HU-39 `SCRUM-100`, HU-40 `SCRUM-101`, HU-41 `SCRUM-102` |
+| `SCRUM-105` M13 · Gestión de vendedores (2026-11-16) | T-42 `SCRUM-106`, HU-43 `SCRUM-107`, HU-44 `SCRUM-108`, HU-45 `SCRUM-109` |
 
 Todo con etiqueta `v2`. Cada tarea base (T-35…T-40) va antes de sus historias; se bajan a specs con `/spec`.
