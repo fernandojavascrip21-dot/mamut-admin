@@ -5,6 +5,7 @@ import { isForeignKeyViolation } from '@db/errors'
 import { profiles, vendorStock } from '@db/schema'
 import { lockRows, withTransaction } from '@db/transaction'
 import { conflict, notFound, validation } from '@lib/errors'
+import { sendSellerStatusEmail, type EmailStatus } from '@notifications'
 import { supabaseAdmin } from '@lib/supabase'
 import { stockOfHolder, unitsByHolder, type HolderStockLine } from '@stock'
 import { createAccount, normalizeEmail, toView, validatePassword, type AccountView } from './accounts'
@@ -18,6 +19,9 @@ import {
 } from './constants'
 
 export type SellerView = AccountView & { businessName: string | null }
+
+// Vista del vendedor tras desactivar o reactivar, con cómo salió el aviso (null = el estado ya era ese).
+export type SellerStatusChange = SellerView & { emailStatus: EmailStatus | null }
 
 // Fila de «Mis vendedores» (HU-09): sin correo, para no pedir a Supabase Auth una cuenta por fila.
 export interface SellerSummary {
@@ -229,26 +233,39 @@ export async function updateSeller(id: string, input: UpdateSellerInput): Promis
 // Desactivar a un vendedor (spec M13-t42). Con piezas a su cargo no se desactiva: el inventario no
 // debe quedar en manos de alguien sin acceso. El candado sobre su perfil y sus filas de vendor_stock
 // impide que una entrega se cuele entre la lectura del saldo y el cambio de `active`.
-export async function deactivateSeller(id: string): Promise<SellerView> {
-  await withTransaction(async (tx) => {
+export async function deactivateSeller(id: string): Promise<SellerStatusChange> {
+  const changed = await withTransaction(async (tx) => {
     const [seller] = await lockRows(tx, profiles, eq(profiles.id, id))
     if (!seller || seller.role !== 'vendedor') throw notFound()
     // Ya desactivado: responde igual, sin revisar piezas (idempotente, como setLoginActive).
-    if (!seller.active) return
+    if (!seller.active) return false
     const rows = await lockRows(tx, vendorStock, eq(vendorStock.profileId, id))
     const units = rows.reduce((total, row) => total + row.qty, 0)
     if (units > 0) throw conflict(SELLER_HAS_UNITS)
     await tx.update(profiles).set({ active: false }).where(eq(profiles.id, id))
+    return true
   })
-  return sellerView(await findSeller(id))
+  return withStatusEmail(await sellerView(await findSeller(id)), changed, 'deactivated')
 }
 
-// Reactivar a un vendedor (spec M13-t42). Ya activo responde sin cambios.
-export async function reactivateSeller(id: string): Promise<SellerView> {
+// Reactivar a un vendedor (spec M13-t42). Ya activo responde sin cambios y sin aviso.
+export async function reactivateSeller(id: string): Promise<SellerStatusChange> {
   const seller = await findSeller(id)
-  if (seller.active) return sellerView(seller)
+  if (seller.active) return { ...(await sellerView(seller)), emailStatus: null }
   const [updated] = await db.update(profiles).set({ active: true }).where(eq(profiles.id, id)).returning()
-  return sellerView(updated!)
+  return withStatusEmail(await sellerView(updated!), true, 'reactivated')
+}
+
+// Aviso por correo (spec M13-hu44): se manda ya confirmado el cambio, fuera de la transacción, para
+// que un fallo o una demora del correo no pueda deshacerlo. Sin cambio no se manda nada.
+async function withStatusEmail(
+  view: SellerView,
+  changed: boolean,
+  kind: 'deactivated' | 'reactivated',
+): Promise<SellerStatusChange> {
+  if (!changed) return { ...view, emailStatus: null }
+  const emailStatus = await sendSellerStatusEmail({ to: view.email, name: view.fullName, kind })
+  return { ...view, emailStatus }
 }
 
 // Eliminar un alta hecha por error (spec M13-t42). Con historial, la FK `restrict` impide borrar el
