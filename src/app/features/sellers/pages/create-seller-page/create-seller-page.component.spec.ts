@@ -8,7 +8,10 @@ import { SellerSaveService } from '../../services/seller-save.service';
 import { ToastService } from '@core/toast/toast.service';
 import type { CreateSellerResult, Seller } from '../../interfaces/seller.models';
 
-const SELLER: Seller = { id: 'u1', fullName: 'Luis Vendedor', email: 'luis@mammut.mx', phone: '5524681357', active: true };
+const SELLER: Seller = {
+  id: 'u1', fullName: 'Luis Vendedor', businessName: null, email: 'luis@mammut.mx', phone: '5524681357', active: true,
+  createdAt: '2026-11-12T18:00:00.000Z',
+};
 
 // Cableado de la página con un doble de SellerSaveService: el mapeo de errores HTTP se prueba en
 // seller-save.service.spec.ts.
@@ -109,7 +112,7 @@ describe('CreateSellerPageComponent', () => {
     fillValid();
     submit();
     expect(saveService.create).toHaveBeenCalledWith({
-      fullName: 'Luis Vendedor', phone: '5524681357', email: 'luis@mammut.mx', password: 'temporal123',
+      fullName: 'Luis Vendedor', businessName: null, phone: '5524681357', email: 'luis@mammut.mx', password: 'temporal123',
     });
     expect(text()).toContain('Guardando…');
     expect(el<HTMLInputElement>('#full-name').disabled).toBe(true);

@@ -7,8 +7,8 @@ import { API_BASE_URL } from '@core/api-base-url';
 import type { CreateSellerInput, CreateSellerResult, Seller } from '../interfaces/seller.models';
 
 const SELLERS_URL = `${API_BASE_URL}/api/sellers`;
-const INPUT: CreateSellerInput = { fullName: 'Luis', phone: '55 2468 1357', email: 'luis@mammut.mx', password: 'temporal123' };
-const SELLER: Seller = { id: 'u1', fullName: 'Luis', email: 'luis@mammut.mx', phone: '5524681357', active: true };
+const INPUT: CreateSellerInput = { fullName: 'Luis', businessName: null, phone: '55 2468 1357', email: 'luis@mammut.mx', password: 'temporal123' };
+const SELLER: Seller = { id: 'u1', fullName: 'Luis', businessName: null, email: 'luis@mammut.mx', phone: '5524681357', active: true, createdAt: '2026-11-12T18:00:00.000Z' };
 
 describe('SellerSaveService', () => {
   let service: SellerSaveService;

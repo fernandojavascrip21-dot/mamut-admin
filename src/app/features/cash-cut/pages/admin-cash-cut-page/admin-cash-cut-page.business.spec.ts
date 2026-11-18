@@ -17,6 +17,7 @@ const CUTS_URL = `${API_BASE_URL}/api/cuts`;
 const LUIS: ViewingSeller = {
   id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b',
   fullName: 'Luis Vendedor',
+  businessName: null,
 };
 const ANA_ID = '7a2b3c4d-5e6f-4a70-8b9c-0d1e2f3a4b5c';
 const HOME_OPTION = 'Ganancia real';

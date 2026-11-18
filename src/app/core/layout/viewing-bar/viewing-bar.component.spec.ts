@@ -3,8 +3,8 @@ import { ViewingBarComponent } from './viewing-bar.component';
 import type { ViewingListStatus, ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 
 const SELLERS: ViewingSeller[] = [
-  { id: 'v-2', fullName: 'Valeria Vendedora' },
-  { id: 'v-1', fullName: 'Víctor Vendedor' },
+  { id: 'v-2', fullName: 'Valeria Vendedora', businessName: null },
+  { id: 'v-1', fullName: 'Víctor Vendedor', businessName: null },
 ];
 
 describe('ViewingBarComponent', () => {

@@ -13,7 +13,7 @@ describe('normalizePhone', () => {
 
 
 describe('sortSellersByName', () => {
-  const seller = (fullName: string) => ({ id: fullName, fullName, units: 0 });
+  const seller = (fullName: string) => ({ id: fullName, fullName, businessName: null, units: 0 });
 
   it('ordena sin distinguir acentos ni mayúsculas', () => {
     const sorted = sortSellersByName([seller('Beto'), seller('ana'), seller('Ángel'), seller('Carla')]);

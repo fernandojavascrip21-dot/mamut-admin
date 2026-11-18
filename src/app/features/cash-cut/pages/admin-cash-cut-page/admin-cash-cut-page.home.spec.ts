@@ -14,7 +14,7 @@ import { CashCutService } from '../../services/cash-cut.service';
 import { AdminCashCutPageComponent } from './admin-cash-cut-page.component';
 
 const CUTS_URL = `${API_BASE_URL}/api/cuts`;
-const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez' };
+const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez', businessName: null };
 const PRICES_HELP = 'Con el costo con envío que le pusiste a cada vendedor.';
 const HOME_HELP = 'Con el costo de fábrica de cada venta.';
 const HOME_OPTION = 'Ganancia real';

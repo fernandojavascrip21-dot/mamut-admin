@@ -19,9 +19,11 @@ const SHRINKAGES_URL = `${SELLER_URL}/shrinkages`;
 const SELLER: SellerDetail = {
   id: ID,
   fullName: 'Luis Prueba',
+  businessName: null,
   email: 'luis@mammut.local',
   phone: '5524681357',
   active: true,
+  createdAt: '2026-11-12T18:00:00.000Z',
   units: 6,
   stock: [
     {

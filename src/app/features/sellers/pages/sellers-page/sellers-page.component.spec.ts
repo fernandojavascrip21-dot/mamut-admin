@@ -11,8 +11,8 @@ import type { SellerSummary } from '../../interfaces/seller.models';
 const SELLERS_URL = `${API_BASE_URL}/api/sellers`;
 
 const SELLERS: SellerSummary[] = [
-  { id: 'b', fullName: 'Valeria Vendedora', units: 0 },
-  { id: 'a', fullName: 'Ángel Ruiz', units: 6 },
+  { id: 'b', fullName: 'Valeria Vendedora', businessName: null, units: 0 },
+  { id: 'a', fullName: 'Ángel Ruiz', businessName: null, units: 6 },
 ];
 
 describe('SellersPageComponent', () => {
