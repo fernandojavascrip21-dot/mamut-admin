@@ -369,11 +369,11 @@ describe.skipIf(!hasServiceKey)('Gestión de vendedores (M13-t42, con cuentas re
       expect(res.status).toBe(422)
     })
 
-    it('con una válida da 204, la anterior deja de servir y la nueva sí', async () => {
+    it('con una válida da 200, la anterior deja de servir y la nueva sí', async () => {
       const target = await newSeller('m42-clave')
       const res = await passwordRoute(request('PUT', { token: admin.token, body: { password: NEW_PASSWORD } }), ctx(target.id))
-      expect(res.status).toBe(204)
-      expect(await res.text()).toBe('')
+      expect(res.status).toBe(200)
+      expect(await json(res)).toEqual({ emailStatus: expect.stringMatching(/^(sent|failed|skipped)$/) })
       expect((await tryLogin(target.email, TEST_PASSWORD)).status).toBe(401)
       expect((await tryLogin(target.email, NEW_PASSWORD)).status).toBe(200)
     })
@@ -382,7 +382,7 @@ describe.skipIf(!hasServiceKey)('Gestión de vendedores (M13-t42, con cuentas re
       const target = await newSeller('m42-sesiones')
       expect((await meStock(target.token)).status).toBe(200)
       const res = await passwordRoute(request('PUT', { token: admin.token, body: { password: NEW_PASSWORD } }), ctx(target.id))
-      expect(res.status).toBe(204)
+      expect(res.status).toBe(200)
       expect((await meStock(target.token)).status).toBe(401)
       const refreshed = await refreshRoute(authPost('/api/auth/refresh', { refreshToken: target.refreshToken }), undefined)
       expect(refreshed.status).toBe(401)
@@ -391,7 +391,7 @@ describe.skipIf(!hasServiceKey)('Gestión de vendedores (M13-t42, con cuentas re
     it('funciona con un vendedor desactivado', async () => {
       const target = await newSeller('m42-clave-inactivo', false)
       const res = await passwordRoute(request('PUT', { token: admin.token, body: { password: NEW_PASSWORD } }), ctx(target.id))
-      expect(res.status).toBe(204)
+      expect(res.status).toBe(200)
     })
   })
 

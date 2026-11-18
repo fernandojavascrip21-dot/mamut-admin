@@ -21,3 +21,5 @@ export const MODAL_RESTOCK_HISTORY_PATH = 'resurtir/pedidos';
 export const MODAL_RECEIPT_PATH = 'remision';
 // Ventana «Editar datos» del vendedor (HU-43): `vendedor/:sellerId`.
 export const MODAL_EDIT_SELLER_PATH = 'vendedor';
+// Ventana «Cambiar contraseña» del vendedor (HU-45): `vendedor/:sellerId/contrasena`.
+export const MODAL_SELLER_PASSWORD_PATH = 'contrasena';

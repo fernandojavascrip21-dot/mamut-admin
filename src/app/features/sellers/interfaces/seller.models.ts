@@ -143,3 +143,10 @@ export type EmailStatus = 'sent' | 'failed' | 'skipped';
 // Resultado de desactivar / reactivar (con el vendedor y cómo salió el correo) o eliminar (seller: null).
 export type SellerStatusResult =
   { ok: true; seller: Seller | null; emailStatus: EmailStatus | null } | { ok: false; reason: SellerStatusFailure };
+
+// Cambio de contraseña temporal (HU-45): cuerpo de PUT /api/sellers/:id/password y su respuesta.
+export interface SetSellerPasswordInput { password: string }
+export interface SellerPasswordResponse { emailStatus: EmailStatus }
+export type SellerPasswordFailure = 'invalid' | 'not-found' | 'offline';
+export type SellerPasswordResult =
+  { ok: true; emailStatus: EmailStatus } | { ok: false; reason: SellerPasswordFailure; message?: string };

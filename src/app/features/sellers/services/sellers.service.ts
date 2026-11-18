@@ -1,11 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
 import type {
   CreateSellerInput, DeliveryHistoryItem, EmailStatus, Seller, SellerDetail, SellerListStatus, SellerSummary,
-  UpdateSellerInput,
+  SellerPasswordResponse, SetSellerPasswordInput, UpdateSellerInput,
 } from '../interfaces/seller.models';
 
 // Cliente HTTP hacia /api/sellers. El Bearer token lo agrega authInterceptor.
@@ -66,5 +66,10 @@ export class SellersService {
   // Elimina un alta hecha por error (204).
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}`);
+  }
+
+  // Esqueleto (HU-45): la llamada real se implementa en el paso 3 del plan.
+  setPassword(_id: string, _input: SetSellerPasswordInput): Observable<SellerPasswordResponse> {
+    return throwError(() => new Error('sin implementar'));
   }
 }
