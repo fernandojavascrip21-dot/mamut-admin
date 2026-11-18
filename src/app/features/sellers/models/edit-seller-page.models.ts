@@ -5,3 +5,6 @@ export interface EditSellerLeaveTarget {
   saving(): boolean;
   hasUnsavedChanges(): boolean;
 }
+
+// Estado del envío del pop-up: `offline` es «no se pudo guardar», con Reintentar.
+export type EditSellerSaveState = 'idle' | 'saving' | 'offline';
