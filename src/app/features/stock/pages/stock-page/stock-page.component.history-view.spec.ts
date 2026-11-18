@@ -15,7 +15,7 @@ import { StockPageComponent } from './stock-page.component';
 const STOCK_URL = `${API_BASE_URL}/api/stock`;
 const SHRINKAGES_URL = `${API_BASE_URL}/api/shrinkages`;
 const FRACTIONS_URL = `${API_BASE_URL}/api/fractions`;
-const LUIS: ViewingSeller = { id: 'luis-id', fullName: 'Luis' };
+const LUIS: ViewingSeller = { id: 'luis-id', fullName: 'Luis', businessName: null };
 
 const OVERVIEW: StockOverview = {
   warehouse: 8,

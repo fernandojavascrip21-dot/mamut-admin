@@ -1,6 +1,6 @@
 <a
   [routerLink]="['/admin/vendedores', seller().id]"
-  [attr.aria-label]="'Ver a ' + seller().fullName + ', ' + units()"
+  [attr.aria-label]="ariaLabel()"
   class="group block min-w-0 cursor-pointer rounded-card text-ink no-underline transition-[transform,translate,scale] duration-200 hover:-translate-y-0.5 hover:text-ink active:scale-[0.99] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent motion-reduce:transform-none motion-reduce:translate-none motion-reduce:scale-none motion-reduce:transition-none motion-reduce:hover:translate-none motion-reduce:active:scale-none"
 >
   <p-card
@@ -14,7 +14,12 @@
       >
         {{ initials() }}
       </span>
-      <span class="min-w-0 flex-1 text-[17px] leading-tight font-bold wrap-break-word">{{ seller().fullName }}</span>
+      <span class="flex min-w-0 flex-1 flex-col">
+        <span class="text-[17px] leading-tight font-bold wrap-break-word">{{ seller().fullName }}</span>
+        @if (seller().businessName; as business) {
+          <span class="business mt-0.5 truncate text-sm text-muted">{{ business }}</span>
+        }
+      </span>
       <span class="units font-mono text-base font-bold whitespace-nowrap">{{ units() }}</span>
       <svg
         aria-hidden="true"

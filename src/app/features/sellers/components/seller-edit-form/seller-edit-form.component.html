@@ -1,0 +1,109 @@
+<form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="onSubmit()" novalidate>
+  <div class="flex flex-col gap-1.5">
+    <label for="edit-full-name" class="field-label">Nombre</label>
+    <input
+      pInputText
+      id="edit-full-name"
+      name="fullName"
+      type="text"
+      autocomplete="off"
+      #fullNameInput
+      formControlName="fullName"
+      [attr.aria-invalid]="errors().fullName ? 'true' : null"
+      [attr.aria-describedby]="errors().fullName ? 'edit-full-name-error' : null"
+      [invalid]="!!errors().fullName"
+      class="h-[52px] min-w-0"
+    />
+    @if (errors().fullName) {
+      <p id="edit-full-name-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ errors().fullName }}
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <label for="edit-business-name" class="field-label">Nombre del negocio</label>
+    <input
+      pInputText
+      id="edit-business-name"
+      name="businessName"
+      type="text"
+      autocomplete="off"
+      #businessInput
+      formControlName="businessName"
+      [attr.aria-invalid]="errors().businessName ? 'true' : null"
+      [attr.aria-describedby]="
+        errors().businessName ? 'edit-business-name-hint edit-business-name-error' : 'edit-business-name-hint'
+      "
+      [invalid]="!!errors().businessName"
+      class="h-[52px] min-w-0"
+    />
+    <p id="edit-business-name-hint" class="m-0 text-xs text-muted">Opcional: gimnasio, café, tienda…</p>
+    @if (errors().businessName) {
+      <p id="edit-business-name-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ errors().businessName }}
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <label for="edit-phone" class="field-label">Teléfono</label>
+    <input
+      pInputText
+      id="edit-phone"
+      name="phone"
+      type="tel"
+      inputmode="tel"
+      autocomplete="off"
+      #phoneInput
+      formControlName="phone"
+      [attr.aria-invalid]="errors().phone ? 'true' : null"
+      [attr.aria-describedby]="errors().phone ? 'edit-phone-hint edit-phone-error' : 'edit-phone-hint'"
+      [invalid]="!!errors().phone"
+      class="h-[52px] min-w-0 font-mono"
+    />
+    <p id="edit-phone-hint" class="m-0 text-xs text-muted">10 dígitos; puedes escribirlo con espacios.</p>
+    @if (errors().phone) {
+      <p id="edit-phone-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ errors().phone }}
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <label for="edit-email" class="field-label">Correo para entrar</label>
+    <input
+      pInputText
+      id="edit-email"
+      name="email"
+      type="email"
+      inputmode="email"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      #emailInput
+      formControlName="email"
+      [attr.aria-invalid]="errors().email ? 'true' : null"
+      [attr.aria-describedby]="errors().email ? 'edit-email-hint edit-email-error' : 'edit-email-hint'"
+      [invalid]="!!errors().email"
+      class="h-[52px] min-w-0 font-mono"
+    />
+    <p id="edit-email-hint" class="m-0 text-xs text-muted">
+      Es su usuario para entrar. Si lo cambias, entrará con el nuevo.
+    </p>
+    @if (errors().email) {
+      <p id="edit-email-error" class="field-error m-0 text-[13px] font-semibold text-danger" role="alert">
+        {{ errors().email }}
+      </p>
+    }
+  </div>
+
+  <div class="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <button pButton type="submit" [disabled]="saving()" class="h-[52px] min-w-0 text-[17px]">
+      {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+    </button>
+    <button pButton severity="secondary" type="button" class="h-[52px] min-w-0 text-[17px]" (click)="cancel.emit()">
+      Cancelar
+    </button>
+  </div>
+</form>

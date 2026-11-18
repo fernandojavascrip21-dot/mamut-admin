@@ -9,7 +9,7 @@ import type { CashCut } from '../../interfaces/cash-cut.models';
 import { AdminCashCutPageComponent } from './admin-cash-cut-page.component';
 
 const CUTS_URL = `${API_BASE_URL}/api/cuts`;
-const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez' };
+const LUIS: ViewingSeller = { id: '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b', fullName: 'Luis Pérez', businessName: null };
 
 const SELLER_CUT: CashCut = {
   holder: LUIS,

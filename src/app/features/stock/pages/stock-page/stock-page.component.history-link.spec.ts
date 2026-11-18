@@ -62,7 +62,7 @@ describe('StockPageComponent · selector de vista (HU-26 §12)', () => {
   });
 
   it('con un vendedor en «Viendo» el selector también ofrece «Fraccionados» (HU-26 §13)', async () => {
-    selected.set({ id: 'luis-id', fullName: 'Luis' });
+    selected.set({ id: 'luis-id', fullName: 'Luis', businessName: null });
     await load();
     expect(labels()).toEqual(['Productos', 'Mermas', 'Fraccionados']);
   });

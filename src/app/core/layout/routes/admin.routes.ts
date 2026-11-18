@@ -3,6 +3,7 @@ import { Router, Routes } from '@angular/router';
 import {
   MODAL_DELIVERY_PATH,
   MODAL_EDIT_HOLDING_PATH,
+  MODAL_EDIT_SELLER_PATH,
   MODAL_FRACTION_PATH,
   MODAL_OUTLET,
   MODAL_RETURN_PATH,
@@ -15,6 +16,7 @@ import {
 import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
 import { unsavedRestockGuard } from '@features/restock/guards/unsaved-restock.guard';
 import { unsavedReceiptGuard } from '@features/receipts/guards/unsaved-receipt.guard';
+import { unsavedSellerGuard } from '@features/sellers/guards/unsaved-seller.guard';
 
 // Hijos de /admin, cargados con loadChildren: este archivo (y cada feature) solo se descarga
 // cuando roleGuard ya dejó pasar a un administrador, así que el vendedor nunca lo baja.
@@ -83,6 +85,17 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.EditHoldingPageComponent,
       ),
     data: { title: 'Editar lo dejado' },
+  },
+  // «Editar datos» del vendedor (HU-43): el id llega en `vendedor/:sellerId`; no se cierra con cambios sin guardar.
+  {
+    path: `${MODAL_EDIT_SELLER_PATH}/:sellerId`,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [unsavedSellerGuard],
+    loadComponent: () =>
+      import('@features/sellers/pages/edit-seller-page/edit-seller-page.component').then(
+        (m) => m.EditSellerPageComponent,
+      ),
+    data: { title: 'Editar datos' },
   },
   // «Fraccionar» (HU-23): pop-up en el outlet `ventana`; el entero llega como parámetro `producto`.
   {

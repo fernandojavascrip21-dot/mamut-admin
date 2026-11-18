@@ -199,7 +199,7 @@ describe('StockPageComponent', () => {
     });
 
     it('con un vendedor en «Viendo» solo salen los suyos, como «por terminarse»', async () => {
-      selected.set({ id: LUIS, fullName: 'Luis' });
+      selected.set({ id: LUIS, fullName: 'Luis', businessName: null });
       await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
       expect(text('.low-stock .title')).toBe('1 producto por terminarse');
       expect(alertRows()).toEqual(['Proteína Whey | Luis | 0 | Agotado']);
@@ -211,7 +211,7 @@ describe('StockPageComponent', () => {
     });
 
     it('un vendedor sin avisos propios no ve la tarjeta aunque haya avisos de otros', async () => {
-      selected.set({ id: 'otro-id', fullName: 'Otro' });
+      selected.set({ id: 'otro-id', fullName: 'Otro', businessName: null });
       await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
       expect(el().querySelector('.low-stock')).toBeNull();
     });
@@ -243,7 +243,7 @@ describe('StockPageComponent', () => {
     it('cerrada no vuelve al cambiar de vendedor en «Viendo»', async () => {
       await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
       close();
-      selected.set({ id: LUIS, fullName: 'Luis' });
+      selected.set({ id: LUIS, fullName: 'Luis', businessName: null });
       fixture.detectChanges();
       expect(card()).toBeNull();
     });
@@ -328,7 +328,7 @@ describe('StockPageComponent', () => {
     });
 
     it('con un vendedor en «Viendo» el globo y el pop-up son solo los suyos, y el título lleva su nombre', async () => {
-      selected.set({ id: LUIS, fullName: 'Luis' });
+      selected.set({ id: LUIS, fullName: 'Luis', businessName: null });
       await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
       expect(badge()).toBe('1');
       await open();
@@ -337,10 +337,10 @@ describe('StockPageComponent', () => {
     });
 
     it('cambiar de vendedor con el pop-up abierto actualiza la lista sin pedir datos de nuevo', async () => {
-      selected.set({ id: LUIS, fullName: 'Luis' });
+      selected.set({ id: LUIS, fullName: 'Luis', businessName: null });
       await load({ ...OVERVIEW, lowStock: LOW_ALERTS });
       await open();
-      selected.set({ id: 'valeria-id', fullName: 'Valeria' });
+      selected.set({ id: 'valeria-id', fullName: 'Valeria', businessName: null });
       fixture.detectChanges();
       httpMock.expectNone(STOCK_URL);
       expect(popupRows()).toEqual(['Creatina | 2 piezas']);
@@ -360,7 +360,7 @@ describe('StockPageComponent', () => {
 
   describe('con un vendedor en «Viendo»', () => {
     beforeEach(async () => {
-      selected.set({ id: LUIS, fullName: 'Luis' });
+      selected.set({ id: LUIS, fullName: 'Luis', businessName: null });
       await load();
     });
 
@@ -396,14 +396,14 @@ describe('StockPageComponent', () => {
     });
 
     it('cambiar de vendedor en la barra no vuelve a pedir datos', () => {
-      selected.set({ id: 'valeria-id', fullName: 'Valeria' });
+      selected.set({ id: 'valeria-id', fullName: 'Valeria', businessName: null });
       fixture.detectChanges();
       httpMock.expectNone(STOCK_URL);
       expect(text('h1')).toBe('Resumen de Valeria');
     });
 
     it('un vendedor sin producto dice «Todavía no tiene producto.» y conserva sus acciones', () => {
-      selected.set({ id: 'valeria-id', fullName: 'Valeria' });
+      selected.set({ id: 'valeria-id', fullName: 'Valeria', businessName: null });
       fixture.detectChanges();
       expect(text('.seller-empty')).toBe('Todavía no tiene producto.');
       expect(text('.seller-card .total')).toBe('0 piezas');

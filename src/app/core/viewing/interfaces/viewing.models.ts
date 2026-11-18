@@ -2,6 +2,7 @@
 export interface ViewingSeller {
   id: string;
   fullName: string;
+  businessName: string | null;
 }
 
 // Estado de la lista de vendedores de la barra.

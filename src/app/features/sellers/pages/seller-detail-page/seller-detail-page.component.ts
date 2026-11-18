@@ -1,4 +1,6 @@
+import { DatePipe } from '@angular/common';
 import { ButtonDirective } from 'primeng/button';
+import { Tag } from 'primeng/tag';
 import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -14,12 +16,14 @@ import { unitsLabel } from '@shared/utils/units-label';
 import {
   deliveryModalLink,
   editHoldingModalLink,
+  editSellerModalLink,
   openModalPath,
   returnModalLink,
 } from '@shared/utils/modal-links';
 import { ShrinkageHistoryLineComponent } from '@shared/components/shrinkage-history-line/shrinkage-history-line.component';
 import { DeliveryHistoryLineComponent } from '../../components/delivery-history-line/delivery-history-line.component';
 import { ReturnHistoryLineComponent } from '../../components/return-history-line/return-history-line.component';
+import { SellerChangesService } from '../../services/seller-changes.service';
 import { SellerStockLineComponent } from '../../components/seller-stock-line/seller-stock-line.component';
 import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
 import type {
@@ -44,7 +48,7 @@ import { SellersService } from '../../services/sellers.service';
 // abrir el detalle elige a ese vendedor, y elegir a otro en la barra abre el suyo (o la lista, con
 // «Yo · bodega»).
 @Component({
-  imports: [ButtonDirective, 
+  imports: [ButtonDirective, Tag, DatePipe,
     RouterLink,
     DataView,
     PhonePipe,
@@ -64,6 +68,7 @@ export class SellerDetailPageComponent {
   private readonly router = inject(Router);
   private readonly viewing = inject(ViewingService);
   private readonly stockChanges = inject(StockChangesService);
+  private readonly sellerChanges = inject(SellerChangesService);
 
   // El backend valida el id (un id que no es UUID da 404, igual que uno inexistente). Se lee
   // de paramMap y no del snapshot porque, al elegir a otro vendedor en la barra, el router
@@ -99,6 +104,7 @@ export class SellerDetailPageComponent {
   );
   readonly deliveryLink = computed(() => deliveryModalLink({ sellerId: this.sellerId() }));
   readonly returnLink = computed(() => returnModalLink(this.sellerId()));
+  readonly editLink = computed(() => editSellerModalLink(this.sellerId()));
 
   // «Editar» de una línea del stock: abre la ventana de corrección de ese producto.
   editHolding(productId: number): void {
@@ -165,6 +171,14 @@ export class SellerDetailPageComponent {
         this.returnsResource.reload();
         this.shrinkagesResource.reload();
       });
+    });
+
+    // Guardar «Editar datos» (HU-43) solo cambia los datos del vendedor: se vuelve a pedir sin pasar
+    // por «cargando» y los historiales no se tocan. Igual que arriba, se ignora la versión inicial.
+    const initialSeller = this.sellerChanges.version();
+    effect(() => {
+      if (this.sellerChanges.version() === initialSeller) return;
+      untracked(() => this.sellerResource.reload());
     });
 
     // Un detalle que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.

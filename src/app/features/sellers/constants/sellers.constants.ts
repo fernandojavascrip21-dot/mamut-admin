@@ -29,3 +29,10 @@ export const RETURN_FAILURE_MESSAGES = {
   invalid: 'Revisa los datos del retiro.',
   offline: 'No pudimos registrar el retiro',
 } as const;
+
+// Mismo máximo que el backend para el nombre del negocio.
+export const MAX_BUSINESS_NAME = 80;
+
+export const DUPLICATE_EMAIL = 'Ya existe un acceso con ese correo';
+
+export const BUSINESS_NAME_TOO_LONG = `El nombre del negocio debe tener como máximo ${MAX_BUSINESS_NAME} caracteres`;

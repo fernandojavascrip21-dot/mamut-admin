@@ -38,7 +38,8 @@
       }
     </div>
   } @else if (seller(); as seller) {
-    <section class="mt-2 flex items-center gap-4 surface-card p-4" aria-labelledby="seller-name">
+    <section class="mt-2 surface-card p-4" aria-labelledby="seller-name">
+     <div class="flex items-center gap-4">
       <span
         class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-accent-2-bg text-lg font-bold text-accent-2-text"
         aria-hidden="true"
@@ -48,11 +49,27 @@
         <h1 id="seller-name" class="page-title m-0 text-[26px] break-words">
           {{ seller.fullName }}
         </h1>
+        @if (seller.businessName) {
+          <p class="business m-0 text-sm font-semibold break-words">{{ seller.businessName }}</p>
+        } @else {
+          <p class="business m-0 text-sm break-words text-muted">Sin negocio</p>
+        }
         <p class="phone m-0 font-mono text-sm">{{ seller.phone | phone }}</p>
         @if (seller.email) {
           <p class="m-0 text-sm break-all text-muted">{{ seller.email }}</p>
         }
+        <p class="m-0 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+          <p-tag
+            [value]="seller.active ? 'Activo' : 'Desactivado'"
+            [severity]="seller.active ? 'success' : 'secondary'"
+          />
+          <span>Alta {{ seller.createdAt | date: 'dd/MM/yyyy' }}</span>
+        </p>
       </div>
+     </div>
+     <div class="mt-2 flex justify-end">
+       <a pButton [text]="true" [routerLink]="editLink()" class="edit h-11 px-3 text-sm">Editar datos</a>
+     </div>
     </section>
 
     <div class="mt-4 grid gap-3" [class.grid-cols-2]="canReturn()">

@@ -2,6 +2,7 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { initialsOf } from '@shared/utils/initials';
+import { viewingSellerLabel } from '@core/viewing/viewing-label';
 import type { ViewingListStatus, ViewingSeller } from '@core/viewing/interfaces/viewing.models';
 import {
   LOAD_ERROR_HINT,
@@ -47,7 +48,7 @@ export class ViewingBarComponent {
   // «Yo · bodega» va primero y usa el valor '' (el select maneja texto); el resto, un vendedor cada uno.
   readonly options = computed<ViewingOption[]>(() => [
     { id: WAREHOUSE_OPTION_VALUE, label: WAREHOUSE_OPTION_LABEL },
-    ...this.sellers().map((seller) => ({ id: seller.id, label: seller.fullName })),
+    ...this.sellers().map((seller) => ({ id: seller.id, label: viewingSellerLabel(seller) })),
   ]);
   // Lo que muestra el selector: la selección vigente, o lo que el usuario acaba de tocar hasta que
   // la selección o `resetKey` cambien.

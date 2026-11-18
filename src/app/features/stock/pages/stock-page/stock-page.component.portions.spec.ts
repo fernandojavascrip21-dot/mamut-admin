@@ -14,7 +14,7 @@ import { StockPageComponent } from './stock-page.component';
 
 const STOCK_URL = `${API_BASE_URL}/api/stock`;
 const FRACTIONS_URL = `${API_BASE_URL}/api/fractions`;
-const LUIS: ViewingSeller = { id: 'luis-id', fullName: 'Luis' };
+const LUIS: ViewingSeller = { id: 'luis-id', fullName: 'Luis', businessName: null };
 
 const row = (productId: number, name: string, extra: Partial<StockProduct> = {}): StockProduct => ({
   productId, name, image: null, warehouse: 0, warehouseLevel: 'out', sellers: [], inactiveSellers: 0, total: 0, ...extra,

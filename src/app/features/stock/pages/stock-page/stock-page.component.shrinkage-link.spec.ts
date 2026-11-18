@@ -68,7 +68,7 @@ describe('StockPageComponent · vista «Mermas» en lugar del enlace «Ver merma
     await load();
     const labelsOf = () => Array.from(el().querySelectorAll('a')).map((a) => a.textContent!.trim());
     expect(labelsOf()).not.toContain('Ver mermas');
-    selected.set({ id: 'luis-id', fullName: 'Luis' });
+    selected.set({ id: 'luis-id', fullName: 'Luis', businessName: null });
     fixture.detectChanges();
     expect(labelsOf()).not.toContain('Ver mermas');
   });
