@@ -20,7 +20,11 @@
           <span class="business mt-0.5 truncate text-sm text-muted">{{ business }}</span>
         }
       </span>
-      <span class="units font-mono text-base font-bold whitespace-nowrap">{{ units() }}</span>
+      @if (inactive()) {
+        <p-tag value="Desactivado" severity="secondary" />
+      } @else {
+        <span class="units font-mono text-base font-bold whitespace-nowrap">{{ units() }}</span>
+      }
       <svg
         aria-hidden="true"
         width="18"

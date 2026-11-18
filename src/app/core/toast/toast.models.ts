@@ -1,1 +1,1 @@
-export type ToastTone = 'success' | 'error';
+export type ToastTone = 'success' | 'error' | 'warn';

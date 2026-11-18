@@ -1,5 +1,11 @@
 <div class="flex w-full flex-col px-5 py-5 lg:px-6 lg:py-6">
-  <a pButton [text]="true" routerLink="/admin/vendedores" class="h-10 w-fit px-0 text-sm">‹ Vendedores</a>
+  <a
+    pButton
+    [text]="true"
+    [routerLink]="sellersListUrl"
+    [queryParams]="backQueryParams()"
+    class="h-10 w-fit px-0 text-sm"
+    >‹ Vendedores</a>
   @if (state() === 'loading') {
     <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
       <svg
@@ -74,6 +80,7 @@
         <div
           class="order-3 grid w-full grid-cols-2 gap-2 p-4 md:flex md:w-auto md:flex-shrink-0 md:items-center md:justify-end lg:p-0"
         >
+          @if (seller.active) {
           <a
             pButton
             [severity]="deliverySeverity()"
@@ -92,6 +99,17 @@
             >
               Retirar producto
             </a>
+          }
+          } @else {
+            <button
+              pButton
+              type="button"
+              class="reactivate col-span-2 h-[52px] text-[16px] md:order-last md:h-11 md:px-5 md:text-[15px]"
+              [disabled]="reactivating()"
+              (click)="reactivate()"
+            >
+              {{ reactivateLabel() }}
+            </button>
           }
           <a
             pButton
@@ -125,6 +143,12 @@
       </dl>
     </section>
 
+    @if (!seller.active) {
+      <section class="inactive-notice mt-6 flex flex-col gap-1 surface-card p-5" role="status">
+        <h2 class="m-0 text-base font-bold">{{ inactiveTitle }}</h2>
+        <p class="m-0 text-sm text-muted">{{ inactiveMessage }}</p>
+      </section>
+    } @else {
     <!-- Cuerpo: un solo grid (`app-data-grid`) para el stock y los movimientos; su filtro elige la lista. -->
     <app-data-grid
       class="mt-6 block"
@@ -144,5 +168,6 @@
         <p class="total m-0 font-mono text-base font-bold text-muted">{{ units() }}</p>
       </div>
     </app-data-grid>
+    }
   }
 </div>

@@ -70,3 +70,13 @@ export const SELLER_DETAIL_TEXTS: Record<SellerDetailView, DataGridTexts> = {
     emptyClass: 'shrinkages-empty',
   },
 };
+
+// Aviso de la ficha de un vendedor desactivado (HU-44).
+export const SELLER_INACTIVE_TITLE = 'Está desactivado';
+export const SELLER_INACTIVE_MESSAGE =
+  'No puede entrar a la app ni recibir producto. Sus ventas y cortes se conservan. Reactívalo para dejarle producto o ver sus movimientos.';
+
+// «Reactivar» y sus avisos.
+export const REACTIVATE_LABEL = 'Reactivar';
+export const REACTIVATING_LABEL = 'Reactivando…';
+export const REACTIVATE_OFFLINE_NOTICE = 'No se pudo reactivar. Revisa tu conexión e inténtalo de nuevo.';

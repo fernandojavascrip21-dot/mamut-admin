@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
@@ -12,6 +13,7 @@ import type { DeliveryHistoryItem, ReturnHistoryItem, SellerDetail, ShrinkageHis
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
+const SELLER_GET_URL = `${SELLER_URL}?status=any`;
 const HISTORY_URL = `${SELLER_URL}/deliveries`;
 const RETURNS_URL = `${SELLER_URL}/returns`;
 const SHRINKAGES_URL = `${SELLER_URL}/shrinkages`;
@@ -76,6 +78,7 @@ describe('SellerDetailPageComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SellerDetailPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -118,7 +121,7 @@ describe('SellerDetailPageComponent', () => {
     shrinkages: ShrinkageHistoryItem[] = [],
   ) {
     fixture.detectChanges();
-    httpMock.expectOne(SELLER_URL).flush(seller);
+    httpMock.expectOne(SELLER_GET_URL).flush(seller);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush(history);
     httpMock.expectOne(RETURNS_URL).flush(returns);
@@ -150,7 +153,7 @@ describe('SellerDetailPageComponent', () => {
   it('mientras carga muestra «Cargando vendedor…»', async () => {
     fixture.detectChanges();
     expect(text()).toContain('Cargando vendedor…');
-    httpMock.expectOne(SELLER_URL).flush(SELLER);
+    httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush([]);
     httpMock.expectOne(RETURNS_URL).flush([]);
@@ -191,7 +194,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('mientras una lista carga, su opción va sin conteo', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).flush(HISTORY);
       await tick();
@@ -211,7 +214,7 @@ describe('SellerDetailPageComponent', () => {
       expect(rows()[0].textContent).toContain('+4 piezas');
       await show('Stock');
       expect(rows()).toHaveLength(2);
-      httpMock.expectNone(SELLER_URL);
+      httpMock.expectNone(SELLER_GET_URL);
       httpMock.expectNone(HISTORY_URL);
       httpMock.expectNone(RETURNS_URL);
       httpMock.expectNone(SHRINKAGES_URL);
@@ -227,7 +230,7 @@ describe('SellerDetailPageComponent', () => {
 
   it('con un 404 muestra «No encontramos a este vendedor» y un enlace a la lista', async () => {
     fixture.detectChanges();
-    httpMock.expectOne(SELLER_URL).flush({}, { status: 404, statusText: 'Not Found' });
+    httpMock.expectOne(SELLER_GET_URL).flush({}, { status: 404, statusText: 'Not Found' });
     await settle();
 
     expect(text()).toContain('No encontramos a este vendedor');
@@ -238,14 +241,14 @@ describe('SellerDetailPageComponent', () => {
 
   it('si falla la carga muestra el error, y «Reintentar» vuelve a pedirlo', async () => {
     fixture.detectChanges();
-    httpMock.expectOne(SELLER_URL).error(new ProgressEvent('error'));
+    httpMock.expectOne(SELLER_GET_URL).error(new ProgressEvent('error'));
     await settle();
 
     expect(text()).toContain('No pudimos cargar al vendedor');
     (fixture.nativeElement.querySelector('.retry') as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    httpMock.expectOne(SELLER_URL).flush(SELLER);
+    httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
     await tick();
     httpMock.expectOne(HISTORY_URL).flush([]);
     httpMock.expectOne(RETURNS_URL).flush([]);
@@ -283,7 +286,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('si falla el historial lo avisa sin esconder el detalle, y «Reintentar» lo vuelve a pedir', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).error(new ProgressEvent('error'));
       httpMock.expectOne(RETURNS_URL).flush([]);
@@ -386,7 +389,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('mientras carga los retiros muestra «Cargando retiros…»', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).flush([]);
       await show('Retiros');
@@ -398,7 +401,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('si falla el historial de retiros lo avisa sin esconder el detalle, y «Reintentar» lo vuelve a pedir', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).flush([]);
       httpMock.expectOne(RETURNS_URL).error(new ProgressEvent('error'));
@@ -441,7 +444,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('mientras carga las mermas muestra «Cargando mermas…»', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).flush([]);
       httpMock.expectOne(RETURNS_URL).flush([]);
@@ -453,7 +456,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('si fallan las mermas lo avisa sin esconder el detalle, y «Reintentar» pide solo las mermas', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush(SELLER);
+      httpMock.expectOne(SELLER_GET_URL).flush(SELLER);
       await tick();
       httpMock.expectOne(HISTORY_URL).flush([]);
       httpMock.expectOne(RETURNS_URL).flush([]);
@@ -482,7 +485,7 @@ describe('SellerDetailPageComponent', () => {
 
       expect(text()).not.toContain('Cargando vendedor…');
       expect(rows()).toHaveLength(2);
-      httpMock.expectOne(SELLER_URL).flush({ ...SELLER, units: 4, stock: [SELLER.stock[1]!] });
+      httpMock.expectOne(SELLER_GET_URL).flush({ ...SELLER, units: 4, stock: [SELLER.stock[1]!] });
       httpMock.expectOne(HISTORY_URL).flush(HISTORY);
       httpMock.expectOne(RETURNS_URL).flush([]);
       httpMock.expectOne(SHRINKAGES_URL).flush([]);
@@ -496,7 +499,7 @@ describe('SellerDetailPageComponent', () => {
     it('una versión que ya existía al crearse la página no pide nada de más', async () => {
       TestBed.inject(StockChangesService).notify();
       await load(SELLER);
-      httpMock.expectNone(SELLER_URL);
+      httpMock.expectNone(SELLER_GET_URL);
     });
   });
 
@@ -508,7 +511,7 @@ describe('SellerDetailPageComponent', () => {
 
     it('con un 404 no cambia la barra', async () => {
       fixture.detectChanges();
-      httpMock.expectOne(SELLER_URL).flush({}, { status: 404, statusText: 'Not Found' });
+      httpMock.expectOne(SELLER_GET_URL).flush({}, { status: 404, statusText: 'Not Found' });
       await settle();
       expect(viewing.select).not.toHaveBeenCalled();
     });
@@ -526,7 +529,7 @@ describe('SellerDetailPageComponent', () => {
       const otherId = '3f2c8a1e-0000-4000-8000-000000000002';
       paramMap.next(convertToParamMap({ id: otherId }));
       fixture.detectChanges();
-      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
+      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}?status=any`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
       await tick();
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/deliveries`).flush([]);
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/returns`).flush([]);

@@ -32,6 +32,11 @@ export class ToastService {
     this.show('error', message);
   }
 
+  // Advertencia (spec M13-hu44): la acción salió bien pero algo secundario no, como el correo.
+  warn(message: string): void {
+    this.show('warn', message);
+  }
+
   dismiss(): void {
     this.pending = null;
     this.messages.clear();

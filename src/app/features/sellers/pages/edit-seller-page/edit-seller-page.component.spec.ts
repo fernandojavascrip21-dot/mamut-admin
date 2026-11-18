@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
@@ -13,6 +13,7 @@ import type { SellerDetail } from '../../interfaces/seller.models';
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const URL = `${API_BASE_URL}/api/sellers/${ID}`;
+const GET_URL = `${URL}?status=any`;
 const SELLER: SellerDetail = {
   id: ID,
   fullName: 'Víctor Vendedor',
@@ -39,6 +40,7 @@ describe('EditSellerPageComponent', () => {
       imports: [EditSellerPageComponent],
       providers: [
         MessageService,
+        ConfirmationService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -82,7 +84,7 @@ describe('EditSellerPageComponent', () => {
   async function open() {
     setup();
     fixture.detectChanges();
-    httpMock.expectOne(URL).flush(SELLER);
+    httpMock.expectOne(GET_URL).flush(SELLER);
     await settle();
   }
   const conflict = (status: number, message: string) =>
@@ -99,7 +101,7 @@ describe('EditSellerPageComponent', () => {
     expect(text()).toContain('Editar datos');
     expect(text()).toContain('Cargando vendedor…');
     expect(el().querySelector('[role="status"]')).not.toBeNull();
-    httpMock.expectOne(URL).flush(SELLER);
+    httpMock.expectOne(GET_URL).flush(SELLER);
     await settle();
   });
 
@@ -114,7 +116,7 @@ describe('EditSellerPageComponent', () => {
   it('con un 404 muestra «No encontramos a este vendedor» y «Cerrar» cierra el pop-up', async () => {
     setup();
     fixture.detectChanges();
-    httpMock.expectOne(URL).flush({}, { status: 404, statusText: 'Not Found' });
+    httpMock.expectOne(GET_URL).flush({}, { status: 404, statusText: 'Not Found' });
     await settle();
     expect(text()).toContain('No encontramos a este vendedor');
     const close = Array.from(el().querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Cerrar');
@@ -125,7 +127,7 @@ describe('EditSellerPageComponent', () => {
   it('con otro error muestra «No pudimos cargar al vendedor» y «Reintentar» lo vuelve a pedir', async () => {
     setup();
     fixture.detectChanges();
-    httpMock.expectOne(URL).error(new ProgressEvent('error'));
+    httpMock.expectOne(GET_URL).error(new ProgressEvent('error'));
     await settle();
     expect(text()).toContain('No pudimos cargar al vendedor');
     expect(text()).toContain('Revisa tu conexión e inténtalo de nuevo.');
@@ -133,7 +135,7 @@ describe('EditSellerPageComponent', () => {
     button('Reintentar').click();
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve));
-    httpMock.expectOne(URL).flush(SELLER);
+    httpMock.expectOne(GET_URL).flush(SELLER);
     await settle();
     expect(field('Nombre').value).toBe('Víctor Vendedor');
   });

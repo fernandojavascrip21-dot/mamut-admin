@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerChangesService } from '../../services/seller-changes.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
@@ -12,6 +13,7 @@ import type { SellerDetail } from '../../interfaces/seller.models';
 
 const ID = '3f2c8a1e-0000-4000-8000-000000000001';
 const SELLER_URL = `${API_BASE_URL}/api/sellers/${ID}`;
+const SELLER_GET_URL = `${SELLER_URL}?status=any`;
 
 const SELLER: SellerDetail = {
   id: ID,
@@ -36,6 +38,7 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
     await TestBed.configureTestingModule({
       imports: [SellerDetailPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: '**', component: ProbeComponent }]),
@@ -61,7 +64,7 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
   }
   // Responde el detalle y los tres historiales que se piden después.
   async function answer(seller: SellerDetail) {
-    httpMock.expectOne(SELLER_URL).flush(seller);
+    httpMock.expectOne(SELLER_GET_URL).flush(seller);
     await tick();
     httpMock.expectOne(`${SELLER_URL}/deliveries`).flush([]);
     httpMock.expectOne(`${SELLER_URL}/returns`).flush([]);
@@ -89,7 +92,12 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
   });
 
   it('un vendedor desactivado muestra el Tag «Desactivado»', async () => {
-    await load({ ...SELLER, active: false });
+    fixture.detectChanges();
+    httpMock.expectOne(SELLER_GET_URL).flush({ ...SELLER, active: false });
+    await tick();
+    httpMock.expectNone(`${SELLER_URL}/deliveries`);
+    httpMock.expectNone(`${SELLER_URL}/returns`);
+    httpMock.expectNone(`${SELLER_URL}/shrinkages`);
     expect(text()).toContain('Desactivado');
     expect(text()).not.toContain('Activo');
   });
@@ -111,7 +119,7 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
 
     expect(text()).not.toContain('Cargando vendedor…');
     expect(text()).toContain('Gimnasio Fuerza Norte');
-    httpMock.expectOne(SELLER_URL).flush({ ...SELLER, businessName: 'Café Centro' });
+    httpMock.expectOne(SELLER_GET_URL).flush({ ...SELLER, businessName: 'Café Centro' });
     await tick();
     httpMock.match(`${SELLER_URL}/deliveries`).forEach((req) => req.flush([]));
     httpMock.match(`${SELLER_URL}/returns`).forEach((req) => req.flush([]));
