@@ -36,3 +36,11 @@ export const MAX_BUSINESS_NAME = 80;
 export const DUPLICATE_EMAIL = 'Ya existe un acceso con ese correo';
 
 export const BUSINESS_NAME_TOO_LONG = `El nombre del negocio debe tener como máximo ${MAX_BUSINESS_NAME} caracteres`;
+
+// Filtro de «Mis vendedores» en la URL (HU-44): `?estado=desactivados`; sin parámetro, activos.
+export const SELLERS_FILTER_PARAM = 'estado';
+export const SELLERS_INACTIVE_PARAM_VALUE = 'desactivados';
+
+// Alertas del 409 al desactivar (piezas a su cargo) o eliminar (historial); mismo texto que el backend.
+export const SELLER_HAS_UNITS = 'Retírale sus piezas antes de desactivarlo';
+export const SELLER_HAS_HISTORY = 'Tiene historial: solo se puede desactivar';

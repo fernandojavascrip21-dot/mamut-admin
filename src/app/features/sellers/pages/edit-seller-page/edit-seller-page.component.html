@@ -48,5 +48,14 @@
       (save)="save($event)"
       (cancel)="close()"
     />
+    <app-seller-status-actions
+      [active]="seller()!.active"
+      [busy]="busy()"
+      [notice]="statusNotice()"
+      (deactivate)="deactivate()"
+      (reactivate)="reactivate()"
+      (remove)="remove()"
+      (returnUnits)="returnUnits()"
+    />
   }
 </app-modal-panel>

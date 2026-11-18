@@ -30,3 +30,41 @@ export const EDIT_BACKEND_MESSAGE_FIELD: Record<string, SellerEditField> = {
   [EDIT_FIELD_MESSAGES.phone.invalid]: 'phone',
   [EDIT_FIELD_MESSAGES.email.invalid]: 'email',
 };
+
+// --- Estado del vendedor (HU-44) ---
+const UNSAVED_LOST_LINE = 'Los cambios sin guardar se pierden.';
+
+// Confirmación de desactivar; con cambios sin guardar suma su línea.
+export const deactivateConfirmation = (name: string, hasChanges: boolean): ConfirmOptions => ({
+  title: `¿Desactivar a «${name}»?`,
+  message:
+    'Ya no podrá entrar a la app ni aparecerá en «Viendo» ni en «Dejar». Sus ventas y cortes se conservan, puedes reactivarlo cuando quieras y le mandaremos un aviso por correo.' +
+    (hasChanges ? ` ${UNSAVED_LOST_LINE}` : ''),
+  confirmLabel: 'Desactivar',
+  cancelLabel: 'Cancelar',
+  tone: 'default',
+});
+
+// Confirmación de eliminar (botón de peligro); con cambios sin guardar suma su línea.
+export const removeConfirmation = (name: string, hasChanges: boolean): ConfirmOptions => ({
+  title: `¿Eliminar a «${name}»?`,
+  message:
+    'Se borra su acceso para siempre. Solo se puede si nunca tuvo movimientos; si tiene historial, desactívalo.' +
+    (hasChanges ? ` ${UNSAVED_LOST_LINE}` : ''),
+  confirmLabel: 'Eliminar',
+  cancelLabel: 'Cancelar',
+  tone: 'danger',
+});
+
+export const sellerDeactivatedNotice = (name: string): string => `«${name}» desactivado`;
+export const sellerReactivatedToast = (name: string): string => `«${name}» reactivado`;
+export const sellerRemovedNotice = (name: string): string => `«${name}» eliminado`;
+export const DEACTIVATE_EMAIL_WARNING = 'Se desactivó, pero no se pudo avisarle por correo';
+export const REACTIVATE_EMAIL_WARNING_POPUP = 'Se reactivó, pero no se pudo avisarle por correo';
+
+// Aviso cuando la acción de estado no llega al backend o da 5xx.
+export const STATUS_OFFLINE_NOTICE = {
+  deactivate: 'No se pudo desactivar. Revisa tu conexión e inténtalo de nuevo.',
+  reactivate: 'No se pudo reactivar. Revisa tu conexión e inténtalo de nuevo.',
+  remove: 'No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.',
+} as const;

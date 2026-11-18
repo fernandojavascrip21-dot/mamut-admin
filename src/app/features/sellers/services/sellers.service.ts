@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
 import type {
   CreateSellerInput, DeliveryHistoryItem, EmailStatus, Seller, SellerDetail, SellerListStatus, SellerSummary,
@@ -18,10 +19,11 @@ export class SellersService {
     return this.http.post<Seller>(`${API_BASE_URL}/api/sellers`, input);
   }
 
-  // Vendedores activos con su total de piezas («Mis vendedores», HU-09).
+  // Vendedores con su total de piezas («Mis vendedores», HU-09). Los activos van sin parámetro (la URL
+  // de siempre); los desactivados piden `?status=inactive` (HU-44).
   list(status: SellerListStatus = 'active'): Observable<SellerSummary[]> {
-    void status;
-    return this.http.get<SellerSummary[]>(`${API_BASE_URL}/api/sellers`);
+    const params = status === 'inactive' ? new HttpParams().set('status', 'inactive') : undefined;
+    return this.http.get<SellerSummary[]>(`${API_BASE_URL}/api/sellers`, { params });
   }
 
   // Un vendedor con su stock por producto; un id que no es de un vendedor activo responde 404.
@@ -39,22 +41,30 @@ export class SellersService {
     return this.http.get<DeliveryHistoryItem[]>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}/deliveries`);
   }
 
-  // Esqueleto (spec M13-hu44): el detalle de un vendedor activo o desactivado (`?status=any`).
+  // El detalle de un vendedor activo o desactivado (`?status=any`, HU-44); `get` solo ve activos.
   getAny(id: string): Observable<SellerDetail> {
-    return EMPTY;
+    return this.http.get<SellerDetail>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}`, {
+      params: { status: 'any' },
+    });
   }
 
-  // Esqueleto: desactivar y reactivar responden el vendedor y cómo salió el aviso por correo.
+  // Desactivar y reactivar responden el vendedor y cómo salió el aviso por correo.
   deactivate(id: string): Observable<Seller & { emailStatus: EmailStatus | null }> {
-    return EMPTY;
+    return this.http.post<Seller & { emailStatus: EmailStatus | null }>(
+      `${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}/deactivate`,
+      {},
+    );
   }
 
   reactivate(id: string): Observable<Seller & { emailStatus: EmailStatus | null }> {
-    return EMPTY;
+    return this.http.post<Seller & { emailStatus: EmailStatus | null }>(
+      `${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}/reactivate`,
+      {},
+    );
   }
 
-  // Esqueleto: elimina un alta hecha por error (204).
+  // Elimina un alta hecha por error (204).
   remove(id: string): Observable<void> {
-    return EMPTY;
+    return this.http.delete<void>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}`);
   }
 }

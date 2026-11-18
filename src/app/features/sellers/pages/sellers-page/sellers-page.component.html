@@ -1,12 +1,23 @@
 <div class="flex w-full flex-col px-5 py-6">
   <div class="flex items-center justify-between gap-3">
     <h1 class="page-title">Mis vendedores</h1>
-    @if (state() !== 'ready' || sellers().length > 0) {
+    @if (state() !== 'ready' || sellers().length > 0 || filter() === 'inactive') {
       <a pButton routerLink="/admin/vendedores/nuevo" class="h-[52px] new-seller shrink-0 px-4 text-sm">
         Nuevo vendedor
       </a>
     }
   </div>
+
+  <p-selectbutton
+    class="mt-4 block"
+    [options]="filterOptions"
+    optionLabel="label"
+    optionValue="value"
+    [ngModel]="filter()"
+    (ngModelChange)="selectFilter($event)"
+    [allowEmpty]="false"
+    [attr.aria-label]="filterLabel"
+  />
 
   @if (state() === 'loading') {
     <div class="mt-6 flex flex-col items-center gap-2 text-center" role="status">
@@ -56,6 +67,13 @@
         Reintentar
       </button>
     </div>
+  } @else if (sellers().length === 0 && filter() === 'inactive') {
+    <div
+      class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
+    >
+      <p class="m-0 text-[17px] font-bold">{{ inactiveEmptyTitle }}</p>
+      <p class="m-0 text-sm text-muted">{{ inactiveEmptyHint }}</p>
+    </div>
   } @else if (sellers().length === 0) {
     <div
       class="empty mt-6 flex flex-col items-center gap-2 surface-card border-dashed border-line-strong p-6 text-center"
@@ -88,7 +106,7 @@
           class="min-w-0 animate-rise-in motion-reduce:animate-none"
           [style.animation-delay.ms]="(index < 8 ? index : 8) * 40"
         >
-          <app-seller-row [seller]="seller" />
+          <app-seller-row [seller]="seller" [inactive]="filter() === 'inactive'" />
         </li>
       }
     </ul>

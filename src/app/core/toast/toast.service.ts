@@ -32,9 +32,9 @@ export class ToastService {
     this.show('error', message);
   }
 
-  // Esqueleto (spec M13-hu44): aviso de advertencia, igual que success y error.
+  // Advertencia (spec M13-hu44): la acción salió bien pero algo secundario no, como el correo.
   warn(message: string): void {
-    void message;
+    this.show('warn', message);
   }
 
   dismiss(): void {

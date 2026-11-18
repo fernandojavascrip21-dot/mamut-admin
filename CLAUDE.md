@@ -86,11 +86,12 @@ Next.js App Router, API routes only, as a **modular monolith** (one app, one dat
 ```
 proxy.ts      CORS for /api/**              src/db/   Drizzle client, schema.ts, withTransaction + lockRows
 app/api/      thin routes                   src/lib/  errors (AppError), cors, supabase, handler (readJson, requireMoney…), money
-src/<module>/ auth · accounts · products · categories · stock · deliveries · returns · inventory · sales (each: index.ts + constants.ts)
+src/<module>/ auth · accounts · products · categories · stock · deliveries · returns · inventory · sales · notifications (each: index.ts + constants.ts)
 tests/        Vitest against the real DB; architecture.test.ts checks module boundaries
 ```
 
-- **Boundaries:** a module exposes its API only in `src/<module>/index.ts`. Between areas use the `backend/tsconfig.json` aliases (`@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries`, `@returns`, `@inventory`, `@sales`, `@api/*`); a module alias points only at its `index.ts`. Inside an area, imports stay relative. Infrastructure never depends on a module; `src/` never imports `app/`. A new area = new `src/<module>/` with `index.ts`, `constants.ts` and its alias. A use case writing to several modules lives in the owning module and passes its `tx` to the others' public functions.
+- **Boundaries:** a module exposes its API only in `src/<module>/index.ts`. Between areas use the `backend/tsconfig.json` aliases (`@db/*`, `@lib/*`, `@auth`, `@accounts`, `@products`, `@categories`, `@stock`, `@deliveries`, `@returns`, `@inventory`, `@sales`, `@notifications`, `@api/*`); a module alias points only at its `index.ts`. Inside an area, imports stay relative. Infrastructure never depends on a module; `src/` never imports `app/`. A new area = new `src/<module>/` with `index.ts`, `constants.ts` and its alias. A use case writing to several modules lives in the owning module and passes its `tx` to the others' public functions.
+- **Notifications (spec `M13-hu44`):** `src/notifications/` sends the seller-status email through Resend (`sendSellerStatusEmail`, type `EmailStatus` `'sent'|'failed'|'skipped'`); it imports no other module and `accounts` calls it after the transaction. Optional vars `RESEND_API_KEY`, `RESEND_FROM`, `RESEND_TEMPLATE_SELLER_STATUS`: without all three the email is `skipped`; a failure never undoes the status change.
 - **Auth is re-checked on every request** (`getAuthContext` loads `profiles` fresh); never trust JWT claims for role/active status.
 - **Account creation** = Supabase Auth user, then `profiles` row, with manual compensation (delete the Auth user if the insert fails); follow `createAccount`.
 - **Transactions** go through `withTransaction`/`lockRows` (`select … for update`), not raw queries.

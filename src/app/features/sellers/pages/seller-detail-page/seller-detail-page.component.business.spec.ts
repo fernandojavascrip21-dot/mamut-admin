@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerChangesService } from '../../services/seller-changes.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
@@ -37,6 +38,7 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
     await TestBed.configureTestingModule({
       imports: [SellerDetailPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: '**', component: ProbeComponent }]),
@@ -90,7 +92,12 @@ describe('SellerDetailPageComponent · ficha con negocio (HU-43)', () => {
   });
 
   it('un vendedor desactivado muestra el Tag «Desactivado»', async () => {
-    await load({ ...SELLER, active: false });
+    fixture.detectChanges();
+    httpMock.expectOne(SELLER_GET_URL).flush({ ...SELLER, active: false });
+    await tick();
+    httpMock.expectNone(`${SELLER_URL}/deliveries`);
+    httpMock.expectNone(`${SELLER_URL}/returns`);
+    httpMock.expectNone(`${SELLER_URL}/shrinkages`);
     expect(text()).toContain('Desactivado');
     expect(text()).not.toContain('Activo');
   });

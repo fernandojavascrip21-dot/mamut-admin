@@ -22,7 +22,7 @@ describe('SellerRowComponent de un vendedor desactivado (HU-44)', () => {
     await setup({ fullName: 'Víctor Vendedor', businessName: 'Gimnasio Fuerza Norte' });
     const tag = fixture.nativeElement.querySelector('p-tag') as HTMLElement;
     expect(tag.textContent!.trim()).toBe('Desactivado');
-    expect(tag.querySelector('.p-tag-secondary')).not.toBeNull();
+    expect(tag.classList.contains('p-tag-secondary')).toBe(true);
     expect(fixture.nativeElement.querySelector('.units')).toBeNull();
     expect(link().textContent).not.toContain('pieza');
   });

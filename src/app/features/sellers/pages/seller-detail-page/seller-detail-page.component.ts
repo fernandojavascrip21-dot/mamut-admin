@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
+import { ToastService } from '@core/toast/toast.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { PhonePipe } from '@shared/pipes/phone.pipe';
 import { MODAL_RETURN_PATH } from '@shared/constants/modal.constants';
@@ -22,9 +23,20 @@ import {
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import type { DataGridOption, DataGridRow, DataGridState } from '@shared/components/data-grid/data-grid.models';
 import { SellerChangesService } from '../../services/seller-changes.service';
-import { SELLERS_LIST_URL } from '../../constants/sellers.constants';
+import { SellerStatusService } from '../../services/seller-status.service';
+import { SELLER_GONE_NOTICE } from '../../constants/edit-seller-page.constants';
+import {
+  SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLERS_LIST_URL,
+} from '../../constants/sellers.constants';
 import {
   DEFAULT_SELLER_DETAIL_VIEW,
+  REACTIVATE_EMAIL_WARNING,
+  REACTIVATE_LABEL,
+  REACTIVATE_OFFLINE_NOTICE,
+  REACTIVATING_LABEL,
+  SELLER_INACTIVE_MESSAGE,
+  SELLER_INACTIVE_TITLE,
+  sellerReactivatedNotice,
   SELLER_DETAIL_COLUMNS,
   SELLER_DETAIL_FILTER_LABEL,
   SELLER_DETAIL_TEXTS,
@@ -65,6 +77,7 @@ import { SellersService } from '../../services/sellers.service';
     PhonePipe,
     DataGridComponent,
   ],
+  providers: [SellerStatusService],
   selector: 'app-seller-detail-page',
   templateUrl: './seller-detail-page.component.html',
 })
@@ -77,6 +90,9 @@ export class SellerDetailPageComponent {
   private readonly viewing = inject(ViewingService);
   private readonly stockChanges = inject(StockChangesService);
   private readonly sellerChanges = inject(SellerChangesService);
+  private readonly statusService = inject(SellerStatusService);
+  private readonly toastService = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // El backend valida el id (un id que no es UUID da 404, igual que uno inexistente). Se lee
   // de paramMap y no del snapshot porque, al elegir a otro vendedor en la barra, el router
@@ -87,7 +103,7 @@ export class SellerDetailPageComponent {
 
   readonly sellerResource = rxResource({
     params: () => this.sellerId(),
-    stream: ({ params: id }) => this.sellersService.get(id),
+    stream: ({ params: id }) => this.sellersService.getAny(id),
   });
   readonly state = computed<SellerDetailState>(() => {
     const status = this.sellerResource.status();
@@ -98,9 +114,15 @@ export class SellerDetailPageComponent {
     this.sellerResource.hasValue() ? this.sellerResource.value() : null,
   );
 
+  // Los historiales solo se piden de un vendedor activo cargado (uno desactivado respondería 404). Un
+  // computed aparte, para que recargar al vendedor no cuente como un cambio de parámetros.
+  private readonly historyId = computed(() =>
+    this.state() === 'ready' && this.seller()?.active ? this.sellerId() : undefined,
+  );
+
   // «Últimas entregas» se pide cuando el vendedor ya cargó, y una falla suya no esconde el detalle.
   readonly historyResource = rxResource({
-    params: () => (this.state() === 'ready' ? this.sellerId() : undefined),
+    params: () => (this.historyId()),
     stream: ({ params: id }) => this.sellersService.deliveries(id),
   });
   readonly historyState = computed<DeliveryHistoryState>(() => {
@@ -147,7 +169,7 @@ export class SellerDetailPageComponent {
 
   // «Últimos retiros» (HU-12) se carga igual que las entregas, aparte y sin esconder el detalle.
   readonly returnsResource = rxResource({
-    params: () => (this.state() === 'ready' ? this.sellerId() : undefined),
+    params: () => (this.historyId()),
     stream: ({ params: id }) => this.returnsService.list(id),
   });
   readonly returnsState = computed<ReturnHistoryState>(() => {
@@ -160,7 +182,7 @@ export class SellerDetailPageComponent {
 
   // «Últimas mermas» (HU-26) se carga igual que los retiros: aparte, y su error no esconde el detalle.
   readonly shrinkagesResource = rxResource({
-    params: () => (this.state() === 'ready' ? this.sellerId() : undefined),
+    params: () => (this.historyId()),
     stream: ({ params: id }) => this.shrinkagesService.list(id),
   });
   readonly shrinkagesState = computed<ShrinkageHistoryState>(() => {
@@ -216,6 +238,16 @@ export class SellerDetailPageComponent {
   readonly canReturn = computed(() => (this.seller()?.units ?? 0) > 0);
   readonly sellersListUrl = SELLERS_LIST_URL;
 
+  // «‹ Vendedores» de un desactivado vuelve a la lista de desactivados (HU-44).
+  readonly isInactive = computed(() => this.seller()?.active === false);
+  readonly backQueryParams = computed(() =>
+    this.isInactive() ? { [SELLERS_FILTER_PARAM]: SELLERS_INACTIVE_PARAM_VALUE } : {},
+  );
+  readonly inactiveTitle = SELLER_INACTIVE_TITLE;
+  readonly inactiveMessage = SELLER_INACTIVE_MESSAGE;
+  readonly reactivating = signal(false);
+  readonly reactivateLabel = computed(() => (this.reactivating() ? REACTIVATING_LABEL : REACTIVATE_LABEL));
+
   constructor() {
     // Dejar o retirar piezas desde el pop-up (spec T-16) cambia el stock y los dos historiales: se
     // vuelven a pedir sin pasar por «cargando», para que el detalle no parpadee detrás del pop-up. Se
@@ -239,10 +271,12 @@ export class SellerDetailPageComponent {
       untracked(() => this.sellerResource.reload());
     });
 
-    // Un detalle que cargó bien cuenta como elegir a ese vendedor; un 404 no cambia la barra.
+    // Un detalle activo que cargó bien cuenta como elegir a ese vendedor; un desactivado nunca se fija
+    // (la barra mostraría a alguien que no puede operar) y deja «Yo · bodega». Un 404 no cambia la barra.
     effect(() => {
       const seller = this.seller();
-      if (this.state() === 'ready' && seller) this.viewing.select(seller.id);
+      if (this.state() !== 'ready' || !seller) return;
+      this.viewing.select(seller.active ? seller.id : null);
     });
 
     // Solo lo que el administrador elige en la barra navega (no el select() de arriba), para
@@ -285,5 +319,30 @@ export class SellerDetailPageComponent {
   // «Reintentar» de «Últimas mermas».
   retryShrinkages(): void {
     this.shrinkagesResource.reload();
+  }
+
+  // «Reactivar» (HU-44): sin confirmación, porque se deshace desactivando. El servicio ya recarga
+  // «Viendo» y avisa a la ficha, que se vuelve a pedir sola sin pasar por «cargando».
+  reactivate(): void {
+    const seller = this.seller();
+    if (!seller || this.reactivating()) return;
+    this.reactivating.set(true);
+    this.statusService
+      .reactivate(seller.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.reactivating.set(false);
+        if (result.ok) {
+          this.toastService.success(sellerReactivatedNotice(seller.fullName));
+          if (result.emailStatus === 'failed' || result.emailStatus === 'skipped') {
+            this.toastService.warn(REACTIVATE_EMAIL_WARNING);
+          }
+        } else if (result.reason === 'not-found') {
+          this.toastService.error(SELLER_GONE_NOTICE);
+          void this.router.navigateByUrl(SELLERS_LIST_URL);
+        } else {
+          this.toastService.error(REACTIVATE_OFFLINE_NOTICE);
+        }
+      });
   }
 }

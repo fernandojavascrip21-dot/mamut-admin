@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
 import { StockChangesService } from '@core/stock-changes/stock-changes.service';
 import { ViewingService } from '@core/viewing/viewing.service';
 import { SellerDetailPageComponent } from './seller-detail-page.component';
@@ -77,6 +78,7 @@ describe('SellerDetailPageComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SellerDetailPageComponent],
       providers: [
+        MessageService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -527,7 +529,7 @@ describe('SellerDetailPageComponent', () => {
       const otherId = '3f2c8a1e-0000-4000-8000-000000000002';
       paramMap.next(convertToParamMap({ id: otherId }));
       fixture.detectChanges();
-      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
+      httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}?status=any`).flush({ ...SELLER, id: otherId, fullName: 'Valeria' });
       await tick();
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/deliveries`).flush([]);
       httpMock.expectOne(`${API_BASE_URL}/api/sellers/${otherId}/returns`).flush([]);
