@@ -77,10 +77,23 @@ describe('SellerStatusService', () => {
     expect(results).toEqual([{ ok: false, reason: 'has-units' }]);
   });
 
-  it('eliminar: un 409 es «has-history»', () => {
+  it('eliminar: un 409 por piezas a su cargo es «has-units»', () => {
     run('remove');
-    fail('remove', 409);
-    expect(results).toEqual([{ ok: false, reason: 'has-history' }]);
+    httpMock
+      .expectOne(PATHS.remove)
+      .flush({ error: { code: 'conflict', message: 'Retírale sus piezas antes de desactivarlo' } }, { status: 409, statusText: 'Conflict' });
+    expect(results).toEqual([{ ok: false, reason: 'has-units' }]);
+  });
+
+  it('eliminar: un 409 de carrera (movimientos recién aparecidos) es «error», no «has-units»', () => {
+    run('remove');
+    httpMock
+      .expectOne(PATHS.remove)
+      .flush(
+        { error: { code: 'conflict', message: 'El vendedor acaba de tener movimientos: intenta de nuevo' } },
+        { status: 409, statusText: 'Conflict' },
+      );
+    expect(results).toEqual([{ ok: false, reason: 'error' }]);
   });
 
   it('eliminar: un 204 devuelve ok sin vendedor ni correo', () => {

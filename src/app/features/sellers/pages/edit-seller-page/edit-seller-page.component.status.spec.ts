@@ -388,6 +388,22 @@ describe('EditSellerPageComponent: estado del vendedor (HU-44)', () => {
       expect(viewing.reload).not.toHaveBeenCalled();
     });
 
+    it('con 409 de carrera (movimientos recién aparecidos) muestra una alerta genérica, sin «Retírale sus piezas»', async () => {
+      await open(ACTIVE);
+      await press('Eliminar vendedor');
+      httpMock
+        .expectOne(URL)
+        .flush(
+          { error: { code: 'conflict', message: 'El vendedor acaba de tener movimientos: intenta de nuevo' } },
+          { status: 409, statusText: 'Conflict' },
+        );
+      await settle();
+      const alert = el().querySelector('[role="alert"].alert-warning') as HTMLElement;
+      expect(alert.textContent).toContain('El vendedor acaba de tener movimientos: intenta de nuevo');
+      expect(alert.textContent).not.toContain('Retírale sus piezas');
+      expect(visited()).toEqual([]);
+    });
+
     it('con 404 avisa «Este vendedor ya no está disponible», cierra y va a «Mis vendedores»', async () => {
       await open(ACTIVE);
       await press('Eliminar vendedor');

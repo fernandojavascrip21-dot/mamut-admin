@@ -143,7 +143,9 @@ export async function getActiveSellerName(id: string): Promise<{ id: string; ful
 }
 
 // Igual, pero también de un vendedor que luego se desactivó: el resumen de una entrega ya hecha no
-// debe desaparecer por eso. Solo exige que el perfil sea de un vendedor.
+// debe desaparecer por eso. Exige que el perfil sea de un vendedor y no esté archivado (spec M13-hu45
+// §10): a un archivado ningún camino lo alcanza, porque no se puede archivar con piezas y las listas
+// ya no lo muestran.
 export async function getSellerName(id: string): Promise<{ id: string; fullName: string }> {
   const [profile] = await db
     .select({ id: profiles.id, fullName: profiles.fullName })
