@@ -7,7 +7,7 @@ import { ConfirmService } from '@core/confirm/confirm.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
 import { isNotFound } from '@shared/utils/http-errors';
-import { closeModalLink, leaveModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { closeModalLink, leaveModalLink, returnModalLink, sellerPasswordModalLink } from '@shared/utils/modal-links';
 import { SellerEditFormComponent } from '../../components/seller-edit-form/seller-edit-form.component';
 import type { SellerEditField } from '../../components/seller-edit-form/seller-edit-form.models';
 import {
@@ -197,6 +197,11 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
   // «Retirar producto» de la alerta: cambia este pop-up por el de retiro (pasa por el guard de salida).
   returnUnits(): void {
     void this.router.navigate(returnModalLink(this.sellerId));
+  }
+
+  // «Cambiar contraseña»: cambia este pop-up por el de contraseña (pasa por el guard de salida).
+  changePassword(): void {
+    void this.router.navigate(sellerPasswordModalLink(this.sellerId));
   }
 
   // Corre la acción de estado bloqueando el pop-up (saving()) y limpia la alerta de un 409 anterior.

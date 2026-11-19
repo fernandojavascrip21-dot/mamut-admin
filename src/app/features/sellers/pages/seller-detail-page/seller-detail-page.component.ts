@@ -19,7 +19,6 @@ import {
   editSellerModalLink,
   openModalPath,
   returnModalLink,
-  sellerPasswordModalLink,
 } from '@shared/utils/modal-links';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import type { DataGridOption, DataGridRow, DataGridState } from '@shared/components/data-grid/data-grid.models';
@@ -31,7 +30,6 @@ import {
 } from '../../constants/sellers.constants';
 import {
   DEFAULT_SELLER_DETAIL_VIEW,
-  CHANGE_PASSWORD_LABEL,
   REACTIVATE_LABEL,
   REACTIVATE_OFFLINE_NOTICE,
   REACTIVATING_LABEL,
@@ -135,8 +133,6 @@ export class SellerDetailPageComponent {
   readonly deliveryLink = computed(() => deliveryModalLink({ sellerId: this.sellerId() }));
   readonly returnLink = computed(() => returnModalLink(this.sellerId()));
   readonly editLink = computed(() => editSellerModalLink(this.sellerId()));
-  readonly passwordLink = computed(() => sellerPasswordModalLink(this.sellerId()));
-  readonly changePasswordLabel = CHANGE_PASSWORD_LABEL;
 
   // El grid emite el valor como texto: solo se acepta una de las listas de SELLER_DETAIL_VIEWS.
   selectView(value: string): void {

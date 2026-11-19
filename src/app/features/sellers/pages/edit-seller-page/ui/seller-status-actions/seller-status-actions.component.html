@@ -18,6 +18,19 @@
       <button
         pButton
         severity="secondary"
+        type="button"
+        class="change-password h-11 w-full shrink-0 px-4 text-sm sm:order-2 sm:w-48"
+        [disabled]="busy() !== null"
+        (click)="changePassword.emit()"
+      >
+        {{ changePasswordLabel }}
+      </button>
+      <p class="m-0 text-xs leading-snug text-muted sm:order-1 sm:flex-1">{{ changePasswordHelp }}</p>
+    </div>
+    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <button
+        pButton
+        severity="secondary"
         [outlined]="true"
         type="button"
         class="h-11 w-full shrink-0 px-4 text-sm sm:order-2 sm:w-48"
