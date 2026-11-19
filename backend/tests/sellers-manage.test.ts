@@ -12,6 +12,7 @@ import { normalizeBusinessName } from '@accounts'
 import { db } from '@db/client'
 import { products, profiles, stockMovements, vendorStock } from '@db/schema'
 import { withTransaction } from '@db/transaction'
+import { supabaseAdmin } from '@lib/supabase'
 import { insertMovements, type NewStockMovement } from '@stock'
 import {
   cleanupTestData,
@@ -350,15 +351,22 @@ describe.skipIf(!hasServiceKey)('Gestión de vendedores (M13-t42, con cuentas re
       expect((await deleteRoute(request('DELETE', { token: admin.token }), ctx(target.id))).status).toBe(204)
     })
 
-    it('con un delivery y su return (piezas en 0) da 409 y no borra nada', async () => {
+    it('con un delivery y su return (piezas en 0) lo archiva: 204, ya no se abre ni entra, y su historial sigue', async () => {
       const target = await newSeller('m42-historial')
       await deliver(target.id, 2)
       await takeBack(target.id, 2)
       const res = await deleteRoute(request('DELETE', { token: admin.token }), ctx(target.id))
-      expect(res.status).toBe(409)
-      expect(await errorMessage(res)).toBe('Tiene historial: solo se puede desactivar')
+      expect(res.status).toBe(204)
       expect(await profileExists(target.id)).toBe(true)
-      expect((await tryLogin(target.email, TEST_PASSWORD)).status).toBe(200)
+      expect((await getSellerRoute(request('GET', { token: admin.token, query: '?status=any' }), ctx(target.id))).status).toBe(404)
+      expect((await tryLogin(target.email, TEST_PASSWORD)).status).toBe(401)
+      // Su correo en Auth cambia al archivar, así que cleanupTestData ya no lo encuentra: se purga aquí.
+      const rows = await db.select({ id: stockMovements.id }).from(stockMovements)
+        .where(eq(stockMovements.holderProfileId, target.id)).orderBy(desc(stockMovements.id))
+      expect(rows).toHaveLength(2)
+      await cleanupStock()
+      await db.delete(profiles).where(eq(profiles.id, target.id))
+      await supabaseAdmin().auth.admin.deleteUser(target.id)
     })
   })
 
