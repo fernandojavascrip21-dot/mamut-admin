@@ -1,8 +1,8 @@
-import { and, asc, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, isNull, sql } from 'drizzle-orm'
 import { revokeSessions } from '@auth'
 import { db } from '@db/client'
 import { isForeignKeyViolation } from '@db/errors'
-import { profiles, vendorStock } from '@db/schema'
+import { profiles, stockMovements, vendorStock } from '@db/schema'
 import { lockRows, withTransaction } from '@db/transaction'
 import { conflict, notFound, validation } from '@lib/errors'
 import { sendSellerPasswordEmail, sendSellerStatusEmail, type EmailStatus } from '@notifications'
@@ -10,10 +10,11 @@ import { supabaseAdmin } from '@lib/supabase'
 import { stockOfHolder, unitsByHolder, type HolderStockLine } from '@stock'
 import { createAccount, normalizeEmail, toView, validatePassword, type AccountView } from './accounts'
 import {
+  ARCHIVED_EMAIL_DOMAIN,
   MAX_BUSINESS_NAME,
   PHONE_SEPARATORS,
-  SELLER_HAS_HISTORY,
   SELLER_HAS_UNITS,
+  SELLER_HISTORY_APPEARED,
   SELLER_STATUS_INVALID,
   TEN_DIGITS,
 } from './constants'
@@ -36,7 +37,8 @@ export type SellerDetail = SellerView & { units: number; stock: HolderStockLine[
 // Estado que pide la lista (`?status=`): solo activos o solo desactivados.
 export type SellerStatus = 'active' | 'inactive'
 
-const isSeller = eq(profiles.role, 'vendedor')
+// Un archivado (spec M13-hu45 §10) no existe para la app: queda fuera de todo lo que lee vendedores.
+const isSeller = and(eq(profiles.role, 'vendedor'), isNull(profiles.archivedAt))
 const isActiveSeller = and(isSeller, eq(profiles.active, true))
 
 // Acepta el teléfono como lo escribe una persona («55 2468 1357», «55-2468-1357»,
@@ -146,7 +148,7 @@ export async function getSellerName(id: string): Promise<{ id: string; fullName:
   const [profile] = await db
     .select({ id: profiles.id, fullName: profiles.fullName })
     .from(profiles)
-    .where(and(eq(profiles.id, id), eq(profiles.role, 'vendedor')))
+    .where(and(eq(profiles.id, id), isSeller))
   if (!profile) throw notFound()
   return profile
 }
@@ -236,7 +238,7 @@ export async function updateSeller(id: string, input: UpdateSellerInput): Promis
 export async function deactivateSeller(id: string): Promise<SellerStatusChange> {
   const changed = await withTransaction(async (tx) => {
     const [seller] = await lockRows(tx, profiles, eq(profiles.id, id))
-    if (!seller || seller.role !== 'vendedor') throw notFound()
+    if (!seller || seller.role !== 'vendedor' || seller.archivedAt) throw notFound()
     // Ya desactivado: responde igual, sin revisar piezas (idempotente, como setLoginActive).
     if (!seller.active) return false
     const rows = await lockRows(tx, vendorStock, eq(vendorStock.profileId, id))
@@ -268,14 +270,53 @@ async function withStatusEmail(
   return { ...view, emailStatus }
 }
 
-// Eliminar un alta hecha por error (spec M13-t42). Con historial, la FK `restrict` impide borrar el
-// perfil: 409. Primero se borra el perfil; la cuenta de Auth solo se elimina si eso salió bien.
+// Eliminar a un vendedor (spec M13-t42, M13-hu45 §10). Sin movimientos se borra de verdad (perfil y
+// luego Auth). Con historial no se puede borrar sin descuadrar inventario y cortes: con piezas da 409
+// y sin ellas se archiva (mismo candado que deactivateSeller) y su correo de Auth se libera.
 export async function deleteSeller(id: string): Promise<void> {
+  // El correo original se lee antes del candado, para no mantenerlo bloqueado esperando a Auth.
   await findSeller(id)
+  const { data, error: readError } = await supabaseAdmin().auth.admin.getUserById(id)
+  if (readError) throw readError
+  const archivedEmail = data.user?.email ?? ''
+  const wasActive = await withTransaction(async (tx) => {
+    const [seller] = await lockRows(tx, profiles, eq(profiles.id, id))
+    if (!seller || seller.role !== 'vendedor' || seller.archivedAt) throw notFound()
+    const [moved] = await tx
+      .select({ id: stockMovements.id })
+      .from(stockMovements)
+      .where(eq(stockMovements.holderProfileId, id))
+      .limit(1)
+    if (!moved) return null
+    const rows = await lockRows(tx, vendorStock, eq(vendorStock.profileId, id))
+    if (rows.reduce((total, row) => total + row.qty, 0) > 0) throw conflict(SELLER_HAS_UNITS)
+    await tx
+      .update(profiles)
+      .set({ archivedAt: sql`now()`, active: false, archivedEmail })
+      .where(eq(profiles.id, id))
+    return seller.active
+  })
+  if (wasActive === null) return purgeSeller(id)
+
+  // El perfil ya está archivado; si Auth no libera el correo se deshace (compensación), porque un
+  // archivado con el correo aún tomado impediría el alta nueva que esta regla promete.
+  const { error } = await supabaseAdmin().auth.admin.updateUserById(id, {
+    email: `archivado-${id}@${ARCHIVED_EMAIL_DOMAIN}`,
+    email_confirm: true,
+  })
+  if (error) {
+    await db.update(profiles).set({ archivedAt: null, active: wasActive, archivedEmail: null }).where(eq(profiles.id, id))
+    throw error
+  }
+}
+
+// Borrado físico de un alta sin historial. La FK `restrict` es la red de seguridad si un movimiento
+// aparece entre la lectura y el borrado.
+async function purgeSeller(id: string): Promise<void> {
   try {
     await db.delete(profiles).where(eq(profiles.id, id))
   } catch (err) {
-    if (isForeignKeyViolation(err)) throw conflict(SELLER_HAS_HISTORY)
+    if (isForeignKeyViolation(err)) throw conflict(SELLER_HISTORY_APPEARED)
     throw err
   }
   const { error } = await supabaseAdmin().auth.admin.deleteUser(id)

@@ -5,7 +5,6 @@ import { login } from './support/login';
 import {
   BACKEND_URL,
   DEACTIVATE_MAIL_WARNING,
-  HAS_HISTORY_ALERT,
   HAS_UNITS_ALERT,
   REACTIVATE_MAIL_WARNING,
   SEED_SELLER_NAME,
@@ -217,7 +216,7 @@ test.describe('Desactivar, reactivar y eliminar un vendedor (HU-44)', () => {
     const editDialog = await openEditDialog(page, sellerUrl.split('/').pop()!);
     await editDialog.getByRole('button', { name: 'Eliminar vendedor' }).click();
     await page.getByRole('button', { name: 'Eliminar', exact: true }).click();
-    await expect(editDialog.getByRole('alert')).toContainText(HAS_HISTORY_ALERT);
+    await expect(editDialog.getByRole('alert')).toContainText(HAS_UNITS_ALERT);
     await expect(editDialog).toBeVisible();
 
     await page.goto(sellerUrl);

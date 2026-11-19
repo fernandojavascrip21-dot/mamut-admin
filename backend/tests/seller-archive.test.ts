@@ -9,7 +9,7 @@ import { DELETE as deleteRoute, GET as getSellerRoute, PUT as updateRoute } from
 import { GET as listRoute, POST as createRoute } from '@api/sellers/route'
 import { getBusinessCut } from '@cuts'
 import { db, sql } from '@db/client'
-import { directSales, products, profiles, stockMovements, vendorStock } from '@db/schema'
+import { directSaleItems, directSales, products, profiles, stockMovements, vendorStock } from '@db/schema'
 import { withTransaction } from '@db/transaction'
 import { supabaseAdmin } from '@lib/supabase'
 import { createSale } from '@sales'
@@ -85,6 +85,14 @@ async function purgeTracked() {
     const movements = await db.select({ id: stockMovements.id }).from(stockMovements)
       .where(inArray(stockMovements.productId, productIds)).orderBy(desc(stockMovements.id))
     for (const movement of movements) await db.delete(stockMovements).where(eq(stockMovements.id, movement.id))
+    // Ventas del administrador (p. ej. «Por titular»): sus renglones apuntan a los productos de prueba.
+    const itemSales = await db.select({ id: directSaleItems.directSaleId }).from(directSaleItems)
+      .where(inArray(directSaleItems.productId, productIds))
+    const itemSaleIds = [...new Set(itemSales.map((row) => row.id))]
+    if (itemSaleIds.length > 0) {
+      await db.delete(directSaleItems).where(inArray(directSaleItems.directSaleId, itemSaleIds))
+      await db.delete(directSales).where(inArray(directSales.id, itemSaleIds))
+    }
     await db.delete(vendorStock).where(inArray(vendorStock.productId, productIds))
     await db.delete(products).where(inArray(products.id, productIds))
   }

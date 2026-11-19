@@ -562,6 +562,8 @@ export const profiles = pgTable("profiles", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	phone: text(),
 	businessName: text("business_name"),
+	archivedAt: timestamp("archived_at", { withTimezone: true, mode: 'string' }),
+	archivedEmail: text("archived_email"),
 }, (table) => [
 	foreignKey({
 			columns: [table.clientId],
