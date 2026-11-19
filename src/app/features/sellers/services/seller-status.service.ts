@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { ViewingService } from '@core/viewing/viewing.service';
-import { httpStatus } from '@shared/utils/http-errors';
+import { httpErrorMessage, httpStatus } from '@shared/utils/http-errors';
 import { SellerChangesService } from './seller-changes.service';
 import { SellersService } from './sellers.service';
+import { SELLER_REMOVE_RACE_MESSAGE } from '../constants/sellers.constants';
 import type { SellerStatusFailure, SellerStatusResult } from '../interfaces/seller.models';
 
 // Desactivar, reactivar y eliminar un vendedor (HU-44), traduciendo el error HTTP a un
@@ -36,7 +37,7 @@ export class SellerStatusService {
     return this.sellersService.remove(id).pipe(
       tap(() => this.onChanged(false)),
       map((): SellerStatusResult => ({ ok: true, seller: null, emailStatus: null })),
-      catchError((error: unknown) => of(this.toFailure(error, 'has-history'))),
+      catchError((error: unknown) => of(this.toRemoveFailure(error))),
     );
   }
 
@@ -45,7 +46,13 @@ export class SellerStatusService {
     if (notifyDetail) this.sellerChanges.notify();
   }
 
-  // 409 = piezas a su cargo (desactivar) o historial (eliminar); 404 = ya no existe; el resto, sin red o 5xx.
+  // Eliminar: un 409 de carrera (se distingue por su mensaje) es un error genérico; cualquier otro 409 es por piezas.
+  private toRemoveFailure(error: unknown): SellerStatusResult {
+    if (httpStatus(error) === 409 && httpErrorMessage(error) === SELLER_REMOVE_RACE_MESSAGE) return { ok: false, reason: 'error' };
+    return this.toFailure(error, 'has-units');
+  }
+
+  // 409 = piezas a su cargo; 404 = ya no existe; el resto, sin red o 5xx.
   private toFailure(error: unknown, conflict: SellerStatusFailure): SellerStatusResult {
     const status = httpStatus(error);
     if (status === 409) return { ok: false, reason: conflict };

@@ -45,6 +45,9 @@ export const SELLERS_FILTER_PARAM = 'estado';
 export const SELLERS_INACTIVE_PARAM_VALUE = 'desactivados';
 
 // Alerta del 409 al desactivar o eliminar (piezas a su cargo); mismo texto que el backend.
+// Texto del backend cuando, al eliminar, aparecen movimientos entre la revisión y el borrado (409 de carrera).
+// Se distingue del 409 por piezas por este mensaje; la alerta de la ficha lo muestra tal cual.
+export const SELLER_REMOVE_RACE_MESSAGE = 'El vendedor acaba de tener movimientos: intenta de nuevo';
 export const SELLER_HAS_UNITS = 'Retírale sus piezas antes de desactivarlo';
 
 // Aviso de que el vendedor ya no existe (404), compartido por la ficha y el pop-up.

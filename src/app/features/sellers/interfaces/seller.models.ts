@@ -135,7 +135,7 @@ export type UpdateSellerResult =
 // Filtro de GET /api/sellers (T-42): sin parámetro = activos.
 export type SellerListStatus = 'active' | 'inactive';
 
-export type SellerStatusFailure = 'has-units' | 'has-history' | 'error' | 'not-found' | 'offline';
+export type SellerStatusFailure = 'has-units' | 'error' | 'not-found' | 'offline';
 
 // Cómo salió el aviso por correo de las dos rutas POST; null = el estado ya era ese y no se intentó.
 export type EmailStatus = 'sent' | 'failed' | 'skipped';
