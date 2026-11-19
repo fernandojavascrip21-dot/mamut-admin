@@ -21,6 +21,7 @@ export async function sendSellerStatusEmail(input: {
     subject,
     templateId: process.env.RESEND_TEMPLATE_SELLER_STATUS ?? '',
     variables: { ...variables },
+    logLabel: 'el aviso de estado',
   })
 }
 
@@ -34,5 +35,6 @@ export async function sendSellerPasswordEmail(input: { to: string | null; name: 
     subject,
     templateId: process.env.RESEND_TEMPLATE_SELLER_PASSWORD ?? '',
     variables: { ...variables },
+    logLabel: 'el aviso del vendedor',
   })
 }

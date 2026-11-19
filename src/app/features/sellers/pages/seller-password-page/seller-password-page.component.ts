@@ -61,7 +61,7 @@ export class SellerPasswordPageComponent {
   // Último payload, para «Reintentar» sin volver a pedir lo escrito; se suelta al terminar.
   private lastInput: SetSellerPasswordInput | null = null;
 
-  readonly state = computed<SellerPasswordPageState | 'save-not-found'>(() => {
+  readonly state = computed<SellerPasswordPageState>(() => {
     if (this.sellerResource.status() === 'error') {
       return isNotFound(this.sellerResource.error()) ? 'not-found' : 'error';
     }
