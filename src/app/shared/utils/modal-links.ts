@@ -107,7 +107,7 @@ export function editSellerModalLink(sellerId: string): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_EDIT_SELLER_PATH, sellerId] } }];
 }
 
-// Esqueleto (HU-45): el enlace real lo implementa el paso 3 del plan.
+// «Cambiar contraseña» del vendedor (HU-45): ruta `vendedor/:sellerId/contrasena`.
 export function sellerPasswordModalLink(sellerId: string): unknown[] {
-  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_SELLER_PASSWORD_PATH, sellerId] } }];
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_EDIT_SELLER_PATH, sellerId, MODAL_SELLER_PASSWORD_PATH] } }];
 }

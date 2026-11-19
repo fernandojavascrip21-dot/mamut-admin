@@ -75,8 +75,9 @@
           </div>
         </div>
 
-        <!-- Teléfono: «Dejar» y «Retirar» lado a lado y «Editar datos» abajo a todo el ancho. Desde md, en
-             fila con su ancho natural: «Editar datos», «Retirar» y «Dejar» (el principal al final). -->
+        <!-- Teléfono: «Dejar» y «Retirar» lado a lado y debajo «Editar datos» y «Cambiar contraseña» (un desactivado
+             solo tiene «Editar datos», a todo el ancho). Desde md, en fila: «Editar datos», «Cambiar contraseña»,
+             «Retirar» y «Dejar» (el principal al final). -->
         <div
           class="order-3 grid w-full grid-cols-2 gap-2 p-4 md:flex md:w-auto md:flex-shrink-0 md:items-center md:justify-end lg:p-0"
         >
@@ -115,9 +116,19 @@
             pButton
             severity="secondary"
             [routerLink]="editLink()"
-            class="edit col-span-2 h-11 text-[15px] md:order-first md:px-5"
+            class="edit h-11 text-[15px] md:order-first md:px-5"
+            [class.col-span-2]="!seller.active"
             >Editar datos</a
           >
+          @if (seller.active) {
+            <a
+              pButton
+              severity="secondary"
+              [routerLink]="passwordLink()"
+              class="change-password h-11 text-[15px] md:order-first md:px-5"
+              >{{ changePasswordLabel }}</a
+            >
+          }
         </div>
       </div>
 

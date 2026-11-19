@@ -80,3 +80,6 @@ export const SELLER_INACTIVE_MESSAGE =
 export const REACTIVATE_LABEL = 'Reactivar';
 export const REACTIVATING_LABEL = 'Reactivando…';
 export const REACTIVATE_OFFLINE_NOTICE = 'No se pudo reactivar. Revisa tu conexión e inténtalo de nuevo.';
+
+// «Cambiar contraseña» (HU-45): solo un activo lo tiene.
+export const CHANGE_PASSWORD_LABEL = 'Cambiar contraseña';
