@@ -73,24 +73,17 @@ describe('SellerDetailPageComponent: «Cambiar contraseña» (HU-45)', () => {
       (node) => node.textContent!.trim() === label,
     );
 
-  it('un activo tiene «Cambiar contraseña» con el enlace al pop-up y la clase change-password', async () => {
+  it('la ficha de un activo no muestra «Cambiar contraseña» (ahora vive en «Editar datos»)', async () => {
     await load(ACTIVE);
-    const link = control('Cambiar contraseña');
-    expect(link).toBeDefined();
-    expect(link!.getAttribute('href')).toBe(`/admin/(ventana:vendedor/${ID}/contrasena)`);
-    expect(link!.classList).toContain('change-password');
-  });
-
-  it('«Cambiar contraseña» va junto a «Editar datos», que ya no ocupa todo el ancho', async () => {
-    await load(ACTIVE);
+    expect(control('Cambiar contraseña')).toBeUndefined();
+    expect(fixture.nativeElement.querySelector('.change-password')).toBeNull();
     expect(control('Editar datos')).toBeDefined();
-    expect(control('Editar datos')!.classList).not.toContain('col-span-2');
-    expect(control('Cambiar contraseña')!.classList).not.toContain('col-span-2');
   });
 
-  it('un desactivado no tiene «Cambiar contraseña» y «Editar datos» sigue a todo el ancho', async () => {
+  it('la ficha de un desactivado tampoco muestra «Cambiar contraseña»', async () => {
     await load(INACTIVE);
     expect(control('Cambiar contraseña')).toBeUndefined();
-    expect(control('Editar datos')!.classList).toContain('col-span-2');
+    expect(fixture.nativeElement.querySelector('.change-password')).toBeNull();
+    expect(control('Editar datos')).toBeDefined();
   });
 });

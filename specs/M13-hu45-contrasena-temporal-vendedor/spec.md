@@ -33,7 +33,7 @@ El usuario pidió además que el vendedor se entere por correo, como en HU-44. A
 
 **Entra en este spec:**
 
-- **Ficha** (`seller-detail-page`): botón secundario «Cambiar contraseña», solo para un vendedor activo. Abre el pop-up.
+- **«Editar datos»** (`edit-seller-page` + `seller-edit-form`): en la sección «Estado del vendedor» (`seller-status-actions`), un botón secundario «Cambiar contraseña», solo para un vendedor activo. Abre el pop-up de contraseña. La ficha (`seller-detail-page`) **no** lo muestra (cambio del 2026-11-19, §9).
 - **Pop-up «Cambiar contraseña»** en el outlet `ventana`:
   - ruta `(ventana:vendedor/:sellerId/contrasena)`;
   - página nueva `features/sellers/pages/seller-password-page/`, que carga al vendedor con `getAny` y guarda;
@@ -75,13 +75,14 @@ El usuario pidió además que el vendedor se entere por correo, como en HU-44. A
 
 Solo el administrador. La ruta ya exige `requireRole(request, 'admin')`: un vendedor recibe `403` y una petición sin sesión, `401`. La ficha vive en `/admin/vendedores/:id`, así que un vendedor nunca la descarga.
 
-### Ficha (`/admin/vendedores/:id`)
+### «Editar datos» (`(ventana:vendedor/:id)`) y ficha
 
-- Un **activo** muestra «Cambiar contraseña» (`pButton severity="secondary"`, clase de prueba `change-password`). Va junto a «Editar datos».
-  - En el teléfono, «Dejar» y «Retirar» siguen en la primera fila. «Editar datos» y «Cambiar contraseña» comparten la segunda fila, mitad y mitad.
-  - Desde `md`, todo queda en una sola fila: «Editar datos», «Cambiar contraseña», «Retirar» y «Dejar».
-- Un **desactivado** no muestra «Cambiar contraseña». Su vista (HU-44) no cambia: «Editar datos» sigue a todo el ancho.
-- El enlace es `sellerPasswordModalLink(sellerId)`.
+- En la sección «Estado del vendedor» de «Editar datos», un **activo** muestra «Cambiar contraseña» (`pButton severity="secondary"`, clase de prueba `change-password`) junto a «Desactivar vendedor» y «Eliminar vendedor».
+  - Es una acción aparte, como las otras dos: no envía el formulario de datos.
+  - Al pulsarlo, `edit-seller-page` navega a `sellerPasswordModalLink(sellerId)`. Si hay cambios sin guardar, el guard de «Editar datos» (HU-43) pregunta antes de salir, como con «Atrás».
+  - Mientras otra acción de estado está en curso (`busy`), el botón está deshabilitado.
+- Un **desactivado** no muestra «Cambiar contraseña»: su sección de estado (HU-44) no cambia.
+- La **ficha** (`/admin/vendedores/:id`) vuelve a sus botones de HU-43/HU-44: ya no muestra «Cambiar contraseña» ni cambia el diseño de sus filas.
 
 ### Pop-up «Cambiar contraseña» (`(ventana:vendedor/<id>/contrasena)`)
 
@@ -222,7 +223,7 @@ export type SellerPasswordResult =
    - la ruta en `admin.routes.ts` con `modalSavingGuard` y `data: { title: 'Cambiar contraseña' }`;
    - los estados de carga, el envío y los toasts;
    - el spec de la página y un spec nuevo de la ruta (`admin.routes.seller-password.spec.ts`).
-7. **Ficha.** El botón «Cambiar contraseña» solo para activos, con su enlace. Spec en el archivo nuevo `seller-detail-page.component.password.spec.ts`.
+7. **«Editar datos» (cambio del 2026-11-19).** El botón «Cambiar contraseña» pasa de la ficha a `seller-status-actions` (solo activos, deshabilitado con `busy`), con un `output()` `changePassword` que `edit-seller-page` atiende navegando a `sellerPasswordModalLink`. Se quita de la ficha. Requiere el desbloqueo del usuario de `seller-status-actions`, `edit-seller-page` y `seller-detail-page`; el spec `seller-detail-page.component.password.spec.ts` pasa a comprobar que la ficha **no** lo muestra, y el e2e abre el pop-up desde «Editar datos».
 8. **End-to-end.** `e2e/M13-hu45-contrasena-temporal-vendedor.spec.ts` (§7) y la suite completa de Playwright contra la base local.
 9. **Documentación.** `specs/README.md` y la línea de `notifications` en `CLAUDE.md` y `AGENTS.md`, que se mantienen iguales.
 
@@ -230,7 +231,7 @@ export type SellerPasswordResult =
 
 Criterios de Jira (`SCRUM-109`):
 
-- [ ] **1.** En la ficha de un activo, «Cambiar contraseña» abre un pop-up con «Contraseña temporal» (mínimo 8 caracteres) y «Confirmar contraseña». Los errores aparecen al enviar, no al escribir.
+- [ ] **1.** En «Editar datos» de un activo, sección «Estado del vendedor», «Cambiar contraseña» abre un pop-up con «Contraseña temporal» (mínimo 8 caracteres) y «Confirmar contraseña». Los errores aparecen al enviar, no al escribir.
 - [ ] **2.** Al guardar, un toast avisa que la contraseña cambió y pide compartirla. La contraseña no aparece en la ficha, en el toast, en la URL ni en el almacenamiento del navegador (`localStorage` y `sessionStorage` vacíos de ella).
 - [ ] **3.** El vendedor entra con la contraseña nueva y la anterior da error de inicio de sesión.
 - [ ] **4.** Mientras guarda, el botón dice «Cambiando…» y un segundo clic no manda otra petición. La carga y el guardado sin red muestran su aviso con «Reintentar». El pop-up y la ficha se ven sin desbordarse a 375 px.
@@ -239,7 +240,7 @@ Criterios de Jira (`SCRUM-109`):
 
 Criterios propios:
 
-- [ ] La ficha de un desactivado no muestra «Cambiar contraseña». Abrir `(ventana:vendedor/<id>/contrasena)` de un desactivado muestra «Está desactivado…» sin formulario.
+- [ ] La ficha no muestra «Cambiar contraseña» y el «Editar datos» de un desactivado tampoco. Abrir `(ventana:vendedor/<id>/contrasena)` de un desactivado muestra «Está desactivado…» sin formulario.
 - [ ] Las contraseñas distintas muestran «Las contraseñas no coinciden» y no mandan petición. Con 7 caracteres se ve «Usa al menos 8 caracteres».
 - [ ] El ojo muestra y oculta cada campo por separado.
 - [ ] `PUT /api/sellers/[id]/password` responde `200` con `{ emailStatus }` y nunca con la contraseña. Responde `422` con 7 caracteres, `404` si el vendedor no existe, `403` a un vendedor y `401` sin sesión.
@@ -292,17 +293,18 @@ Criterios propios:
   - no hay doble envío;
   - nada de la contraseña llega a `localStorage` ni `sessionStorage`.
 - `admin.routes.seller-password.spec.ts`: la ruta vive en el outlet `ventana` con `modalSavingGuard`.
-- `seller-detail-page.component.password.spec.ts`: un activo tiene el botón con el enlace al pop-up y un desactivado no lo tiene.
+- `seller-detail-page.component.password.spec.ts`: la ficha no muestra «Cambiar contraseña», ni de activos ni de desactivados.
+- `seller-status-actions` y `edit-seller-page`: un activo muestra «Cambiar contraseña» y su pulsación navega al pop-up; un desactivado no lo muestra; con `busy` está deshabilitado.
 
 **End-to-end** (`e2e/M13-hu45-contrasena-temporal-vendedor.spec.ts`, proyectos `escritorio` y `movil`):
 
-- Se da de alta un vendedor `test-e2e-` y se abre su ficha.
-- Con su sesión abierta en otro contexto del navegador, se pulsa «Cambiar contraseña» y luego:
+- Se da de alta un vendedor `test-e2e-`, se abre su ficha y desde ahí «Editar datos».
+- Con su sesión abierta en otro contexto del navegador, se pulsa «Cambiar contraseña» en «Estado del vendedor» y luego:
   - enviar vacío muestra los errores;
   - distintas muestra «Las contraseñas no coinciden»;
   - una válida y su confirmación cierran el pop-up con «Se cambió la contraseña, pero no se pudo avisarle por correo» (en local no hay Resend).
 - La siguiente acción del vendedor en el otro contexto lo lleva al login. La contraseña vieja falla y la nueva entra.
-- Después de desactivarlo, su ficha no muestra «Cambiar contraseña».
+- Después de desactivarlo, su «Editar datos» no muestra «Cambiar contraseña».
 - Limpieza: se elimina el vendedor, que no tiene movimientos.
 - El correo real se comprueba a mano con una cuenta de Resend y la plantilla publicada, nunca en la suite.
 
@@ -320,7 +322,8 @@ Criterios propios:
 
 ## 9. Decisiones
 
-- **Sí:** el formulario es un pop-up propio en el outlet `ventana` (`vendedor/:sellerId/contrasena`), con un botón en la ficha. **No** va como una sección de «Editar datos», que mezclaría dos envíos en un formulario (decisión del usuario).
+- **Sí:** el formulario es un pop-up propio en el outlet `ventana` (`vendedor/:sellerId/contrasena`). **No** va como una sección de «Editar datos», que mezclaría dos envíos en un formulario (decisión del usuario).
+- **Sí (2026-11-19, cambia la decisión anterior):** el botón que lo abre vive en la sección «Estado del vendedor» de «Editar datos», junto a «Desactivar» y «Eliminar», y **ya no** en la ficha. Es una acción aparte que abre otro pop-up, no un segundo envío del formulario; así las acciones de gestión quedan juntas (decisión del usuario).
 - **Sí:** la ruta responde `200` con `{ emailStatus }`, el mismo patrón que los `POST` de HU-44, y se desbloquea `sellers-manage`. **No** se usa una cabecera `X-Email-Status`, que no existe en el repo y obligaría a exponerla en CORS. **No** se crea una ruta nueva que repita la que ya existe (decisión del usuario).
 - **Sí:** solo se ofrece para activos. Un correo que dice «pídele tu contraseña» no sirve si no puede entrar (decisión del usuario). **No** se cambia el backend: sigue aceptando a un desactivado (T-42).
 - **No:** el botón «Generar contraseña». La escribe el administrador; si hace falta, va en otro spec (decisión del usuario).

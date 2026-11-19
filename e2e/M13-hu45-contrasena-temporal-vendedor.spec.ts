@@ -38,6 +38,15 @@ async function createSeller(request: APIRequestContext, tag: string) {
   return { ...seller, id: created.id };
 }
 
+// Abre «Editar datos» desde la ficha del vendedor y devuelve el pop-up.
+async function openEditDialog(page: Page, id: string) {
+  await page.goto(`${SELLERS_PATH}/${id}`);
+  await page.getByRole('link', { name: 'Editar datos' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Estado del vendedor')).toBeVisible();
+  return dialog;
+}
+
 async function loginAs(page: Page, account: { email: string; password: string }, home: RegExp): Promise<void> {
   await login(page, account);
   await expect(page).toHaveURL(home);
@@ -76,7 +85,9 @@ test.describe('Contraseña temporal de un vendedor (HU-45)', () => {
     await loginAs(page, SEED_ACCOUNTS.admin, new RegExp(ADMIN_HOME_PATH));
     await page.goto(`${SELLERS_PATH}/${seller.id}`);
     await expect(page.getByRole('heading', { level: 1, name: seller.fullName })).toBeVisible();
-    await page.getByRole('link', { name: CHANGE_PASSWORD_LABEL }).click();
+    await expect(page.getByRole('link', { name: CHANGE_PASSWORD_LABEL })).toHaveCount(0);
+    const editDialog = await openEditDialog(page, seller.id);
+    await editDialog.getByRole('button', { name: CHANGE_PASSWORD_LABEL }).click();
 
     const { dialog, password, confirmation } = passwordFields(page);
     await expect(dialog.getByText(`Para ${seller.fullName}`)).toBeVisible();
@@ -122,7 +133,8 @@ test.describe('Contraseña temporal de un vendedor (HU-45)', () => {
     await loginAs(page, SEED_ACCOUNTS.admin, new RegExp(ADMIN_HOME_PATH));
     await page.goto(`${SELLERS_PATH}/${seller.id}`);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await page.getByRole('link', { name: CHANGE_PASSWORD_LABEL }).click();
+    const editDialog = await openEditDialog(page, seller.id);
+    await editDialog.getByRole('button', { name: CHANGE_PASSWORD_LABEL }).click();
 
     const { dialog, password, confirmation } = passwordFields(page);
     await password.fill(SELLER_NEW_PASSWORD);
@@ -146,6 +158,9 @@ test.describe('Contraseña temporal de un vendedor (HU-45)', () => {
     await page.goto(`${SELLERS_PATH}/${seller.id}`);
     await expect(page.getByRole('button', { name: 'Reactivar', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: CHANGE_PASSWORD_LABEL })).toHaveCount(0);
+    const editDialog = await openEditDialog(page, seller.id);
+    await expect(editDialog.getByRole('button', { name: 'Reactivar vendedor' })).toBeVisible();
+    await expect(editDialog.getByRole('button', { name: CHANGE_PASSWORD_LABEL })).toHaveCount(0);
 
     await page.goto(`/admin/(ventana:vendedor/${seller.id}/contrasena)`);
     await expect(page.getByRole('dialog').getByText('Está desactivado. Reactívalo para cambiarle la contraseña.')).toBeVisible();
