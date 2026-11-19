@@ -67,7 +67,7 @@ El usuario pidió además que el vendedor se entere por correo, como en HU-44. A
 - Cambiar la contraseña de un administrador.
 - Reintentar el correo si falla, o una cola de avisos.
 - Verificar el dominio de Resend: es `SCRUM-110`.
-- Cambios en la base de datos.
+- Cambios en la base de datos, salvo `profiles.archived_at` (§10).
 
 ## 3. Reglas de negocio y pantallas
 
@@ -166,7 +166,7 @@ Esto no cambia (T-42): al cambiar la contraseña se cierran todas sus sesiones. 
 
 ## 4. Modelo de datos
 
-Este spec no cambia la base de datos.
+La contraseña temporal no cambia la base de datos. Solo la ampliación de §10 añade la columna `profiles.archived_at`.
 
 Backend:
 
@@ -339,6 +339,82 @@ Criterios propios:
 - **Sí:** `escapeHtml` pasa a un archivo compartido del módulo, en lugar de copiarse.
 - **Sí:** `MIN_PASSWORD` se mueve a `sellers.constants.ts` con una reexportación, para que el alta y el pop-up usen el mismo mínimo sin romper imports.
 
+## 10. Ampliación (2026-11-19): eliminar un vendedor con historial lo archiva
+
+Decisión del usuario, tomada con este spec ya implementado. Cambia una regla de T-42 y HU-44 («eliminar solo sin historial»). Quiere poder quitar de las listas a un vendedor que ya no trabaja, **sin perder** sus ventas, movimientos ni cortes, y sin dejar que se vaya con piezas a su cargo. Borrar el historial de verdad (en cascada) se descartó: descuadraría el inventario del almacén y los cortes.
+
+### Regla
+
+`DELETE /api/sellers/[id]`, en este orden:
+
+1. **Sin ningún movimiento:** igual que hoy (T-42): se borra el perfil y después la cuenta de Auth.
+2. **Con historial y con piezas a su cargo** (`vendor_stock.qty > 0`): `409` con el mismo mensaje que al desactivar («No se puede… tiene piezas», `SELLER_HAS_UNITS`). El administrador debe retirárselas antes (HU-12).
+3. **Con historial y sin piezas:** se **archiva** y responde `204`:
+   - `profiles.archived_at = now()`, `active = false` y `archived_email = <su correo original>`, en la misma transacción que revisa las piezas, con el mismo candado de `deactivateSeller`;
+   - **se libera su correo:** después de esa transacción, la cuenta de Auth cambia a un correo interno `archivado-<id>@mammut.invalid`. Si Auth falla, se deshace el cambio del perfil (compensación, como `createAccount`) y la petición da error;
+   - el historial (ventas, movimientos, cortes) no se toca;
+   - **no se manda correo** (el aviso de HU-44 es solo de desactivar y reactivar).
+4. **Ya archivado:** `404`, como un vendedor que no existe.
+
+El mensaje `SELLER_HAS_HISTORY` («Tiene historial: solo se puede desactivar») deja de usarse. La FK `restrict` sigue siendo la red de seguridad del borrado físico del caso 1.
+
+### Qué es un archivado
+
+- No aparece en «Activos» ni en «Desactivados», ni en «Mis vendedores», «Viendo» o «Dejar».
+- `GET /api/sellers/[id]`, también con `?status=any`, y cualquier operación sobre él dan `404`.
+- No puede iniciar sesión (`active = false`; el login da el mismo mensaje genérico).
+- **Su historial sigue contando** en los cortes y en el resumen del negocio («Por titular»), como hoy el de un desactivado.
+- No se recupera desde la app.
+- **Se puede volver a dar de alta con el mismo correo y teléfono.** El correo queda libre (arriba) y `profiles.phone` no es único. El alta crea un vendedor **nuevo** (otro id y sin historial); el historial anterior sigue con el archivado.
+
+### Base de datos
+
+- Migración nueva `supabase/migrations/<timestamp>_seller_archived_at.sql`: `profiles.archived_at timestamptz` y `profiles.archived_email text` (nulos por omisión; sin índices nuevos). `archived_email` solo guarda el correo original para referencia.
+- Se comprueba con `npm run db:reset`. En producción se aplica **a mano** en el SQL Editor, antes de desplegar el backend nuevo, con la consulta de comprobación previa y las de verificación (regla de CLAUDE.md; nunca `db push`).
+- `backend/src/db/schema.ts` se actualiza con `db:pull` y sus arreglos de siempre, con la base ya migrada.
+
+### Backend
+
+- `deleteSeller` sigue la regla de arriba; `findSeller`, `listSellers`, `getSeller`, `getSellerName` y `getActiveSellerName` excluyen los archivados. Lo mismo la consulta de vendedores de `stock/holdings.ts` y la de `accounts/logins.ts`, si leen perfiles sin pasar por `findSeller`.
+- Constantes en `accounts/constants.ts`; sin lógica en la ruta.
+
+### Frontend (HU-44, «Editar datos»)
+
+- «Eliminar vendedor» sigue en «Estado del vendedor». La confirmación cambia a: «Se eliminará a <nombre>. Si tiene historial, solo se archiva: sus ventas y cortes se conservan, no podrá recuperarse desde la app y su correo quedará libre para un alta nueva.»
+- La alerta de `409` «Tiene historial» desaparece. La de `409` por piezas (con «Retirar producto») se queda.
+- Al eliminar, toast de éxito y el pop-up se cierra, como hoy.
+
+### Criterios de aceptación (ampliación)
+
+- [ ] Eliminar un vendedor con historial y sin piezas responde `204`, queda con `archived_at` y `active = false`, y su historial sigue completo.
+- [ ] Con piezas a su cargo responde `409`; no se archiva.
+- [ ] Un archivado no sale en «Activos», «Desactivados», «Mis vendedores», «Viendo» ni «Dejar»; su detalle da `404` (también con `?status=any`); no puede entrar a la app.
+- [ ] Sus ventas siguen contando en el corte de casa y en el resumen del negocio.
+- [ ] Un vendedor sin movimientos se sigue borrando por completo.
+- [ ] Después de archivar a un vendedor, se puede dar de alta otro con el mismo correo y teléfono; el nuevo no tiene historial y el archivado conserva el suyo.
+- [ ] Si Auth falla al liberar el correo, el vendedor sigue activo y sin archivar, y la petición da error.
+- [ ] La confirmación del frontend usa el texto nuevo y ya no existe la alerta «Tiene historial».
+- [ ] La migración corre con `npm run db:reset` y está aplicada y verificada en producción antes de desplegar.
+
+### Plan de implementación (ampliación)
+
+Antes de empezar se corre el desbloqueo de las pruebas con commit que esperan «Tiene historial» (por ejemplo `sellers-manage`, `edit-seller-page` y `seller-status-actions`). Solo cambian los `it` que tocan esta regla.
+
+10. **Pruebas.** Backend: archivar con historial, `409` con piezas, `404` de un archivado en lista, detalle y login, el corte que sigue contando, la re-alta con el mismo correo y teléfono, y la compensación si Auth falla. Frontend: la confirmación nueva y sin alerta de historial. E2E: archivar desde «Editar datos».
+11. **Migración** `archived_at`, `db:reset` y `schema.ts`.
+12. **Backend:** `deleteSeller` y los filtros de §10.
+13. **Frontend:** texto de la confirmación y quitar la alerta de historial.
+14. **Producción (a mano):** el usuario aplica la migración antes del despliegue.
+
+### Riesgos
+
+| Riesgo | Mitigación |
+| --- | --- |
+| El backend nuevo en producción sin la columna `archived_at` falla en todas las consultas de vendedores | La migración se aplica antes de desplegar (paso 14) |
+| El cambio del correo en Auth falla a medias y deja perfil y Auth incoherentes | Compensación: se deshace el perfil si Auth falla; prueba específica |
+| Alguna consulta de vendedores no filtra los archivados | Prueba por cada lista (activos, desactivados, «Viendo», «Dejar», login) y búsqueda de las lecturas de `profiles` con rol de vendedor |
+| Cortes o inventario del almacén cambian por archivar | No cambian: no se borra ninguna fila de historial |
+
 ## Lo que **no** entra en este spec
 
 - La contraseña o un enlace dentro del correo.
@@ -348,6 +424,8 @@ Criterios propios:
 - Que el vendedor cambie su contraseña o use «Olvidé mi contraseña».
 - Reintentos o una cola de correos.
 - Verificar el dominio de Resend (`SCRUM-110`).
-- Cambios en la base de datos.
+- Cambios en la base de datos, salvo `profiles.archived_at` (§10).
+- Recuperar a un archivado desde la app, o una lista de archivados.
+- Borrar el historial de un vendedor en cascada.
 
 Cada uno, si llega, va en su propio spec.
