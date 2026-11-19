@@ -44,9 +44,8 @@ export const BUSINESS_NAME_TOO_LONG = `El nombre del negocio debe tener como má
 export const SELLERS_FILTER_PARAM = 'estado';
 export const SELLERS_INACTIVE_PARAM_VALUE = 'desactivados';
 
-// Alertas del 409 al desactivar (piezas a su cargo) o eliminar (historial); mismo texto que el backend.
+// Alerta del 409 al desactivar o eliminar (piezas a su cargo); mismo texto que el backend.
 export const SELLER_HAS_UNITS = 'Retírale sus piezas antes de desactivarlo';
-export const SELLER_HAS_HISTORY = 'Tiene historial: solo se puede desactivar';
 
 // Aviso de que el vendedor ya no existe (404), compartido por la ficha y el pop-up.
 export const SELLER_GONE_NOTICE = 'Este vendedor ya no está disponible';

@@ -23,7 +23,7 @@ export class SellerStatusActionsComponent {
   readonly active = input.required<boolean>();
   // Acción en curso (o `saving` si guarda el formulario): deshabilita todos los botones.
   readonly busy = input<EditSellerBusy>(null);
-  // Alerta de un 409 (piezas a su cargo o historial); `showReturn` agrega «Retirar producto».
+  // Alerta de un 409 (piezas a su cargo); `showReturn` agrega «Retirar producto».
   readonly notice = input<SellerStatusNotice>(null);
 
   readonly deactivate = output<void>();

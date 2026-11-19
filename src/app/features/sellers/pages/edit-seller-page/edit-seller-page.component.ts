@@ -17,7 +17,7 @@ import {
   removeConfirmation, sellerDeactivatedNotice, sellerRemovedNotice,
 } from '../../constants/edit-seller-page.constants';
 import {
-  DUPLICATE_EMAIL, REACTIVATE_EMAIL_WARNING, SELLER_GONE_NOTICE, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLER_HAS_HISTORY, SELLER_HAS_UNITS,
+  DUPLICATE_EMAIL, REACTIVATE_EMAIL_WARNING, SELLER_GONE_NOTICE, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLER_HAS_UNITS,
   sellerReactivatedNotice,
 } from '../../constants/sellers.constants';
 import type { Seller, SellerDetail, SellerStatusResult, UpdateSellerInput, UpdateSellerResult } from '../../interfaces/seller.models';
@@ -222,11 +222,10 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
       return;
     }
     switch (result.reason) {
+      // Eliminar ya no devuelve «Tiene historial» (se archiva): un 409 al eliminar también es por piezas a su cargo.
       case 'has-units':
-        this.statusNotice.set({ message: SELLER_HAS_UNITS, showReturn: true });
-        return;
       case 'has-history':
-        this.statusNotice.set({ message: SELLER_HAS_HISTORY, showReturn: false });
+        this.statusNotice.set({ message: SELLER_HAS_UNITS, showReturn: true });
         return;
       case 'not-found':
         this.toastService.error(SELLER_GONE_NOTICE);
