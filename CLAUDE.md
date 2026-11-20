@@ -35,6 +35,8 @@ Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh chec
 
 **End-to-end** (Playwright, `playwright.config.ts`, tests in `e2e/`): runs locally only (not in CI yet), one worker, projects `escritorio` and `movil` (375 px). The config stops before starting any server if the active block of `backend/.env` does not point `DATABASE_URL` and `SUPABASE_URL` at `127.0.0.1`/`localhost`: never run it against PRODUCCIÓN. Needs `npm run db:start`; log in with the seed accounts through `e2e/support/login.ts`; data a test creates is prefixed `test-e2e-` and cleaned up. `/spec-impl` writes `e2e/<spec>.spec.ts` for the criteria with a screen and runs the whole suite after the last block; committed e2e specs are frozen like the others.
 
+**Vercel** (`vercel.json`): two projects from this repo, the frontend (root) and the backend (`backend/`). Vercel publishes `dist/mamut-admin/browser` as static files and does not run `src/server.ts`; every app route is `RenderMode.Client` (`app.routes.server.ts`), so `vercel.json` rewrites `/api/*` to the backend project and every other path to `/index.csr.html`, the SPA fallback that `server.ts` gives locally. Without it, reloading `/login` or `/admin/...` returns 404. `API_BASE_URL` is the frontend's own origin (the browser calls `/api/...` on it); `ALLOWED_ORIGINS` of the backend is that same origin; changing either needs a redeploy without build cache.
+
 ### Backend (`cd backend` — own `package.json`, `node_modules`, `.env`)
 
 ```bash
