@@ -231,27 +231,27 @@ export type SellerPasswordResult =
 
 Criterios de Jira (`SCRUM-109`):
 
-- [ ] **1.** En «Editar datos» de un activo, sección «Estado del vendedor», «Cambiar contraseña» abre un pop-up con «Contraseña temporal» (mínimo 8 caracteres) y «Confirmar contraseña». Los errores aparecen al enviar, no al escribir.
-- [ ] **2.** Al guardar, un toast avisa que la contraseña cambió y pide compartirla. La contraseña no aparece en la ficha, en el toast, en la URL ni en el almacenamiento del navegador (`localStorage` y `sessionStorage` vacíos de ella).
-- [ ] **3.** El vendedor entra con la contraseña nueva y la anterior da error de inicio de sesión.
-- [ ] **4.** Mientras guarda, el botón dice «Cambiando…» y un segundo clic no manda otra petición. La carga y el guardado sin red muestran su aviso con «Reintentar». El pop-up y la ficha se ven sin desbordarse a 375 px.
+- [x] **1.** En «Editar datos» de un activo, sección «Estado del vendedor», «Cambiar contraseña» abre un pop-up con «Contraseña temporal» (mínimo 8 caracteres) y «Confirmar contraseña». Los errores aparecen al enviar, no al escribir.
+- [x] **2.** Al guardar, un toast avisa que la contraseña cambió y pide compartirla. La contraseña no aparece en la ficha, en el toast, en la URL ni en el almacenamiento del navegador (`localStorage` y `sessionStorage` vacíos de ella).
+- [x] **3.** El vendedor entra con la contraseña nueva y la anterior da error de inicio de sesión.
+- [x] **4.** Mientras guarda, el botón dice «Cambiando…» y un segundo clic no manda otra petición. La carga y el guardado sin red muestran su aviso con «Reintentar». El pop-up y la ficha se ven sin desbordarse a 375 px.
 - [ ] **5.** Con Resend configurado, el vendedor recibe en su correo registrado «Tu contraseña de Mammut fue cambiada». El correo no trae la contraseña ni enlaces.
-- [ ] **6.** Si el correo falla o no está configurado, la contraseña queda cambiada y el administrador ve «Se cambió la contraseña, pero no se pudo avisarle por correo».
+- [x] **6.** Si el correo falla o no está configurado, la contraseña queda cambiada y el administrador ve «Se cambió la contraseña, pero no se pudo avisarle por correo».
 
 Criterios propios:
 
-- [ ] La ficha no muestra «Cambiar contraseña» y el «Editar datos» de un desactivado tampoco. Abrir `(ventana:vendedor/<id>/contrasena)` de un desactivado muestra «Está desactivado…» sin formulario.
-- [ ] Las contraseñas distintas muestran «Las contraseñas no coinciden» y no mandan petición. Con 7 caracteres se ve «Usa al menos 8 caracteres».
-- [ ] El ojo muestra y oculta cada campo por separado.
-- [ ] `PUT /api/sellers/[id]/password` responde `200` con `{ emailStatus }` y nunca con la contraseña. Responde `422` con 7 caracteres, `404` si el vendedor no existe, `403` a un vendedor y `401` sin sesión.
-- [ ] Después del cambio, el token y el refresh token anteriores del vendedor dan `401`. Esto ya venía de T-42 y sigue igual.
-- [ ] La petición a Resend lleva `template.id` tomado de `RESEND_TEMPLATE_SELLER_PASSWORD` y las variables `NAME`, `HEADLINE`, `MESSAGE` y `NOTE`. Ningún valor contiene la contraseña, y el id de la plantilla no está escrito en el código.
-- [ ] Sin `RESEND_TEMPLATE_SELLER_PASSWORD`, la ruta responde `'skipped'` sin llamar a Resend. El aviso de estado de HU-44 sigue mandándose con su propia plantilla.
-- [ ] El log del servidor al fallar el correo no incluye el correo, el mensaje ni la contraseña.
-- [ ] `ng build`, `npm run check:architecture` y `ng test` pasan.
-- [ ] En `backend/`: `npm run type-check`, `npm run build` y `npm test` pasan contra la base local, con `SUPABASE_SERVICE_ROLE_KEY` definida y sin pruebas omitidas. En `sellers-manage.test.ts` solo cambiaron los tres `it` del paso 0.
-- [ ] `npm run test:e2e` pasa completo contra la base local.
-- [ ] `specs/README.md`, `CLAUDE.md`, `AGENTS.md` y `backend/.env.example` están actualizados.
+- [x] La ficha no muestra «Cambiar contraseña» y el «Editar datos» de un desactivado tampoco. Abrir `(ventana:vendedor/<id>/contrasena)` de un desactivado muestra «Está desactivado…» sin formulario.
+- [x] Las contraseñas distintas muestran «Las contraseñas no coinciden» y no mandan petición. Con 7 caracteres se ve «Usa al menos 8 caracteres».
+- [x] El ojo muestra y oculta cada campo por separado.
+- [x] `PUT /api/sellers/[id]/password` responde `200` con `{ emailStatus }` y nunca con la contraseña. Responde `422` con 7 caracteres, `404` si el vendedor no existe, `403` a un vendedor y `401` sin sesión.
+- [x] Después del cambio, el token y el refresh token anteriores del vendedor dan `401`. Esto ya venía de T-42 y sigue igual.
+- [x] La petición a Resend lleva `template.id` tomado de `RESEND_TEMPLATE_SELLER_PASSWORD` y las variables `NAME`, `HEADLINE`, `MESSAGE` y `NOTE`. Ningún valor contiene la contraseña, y el id de la plantilla no está escrito en el código.
+- [x] Sin `RESEND_TEMPLATE_SELLER_PASSWORD`, la ruta responde `'skipped'` sin llamar a Resend. El aviso de estado de HU-44 sigue mandándose con su propia plantilla.
+- [x] El log del servidor al fallar el correo no incluye el correo, el mensaje ni la contraseña.
+- [x] `ng build`, `npm run check:architecture` y `ng test` pasan.
+- [x] En `backend/`: `npm run type-check`, `npm run build` y `npm test` pasan contra la base local, con `SUPABASE_SERVICE_ROLE_KEY` definida y sin pruebas omitidas. En `sellers-manage.test.ts` solo cambiaron los tres `it` del paso 0.
+- [x] `npm run test:e2e` pasa completo contra la base local.
+- [x] `specs/README.md`, `CLAUDE.md`, `AGENTS.md` y `backend/.env.example` están actualizados.
 
 ## 7. Plan de pruebas
 
@@ -386,14 +386,14 @@ El mensaje `SELLER_HAS_HISTORY` («Tiene historial: solo se puede desactivar») 
 
 ### Criterios de aceptación (ampliación)
 
-- [ ] Eliminar un vendedor con historial y sin piezas responde `204`, queda con `archived_at` y `active = false`, y su historial sigue completo.
-- [ ] Con piezas a su cargo responde `409`; no se archiva.
-- [ ] Un archivado no sale en «Activos», «Desactivados», «Mis vendedores», «Viendo» ni «Dejar»; su detalle da `404` (también con `?status=any`); no puede entrar a la app.
-- [ ] Sus ventas siguen contando en el corte de casa y en el resumen del negocio.
-- [ ] Un vendedor sin movimientos se sigue borrando por completo.
-- [ ] Después de archivar a un vendedor, se puede dar de alta otro con el mismo correo y teléfono; el nuevo no tiene historial y el archivado conserva el suyo.
-- [ ] Si Auth falla al liberar el correo, el vendedor sigue activo y sin archivar, y la petición da error.
-- [ ] La confirmación del frontend usa el texto nuevo y ya no existe la alerta «Tiene historial».
+- [x] Eliminar un vendedor con historial y sin piezas responde `204`, queda con `archived_at` y `active = false`, y su historial sigue completo.
+- [x] Con piezas a su cargo responde `409`; no se archiva.
+- [x] Un archivado no sale en «Activos», «Desactivados», «Mis vendedores», «Viendo» ni «Dejar»; su detalle da `404` (también con `?status=any`); no puede entrar a la app.
+- [x] Sus ventas siguen contando en el corte de casa y en el resumen del negocio.
+- [x] Un vendedor sin movimientos se sigue borrando por completo.
+- [x] Después de archivar a un vendedor, se puede dar de alta otro con el mismo correo y teléfono; el nuevo no tiene historial y el archivado conserva el suyo.
+- [x] Si Auth falla al liberar el correo, el vendedor sigue activo y sin archivar, y la petición da error.
+- [x] La confirmación del frontend usa el texto nuevo y ya no existe la alerta «Tiene historial».
 - [ ] La migración corre con `npm run db:reset` y está aplicada y verificada en producción antes de desplegar.
 
 ### Plan de implementación (ampliación)
