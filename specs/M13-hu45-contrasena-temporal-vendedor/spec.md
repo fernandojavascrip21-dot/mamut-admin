@@ -1,6 +1,6 @@
 # Spec — HU-45 · Ponerle una contraseña temporal a un vendedor
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:**
 > - M13-t42-base-gestion-vendedores (`specs/M13-t42-base-gestion-vendedores/spec.md`): `PUT /api/sellers/[id]/password` (`setSellerPassword`, `validatePassword`, `revokeSessions`). Este spec cambia su respuesta de `204` a `200` con `emailStatus` (§3).
 > - M13-hu43-ficha-editar-vendedor (`specs/M13-hu43-ficha-editar-vendedor/spec.md`): la ficha con sus botones y el patrón del pop-up «Editar datos» (`edit-seller-page` + `seller-edit-form`).
