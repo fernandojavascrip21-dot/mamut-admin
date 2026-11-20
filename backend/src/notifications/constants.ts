@@ -31,3 +31,13 @@ export const HTML_ESCAPES: Record<string, string> = {
   '"': '&quot;',
   "'": '&#39;',
 }
+
+// Variables de la plantilla «Contraseña cambiada» (spec M13-hu45): las mismas cuatro del aviso de estado.
+export type SellerPasswordVariables = SellerStatusVariables
+
+// Texto del aviso de contraseña temporal (§3 del spec): el título es también el asunto. Nunca lleva la contraseña.
+export const SELLER_PASSWORD_TEXTS = {
+  headline: 'Tu contraseña de Mammut fue cambiada',
+  message: 'Tu administrador te asignó una contraseña temporal. Pídesela a tu administrador para entrar a la app.',
+  note: 'Por seguridad, no incluimos tu contraseña en este correo.',
+} as const

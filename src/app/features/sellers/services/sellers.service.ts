@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from '@core/api-base-url';
 import type {
   CreateSellerInput, DeliveryHistoryItem, EmailStatus, Seller, SellerDetail, SellerListStatus, SellerSummary,
-  UpdateSellerInput,
+  SellerPasswordResponse, SetSellerPasswordInput, UpdateSellerInput,
 } from '../interfaces/seller.models';
 
 // Cliente HTTP hacia /api/sellers. El Bearer token lo agrega authInterceptor.
@@ -66,5 +66,13 @@ export class SellersService {
   // Elimina un alta hecha por error (204).
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}`);
+  }
+
+  // Cambia la contraseña temporal del vendedor (HU-45); responde si se pudo avisarle por correo.
+  setPassword(id: string, input: SetSellerPasswordInput): Observable<SellerPasswordResponse> {
+    return this.http.put<SellerPasswordResponse>(
+      `${API_BASE_URL}/api/sellers/${encodeURIComponent(id)}/password`,
+      input,
+    );
   }
 }

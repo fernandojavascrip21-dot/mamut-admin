@@ -31,7 +31,7 @@ const INACTIVE: SellerDetail = { ...ACTIVE, active: false };
 const DEACTIVATE_MESSAGE =
   'Ya no podrá entrar a la app ni aparecerá en «Viendo» ni en «Dejar». Sus ventas y cortes se conservan, puedes reactivarlo cuando quieras y le mandaremos un aviso por correo.';
 const REMOVE_MESSAGE =
-  'Se borra su acceso para siempre. Solo se puede si nunca tuvo movimientos; si tiene historial, desactívalo.';
+  'Se eliminará a Víctor Vendedor. Si tiene historial, solo se archiva: sus ventas y cortes se conservan, no podrá recuperarse desde la app y su correo quedará libre para un alta nueva.';
 const UNSAVED_LINE = 'Los cambios sin guardar se pierden.';
 
 describe('EditSellerPageComponent: estado del vendedor (HU-44)', () => {
@@ -375,16 +375,33 @@ describe('EditSellerPageComponent: estado del vendedor (HU-44)', () => {
       expect(visited()).toEqual(['/admin/vendedores?estado=desactivados']);
     });
 
-    it('con 409 muestra «Tiene historial: solo se puede desactivar» sin «Retirar producto» y no cierra', async () => {
+    it('con 409 (piezas a su cargo) muestra la alerta con «Retirar producto», sin «Tiene historial», y no cierra', async () => {
       await open(ACTIVE);
       await press('Eliminar vendedor');
       fail('', 409);
       await settle();
       const alert = el().querySelector('[role="alert"].alert-warning') as HTMLElement;
-      expect(alert.textContent).toContain('Tiene historial: solo se puede desactivar');
-      expect(button('Retirar producto')).toBeUndefined();
+      expect(alert.textContent).toContain('Retírale sus piezas antes de desactivarlo');
+      expect(alert.textContent).not.toContain('Tiene historial');
+      expect(button('Retirar producto')).toBeDefined();
       expect(visited()).toEqual([]);
       expect(viewing.reload).not.toHaveBeenCalled();
+    });
+
+    it('con 409 de carrera (movimientos recién aparecidos) muestra una alerta genérica, sin «Retírale sus piezas»', async () => {
+      await open(ACTIVE);
+      await press('Eliminar vendedor');
+      httpMock
+        .expectOne(URL)
+        .flush(
+          { error: { code: 'conflict', message: 'El vendedor acaba de tener movimientos: intenta de nuevo' } },
+          { status: 409, statusText: 'Conflict' },
+        );
+      await settle();
+      const alert = el().querySelector('[role="alert"].alert-warning') as HTMLElement;
+      expect(alert.textContent).toContain('El vendedor acaba de tener movimientos: intenta de nuevo');
+      expect(alert.textContent).not.toContain('Retírale sus piezas');
+      expect(visited()).toEqual([]);
     });
 
     it('con 404 avisa «Este vendedor ya no está disponible», cierra y va a «Mis vendedores»', async () => {

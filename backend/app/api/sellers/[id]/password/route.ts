@@ -5,11 +5,11 @@ import { handle, parseUuid, readJson, requireString } from '@lib/handler'
 type Ctx = { params: Promise<{ id: string }> }
 
 // Contraseña temporal del vendedor (spec M13-t42): cierra sus sesiones. La contraseña nunca se
-// devuelve ni se registra; la respuesta es 204 sin cuerpo.
+// devuelve ni se registra; la respuesta es 200 con { emailStatus } (spec M13-hu45).
 export const PUT = handle<Ctx>(async (request, { params }) => {
   await requireRole(request, 'admin')
   const id = parseUuid((await params).id)
   const body = await readJson(request)
-  await setSellerPassword(id, requireString(body, 'password'))
-  return new Response(null, { status: 204 })
+  const result = await setSellerPassword(id, requireString(body, 'password'))
+  return Response.json(result)
 })

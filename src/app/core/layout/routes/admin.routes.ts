@@ -11,6 +11,7 @@ import {
   MODAL_RECEIPT_PATH,
   MODAL_RESTOCK_HISTORY_PATH,
   MODAL_RESTOCK_PATH,
+  MODAL_SELLER_PASSWORD_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '@shared/constants/modal.constants';
 import { modalSavingGuard } from '@shared/guards/modal-saving.guard';
@@ -96,6 +97,17 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.EditSellerPageComponent,
       ),
     data: { title: 'Editar datos' },
+  },
+  // «Cambiar contraseña» del vendedor (HU-45): el id llega en `vendedor/:sellerId/contrasena`; no se cierra mientras guarda.
+  {
+    path: `${MODAL_EDIT_SELLER_PATH}/:sellerId/${MODAL_SELLER_PASSWORD_PATH}`,
+    outlet: MODAL_OUTLET,
+    canDeactivate: [modalSavingGuard],
+    loadComponent: () =>
+      import('@features/sellers/pages/seller-password-page/seller-password-page.component').then(
+        (m) => m.SellerPasswordPageComponent,
+      ),
+    data: { title: 'Cambiar contraseña' },
   },
   // «Fraccionar» (HU-23): pop-up en el outlet `ventana`; el entero llega como parámetro `producto`.
   {

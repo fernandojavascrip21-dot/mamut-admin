@@ -6,6 +6,8 @@ export interface SendEmailInput {
   subject: string
   templateId: string
   variables: Record<string, string>
+  // Cómo se llama el aviso en el log; nunca lleva datos del correo.
+  logLabel: string
 }
 
 // Envía un correo con una plantilla publicada de Resend. Nunca lanza: el aviso no puede romper el
@@ -28,10 +30,10 @@ export async function sendEmail(input: SendEmailInput): Promise<EmailStatus> {
       signal: AbortSignal.timeout(EMAIL_TIMEOUT_MS),
     })
     if (response.ok) return 'sent'
-    console.error(`Resend rechazó el aviso de estado (HTTP ${response.status})`)
+    console.error(`Resend rechazó ${input.logLabel} (HTTP ${response.status})`)
     return 'failed'
   } catch (err) {
-    console.error(`No se pudo enviar el aviso de estado (${err instanceof Error ? err.name : 'error'})`)
+    console.error(`No se pudo enviar ${input.logLabel} (${err instanceof Error ? err.name : 'error'})`)
     return 'failed'
   }
 }

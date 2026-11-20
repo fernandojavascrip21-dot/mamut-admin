@@ -33,6 +33,9 @@ export const RETURN_FAILURE_MESSAGES = {
 // Mismo máximo que el backend para el nombre del negocio.
 export const MAX_BUSINESS_NAME = 80;
 
+// Mismo mínimo que valida el backend (`validatePassword` en backend/src/accounts/accounts.ts).
+export const MIN_PASSWORD = 8;
+
 export const DUPLICATE_EMAIL = 'Ya existe un acceso con ese correo';
 
 export const BUSINESS_NAME_TOO_LONG = `El nombre del negocio debe tener como máximo ${MAX_BUSINESS_NAME} caracteres`;
@@ -41,9 +44,11 @@ export const BUSINESS_NAME_TOO_LONG = `El nombre del negocio debe tener como má
 export const SELLERS_FILTER_PARAM = 'estado';
 export const SELLERS_INACTIVE_PARAM_VALUE = 'desactivados';
 
-// Alertas del 409 al desactivar (piezas a su cargo) o eliminar (historial); mismo texto que el backend.
+// Alerta del 409 al desactivar o eliminar (piezas a su cargo); mismo texto que el backend.
+// Texto del backend cuando, al eliminar, aparecen movimientos entre la revisión y el borrado (409 de carrera).
+// Se distingue del 409 por piezas por este mensaje; la alerta de la ficha lo muestra tal cual.
+export const SELLER_REMOVE_RACE_MESSAGE = 'El vendedor acaba de tener movimientos: intenta de nuevo';
 export const SELLER_HAS_UNITS = 'Retírale sus piezas antes de desactivarlo';
-export const SELLER_HAS_HISTORY = 'Tiene historial: solo se puede desactivar';
 
 // Aviso de que el vendedor ya no existe (404), compartido por la ficha y el pop-up.
 export const SELLER_GONE_NOTICE = 'Este vendedor ya no está disponible';

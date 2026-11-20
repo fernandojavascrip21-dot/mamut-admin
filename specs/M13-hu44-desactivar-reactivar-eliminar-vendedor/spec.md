@@ -1,6 +1,6 @@
 # Spec — HU-44 · Desactivar, reactivar o eliminar a un vendedor
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:**
 > - M13-t42-base-gestion-vendedores (`specs/M13-t42-base-gestion-vendedores/spec.md`): `POST /api/sellers/[id]/deactivate`, `POST …/reactivate`, `DELETE /api/sellers/[id]`, `GET /api/sellers?status=inactive`, `GET /api/sellers/[id]?status=any` y los mensajes `SELLER_HAS_UNITS` / `SELLER_HAS_HISTORY`. Este spec solo suma al backend el aviso por correo (§3 «Correo al vendedor»).
 > - M13-hu43-ficha-editar-vendedor (`specs/M13-hu43-ficha-editar-vendedor/spec.md`): la ficha con su `Tag` de estado, el pop-up «Editar datos» (`edit-seller-page`), `unsavedSellerGuard` y `SellerChangesService`.

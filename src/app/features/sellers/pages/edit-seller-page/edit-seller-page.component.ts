@@ -7,7 +7,7 @@ import { ConfirmService } from '@core/confirm/confirm.service';
 import { ToastService } from '@core/toast/toast.service';
 import { ModalPanelComponent } from '@shared/components/modal-panel/modal-panel.component';
 import { isNotFound } from '@shared/utils/http-errors';
-import { closeModalLink, leaveModalLink, returnModalLink } from '@shared/utils/modal-links';
+import { closeModalLink, leaveModalLink, returnModalLink, sellerPasswordModalLink } from '@shared/utils/modal-links';
 import { SellerEditFormComponent } from '../../components/seller-edit-form/seller-edit-form.component';
 import type { SellerEditField } from '../../components/seller-edit-form/seller-edit-form.models';
 import {
@@ -17,7 +17,7 @@ import {
   removeConfirmation, sellerDeactivatedNotice, sellerRemovedNotice,
 } from '../../constants/edit-seller-page.constants';
 import {
-  DUPLICATE_EMAIL, REACTIVATE_EMAIL_WARNING, SELLER_GONE_NOTICE, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLER_HAS_HISTORY, SELLER_HAS_UNITS,
+  DUPLICATE_EMAIL, REACTIVATE_EMAIL_WARNING, SELLER_GONE_NOTICE, SELLERS_FILTER_PARAM, SELLERS_INACTIVE_PARAM_VALUE, SELLER_HAS_UNITS, SELLER_REMOVE_RACE_MESSAGE,
   sellerReactivatedNotice,
 } from '../../constants/sellers.constants';
 import type { Seller, SellerDetail, SellerStatusResult, UpdateSellerInput, UpdateSellerResult } from '../../interfaces/seller.models';
@@ -199,6 +199,11 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
     void this.router.navigate(returnModalLink(this.sellerId));
   }
 
+  // «Cambiar contraseña»: cambia este pop-up por el de contraseña (pasa por el guard de salida).
+  changePassword(): void {
+    void this.router.navigate(sellerPasswordModalLink(this.sellerId));
+  }
+
   // Corre la acción de estado bloqueando el pop-up (saving()) y limpia la alerta de un 409 anterior.
   private runStatus(action: EditSellerStatusAction, request: Observable<SellerStatusResult>, seller: SellerDetail): void {
     if (this.saving()) return;
@@ -220,8 +225,9 @@ export class EditSellerPageComponent implements EditSellerLeaveTarget {
       case 'has-units':
         this.statusNotice.set({ message: SELLER_HAS_UNITS, showReturn: true });
         return;
-      case 'has-history':
-        this.statusNotice.set({ message: SELLER_HAS_HISTORY, showReturn: false });
+      // 409 de carrera al eliminar: alerta genérica, sin invitar a retirar piezas.
+      case 'error':
+        this.statusNotice.set({ message: SELLER_REMOVE_RACE_MESSAGE, showReturn: false });
         return;
       case 'not-found':
         this.toastService.error(SELLER_GONE_NOTICE);

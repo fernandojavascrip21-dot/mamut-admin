@@ -4,6 +4,8 @@ export const DEACTIVATE_HELP =
   'Si ya no trabaja contigo: no podrá entrar a la app, sus ventas y cortes se conservan y le llegará un aviso por correo.';
 export const REACTIVATE_HELP =
   'Vuelve a «Mis vendedores», «Viendo» y «Dejar», entra con su contraseña y le llegará un aviso por correo.';
+export const CHANGE_PASSWORD_LABEL = 'Cambiar contraseña';
+export const CHANGE_PASSWORD_HELP = 'Define una contraseña temporal nueva y se cierran sus sesiones abiertas.';
 export const REMOVE_HELP = 'Solo si lo diste de alta por error y nunca tuvo movimientos.';
 
 // Texto de cada botón: normal y mientras corre su acción.

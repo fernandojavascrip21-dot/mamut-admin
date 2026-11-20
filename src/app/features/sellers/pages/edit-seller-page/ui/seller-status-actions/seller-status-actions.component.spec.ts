@@ -123,12 +123,9 @@ describe('SellerStatusActionsComponent', () => {
       expect(returnUnits).toHaveBeenCalledTimes(1);
     });
 
-    it('con historial muestra el texto y no ofrece «Retirar producto»', async () => {
-      await setup({ active: true, notice: { message: 'Tiene historial: solo se puede desactivar', showReturn: false } });
-      expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
-        'Tiene historial: solo se puede desactivar',
-      );
-      expect(button('Retirar producto')).toBeUndefined();
+    it('ya no existe la alerta de historial: un aviso de piezas no la menciona', async () => {
+      await setup({ active: true, notice: { message: 'Retírale sus piezas antes de desactivarlo', showReturn: true } });
+      expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).not.toContain('Tiene historial');
     });
   });
 });

@@ -48,7 +48,7 @@ export const deactivateConfirmation = (name: string, hasChanges: boolean): Confi
 export const removeConfirmation = (name: string, hasChanges: boolean): ConfirmOptions => ({
   title: `¿Eliminar a «${name}»?`,
   message:
-    'Se borra su acceso para siempre. Solo se puede si nunca tuvo movimientos; si tiene historial, desactívalo.' +
+    `Se eliminará a ${name}. Si tiene historial, solo se archiva: sus ventas y cortes se conservan, no podrá recuperarse desde la app y su correo quedará libre para un alta nueva.` +
     (hasChanges ? ` ${UNSAVED_LOST_LINE}` : ''),
   confirmLabel: 'Eliminar',
   cancelLabel: 'Cancelar',

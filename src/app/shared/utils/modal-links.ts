@@ -10,6 +10,7 @@ import {
   MODAL_RECEIPT_PATH,
   MODAL_RESTOCK_PATH,
   MODAL_RETURN_PATH,
+  MODAL_SELLER_PASSWORD_PATH,
   MODAL_SHRINKAGE_PATH,
 } from '../constants/modal.constants';
 
@@ -104,4 +105,9 @@ export function receiptModalLink(): unknown[] {
 // «Editar datos» del vendedor (HU-43): el id va en la ruta `vendedor/:sellerId`.
 export function editSellerModalLink(sellerId: string): unknown[] {
   return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_EDIT_SELLER_PATH, sellerId] } }];
+}
+
+// «Cambiar contraseña» del vendedor (HU-45): ruta `vendedor/:sellerId/contrasena`.
+export function sellerPasswordModalLink(sellerId: string): unknown[] {
+  return ['/admin', { outlets: { [MODAL_OUTLET]: [MODAL_EDIT_SELLER_PATH, sellerId, MODAL_SELLER_PASSWORD_PATH] } }];
 }
