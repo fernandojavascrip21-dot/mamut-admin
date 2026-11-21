@@ -19,7 +19,9 @@ A new **Angular 22** admin app (`mamut-admin`) for a supplement-inventory busine
 ### Frontend (repo root — Angular 22, SSR, Tailwind v4)
 
 ```bash
-npm start / npm run dev / npm run dev:all   # :4200 / + backend :3000 / + db:start (Docker Supabase)
+npm start / npm run dev / npm run dev:all   # :4200 / + backend :3000 (forces LOCAL block) / + db:start (Docker Supabase)
+npm run dev:prod                            # same as dev but activates the PRODUCCIÓN block of backend/.env (no Docker)
+npm run env:local | env:prod                # only switch the active block of backend/.env
 npm run build | watch                       # production build / dev watch
 npm test                                    # ng test: Vitest runner, jsdom (not Karma/Jasmine)
 ng test --include src/app/core/auth/services/auth.service.spec.ts   # one file
@@ -29,7 +31,7 @@ npm run test:e2e                            # Playwright end-to-end (desktop + 3
 npm run config:prepare                      # PrimeNG license + API URL files (the pre* hooks run it); ui:prepare / api:prepare run each alone
 ```
 
-Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY` and `API_BASE_URL`. `API_BASE_URL` (spec `M7-t31`) is the backend origin read at build time from the env or the root `.env`: absolute URL, `http:` only for localhost/127.0.0.1, no path; if missing or invalid the build fails. `scripts/prepare-api-url.mjs` writes the git-ignored `core/api-base-url.generated.ts`, which only `core/api-base-url.ts` re-exports. There is no lint script.
+Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh checkout; CI must define `PRIMENG_LICENSE_KEY` and `API_BASE_URL`. `API_BASE_URL` (spec `M7-t31`) is the backend origin read at build time from the env or the root `.env` (the `.env` holds the production origin; `prestart`, `predev` and `predev:prod` override it with `http://localhost:3000` through the process env, so only local runs call the local backend): absolute URL, `http:` only for localhost/127.0.0.1, no path; if missing or invalid the build fails. `scripts/prepare-api-url.mjs` writes the git-ignored `core/api-base-url.generated.ts`, which only `core/api-base-url.ts` re-exports. There is no lint script.
 
 **CI** (spec `M7-t32`): `.github/workflows/ci.yml` runs on every PR and push to `main` with three jobs, which are the required checks of `main` (renaming one means updating the branch protection in the same change): `frontend` (`config:prepare` with the `PRIMENG_LICENSE_KEY` secret, `node --test scripts/*.test.mjs`, `ng build`, `check:architecture`, `ng test --watch=false`), `backend` (`type-check`, `build`, `architecture.test.ts`) and `backend-db` (Supabase local in the runner with the demo keys and the full backend suite; it fails if the DB is not `127.0.0.1` or `SUPABASE_SERVICE_ROLE_KEY` is missing, and warns about skipped tests). Node version comes from `.nvmrc`.
 
@@ -43,7 +45,7 @@ Direct `ng serve|build|test` need `npm run config:prepare` first on a fresh chec
 npm run dev | build | start | type-check   # :3000/api/health
 npm test                                   # vitest against the REAL database in DATABASE_URL (never a mock)
 npx vitest run tests/admins.test.ts        # one file
-npm run db:check | db:pull                 # sanity query / regenerate src/db/schema.ts (point .env at PRODUCCIÓN first)
+npm run db:check | db:pull                 # sanity query / regenerate src/db/schema.ts (db:pull switches .env to PRODUCCIÓN itself and back to LOCAL after)
 ```
 
 - Tests that touch accounts need `SUPABASE_SERVICE_ROLE_KEY`; without it they are **silently skipped**, so a green run doesn't prove auth passed. They create `test-auth-` / `test-tx-` data and clean it up.
@@ -53,7 +55,7 @@ npm run db:check | db:pull                 # sanity query / regenerate src/db/sc
 
 `npm run db:start | db:reset | db:status | db:stop` (repo root, needs Docker Desktop). `db:reset` re-applies `supabase/migrations` + `supabase/seed.sql`.
 
-- `backend/.env` has **PRODUCCIÓN** and **LOCAL** connection blocks; keep one active. Next, Vitest, `db:check` and drizzle all read it; restart `npm run dev` after switching.
+- `backend/.env` has **PRODUCCIÓN** and **LOCAL** connection blocks; exactly one is active and `scripts/switch-env.mjs` flips them (never by hand). `npm run dev`, `dev:all`, `npm test`, `db:check` and `test:e2e` force LOCAL; only `npm run dev:prod` and `db:pull` activate PRODUCCIÓN. Next, Vitest, `db:check` and drizzle all read the file. Calling `next dev`/`vitest` directly skips the switch, so check the active block first.
 - Studio http://127.0.0.1:54323 · Mailpit :54324 · DB `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
 - **`usuarios-prueba.md`** (repo root) lists test accounts. It is **local only** (`.gitignore`: real passwords, public repo) — never commit it or copy its contents into a tracked file; update it when accounts change.
 - `next dev` may exit right after start-up with a security-upgrade notice (exit 1): run `npm run dev` again. Upgrading Next is a separate, deliberate change.

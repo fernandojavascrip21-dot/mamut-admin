@@ -6,9 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "predb:pull": "node ../scripts/switch-env.mjs prod",
     "db:pull": "drizzle-kit pull",
+    "postdb:pull": "node ../scripts/switch-env.mjs local",
+    "predb:check": "node ../scripts/switch-env.mjs local",
     "db:check": "node --env-file=.env --import tsx scripts/check-db.mts",
     "type-check": "tsc --noEmit",
+    "pretest": "node ../scripts/switch-env.mjs local",
     "test": "vitest run"
   },
   "dependencies": {
