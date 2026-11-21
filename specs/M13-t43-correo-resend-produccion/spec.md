@@ -79,11 +79,11 @@ Reglas:
 
 ## 5. Criterios de aceptación
 
-- [ ] Resend muestra el dominio como «Verified».
-- [ ] Vercel tiene las cuatro variables en el proyecto del backend, solo en Production, y el backend se redesplegó después de cargarlas.
+- [x] Resend muestra el dominio como «Verified».
+- [x] Vercel tiene las cuatro variables en el proyecto del backend, solo en Production, y el backend se redesplegó después de cargarlas.
 - [ ] La clave de producción es distinta de la de local y solo tiene «Sending access» para el dominio.
-- [ ] Al desactivar un vendedor de prueba en producción, llega «Tu acceso a Mammut fue desactivado» a su correo registrado, con remitente `Mammut <avisos@<dominio>>`.
-- [ ] Al reactivarlo, llega «Tu acceso a Mammut fue reactivado».
+- [x] Al desactivar un vendedor de prueba en producción, llega «Tu acceso a Mammut fue desactivado» a su correo registrado, con remitente `Mammut <avisos@<dominio>>`.
+- [x] Al reactivarlo, llega «Tu acceso a Mammut fue reactivado».
 - [ ] Al cambiarle la contraseña temporal, llega «Tu contraseña de Mammut fue cambiada», sin la contraseña.
 - [ ] Ninguno de los tres correos trae contraseña, enlaces ni cifras.
 - [ ] Un vendedor de prueba llamado `Ana <b>&</b> "Co"` recibe el nombre tal cual, sin HTML interpretado ni doble escape.
@@ -91,6 +91,12 @@ Reglas:
 - [ ] El administrador no ve el aviso «no se pudo avisarle por correo» en ninguno de los tres casos.
 - [ ] `backend/.env.example` y `backend/README.md` describen las cuatro variables y los dos avisos, sin valores reales.
 - [ ] El vendedor de prueba se elimina o desactiva al terminar.
+
+**Estado de la verificación (2026-11-21):**
+
+- Hechos: dominio verificado (SPF, DKIM y DMARC publicados en el DNS de Vercel), variables cargadas, backend redesplegado **y promovido**, y los correos de desactivar y reactivar se envían.
+- Abierto: que lleguen a la bandeja y no a spam. Hoy caen en spam: es la reputación de un dominio nuevo con extensión `.site`, no un error de configuración. Se deja como riesgo conocido; si en una o dos semanas de envíos reales sigue igual con SPF, DKIM y DMARC en `PASS`, se evalúa un dominio `.com` o `.com.mx` en un spec nuevo.
+- Por confirmar: el correo de contraseña cambiada, el nombre `Ana <b>&</b> "Co"` y la limpieza del vendedor de prueba.
 
 ## 6. Decisiones
 
