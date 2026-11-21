@@ -28,7 +28,7 @@ import {
 // sale un correo real; lo que no es de Resend (ni la falla simulada de Auth) pasa al `fetch` verdadero.
 const PREFIX = 'test-archive-'
 const RESEND_URL = 'https://api.resend.com/emails'
-const ENV_KEYS = ['RESEND_API_KEY', 'RESEND_FROM', 'RESEND_TEMPLATE_SELLER_STATUS', 'RESEND_TEMPLATE_SELLER_PASSWORD'] as const
+const ENV_KEYS = ['RESEND_API_KEY', 'RESEND_FROM', 'RESEND_TEMPLATE_SELLER_STATUS', 'RESEND_TEMPLATE_SELLER_PASSWORD', 'RESEND_TEMPLATE_SELLER_DELETE'] as const
 const productName = (label: string) => `${PREFIX}${label}-${Date.now()}-${Math.floor(Math.random() * 1e5)}`
 
 const realFetch = globalThis.fetch
@@ -150,6 +150,7 @@ describe.skipIf(!hasServiceKey)('Archivar al eliminar un vendedor con historial 
     process.env.RESEND_FROM = 'Mammut <avisos@ejemplo.test>'
     process.env.RESEND_TEMPLATE_SELLER_STATUS = 'plantilla-de-prueba'
     process.env.RESEND_TEMPLATE_SELLER_PASSWORD = 'plantilla-de-prueba'
+    process.env.RESEND_TEMPLATE_SELLER_DELETE = 'plantilla-de-prueba'
     vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = urlOf(input)
       if (url === RESEND_URL) {
@@ -197,10 +198,10 @@ describe.skipIf(!hasServiceKey)('Archivar al eliminar un vendedor con historial 
       expect(await movementCount(target.id)).toBe(before)
     })
 
-    it('no manda ningún correo por Resend', async () => {
+    it('manda un correo de eliminación por Resend', async () => {
       const target = await sellerWithHistory('m45-sin-correo')
       expect((await remove(target.id)).status).toBe(204)
-      expect(resendCalls).toHaveLength(0)
+      expect(resendCalls).toHaveLength(1)
     })
 
     it('con piezas a su cargo da 409 con el mensaje de desactivar y no archiva nada', async () => {
@@ -220,7 +221,7 @@ describe.skipIf(!hasServiceKey)('Archivar al eliminar un vendedor con historial 
       expect((await remove(target.id)).status).toBe(204)
       expect(await archiveRow(target.id)).toBeUndefined()
       expect((await supabaseAdmin().auth.admin.getUserById(target.id)).data.user).toBeNull()
-      expect(resendCalls).toHaveLength(0)
+      expect(resendCalls).toHaveLength(1)
     })
 
     it('si Auth falla al liberar el correo, el vendedor sigue activo y sin archivar y la petición da error', async () => {

@@ -1,5 +1,7 @@
 // API pública del módulo de avisos por correo (spec M13-hu44): solo lo que usan los demás módulos.
 import { sendEmail } from './resend'
+import { sellerDeletedEmail } from './seller-deleted-email'
+import type { SellerDeletedKind } from './constants'
 import { sellerPasswordEmail } from './seller-password-email'
 import { sellerStatusEmail, type SellerStatusKind } from './seller-status-email'
 
@@ -36,5 +38,23 @@ export async function sendSellerPasswordEmail(input: { to: string | null; name: 
     templateId: process.env.RESEND_TEMPLATE_SELLER_PASSWORD ?? '',
     variables: { ...variables },
     logLabel: 'el aviso del vendedor',
+  })
+}
+
+// Avisa al vendedor que su cuenta fue eliminada (spec M13-t44); nunca lanza. Sin correo no hay a quién
+// escribir ('skipped'). El id de la plantilla viene del entorno.
+export async function sendSellerDeletedEmail(input: {
+  to: string | null
+  name: string
+  kind: SellerDeletedKind
+}): Promise<EmailStatus> {
+  if (!input.to) return 'skipped'
+  const { subject, variables } = sellerDeletedEmail(input.kind, input.name)
+  return sendEmail({
+    to: input.to,
+    subject,
+    templateId: process.env.RESEND_TEMPLATE_SELLER_DELETE ?? '',
+    variables: { ...variables },
+    logLabel: 'el aviso de eliminación',
   })
 }
