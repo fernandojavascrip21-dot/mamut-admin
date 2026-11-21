@@ -15,9 +15,10 @@ import { cleanupTestData, createTestUser, hasServiceKey, TEST_PREFIX, type TestU
 // `fetch` verdadero.
 const RESEND_URL = 'https://api.resend.com/emails'
 const TEMPLATE_ID = 'plantilla-de-prueba-123'
+const DELETE_TEMPLATE_ID = 'plantilla-eliminacion-123'
 const API_KEY = 're_clave_de_prueba'
 const FROM = 'Mammut <avisos@ejemplo.test>'
-const ENV_KEYS = ['RESEND_API_KEY', 'RESEND_FROM', 'RESEND_TEMPLATE_SELLER_STATUS'] as const
+const ENV_KEYS = ['RESEND_API_KEY', 'RESEND_FROM', 'RESEND_TEMPLATE_SELLER_STATUS', 'RESEND_TEMPLATE_SELLER_DELETE'] as const
 const TO = 'victor.vendedor@ejemplo.test'
 
 const TEXTS = {
@@ -58,7 +59,7 @@ function stubResend() {
 
 const saved: Record<string, string | undefined> = {}
 function setEmailEnv(overrides: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {}) {
-  const values = { RESEND_API_KEY: API_KEY, RESEND_FROM: FROM, RESEND_TEMPLATE_SELLER_STATUS: TEMPLATE_ID, ...overrides }
+  const values = { RESEND_API_KEY: API_KEY, RESEND_FROM: FROM, RESEND_TEMPLATE_SELLER_STATUS: TEMPLATE_ID, RESEND_TEMPLATE_SELLER_DELETE: DELETE_TEMPLATE_ID, ...overrides }
   for (const key of ENV_KEYS) {
     if (values[key] === undefined) delete process.env[key]
     else process.env[key] = values[key]
@@ -160,7 +161,7 @@ describe('sendSellerStatusEmail: la petición a Resend', () => {
 })
 
 describe('sendSellerStatusEmail: resultado', () => {
-  it.each(ENV_KEYS)('sin %s da «skipped» y no llama a fetch', async (key) => {
+  it.each(ENV_KEYS.filter((key) => key !== 'RESEND_TEMPLATE_SELLER_DELETE'))('sin %s da «skipped» y no llama a fetch', async (key) => {
     setEmailEnv({ [key]: undefined })
     expect(await sendSellerStatusEmail({ to: TO, name: 'Ana', kind: 'deactivated' })).toBe('skipped')
     expect(resendCalls).toHaveLength(0)
@@ -324,11 +325,13 @@ describe.skipIf(!hasServiceKey)('Aviso por correo al cambiar el estado (spec M13
     expect(resendCalls).toHaveLength(0)
   })
 
-  it('eliminar no manda correo', async () => {
+  it('eliminar sin historial manda un correo con la plantilla de eliminación', async () => {
     const target = await newSeller('hu44-eliminar')
     const res = await deleteRoute(request('DELETE', admin.token), ctx(target.id))
     expect(res.status).toBe(204)
-    expect(resendCalls).toHaveLength(0)
+    expect(resendCalls).toHaveLength(1)
+    expect((resendCalls[0]!.body.template as { id: string }).id).toBe(DELETE_TEMPLATE_ID)
+    expect(variablesOf(resendCalls[0]!).NOTE).toBe('Ya no hay datos tuyos en la app.')
   })
 
   it('sin las variables de Resend el estado cambia y responde emailStatus «skipped»', async () => {

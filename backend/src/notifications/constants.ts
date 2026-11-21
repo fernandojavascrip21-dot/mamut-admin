@@ -23,6 +23,20 @@ export const SELLER_STATUS_TEXTS = {
   },
 } as const
 
+export type SellerDeletedKind = 'archived' | 'purged'
+// Las mismas cuatro variables de la plantilla: NAME, HEADLINE, MESSAGE y NOTE.
+export type SellerDeletedVariables = SellerStatusVariables
+
+// Texto del aviso de eliminación (§3 del spec M13-t44): la nota cambia según se archivó o se borró.
+export const SELLER_DELETED_TEXTS = {
+  headline: 'Tu cuenta de Mammut fue eliminada',
+  message: 'Tu usuario en Mammut fue eliminado y ya no podrás entrar a la app.',
+  notes: {
+    archived: 'Tu historial de ventas se conserva.',
+    purged: 'Ya no hay datos tuyos en la app.',
+  },
+} as const
+
 // Caracteres que la plantilla (triple llave, sin escape propio) no neutraliza.
 export const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',

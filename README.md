@@ -65,12 +65,13 @@ Copia `.env.example` a `.env` en la raíz. Las variables del frontend se leen al
 
 ## Base de prueba (Docker) vs. producción
 
-`backend/.env` tiene dos bloques de conexión, **PRODUCCIÓN** y **LOCAL**. Deja activo uno y comenta el otro con `#` (en VS Code: selecciona las líneas y usa `Cmd+/`).
+`backend/.env` tiene dos bloques de conexión, **PRODUCCIÓN** y **LOCAL**. Ya no se cambian a mano: `scripts/switch-env.mjs` activa uno y comenta el otro según el comando que corras.
 
-- **Usar la base de prueba:** bloque LOCAL activo y PRODUCCIÓN comentado, más `npm run db:start`.
-- **Usar producción:** descomenta PRODUCCIÓN y comenta LOCAL. No hace falta Docker.
+- **Base de prueba (por omisión):** `npm run dev`, `npm run dev:all`, `npm test` (backend), `db:check` y `test:e2e` dejan LOCAL activo antes de correr.
+- **Producción:** `npm run dev:prod` activa PRODUCCIÓN y arranca frontend + backend (no hace falta Docker). `db:pull` también la activa y vuelve a LOCAL al terminar.
+- **Solo cambiar de bloque:** `npm run env:local` / `npm run env:prod`.
 
-Después de cambiar de bloque, **reinicia** `npm run dev`. La variable `ALLOWED_ORIGINS`, al final del archivo, es común a los dos bloques y no se toca.
+La variable `ALLOWED_ORIGINS`, al final del archivo, es común a los dos bloques y no se toca. Llamar a `next dev` o `vitest` directamente se salta el cambio: ahí revisa tú el bloque activo.
 
 Para saber a cuál base estás conectado:
 
@@ -82,12 +83,12 @@ cd backend && npm run db:check
 
 | Quiero… | Bloque activo |
 | --- | --- |
-| Desarrollar, probar, correr `npm test` | LOCAL |
+| Desarrollar, probar, correr `npm test` | LOCAL (`npm run dev`) |
 | Probar una migración nueva | LOCAL |
-| Ver o usar los datos reales | PRODUCCIÓN |
-| Regenerar el esquema con `npm run db:pull` | PRODUCCIÓN |
+| Ver o usar los datos reales | PRODUCCIÓN (`npm run dev:prod`) |
+| Regenerar el esquema con `npm run db:pull` | PRODUCCIÓN (automático) |
 
-> ⚠️ Con PRODUCCIÓN activa, `npm test` del backend escribe en la base real.
+> ⚠️ Con PRODUCCIÓN activa, `vitest` directo escribiría en la base real; `npm test` fuerza LOCAL antes de correr.
 
 ## Base de prueba (Docker)
 
@@ -173,6 +174,7 @@ Si se renombra un job en `ci.yml`, hay que actualizar esta regla en el mismo cam
 
 | Comando | Dónde | Qué hace |
 | --- | --- | --- |
+| `npm run dev:prod` | raíz | Activa el bloque PRODUCCIÓN de `backend/.env` y levanta frontend + backend (sin Docker) |
 | `npm run dev:all` | raíz | Base de prueba en Docker (`db:start`) y luego frontend + backend (`dev`) |
 | `npm start` | raíz | Solo el frontend (`ng serve`) |
 | `npm run build` | raíz | Build de producción del frontend |

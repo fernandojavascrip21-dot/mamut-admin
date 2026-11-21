@@ -5,7 +5,7 @@ import { isForeignKeyViolation } from '@db/errors'
 import { profiles, stockMovements, vendorStock } from '@db/schema'
 import { lockRows, withTransaction } from '@db/transaction'
 import { conflict, notFound, validation } from '@lib/errors'
-import { sendSellerPasswordEmail, sendSellerStatusEmail, type EmailStatus } from '@notifications'
+import { sendSellerDeletedEmail, sendSellerPasswordEmail, sendSellerStatusEmail, type EmailStatus } from '@notifications'
 import { supabaseAdmin } from '@lib/supabase'
 import { stockOfHolder, unitsByHolder, type HolderStockLine } from '@stock'
 import { createAccount, normalizeEmail, toView, validatePassword, type AccountView } from './accounts'
@@ -277,7 +277,7 @@ async function withStatusEmail(
 // y sin ellas se archiva (mismo candado que deactivateSeller) y su correo de Auth se libera.
 export async function deleteSeller(id: string): Promise<void> {
   // El correo original se lee antes del candado, para no mantenerlo bloqueado esperando a Auth.
-  await findSeller(id)
+  const { fullName } = await findSeller(id)
   const { data, error: readError } = await supabaseAdmin().auth.admin.getUserById(id)
   if (readError) throw readError
   const archivedEmail = data.user?.email ?? ''
@@ -298,7 +298,11 @@ export async function deleteSeller(id: string): Promise<void> {
       .where(eq(profiles.id, id))
     return seller.active
   })
-  if (wasActive === null) return purgeSeller(id)
+  if (wasActive === null) {
+    await purgeSeller(id)
+    await sendSellerDeletedEmail({ to: archivedEmail, name: fullName, kind: 'purged' })
+    return
+  }
 
   // El perfil ya está archivado; si Auth no libera el correo se deshace (compensación), porque un
   // archivado con el correo aún tomado impediría el alta nueva que esta regla promete.
@@ -310,6 +314,7 @@ export async function deleteSeller(id: string): Promise<void> {
     await db.update(profiles).set({ archivedAt: null, active: wasActive, archivedEmail: null }).where(eq(profiles.id, id))
     throw error
   }
+  await sendSellerDeletedEmail({ to: archivedEmail, name: fullName, kind: 'archived' })
 }
 
 // Borrado físico de un alta sin historial. La FK `restrict` es la red de seguridad si un movimiento
